@@ -385,11 +385,11 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| FND-01 | P1: Instalação self-hosted | F0 | Pending |
-| FND-02 | P1: Instalação self-hosted | F0 | Pending |
-| FND-03 | P1: Instalação self-hosted | F0 | Pending |
-| FND-04 | P1: Instalação self-hosted | F0 | Pending |
-| FND-05 | P1: Instalação self-hosted | F0 | Pending |
+| FND-01 | P1: Instalação self-hosted | F0 | In Tasks |
+| FND-02 | P1: Instalação self-hosted | F0 | In Tasks |
+| FND-03 | P1: Instalação self-hosted | F0 | In Tasks |
+| FND-04 | P1: Instalação self-hosted | F0 | In Tasks |
+| FND-05 | P1: Instalação self-hosted | F0 | In Tasks |
 | AUTH-01 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-02 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Pending |
@@ -401,7 +401,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | EDT-04 | P1: Edição server-first | F1 | Pending |
 | EDT-05 | P1: Edição server-first | F1 | Pending |
 | EDT-06 | P1: Edição server-first | F1 | Pending |
-| EDT-07 | P1: Edição server-first | F1 | Pending |
+| EDT-07 | P1: Edição server-first | F1 | In Tasks |
 | REC-01 | P1: Recuperação após crash | F1 | Pending |
 | REC-02 | P1: Recuperação após crash | F1 | Pending |
 | REC-03 | P1: Recuperação após crash | F1 | Pending |
@@ -467,7 +467,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 77 total, 0 mapped to tasks, 77 unmapped ⚠️ (fase Tasks ainda não executada)
+**Coverage:** 77 total, 6 mapped to tasks (onda F0: FND-01..05, EDT-07; spikes T10/T11 de-riscam EXP-01/EDT-01), 71 unmapped — ondas F1+ pendentes ⚠️
 
 ---
 

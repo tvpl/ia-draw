@@ -53,10 +53,10 @@
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
-- **Phase / Task**: Specify — spec.md e context.md escritos; aguardando confirmação do usuário para avançar ao Design
-- **Completed**: revisão crítica da spec do PO; discussão de gray areas (4 decisões confirmadas); spec.md EARS (77 requisitos, 18 histórias); context.md; docs/product-spec.md preservado com emendas AD-001..AD-006
+- **Phase / Task**: Tasks — design.md e tasks.md (onda F0, T1..T11) escritos e validados; aguardando aprovação para Execute
+- **Completed**: Specify aprovado pelo usuário (spec.md 77 requisitos); design.md (arquitetura completa, APIs upstream verificadas); tasks.md F0 com 11 tasks em 3 fases, validate_tasks 0 erros; traceability FND-01..05 + EDT-07 → In Tasks
 - **In-progress** (file:line): none
-- **Next step**: usuário confirma/ajusta spec.md → fase Design (design.md: arquitetura de módulos, schema de migrations, protocolo WS, spikes F0)
-- **Blockers**: none
+- **Next step**: usuário aprova tasks.md + escolhe execução inline vs sub-agents (2 batches: A=T1..T7, B=T8..T11) → Execute Batch A
+- **Blockers**: aprovação do usuário para iniciar implementação
 - **Uncommitted files**: none (após commit desta sessão)
 - **Branch**: claude/architecture-canvas-system-cdwop7
