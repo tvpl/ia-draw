@@ -175,14 +175,16 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] 3 raias com 2-4 nodes cada produzem zero overlap entre raias e entre nodes da mesma raia
-- [ ] Nodes conectados por uma edge de `mode: 'dependency'` aparecem em ordem consistente com a direção da edge
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] 3 raias com 2-4 nodes cada produzem zero overlap entre raias e entre nodes da mesma raia
+- [x] Nodes conectados por uma edge de `mode: 'dependency'` aparecem em ordem consistente com a direção da edge
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-ir): add swimlane layout engine for business flows`
+
+**Status**: ✅ Complete — `layoutSwimlane` in `src/layout/swimlane.ts`. Lanes stack horizontally (documented choice), one per `kind: 'swimlane'` container plus one implicit trailing lane for unassigned nodes; within a lane, nodes are ordered by BFS topological layering over in-lane edges. 2 tests in `src/layout/swimlane.spec.ts` (3-lane zero-overlap, dependency-edge order). `pnpm -w test:unit` green.
 
 ---
 
