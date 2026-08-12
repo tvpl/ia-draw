@@ -14,6 +14,8 @@ const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3000),
   SESSION_SECRET: z.string().min(1).default(INSECURE_DEV_SECRET),
   ENCRYPTION_KEY: z.string().min(1).default(INSECURE_DEV_SECRET),
+  /** Public origin the server is reachable at; scheme drives the session cookie's Secure flag. */
+  PUBLIC_URL: z.string().min(1).default('http://localhost:3000'),
 });
 
 export interface AppConfig {
@@ -21,6 +23,7 @@ export interface AppConfig {
   port: number;
   sessionSecret: string;
   encryptionKey: string;
+  publicUrl: string;
 }
 
 /**
@@ -47,5 +50,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     port: parsed.PORT,
     sessionSecret: parsed.SESSION_SECRET,
     encryptionKey: parsed.ENCRYPTION_KEY,
+    publicUrl: parsed.PUBLIC_URL,
   };
 }

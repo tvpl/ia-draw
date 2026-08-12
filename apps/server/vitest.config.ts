@@ -3,6 +3,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['src/**/*.spec.ts'],
+    exclude: ['**/node_modules/**', 'src/**/*.int.spec.ts'],
     // The render module's own fixtures (@arch-canvas/test-fixtures) transitively import
     // @excalidraw/excalidraw, which touches `window`/`FontFace` at module init. See
     // packages/editor-adapter/vitest.config.ts for the full rationale (same package,

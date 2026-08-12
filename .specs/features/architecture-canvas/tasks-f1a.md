@@ -139,17 +139,19 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Login com senha correta verifica hash Argon2id e emite cookie `HttpOnly; SameSite=Lax` (+ `Secure` quando `config.publicUrl` é https)
-- [ ] Login com senha incorreta retorna 401 sem vazar se o email existe
-- [ ] `GET /me` sem cookie retorna 401; com cookie válido retorna o usuário
-- [ ] `POST /auth/refresh` rotaciona o token (o token antigo deixa de funcionar)
-- [ ] `POST /auth/logout` revoga a sessão (cookie subsequente falha)
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Login com senha correta verifica hash Argon2id e emite cookie `HttpOnly; SameSite=Lax` (+ `Secure` quando `config.publicUrl` é https)
+- [x] Login com senha incorreta retorna 401 sem vazar se o email existe
+- [x] `GET /me` sem cookie retorna 401; com cookie válido retorna o usuário
+- [x] `POST /auth/refresh` rotaciona o token (o token antigo deixa de funcionar)
+- [x] `POST /auth/logout` revoga a sessão (cookie subsequente falha)
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add local account auth with argon2id and session cookies`
+
+**Status**: ✅ Complete — `apps/server/src/modules/auth/` (`createLocalAccount`/`verifyLocalPassword` via `argon2` argon2id, `createSession`/`rotateSession`/`revokeSession`/`verifySession` sobre a tabela `sessions` já existente de T5, `requireSession` preHandler reutilizável, `registerAuthModule` com `POST /auth/login|logout|refresh` e `GET /me`). 8 testes de integração (PGlite) cobrindo os 5 done-when + Secure ligado/desligado conforme `config.publicUrl`. Gate full verde. **Achados/decisões registradas**: (1) a tabela `sessions` descrita no "What" deste task já existia integralmente desde T5 (mesmos campos) — nenhuma migration nova foi necessária para ela; (2) `users.password_hash` (coluna nova, nullable) foi adicionado via migration `0002_mighty_arclight.sql` em `packages/database` — extensão mínima e necessária de schema para viabilizar contas locais, não coberta por T5; `packages/database/src/tx.ts` passou a exportar o tipo `Schema` para permitir tipagem consistente do `db` fora do pacote; (3) `apps/server/src/core/config.ts` ganhou `PUBLIC_URL` (default `http://localhost:3000`) — necessário para a regra `Secure` condicional; (4) `apps/server/vitest.config.ts` (unit) passou a excluir `**/*.int.spec.ts` (o padrão `*.spec.ts` já capturava esses arquivos, duplicando execução entre os gates quick/full); (5) **deferido deliberadamente**: `apps/server/src/index.ts` não foi conectado a um `pg.Pool` real (sem `DATABASE_URL` em produção) — as rotas ficam expostas via `registerAuthModule(app, {db, config})` mas o boot real do processo contra Postgres real não pôde ser exercitado neste sandbox (sem Docker); T16 segue o mesmo padrão de app+db injetados em teste.
 
 ---
 

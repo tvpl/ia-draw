@@ -8,19 +8,26 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "test:integration": "vitest run -c vitest.integration.config.ts"
   },
   "dependencies": {
+    "@arch-canvas/auth": "workspace:*",
+    "@arch-canvas/database": "workspace:*",
     "@arch-canvas/shared-contracts": "workspace:*",
     "@excalidraw/utils": "0.1.3-test32",
+    "@fastify/cookie": "^11.1.2",
     "@resvg/resvg-js": "^2.6.2",
+    "argon2": "^0.45.1",
     "canvas": "^3.2.3",
+    "drizzle-orm": "^0.45.2",
     "fastify": "^5.11.3",
     "jsdom": "^30.0.1",
     "zod": "^4.1.12"
   },
   "devDependencies": {
     "@arch-canvas/test-fixtures": "workspace:*",
+    "@electric-sql/pglite": "^0.5.4",
     "@types/jsdom": "^30.0.0",
     "@types/node": "^22.20.1",
     "typescript": "^5.9.3",

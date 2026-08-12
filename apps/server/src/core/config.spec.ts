@@ -8,6 +8,7 @@ describe('loadConfig (spec §12 / FND-03)', () => {
     expect(config.sessionSecret).toBe(INSECURE_DEV_SECRET);
     expect(config.encryptionKey).toBe(INSECURE_DEV_SECRET);
     expect(config.port).toBe(3000);
+    expect(config.publicUrl).toBe('http://localhost:3000');
   });
 
   it('throws naming SESSION_SECRET when production keeps the insecure default', () => {

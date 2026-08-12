@@ -15,6 +15,13 @@
       "when": 1786509070630,
       "tag": "0001_neat_the_enforcers",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786509243992,
+      "tag": "0002_mighty_arclight",
+      "breakpoints": true
     }
   ]
 }

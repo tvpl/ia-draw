@@ -2,7 +2,8 @@ import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
 import type * as schema from './schema.js';
 
-type Schema = typeof schema;
+/** The full Drizzle schema shape — exported so consumers can type their own `db` handles consistently with `withTx`. */
+export type Schema = typeof schema;
 
 /**
  * Runs `fn` inside a transaction and returns its result, rolling back on throw.

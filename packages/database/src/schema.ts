@@ -35,6 +35,8 @@ export const users = pgTable(
     avatarUrl: text('avatar_url'),
     status: text('status').notNull().default('active'),
     authSubject: text('auth_subject'),
+    /** Argon2id hash for local email/password accounts (AUTH-01); null for OIDC-only users. */
+    passwordHash: text('password_hash'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
