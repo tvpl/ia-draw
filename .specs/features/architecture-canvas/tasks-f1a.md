@@ -170,15 +170,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Ticket emitido é consumível exatamente uma vez; segunda tentativa de consumo retorna `null`
-- [ ] Ticket expirado (TTL 30s) não é consumível
-- [ ] `POST /diagrams/{id}/ws-ticket` sem sessão retorna 401; com sessão sem acesso ao workspace do diagrama retorna 404 (não 403 — ver T18 IDOR)
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Ticket emitido é consumível exatamente uma vez; segunda tentativa de consumo retorna `null`
+- [x] Ticket expirado (TTL 30s) não é consumível
+- [x] `POST /diagrams/{id}/ws-ticket` sem sessão retorna 401; com sessão sem acesso ao workspace do diagrama retorna 404 (não 403 — ver T18 IDOR)
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add single-use websocket ticket issuance and consumption`
+
+**Status**: ✅ Complete — `apps/server/src/modules/auth/ws-ticket.ts` (`issueWsTicket`/`consumeWsTicket` sobre tabela nova `ws_tickets`, migration `0003_omniscient_demogoblin.sql`; `consumeWsTicket` usa uma única `UPDATE ws_tickets SET used_at = now() WHERE token_hash = $1 AND used_at IS NULL AND expires_at > now() RETURNING` — reuso e expiração cobertos pela mesma instrução atômica, sem race). `resolveDiagramMembership` faz o join diagram→project→workspace_members para decidir 404 vs 200 (nunca 403, IDOR-safe). `POST /diagrams/:id/ws-ticket` registrado em `registerAuthModule`, protegido por `requireSession` + `can(role, 'diagram:read', ...)` de `packages/auth`. 5 testes de integração (PGlite) cobrindo os 3 done-when (consumo único, expiração, 401/404) + happy path 200. Gate full verde — 13 testes de integração no server (8 de T14 + 5 novos).
 
 ---
 

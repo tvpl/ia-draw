@@ -163,3 +163,27 @@ export const diagrams = pgTable('diagrams', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Single-use WebSocket handshake tickets (AUTH-02, design.md Tech Decisions).
+ * `consumeWsTicket` marks `used_at` via one atomic
+ * `UPDATE ... WHERE used_at IS NULL RETURNING` so a race between two
+ * concurrent consume attempts can never both succeed.
+ */
+export const wsTickets = pgTable(
+  'ws_tickets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tokenHash: text('token_hash').notNull(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('ws_tickets_token_hash_unique').on(table.tokenHash)],
+);

@@ -13,3 +13,12 @@ export {
 export { registerAuthModule, type AuthModuleDeps } from './routes.js';
 export { generateOpaqueToken, hashToken } from './tokens.js';
 export type { AuthContext } from './types.js';
+export {
+  consumeWsTicket,
+  issueWsTicket,
+  resolveDiagramMembership,
+  WS_TICKET_TTL_MS,
+  type DiagramMembership,
+  type WsTicketClaim,
+  type WsTicketIssue,
+} from './ws-ticket.js';

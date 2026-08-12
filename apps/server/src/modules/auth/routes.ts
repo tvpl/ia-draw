@@ -1,3 +1,4 @@
+import { can } from '@arch-canvas/auth';
 import fastifyCookie from '@fastify/cookie';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -8,6 +9,7 @@ import type { Db } from './db.js';
 import { requireSession } from './middleware.js';
 import { createSession, revokeSession, rotateSession } from './session.js';
 import './types.js';
+import { issueWsTicket, resolveDiagramMembership } from './ws-ticket.js';
 
 export interface AuthModuleDeps {
   db: Db;
@@ -26,6 +28,12 @@ function invalidCredentials(): never {
 function unauthorized(): never {
   throw Object.assign(new Error('Unauthorized'), { statusCode: 401 });
 }
+
+function notFound(): never {
+  throw Object.assign(new Error('Not Found'), { statusCode: 404 });
+}
+
+const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
 export async function registerAuthModule(app: FastifyInstance, deps: AuthModuleDeps): Promise<void> {
@@ -66,5 +74,24 @@ export async function registerAuthModule(app: FastifyInstance, deps: AuthModuleD
 
   app.get('/me', { preHandler: requireSession(db) }, async (request) => {
     return { user: request.authContext?.user };
+  });
+
+  // Emission stub only (T15) — the WebSocket gateway that consumes these
+  // tickets is out of scope for this wave (F1b).
+  app.post('/diagrams/:id/ws-ticket', { preHandler: requireSession(db) }, async (request) => {
+    const params = diagramIdParamsSchema.parse(request.params);
+    const user = request.authContext?.user;
+    if (!user) unauthorized();
+
+    const membership = await resolveDiagramMembership(db, params.id, user.id);
+    if (!membership) notFound();
+
+    const decision = can({ role: membership.role }, 'diagram:read', {
+      workspaceId: membership.workspaceId,
+    });
+    if (!decision.allowed) notFound();
+
+    const issued = await issueWsTicket(db, user.id, params.id);
+    return { ticket: issued.ticket, expiresAt: issued.expiresAt.toISOString() };
   });
 }
