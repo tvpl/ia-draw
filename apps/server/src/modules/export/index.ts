@@ -17,6 +17,6 @@ export {
   InvalidImportError,
   previewImport,
 } from './import.js';
-export { svgToPdfBuffer } from './pdf.js';
+export { svgPagesToPdfBuffer, svgToPdfBuffer } from './pdf.js';
 export { type ExportModuleDeps, registerExportModule } from './routes.js';
 export { type ExportedScene, parseScene, serializeScene } from './sceneFile.js';

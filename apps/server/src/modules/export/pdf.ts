@@ -37,10 +37,16 @@ export interface SvgToPdfOptions {
   compress?: boolean;
 }
 
-export function svgToPdfBuffer(svg: string, options: SvgToPdfOptions = {}): Promise<Buffer> {
-  const width = parseSvgDimension(svg, 'width') ?? DEFAULT_PDF_WIDTH;
-  const height = parseSvgDimension(svg, 'height') ?? DEFAULT_PDF_HEIGHT;
-
+/**
+ * Converts multiple SVG strings to a single multi-page PDF buffer, one page
+ * per SVG, in order — used by the presentation module's `:export-pdf` route
+ * (T66, PRS-05) to concatenate one page per frame. `svgToPdfBuffer` below is
+ * this function specialized to a single page, so the two never drift apart.
+ */
+export function svgPagesToPdfBuffer(
+  svgs: readonly string[],
+  options: SvgToPdfOptions = {},
+): Promise<Buffer> {
   return new Promise((resolve, reject) => {
     const doc = new PDFDocument({ autoFirstPage: false, compress: options.compress ?? true });
     const chunks: Buffer[] = [];
@@ -48,8 +54,16 @@ export function svgToPdfBuffer(svg: string, options: SvgToPdfOptions = {}): Prom
     doc.on('end', () => resolve(Buffer.concat(chunks)));
     doc.on('error', reject);
 
-    doc.addPage({ size: [width, height] });
-    SVGtoPDF(doc, svg, 0, 0);
+    for (const svg of svgs) {
+      const width = parseSvgDimension(svg, 'width') ?? DEFAULT_PDF_WIDTH;
+      const height = parseSvgDimension(svg, 'height') ?? DEFAULT_PDF_HEIGHT;
+      doc.addPage({ size: [width, height] });
+      SVGtoPDF(doc, svg, 0, 0);
+    }
     doc.end();
   });
+}
+
+export function svgToPdfBuffer(svg: string, options: SvgToPdfOptions = {}): Promise<Buffer> {
+  return svgPagesToPdfBuffer([svg], options);
 }

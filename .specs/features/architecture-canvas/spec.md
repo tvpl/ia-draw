@@ -445,11 +445,11 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | DOC-02 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
 | DOC-03 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
 | DOC-04 | P2: Geração de documentação | F3 | Implementing (T63) |
-| PRS-01 | P2: Apresentação e protótipos | F3 | Pending |
-| PRS-02 | P2: Apresentação e protótipos | F3 | Pending |
-| PRS-03 | P2: Apresentação e protótipos | F3 | Pending |
+| PRS-01 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
+| PRS-02 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
+| PRS-03 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
 | PRS-04 | P2: Apresentação e protótipos | F3 | Pending |
-| PRS-05 | P2: Apresentação e protótipos | F3 | Pending |
+| PRS-05 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
 | LNT-01 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
 | LNT-02 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
 | LNT-03 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |

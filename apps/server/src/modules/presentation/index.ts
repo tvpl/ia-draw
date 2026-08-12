@@ -1,4 +1,9 @@
 export {
+  type ExportPresentationPdfResult,
+  exportPresentationPdf,
+  NoFramesToExportError,
+} from './exportPdf.js';
+export {
   bulkReorderFrames,
   createFrame,
   deleteFrame,
@@ -19,4 +24,16 @@ export {
   setPublishedSnapshot,
   updatePresentation,
 } from './presentations.js';
+export {
+  getPublishedPresentation,
+  PresentationExpiredError,
+  PresentationNotPublishedError,
+  type PublishedPresentationView,
+  type PublishPresentationInput,
+  publishPresentation,
+} from './publish.js';
+export {
+  type PresentationPublishModuleDeps,
+  registerPresentationPublishModule,
+} from './publishRoutes.js';
 export { type PresentationModuleDeps, registerPresentationModule } from './routes.js';
