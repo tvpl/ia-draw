@@ -385,8 +385,8 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| FND-01 | P1: Instalação self-hosted | F0 | In Tasks |
-| FND-02 | P1: Instalação self-hosted | F0 | In Tasks |
+| FND-01 | P1: Instalação self-hosted | F0 | Implementing |
+| FND-02 | P1: Instalação self-hosted | F0 | Implementing |
 | FND-03 | P1: Instalação self-hosted | F0 | Implementing |
 | FND-04 | P1: Instalação self-hosted | F0 | In Tasks |
 | FND-05 | P1: Instalação self-hosted | F0 | Implementing |
