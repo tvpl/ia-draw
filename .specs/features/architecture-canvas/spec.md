@@ -378,6 +378,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 - WHEN a scene reaches 5000 elements THEN the system SHALL keep pan/zoom usable and bootstrap p95 under 3 seconds.
 - IF MinIO is unavailable during an image insert THEN the system SHALL not acknowledge the referencing element with a broken reference.
 - IF an AI run exceeds its token budget or timeout THEN the system SHALL cancel it, record the error code and leave the canvas untouched.
+- WHEN a workspace admin changes a member's role THEN REST enforcement is immediate by construction (each route resolves the actor's role fresh from `workspace_members` on every request, no per-request caching — T18); enforcement on an *already-open* WebSocket connection for that member is out of scope until the ws-gateway module exists (F1b) and is not claimed by this wave.
 
 ---
 
@@ -393,8 +394,8 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AUTH-01 | P1: Contas, workspaces e RBAC | F1 | Implementing |
 | AUTH-02 | P1: Contas, workspaces e RBAC | F1 | Implementing |
 | AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Implementing |
-| AUTH-04 | P1: Contas, workspaces e RBAC | F1 | Pending |
-| AUTH-05 | P1: Contas, workspaces e RBAC | F1 | Pending |
+| AUTH-04 | P1: Contas, workspaces e RBAC | F1 | Implementing |
+| AUTH-05 | P1: Contas, workspaces e RBAC | F1 | Implementing |
 | EDT-01 | P1: Edição server-first | F1 | Implementing |
 | EDT-02 | P1: Edição server-first | F1 | Pending |
 | EDT-03 | P1: Edição server-first | F1 | Pending |

@@ -259,15 +259,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Toda combinação papel×operação da matriz tem uma assertiva explícita (200/201/403/404 conforme o caso)
-- [ ] Não-membro de workspace recebe 404 em GET de workspace/project/diagram (nunca 403, nunca vazamento de existência)
-- [ ] Downgrade de `editor` para `viewer` faz a chamada seguinte (mesma sessão) receber 403 em mutação
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Toda combinação papel×operação da matriz tem uma assertiva explícita (200/201/403/404 conforme o caso)
+- [x] Não-membro de workspace recebe 404 em GET de workspace/project/diagram (nunca 403, nunca vazamento de existência)
+- [x] Downgrade de `editor` para `viewer` faz a chamada seguinte (mesma sessão) receber 403 em mutação
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `test(server): add full rbac idor matrix and immediate role-downgrade enforcement`
+
+**Status**: ✅ Complete — `apps/server/src/modules/workspace/rbac-matrix.int.spec.ts`. Matriz completa e explícita: 12 operações (workspace read/write/delete/manage_members; project read/write-create/write-update/delete; diagram read/write-create/write-update/delete) × 5 papéis = 60 assertivas individuais geradas a partir de uma tabela de papéis permitidos por cenário (não um loop cego — cada combinação vira um `it()` nomeado com o status esperado exato: 200/201/204/403). 3 testes de IDOR (workspace/project/diagram, não-membro → 404, nunca 403). 1 teste de downgrade imediato: `editor` muta com sucesso (200), é rebaixado para `viewer` via `PATCH /workspaces/:id/members/:userId`, e a chamada seguinte com o MESMO cookie de sessão recebe 403 — prova que não há cache de papel entre requisições. Total: 64 testes de integração novos. Gate full verde — 47 testes unit + 97 testes de integração no server. `spec.md` Edge Cases ganhou uma entrada explícita documentando que o enforcement REST é imediato por construção e que o enforcement sobre conexões WebSocket já abertas fica para F1b (ws-gateway ainda não existe). **Nota de processo**: rodei também o gate `build` (lint/typecheck/build) por precaução de fim-de-fase; `pnpm -w lint` revelou drift de formatação Biome pré-existente em arquivos já commitados de T12/T14/T15/T16/T17 (nunca haviam passado por `pnpm format`) — como o Gate declarado deste task é `full`, não `build`, reformatar retroativamente commits já fechados violaria "uma task = um commit"; as mudanças de formatação foram revertidas (`git checkout --`) e o gate `full` real do task foi confirmado verde após o revert. Lint limpo fica registrado aqui como débito pré-existente, não como bloqueio de T18.
 
 ---
 
