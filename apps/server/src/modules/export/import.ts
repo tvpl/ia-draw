@@ -26,10 +26,23 @@ interface ParsedImport {
 }
 
 /**
+ * Sanity ceiling on an imported scene's element count — well above spec.md's own
+ * ~5,000-element scale target, purely to bound the cost of reconciling a pathological
+ * import (spec.md Edge Cases: "an uploaded archive/import expanding beyond a
+ * reasonable size must abort with a clear error" — the request body itself is already
+ * capped at the Fastify layer, `core/server.ts`'s `MAX_REQUEST_BODY_BYTES`; this bounds
+ * the parsed element count specifically, since a small but deeply-nested/repetitive
+ * JSON payload could still stay under the byte cap while parsing to an excessive
+ * element array).
+ */
+export const MAX_IMPORT_ELEMENTS = 20_000;
+
+/**
  * Validates an uploaded `.excalidraw` file's schema (EXP-03) and returns a preview —
  * never persists anything. Rejects with a clear `InvalidImportError` (400) for
  * malformed JSON, a JSON file that isn't the expected scene envelope (`sceneFile.ts`'s
- * own `parseScene` validation), or one whose `elements` field isn't an array.
+ * own `parseScene` validation), one whose `elements` field isn't an array, or one that
+ * exceeds `MAX_IMPORT_ELEMENTS`.
  */
 export function previewImport(fileContent: string): ParsedImport {
   let parsed: { elements: readonly SceneElement[]; appState: PersistableAppState };
@@ -40,6 +53,11 @@ export function previewImport(fileContent: string): ParsedImport {
   }
   if (!Array.isArray(parsed.elements)) {
     throw new InvalidImportError('.excalidraw file has no "elements" array');
+  }
+  if (parsed.elements.length > MAX_IMPORT_ELEMENTS) {
+    throw new InvalidImportError(
+      `.excalidraw file has ${parsed.elements.length} elements, exceeding the ${MAX_IMPORT_ELEMENTS}-element import limit`,
+    );
   }
 
   return {

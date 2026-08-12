@@ -24,6 +24,15 @@ export interface BuildServerOptions {
   loggerOverrides?: LoggerOverrides;
 }
 
+/**
+ * Caps every request body at 10 MB — generous for a large diagram import (spec.md's
+ * own scale target is ~5,000 elements) while bounding memory/CPU cost from an
+ * oversized payload. Defense in depth for the "uploaded archive/import expands
+ * beyond a reasonable size" edge case (spec.md Edge Cases) ahead of Fastify's
+ * un-configured 1 MB default, which is too tight for legitimate large imports.
+ */
+const MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024;
+
 export function buildServer(config: AppConfig, options: BuildServerOptions = {}): FastifyInstance {
   const dependencyChecks = options.dependencyChecks ?? [];
 
@@ -32,6 +41,7 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     // buildLoggerOptions (OPS-05) adds secret/PII redaction and a requestId label.
     logger: buildLoggerOptions(config, options.loggerOverrides),
     requestIdLogLabel: REQUEST_ID_LOG_LABEL,
+    bodyLimit: MAX_REQUEST_BODY_BYTES,
   });
 
   app.get('/health/live', async () => ({ status: 'ok' as const }));

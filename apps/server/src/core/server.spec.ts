@@ -25,6 +25,22 @@ describe('buildServer (spec §11 / FND-05)', () => {
     await app.close();
   });
 
+  it('rejects a request body over 10 MB with 413, before any route handler runs (spec.md Edge Cases — oversized import/archive)', async () => {
+    const app = buildServer(testConfig());
+    app.post('/__body-limit-test', async () => ({ ok: true }));
+
+    const oversized = 'x'.repeat(10 * 1024 * 1024 + 1);
+    const response = await app.inject({
+      method: 'POST',
+      url: '/__body-limit-test',
+      payload: oversized,
+      headers: { 'content-type': 'text/plain' },
+    });
+
+    expect(response.statusCode).toBe(413);
+    await app.close();
+  });
+
   it('GET /health/ready responds 200 with status ok when all dependencies are reachable', async () => {
     const app = buildServer(testConfig(), {
       dependencyChecks: [{ name: 'postgres', check: async () => true }],

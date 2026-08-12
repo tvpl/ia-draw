@@ -371,7 +371,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 ## Edge Cases
 
 - IF an uploaded SVG contains scripts or external references THEN the system SHALL sanitize or reject it before storage.
-- IF an uploaded archive expands beyond the configured size ratio (zip bomb) THEN the system SHALL abort the import with a clear error.
+- IF an uploaded archive expands beyond the configured size ratio (zip bomb) THEN the system SHALL abort the import with a clear error. *(F1c Verifier flagged this as unaddressed for `.excalidraw` import — fixed: `MAX_REQUEST_BODY_BYTES` 10 MB Fastify `bodyLimit` in `apps/server/src/core/server.ts` + `MAX_IMPORT_ELEMENTS` 20,000 element-count ceiling in `apps/server/src/modules/export/import.ts`. No route currently decompresses a zip/archive upload — only `.excalidraw` JSON import exists; bundle export only compresses outbound, never decompresses inbound — so the literal "archive expand ratio" case has no code path yet. Re-verify this note when a bundle-import-back-in route is ever added.)*
 - IF a WebSocket ticket is reused after its single use or expiry THEN the system SHALL reject the connection.
 - IF operations arrive out of order after reconnection THEN the system SHALL order them by sequence before reconciliation.
 - IF a mutation batch exceeds the 256 KB message limit THEN the system SHALL reject it with a specific error instructing the client to chunk.
