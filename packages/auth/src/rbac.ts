@@ -13,6 +13,14 @@ export type Role = 'org_admin' | 'workspace_admin' | 'editor' | 'reviewer' | 'vi
  * writes and is intentionally a separate action — never derived from
  * `diagram:write` — so a role can hold one without automatically holding
  * the other.
+ *
+ * `comment:create`/`comment:resolve` (T69, CMT-01/02) are a THIRD
+ * independent axis, deliberately never derived from `diagram:write`/
+ * `diagram:mutate` either: spec.md's CMT-01 AC is "WHEN a user comments...
+ * THEN the system SHALL persist" (no role restriction) and CMT-02
+ * specifically requires `reviewer` to be accepted for commenting while
+ * canvas mutation stays rejected — commenting is async review, not a canvas
+ * edit, so every role that can view a diagram can also comment on it.
  */
 export type Action =
   | 'workspace:read'
@@ -22,7 +30,9 @@ export type Action =
   | 'project:write'
   | 'diagram:read'
   | 'diagram:write'
-  | 'diagram:mutate';
+  | 'diagram:mutate'
+  | 'comment:create'
+  | 'comment:resolve';
 
 export interface Actor {
   role: Role;
@@ -44,13 +54,14 @@ export interface Decision {
  * action (org_admin ⊇ workspace_admin). `workspace_admin` ⊇ `editor`.
  * `editor` holds every write action including `diagram:mutate`.
  *
- * `reviewer` and `viewer` hold only `*:read` actions in this minimal action
- * set — the spec's "editor > reviewer > viewer" ordering is a privilege
- * ranking (reviewer sits above viewer organizationally, e.g. for future
- * comment/approval actions in F3's CMT-01), not a claim that reviewer holds
- * any of the 8 actions below that viewer lacks. Critically, `diagram:mutate`
- * is denied to reviewer unconditionally — never inferred from `diagram:write`
- * (AUTH-03: viewer/reviewer canvas mutations are always rejected).
+ * `reviewer` and `viewer` hold only `*:read` actions plus `comment:*`
+ * (T69) among the actions below — the spec's "editor > reviewer > viewer"
+ * ordering is a privilege ranking (reviewer sits above viewer
+ * organizationally), not a claim that reviewer holds any *write* action
+ * viewer lacks. Critically, `diagram:mutate` is denied to reviewer
+ * unconditionally — never inferred from `diagram:write` or from holding
+ * `comment:create`/`comment:resolve` (AUTH-03/CMT-02: viewer/reviewer canvas
+ * mutations are always rejected, even though both may freely comment).
  */
 const READ_ACTIONS: readonly Action[] = ['workspace:read', 'project:read', 'diagram:read'];
 
@@ -62,14 +73,23 @@ const WRITE_ACTIONS: readonly Action[] = [
   'diagram:mutate',
 ];
 
-const ALL_ACTIONS: readonly Action[] = [...READ_ACTIONS, ...WRITE_ACTIONS];
+/** T69 (CMT-01/02): granted to every role — see the `Action` docstring above for why this is a third axis, never derived from `diagram:write`/`diagram:mutate`. */
+const COMMENT_ACTIONS: readonly Action[] = ['comment:create', 'comment:resolve'];
+
+const ALL_ACTIONS: readonly Action[] = [...READ_ACTIONS, ...WRITE_ACTIONS, ...COMMENT_ACTIONS];
 
 const ROLE_GRANTS: Readonly<Record<Role, ReadonlySet<Action>>> = {
   org_admin: new Set(ALL_ACTIONS),
   workspace_admin: new Set(ALL_ACTIONS),
-  editor: new Set([...READ_ACTIONS, 'project:write', 'diagram:write', 'diagram:mutate']),
-  reviewer: new Set(READ_ACTIONS),
-  viewer: new Set(READ_ACTIONS),
+  editor: new Set([
+    ...READ_ACTIONS,
+    'project:write',
+    'diagram:write',
+    'diagram:mutate',
+    ...COMMENT_ACTIONS,
+  ]),
+  reviewer: new Set([...READ_ACTIONS, ...COMMENT_ACTIONS]),
+  viewer: new Set([...READ_ACTIONS, ...COMMENT_ACTIONS]),
 };
 
 /**

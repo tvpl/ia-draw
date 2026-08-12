@@ -4,6 +4,7 @@ import { registerAiProviderModule } from '../modules/ai-provider/routes.js';
 import { registerAssetModule } from '../modules/asset/routes.js';
 import type { Db } from '../modules/auth/db.js';
 import { registerAuthModule } from '../modules/auth/routes.js';
+import { registerCommentModule } from '../modules/comment/routes.js';
 import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
 import { registerDocgenModule } from '../modules/docgen/routes.js';
 import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
@@ -60,6 +61,7 @@ export async function registerAllModules(
   registerLintModule(app, { db });
   registerPresentationModule(app, { db });
   registerPresentationPublishModule(app, { db, storage });
+  registerCommentModule(app, { db });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);
