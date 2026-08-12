@@ -237,15 +237,17 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Uma edição no canvas gera uma mutação na fila com `clientMutationId`/`baseRevision`/deltas corretos
-- [ ] Debounce agrupa edições rápidas sucessivas em um único lote dentro da janela 500-1000ms (teste com fake timers)
-- [ ] Evento `visibilitychange`/`pagehide` força o flush imediato mesmo dentro da janela de debounce
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Uma edição no canvas gera uma mutação na fila com `clientMutationId`/`baseRevision`/deltas corretos
+- [x] Debounce agrupa edições rápidas sucessivas em um único lote dentro da janela 500-1000ms (teste com fake timers)
+- [x] Evento `visibilitychange`/`pagehide` força o flush imediato mesmo dentro da janela de debounce
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(web): add real editor surface with debounced local mutation queue`
+
+**Status**: ✅ Complete — `apps/web/src/diagram/DiagramEditorPage.tsx` mounts the real `<EditorSurface/>` on route `/w/:workspaceId/d/:diagramId` (routing choice documented in the component's doc comment), feeding `onDeltas` into `apps/web/src/sync/mutationQueue.ts`'s Zustand-backed `createMutationQueue` (debounce clamped to 500-1000ms, last-write-per-element merge) with `wireForcedFlush` for `visibilitychange`/`pagehide`. **Deviation**: `<EditorSurface/>` didn't exist yet in `packages/editor-adapter` (design.md assigns it there; F0/T9 built only `computeDiff`/`applyRemote`/`serializeScene`) — added it there in this commit (`EditorSurface.tsx`, plus `react`/`react-dom` deps and `jsx`/`DOM` lib in tsconfig) since building a second Excalidraw integration point inside `apps/web` would violate EDT-07's single-boundary invariant; extended `no-internal-import.spec.ts` to also scan `.tsx` so the guard still covers the new file. 11 new unit tests (`apps/web` gets its first `test:unit`/vitest setup) covering correct-fields, debounce grouping, clamping, same-element replace, empty-flush no-op, and forced flush via both events plus an unwire test. `pnpm -w test:unit` green (13/13 packages, apps/web now included).
 
 ---
 

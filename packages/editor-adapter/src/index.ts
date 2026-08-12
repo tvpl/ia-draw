@@ -1,5 +1,6 @@
 export { applyRemote } from './applyRemote.js';
 export { buildSceneIndex, computeDiff } from './computeDiff.js';
+export { EditorSurface, type EditorSurfaceProps } from './EditorSurface.js';
 export { sanitizeAppState } from './sanitizeAppState.js';
 export { parseScene, type SerializedScene, serializeScene } from './serializeScene.js';
 export type {

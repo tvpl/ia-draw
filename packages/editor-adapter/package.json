@@ -18,11 +18,15 @@
     "benchmark": "vitest bench --run"
   },
   "dependencies": {
-    "@excalidraw/excalidraw": "0.18.1"
+    "@excalidraw/excalidraw": "0.18.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
   },
   "devDependencies": {
     "@arch-canvas/test-fixtures": "workspace:*",
     "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
     "canvas": "^3.2.3",
     "jsdom": "^30.0.1",
     "typescript": "^5.9.3",

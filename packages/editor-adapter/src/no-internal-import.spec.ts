@@ -9,7 +9,7 @@ function collectSourceFiles(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
     const full = join(dir, entry.name);
     if (entry.isDirectory()) return collectSourceFiles(full);
-    return entry.name.endsWith('.ts') ? [full] : [];
+    return entry.name.endsWith('.ts') || entry.name.endsWith('.tsx') ? [full] : [];
   });
 }
 
