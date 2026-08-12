@@ -14,7 +14,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "benchmark": "vitest bench --run"
   },
   "dependencies": {
     "@excalidraw/excalidraw": "0.18.1"

@@ -1,3 +1,4 @@
+export { type GeneratedElement, generateScene } from './generateScene.js';
 export {
   allFixtures,
   arrowWithBindingsFixture,

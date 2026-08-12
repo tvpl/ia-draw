@@ -395,7 +395,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-04 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-05 | P1: Contas, workspaces e RBAC | F1 | Pending |
-| EDT-01 | P1: Edição server-first | F1 | Pending |
+| EDT-01 | P1: Edição server-first | F1 | Implementing |
 | EDT-02 | P1: Edição server-first | F1 | Pending |
 | EDT-03 | P1: Edição server-first | F1 | Pending |
 | EDT-04 | P1: Edição server-first | F1 | Pending |

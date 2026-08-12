@@ -379,15 +379,17 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] Gerador produz cenas válidas de 1k e 5k elementos (determinístico por seed)
-- [ ] Teste valida contagem/validade das cenas geradas
-- [ ] Baseline registrado com números de parse/serialize para 1k/5k
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Gerador produz cenas válidas de 1k e 5k elementos (determinístico por seed)
+- [x] Teste valida contagem/validade das cenas geradas
+- [x] Baseline registrado com números de parse/serialize para 1k/5k
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(fixtures): add deterministic 1k/5k scene generator and bootstrap baseline`
+
+**Status**: ✅ Complete — `packages/test-fixtures/src/generateScene.ts` (mulberry32 seeded PRNG, round-robin rectangle/text/arrow split, zero library randomness so output is provably deterministic); 8 testes unit (1k/5k count, well-formed via `restoreElements`, exact split, byte-identical same-seed, differing-seed). Benchmark em `packages/editor-adapter/src/benchmark-scenes.bench.ts` (`vitest bench`, não `tsx` — um script `tsx` standalone foi tentado primeiro e falhou por um gap real de interop ESM/CJS do Node com `@excalidraw/laser-pointer`, dependência transitiva do Excalidraw, fora do loader do Vite/Vitest; documentado no arquivo). Baseline registrado em `docs/operations/benchmarks.md` (1k: 522.3 KB / serializeScene 2.69ms / parseScene 2.97ms / computeDiff 0.10–0.14ms; 5k: 2.6 MB / 12.69ms / 16.14ms / 0.75–1.13ms — sandbox local, indicativo). Gate quick (`pnpm -w test:unit`) + lint + typecheck + build verdes (86 testes no workspace)
 
 ---
 
