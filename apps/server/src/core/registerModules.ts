@@ -6,6 +6,7 @@ import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
 import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
 import { registerExportModule } from '../modules/export/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
+import { registerLibraryModule } from '../modules/library/routes.js';
 import { registerCompactionJob } from '../modules/snapshot/compaction.js';
 import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
@@ -44,6 +45,7 @@ export async function registerAllModules(
   registerAssetModule(app, { db, storage });
   registerSnapshotModule(app, { db, storage });
   registerExportModule(app, { db, storage, jobs: deps.jobs });
+  registerLibraryModule(app, { db });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);

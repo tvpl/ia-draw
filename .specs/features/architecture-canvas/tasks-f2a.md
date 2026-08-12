@@ -133,15 +133,17 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] Metadados persistidos são lidos de volta corretamente, vinculados a `elementId` e à revisão corrente
-- [ ] Export de inventário em CSV e em JSON confere com os dados persistidos (mesmo conteúdo, formatos diferentes)
-- [ ] `reviewer` recebe 403 ao tentar `PATCH` de metadados
-- [ ] Gate check passes (última task da fase 16 — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- [x] Metadados persistidos são lidos de volta corretamente, vinculados a `elementId` e à revisão corrente
+- [x] Export de inventário em CSV e em JSON confere com os dados persistidos (mesmo conteúdo, formatos diferentes)
+- [x] `reviewer` recebe 403 ao tentar `PATCH` de metadados
+- [x] Gate check passes (última task da fase 16 — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(server): add library listing, semantic metadata and inventory export routes`
+
+**Status**: ✅ Complete — `apps/server/src/modules/library/` adds `GET /libraries`, `GET/PATCH /diagrams/{id}/elements/{elementId}/metadata` and `GET /diagrams/{id}/inventory?format=csv|json`, wired into `registerAllModules`. Metadata revision is stamped from the diagram's real current revision (op-log max sequence, matching diagram-sync's own source of truth — `diagrams.current_revision` is an unused column, not the live value). Full workspace gate green: lint clean, typecheck clean, build clean, 119 server unit + 170 server integration tests pass (10 new in this module, 1 new wiring-reachability check).
 
 ---
 

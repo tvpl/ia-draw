@@ -36,6 +36,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@arch-canvas/library-content": "workspace:*",
     "@arch-canvas/test-fixtures": "workspace:*",
     "@electric-sql/pglite": "^0.5.4",
     "@types/jsdom": "^30.0.0",

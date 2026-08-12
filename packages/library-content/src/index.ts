@@ -6,7 +6,7 @@ export {
   type IconArtwork,
   iconArtworkSchema,
   type LibraryItem,
-  libraryItemSchema,
   type LibraryManifest,
+  libraryItemSchema,
   libraryManifestSchema,
 } from './schema.js';

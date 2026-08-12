@@ -132,7 +132,10 @@ describe('diagram_elements_meta + libraries/library_items schema (T38, LIB-02)',
     const { libraryId, itemCount } = await seedGlobalLibrary(db);
     expect(itemCount).toBe(LIBRARY_MANIFEST.items.length);
 
-    const [library] = await db.select().from(schema.libraries).where(eq(schema.libraries.id, libraryId));
+    const [library] = await db
+      .select()
+      .from(schema.libraries)
+      .where(eq(schema.libraries.id, libraryId));
     expect(library).toMatchObject({
       workspaceId: null,
       name: LIBRARY_MANIFEST.name,
