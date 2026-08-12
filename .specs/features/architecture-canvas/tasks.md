@@ -349,16 +349,18 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] SVG gerado em Node para todas as fixtures sem browser
-- [ ] PNG rasterizado com texto renderizado (fontes corretas, não fallback vazio)
-- [ ] Testes asseguram SVG contém os textos das fixtures e dimensões esperadas
-- [ ] ADR-005 atualizada com o veredito do spike (rota confirmada OU fallback acionado, com evidência)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] SVG gerado em Node para todas as fixtures sem browser
+- [x] PNG rasterizado com texto renderizado (fontes corretas, não fallback vazio)
+- [x] Testes asseguram SVG contém os textos das fixtures e dimensões esperadas
+- [x] ADR-005 atualizada com o veredito do spike (rota confirmada OU fallback acionado, com evidência)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(server): spike server-side svg/png rendering via exportToSvg and resvg`
+
+**Status**: ✅ Complete — `apps/server/src/modules/render/` (`renderSceneToSvg` via `@excalidraw/utils`'s `exportToSvg`, `rasterizeSvgToPng` via `@resvg/resvg-js`); 7 testes unit cobrindo as 5 fixtures de T9, gate quick verde. **Veredito: rota SVG-first confirmada** — SVG da fixture de texto contém a fonte real embutida (woff2/base64, não placeholder) e o texto literal, `viewBox width=274.86328125 height=45`; PNG rasterizado não vazio com magic bytes corretos para as 5 fixtures. ADR-0005 atualizada para "Aceita" com a evidência. Achados de custo real (documentados na ADR): exigiu jsdom + `canvas` nativo + shim de `FontFace` rodando no próprio processo do servidor (não só em teste); tipos publicados de `@excalidraw/utils@0.1.3-test32` são quebrados (referenciam pacotes inexistentes), contornado com tipo manual + `@ts-expect-error` documentado
 
 ---
 
