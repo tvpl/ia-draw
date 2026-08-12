@@ -439,7 +439,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | OPS-01 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-02 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-03 | P1: Backup com restore testado | F1 | ✅ Verified |
-| OPS-04 | P1: Backup com restore testado | F1 | Pending |
+| OPS-04 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-05 | P1: Backup com restore testado | F1 | Pending |
 | DOC-01 | P2: Geração de documentação | F3 | Pending |
 | DOC-02 | P2: Geração de documentação | F3 | Pending |

@@ -335,14 +335,16 @@ T36
 
 **Done when**:
 
-- [ ] Existe um mecanismo agendado (documentado) que executa create→restore periodicamente
-- [ ] Uma falha de restore proposital no teste faz o mecanismo reportar falha de forma clara (não silenciosa)
-- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- [x] Existe um mecanismo agendado (documentado) que executa create→restore periodicamente
+- [x] Uma falha de restore proposital no teste faz o mecanismo reportar falha de forma clara (não silenciosa)
+- [x] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(infra): add scheduled automated restore verification`
+
+**Status**: ✅ Complete — `.github/workflows/backup-restore-drill.yaml`: a scheduled (`cron: '0 3 * * *'`, daily, plus `workflow_dispatch` for on-demand runs) GitHub Actions workflow, chosen over a pg-boss scheduled job because it's the mechanism that can actually run given this authoring sandbox has no Docker daemon (AD-007) — a pg-boss job would only ever exercise `backup:create`/`backup:restore` against the SAME live production database process it runs inside, never a genuinely separate target. Real Postgres + a Bitnami MinIO service (the plain `minio/minio` image needs a `server /data` command argument GitHub Actions' `services:` schema has no field for — Bitnami's image starts from env vars alone, a real, documented workaround). The drill: migrate + seed a source db → `backup:create` → `backup:verify` → `backup:restore` into a second, empty database on the same postgres service (the "isolated environment / separate test schema-database" the task text explicitly permits) → asserts the seeded row landed → a dedicated negative-check step corrupts the archive's `dump.sql` bytes (manifest checksum untouched, same shape as `create.int.spec.ts`'s tamper test) and asserts `backup:restore` exits non-zero and applies nothing, explicitly failing the job (`::error::`) if it doesn't — closing the "fails loud, not silent" Done-when criterion as an asserted mechanism, not just a hope. **Additional real validation beyond the workflow YAML itself**: this sandbox turned out to have a real, installed-but-stopped PostgreSQL 16 server (`pg_ctlcluster 16 main start`) distinct from PGlite — started it, ran the ENTIRE `backup:create` → `backup:verify` → `backup:restore` pipeline for real against it (genuine `pg_dump`/`psql`, no injection, no PGlite), including the negative/tamper check, confirmed the restored data landed correctly in a truly separate empty database and that the negative check left the target with zero tables, then stopped the cluster and dropped the scratch databases to leave the sandbox as found. This is strictly stronger evidence than T34's own committed status claims and directly de-risks this workflow's command sequence (same CLI code, only the Postgres host differs between this manual run and the GitHub Actions service container). The workflow itself was not, and could not be, executed by a real GitHub Actions runner from this session — validated instead via: `python3 -c "import yaml; yaml.safe_load(...)"` (parses, same `on:`-as-boolean PyYAML artifact `ci.yaml` already has), `bash -n` against every extracted `run:` block, and `python3 -m py_compile`-equivalent syntax check on the embedded Python snippet. Lint drift accumulated in T32/T33's `apps/server/src/modules/export/` files (import ordering, one wrapped function signature) surfaced by this task's own full `pnpm -w lint` gate — fixed via Biome's safe auto-fix and folded into this commit, mirroring T31's precedent for the same situation. `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`: all green (282 unit / 177 integration tests across the workspace, lint clean, typecheck clean, build clean).
 
 ---
 

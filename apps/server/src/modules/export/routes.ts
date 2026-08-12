@@ -13,8 +13,8 @@ import {
   resolveProjectWorkspaceId,
   resolveWorkspaceRole,
 } from '../workspace/index.js';
-import { buildDiagramBundle } from './bundle.js';
 import { enqueueBulkWorkspaceBundle } from './bulkBundle.js';
+import { buildDiagramBundle } from './bundle.js';
 import { generateExports } from './generateExports.js';
 import { confirmImport, previewImport } from './import.js';
 
@@ -59,7 +59,11 @@ const FORMAT_METADATA: Record<ExportFormatName, { extension: string; contentType
   pdf: { extension: 'pdf', contentType: 'application/pdf' },
 };
 
-function exportObjectKey(diagramId: string, exportId: string, formatName: ExportFormatName): string {
+function exportObjectKey(
+  diagramId: string,
+  exportId: string,
+  formatName: ExportFormatName,
+): string {
   return `diagrams/${diagramId}/exports/${exportId}/scene.${FORMAT_METADATA[formatName].extension}`;
 }
 

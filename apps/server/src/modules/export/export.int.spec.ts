@@ -110,7 +110,10 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
       method: 'POST',
       url: '/workspaces',
       cookies,
-      payload: { name: `Export WS ${slug}`, slug: `export-ws-${slug}-${seedCounter}-${Date.now()}` },
+      payload: {
+        name: `Export WS ${slug}`,
+        slug: `export-ws-${slug}-${seedCounter}-${Date.now()}`,
+      },
     });
     const workspaceId = createWs.json().workspace.id as string;
 
@@ -133,7 +136,11 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
     return { workspaceId, projectId, diagramId };
   }
 
-  async function addRectangleElement(cookies: Record<string, string>, diagramId: string, actorId: string) {
+  async function addRectangleElement(
+    cookies: Record<string, string>,
+    diagramId: string,
+    actorId: string,
+  ) {
     const response = await app.inject({
       method: 'POST',
       url: `/diagrams/${diagramId}/operations:batch`,
@@ -267,7 +274,9 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
       for (const entry of body.manifest.files as { path: string; sha256: string }[]) {
         const unzipped = await zip.file(entry.path)?.async('nodebuffer');
         expect(unzipped).toBeDefined();
-        const actualChecksum = createHash('sha256').update(unzipped as Buffer).digest('hex');
+        const actualChecksum = createHash('sha256')
+          .update(unzipped as Buffer)
+          .digest('hex');
         expect(entry.sha256).toBe(actualChecksum);
       }
 
@@ -333,7 +342,9 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
       });
 
       expect(response.statusCode).toBe(400);
-      expect(response.json().detail ?? response.json().title).toMatch(/malformed \.excalidraw file/);
+      expect(response.json().detail ?? response.json().title).toMatch(
+        /malformed \.excalidraw file/,
+      );
     });
 
     it('confirm=true creates a new diagram seeded with the imported elements', async () => {

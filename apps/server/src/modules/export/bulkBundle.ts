@@ -14,7 +14,11 @@ async function listDiagramIdsForWorkspace(db: Db, workspaceId: string): Promise<
     .from(diagrams)
     .innerJoin(projects, eq(diagrams.projectId, projects.id))
     .where(
-      and(eq(projects.workspaceId, workspaceId), isNull(diagrams.deletedAt), isNull(projects.deletedAt)),
+      and(
+        eq(projects.workspaceId, workspaceId),
+        isNull(diagrams.deletedAt),
+        isNull(projects.deletedAt),
+      ),
     );
   return rows.map((row) => row.id);
 }
