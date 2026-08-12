@@ -5,6 +5,7 @@ import {
   jsonb,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
   uniqueIndex,
@@ -298,4 +299,70 @@ export const wsTickets = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [uniqueIndex('ws_tickets_token_hash_unique').on(table.tokenHash)],
+);
+
+/**
+ * Semantic metadata attached to a canvas element by `elementId` — entirely in
+ * the platform's own model, never touching upstream Excalidraw types or
+ * fields (LIB-02, design.md "diagram_elements_meta ... carrega a semântica
+ * fora dos tipos upstream"). Composite primary key `(diagram_id, element_id)`
+ * makes writes idempotent per element — a second PATCH for the same element
+ * updates the same row instead of creating a duplicate (T38 "Done when").
+ */
+export const diagramElementsMeta = pgTable(
+  'diagram_elements_meta',
+  {
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    elementId: text('element_id').notNull(),
+    semanticType: text('semantic_type'),
+    metadataJson: jsonb('metadata_json').notNull().default({}),
+    revision: integer('revision').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [primaryKey({ columns: [table.diagramId, table.elementId] })],
+);
+
+/**
+ * A component library — either global (`workspace_id IS NULL`, the seeded
+ * `library-content` manifest) or workspace-scoped (LIB-01/LIB-02).
+ */
+export const libraries = pgTable('libraries', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workspaceId: uuid('workspace_id').references(() => workspaces.id),
+  name: text('name').notNull(),
+  version: text('version').notNull(),
+  license: text('license').notNull(),
+  manifestJson: jsonb('manifest_json').notNull().default({}),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * One component inside a `libraries` row, resolvable by `stable_key`
+ * (design.md `compile(ir, library)` resolves components by this key — the
+ * unique index below is what makes that resolution unambiguous per
+ * library).
+ */
+export const libraryItems = pgTable(
+  'library_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    libraryId: uuid('library_id')
+      .notNull()
+      .references(() => libraries.id),
+    stableKey: text('stable_key').notNull(),
+    version: text('version').notNull(),
+    sceneJson: jsonb('scene_json').notNull().default({}),
+    metadataJson: jsonb('metadata_json').notNull().default({}),
+    iconKey: text('icon_key'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('library_items_library_stable_key_unique').on(table.libraryId, table.stableKey),
+  ],
 );

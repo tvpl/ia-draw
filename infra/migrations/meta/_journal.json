@@ -43,6 +43,13 @@
       "when": 1786520776881,
       "tag": "0005_ancient_rogue",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786528329364,
+      "tag": "0006_harsh_green_goblin",
+      "breakpoints": true
     }
   ]
 }

@@ -233,6 +233,9 @@ importers:
 
   packages/database:
     dependencies:
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../library-content
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(@electric-sql/pglite@0.5.4)(@types/pg@8.21.0)(pg@8.23.0)

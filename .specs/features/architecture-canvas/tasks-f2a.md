@@ -104,15 +104,17 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] Migration aplica limpa sobre as anteriores
-- [ ] Seed insere todos os itens do manifesto de T37 como `library_items` da library global
-- [ ] `diagram_elements_meta` tem chave primária composta `(diagram_id, element_id)` — upsert idempotente por elemento
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Migration aplica limpa sobre as anteriores
+- [x] Seed insere todos os itens do manifesto de T37 como `library_items` da library global
+- [x] `diagram_elements_meta` tem chave primária composta `(diagram_id, element_id)` — upsert idempotente por elemento
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(database): add semantic metadata and library schema with seed`
+
+**Status**: ✅ Complete — migration `0006_harsh_green_goblin.sql` adds `diagram_elements_meta` (composite PK `(diagram_id, element_id)`), `libraries` and `library_items` (unique `(library_id, stable_key)`). `seedGlobalLibrary()` idempotently registers T37's manifest as the `workspace_id IS NULL` global library. 19/19 database integration tests pass (PGlite, AD-007).
 
 ---
 

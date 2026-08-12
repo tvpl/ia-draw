@@ -429,7 +429,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIE-04 | P1: Edição por IA | F2 | Pending |
 | AIE-05 | P1: Edição por IA | F2 | Pending |
 | LIB-01 | P1: Biblioteca e semântica | F2 | Implementing |
-| LIB-02 | P1: Biblioteca e semântica | F2 | Pending |
+| LIB-02 | P1: Biblioteca e semântica | F2 | Implementing |
 | LIB-03 | P1: Biblioteca e semântica | F2 | Pending |
 | LIB-04 | P1: Biblioteca e semântica | F2 | Pending |
 | EXP-01 | P1: Export e salvamento local | F1 | ✅ Verified |
