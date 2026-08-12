@@ -986,3 +986,45 @@ All three mutations were individually applied, run, and reverted (`git checkout 
 3. AIC-04's per-workspace rate-limit dimension and token-budget enforcement are disclosed as deferred to F2c — flag to confirm F2c's task file actually picks this up explicitly rather than assuming T42 already covered it.
 
 **Next steps**: Route issue 1 to a fix task (test-only change, low risk, no re-migration needed) and re-verify with a 4th sensor mutation targeting the same file to confirm it's killed. Issues 2-3 are traceability/planning notes for future waves, not blockers.
+
+---
+
+### Re-Verification — Iteration 2
+
+**Date**: 2026-08-12
+**Fix commit under test**: `38b320c` (`test(server): assert response shape omits encryptedToken (aic-01)` — adds `not.toHaveProperty('encryptedToken')` checks to the create/list/patch responses in `apps/server/src/modules/ai-provider/ai-provider.int.spec.ts`)
+**Verifier**: fresh independent sub-agent, no access to the iteration-1 or fix-author agents' chat transcripts; re-derived every claim below from the artifacts and re-ran every check myself
+
+#### Sensor Re-run
+
+Isolated `git worktree add /tmp/f2a-reverify-scratch HEAD` (never `git stash`). Baseline `git status --porcelain` on the real tree was empty before starting. Symlinked every `node_modules` and `dist` directory from the main tree into the scratch worktree at matching relative paths (avoids a full reinstall/build while still exercising real compiled workspace packages).
+
+| # | Mutation | File:line | Description | Result |
+| - | -------- | --------- | ------------ | ------ |
+| 1 (re-run of iteration-1's survivor) | `apps/server/src/modules/ai-provider/providerConfigs.ts:26-35` | Added `encryptedToken: aiProviderConfigs.encryptedToken,` to `PUBLIC_COLUMNS` (exact same mutation iteration 1 applied) | ✅ **Now killed** — `pnpm --filter server exec vitest run -c vitest.integration.config.ts src/modules/ai-provider/ai-provider.int.spec.ts` → `Tests 1 failed \| 6 passed (7)`, failing exactly on the new assertion: `expected { …(9) } to not have property "encryptedToken"`, with the received value being the real AES-256-GCM ciphertext string (`v1:...`). Confirms Fix closed the exact gap iteration 1 found — a regression that re-adds the ciphertext to the public shape is caught immediately. Baseline run (before mutating) was independently confirmed green first: 7/7 passing. |
+| 2 (fresh, own choosing) | `apps/server/src/modules/ai-provider/rateLimit.ts:43` | `allowed: entry.count <= this.options.limit` → `allowed: entry.count <= this.options.limit + 1` (off-by-one: lets exactly one extra request through past the configured limit, an under-enforcement bug plausible in this exact class of counter code) | ✅ **Killed** — two independent test files both caught it: `pnpm --filter server exec vitest run src/modules/ai-provider/rateLimit.spec.ts` → `Tests 3 failed \| 1 passed (4)` (`expected true to be false` on the second/N+1th `.check()` call, and on the post-window-reset case); `pnpm --filter server exec vitest run -c vitest.integration.config.ts src/modules/ai-provider/ai-provider.int.spec.ts` → `Tests 1 failed \| 6 passed (7)`, `rejects the N+1-th :test call within the configured window (limit=2)` failed with `expected 200 to be 429`. Chose this mutation because AIC-04's rate-limit middleware was untouched by the fix commit and had not been sensor-tested in iteration 1 — a genuinely fresh check on this wave's scope (T37-T42), not a repeat. |
+
+Both mutations were individually applied, run, and reverted (`git checkout -- <file>`) before the worktree was removed. `git worktree remove --force /tmp/f2a-reverify-scratch` succeeded; the real tree's `git status --porcelain` was re-captured after cleanup — empty, identical to the pre-sensor baseline. No source or test file in the real tree was ever touched; both mutations and their reverts happened exclusively inside the scratch worktree.
+
+**Sensor outcome**: 2/2 killed (1 previously-survived mutant now killed, 1 fresh mutation on a different file in this wave's scope also killed), 0 survived — sensor gate clear
+
+#### Gate Re-run (full, from repo root)
+
+`pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` — **all 5 stages exit 0**.
+
+- `lint`: `biome check .` → Checked 255 files, no fixes applied.
+- `typecheck`: 20/20 package tasks successful (full-turbo cache).
+- `build`: 11/11 package tasks successful (full-turbo cache).
+- `test:unit`: **332 tests passed, 0 failed**, across 33 test files in 10 packages — shared-contracts 4 files/17, test-fixtures 1/8, backup 1/4, ai-tools 2/18, library-content 1/8, auth 1/52, editor-adapter 5/54, diagram-domain 4/21, web 3/22, server 11/128 (unchanged file/test counts from iteration 1's report in every package — the fix commit touched only an integration spec, not any unit-test file)
+- `test:integration`: **207 tests passed, 0 failed**, across 22 test files — backup 1/4, database 5/25, server 16/178 (server integration test *count* is unchanged at 178 versus iteration 1: the fix added 3 new `expect()` assertions inside the existing `token never appears in any response` test, not new `it()` blocks, so the file/test tally does not move even though coverage strengthened)
+- **Total: 539 tests, 0 failed, 0 skipped** (identical to iteration 1's reported 539 — expected, since the fix strengthened existing assertions rather than adding new test cases; no regressions, no silently-deleted tests)
+
+#### Updated Overall Verdict for Wave F2a
+
+Iteration 1's FAIL was driven by exactly one blocker, named explicitly in that report: the discrimination sensor's survived mutant on AIC-01 (`providerConfigs.ts`'s `PUBLIC_COLUMNS` gaining `encryptedToken` passed all 7 tests in `ai-provider.int.spec.ts` undetected). No other item in iteration 1 was routed as a blocking fix task — LIB-02/LIB-03's UI-trigger gap and AIC-04's per-workspace/budget gap were explicitly logged as informational, correctly-scoped-to-future-waves notes, not blockers, and this iteration does not need to re-litigate them.
+
+- The one blocker: **resolved** — re-ran the exact same mutation from iteration 1, now killed by the new `not.toHaveProperty('encryptedToken')` assertions on all three response shapes (create/list/patch). A second, freshly-chosen mutation elsewhere in this wave's scope (T37-T42, the AIC-04 rate limiter's off-by-one) also killed cleanly across both its unit and integration coverage, giving independent confidence that nothing else in this wave's diff surface regressed.
+- No regressions: the full gate is still green at the exact same 539/539 count as iteration 1 (expected — the fix added assertions to an existing test rather than new tests), lint/typecheck/build all still pass, and the two prior real gaps (LIB-02/LIB-03's unbuilt UI trigger, AIC-04's disclosed-partial per-workspace/budget dimension) are unchanged in scope and remain correctly un-closed in traceability — nothing about them was silently marked done.
+- Production code (`providerConfigs.ts`) was not touched by the fix — it was already correct per iteration 1's own live-reproduction finding; only the regression-test safety net was strengthened, exactly as the fix task specified.
+
+**Outcome: ✅ Ready** for wave F2a. AIC-01 moves from `❌ Needs Fix` to `✅ Verified` — the implementation was already correct and is now backed by a test that would actually catch a regression in the exact property the AC requires ("nem cifrado nem em claro" — neither ciphertext nor plaintext ever appears in a response). LIB-02, LIB-03 remain `✅ Verified (backend)` as iteration 1 left them (their real, disclosed UI-trigger gap is unchanged and is a future-wave planning item, not a defect of this wave). AIC-04 remains `⚠️ Partial` in this section's own framing (disclosed F2c scope) — its spec.md traceability row was already left unmarked by iteration 1 and stays that way here; only AIC-01's row is updated by this re-verification. This closes wave F2a as a clean PASS with no fabricated coverage: every remaining gap noted above was already known, already disclosed, and already correctly scoped to a later wave before this re-verification began.
