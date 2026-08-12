@@ -66,6 +66,14 @@
 - **Date**: 2026-08-12
 - **Status**: active
 
+### AD-009
+- **Decision**: F4's presença/cursores em tempo real (CLB-01) usam um `PresenceBroadcaster` injetável com duas implementações — `InMemoryPresenceBroadcaster` (padrão, EventEmitter, um processo) e `RedisPresenceBroadcaster` (pub/sub via `ioredis`, opcional). O servidor sobe e funciona inteiramente sem `REDIS_URL` configurado (degrade explícito: presença só cruza conexões dentro do MESMO processo Node — consistente com AD-003, que ainda não foi superada, o MVP continua sendo um único processo). Redis só passa a ser exercitado de verdade quando dois processos `apps/server` distintos apontam para a mesma instância Redis — provado por um teste de integração genuíno com dois processos reais nesta onda (não mockado), já que este sandbox tem `redis-server` disponível (diferente de Docker, ausente — ver AD-007).
+- **Reason**: AD-006 já reservava Redis "restrito a presença/pub-sub" exatamente para a fase de colaboração realtime (F4) — esta AD só formaliza a forma de injeção (mesmo padrão de `deps.jobs`/`deps.storage` em `registerAllModules`) e confirma que o caminho sem Redis nunca foi deixado quebrado: presença nunca é persistida em lugar nenhum (CLB-04), então a ausência de Redis nunca arrisca conteúdo durável — só reduz o alcance da presença a um processo.
+- **Trade-off**: sem Redis configurado, dois usuários conectados a instâncias `apps/server` diferentes (atrás de um load balancer, por exemplo) não veem os cursores um do outro — aceitável para o MVP de processo único; documentado explicitamente em `infra/compose/compose.yaml`'s novo serviço `redis` (opcional, comentado no README de infra).
+- **Scope**: `apps/server/src/modules/ws-gateway`, `infra/compose/compose.yaml`, F4 em diante.
+- **Date**: 2026-08-12
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
