@@ -11,6 +11,7 @@ import { registerExportModule } from '../modules/export/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
 import { registerLibraryModule } from '../modules/library/routes.js';
 import { registerLintModule } from '../modules/lint/routes.js';
+import { registerPresentationModule } from '../modules/presentation/routes.js';
 import { registerCompactionJob } from '../modules/snapshot/compaction.js';
 import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
@@ -54,6 +55,7 @@ export async function registerAllModules(
   registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
   registerDocgenModule(app, { db, storage });
   registerLintModule(app, { db });
+  registerPresentationModule(app, { db });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);
