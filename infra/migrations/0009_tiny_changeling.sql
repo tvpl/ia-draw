@@ -1,0 +1,1 @@
+ALTER TABLE "workspaces" ADD COLUMN "settings_json" jsonb DEFAULT '{}'::jsonb NOT NULL;

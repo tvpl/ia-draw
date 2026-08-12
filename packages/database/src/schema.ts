@@ -97,6 +97,13 @@ export const workspaces = pgTable(
     name: text('name').notNull(),
     slug: text('slug').notNull(),
     accessPolicy: text('access_policy').notNull().default('private'),
+    /**
+     * Per-workspace config blob (F3/T64) — same pattern as `organizations.settingsJson`
+     * above, one level down. First consumer: `settingsJson.lintRules` (LNT-03, workspace-scoped
+     * lint rule enable/disable), read directly by `apps/server/src/modules/lint/routes.ts`.
+     * No dedicated column per setting; a new key here never needs a migration.
+     */
+    settingsJson: jsonb('settings_json').notNull().default({}),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

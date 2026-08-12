@@ -441,18 +441,18 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | OPS-03 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-04 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-05 | P1: Backup com restore testado | F1 | ✅ Verified |
-| DOC-01 | P2: Geração de documentação | F3 | Pending |
-| DOC-02 | P2: Geração de documentação | F3 | Pending |
-| DOC-03 | P2: Geração de documentação | F3 | Pending |
-| DOC-04 | P2: Geração de documentação | F3 | Pending |
+| DOC-01 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
+| DOC-02 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
+| DOC-03 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
+| DOC-04 | P2: Geração de documentação | F3 | Implementing (T63) |
 | PRS-01 | P2: Apresentação e protótipos | F3 | Pending |
 | PRS-02 | P2: Apresentação e protótipos | F3 | Pending |
 | PRS-03 | P2: Apresentação e protótipos | F3 | Pending |
 | PRS-04 | P2: Apresentação e protótipos | F3 | Pending |
 | PRS-05 | P2: Apresentação e protótipos | F3 | Pending |
-| LNT-01 | P2: Lint arquitetural e C4 | F3 | Pending |
-| LNT-02 | P2: Lint arquitetural e C4 | F3 | Pending |
-| LNT-03 | P2: Lint arquitetural e C4 | F3 | Pending |
+| LNT-01 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
+| LNT-02 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
+| LNT-03 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
 | AAC-01 | P2: Architecture-as-code | F3 | Pending |
 | AAC-02 | P2: Architecture-as-code | F3 | Pending |
 | CMT-01 | P2: Comentários e revisão | F3 | Pending |

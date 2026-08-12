@@ -10,6 +10,7 @@ import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
 import { registerExportModule } from '../modules/export/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
 import { registerLibraryModule } from '../modules/library/routes.js';
+import { registerLintModule } from '../modules/lint/routes.js';
 import { registerCompactionJob } from '../modules/snapshot/compaction.js';
 import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
@@ -52,6 +53,7 @@ export async function registerAllModules(
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
   registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
   registerDocgenModule(app, { db, storage });
+  registerLintModule(app, { db });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);
