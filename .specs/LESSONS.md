@@ -38,6 +38,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: FND-05 (traceability) (+1 more)
 - last seen: 2026-08-12T04:07:17Z
 
+### L-005 - A static source-scan test (import/call-site pattern matching) proves the absence of code-level egress calls in this repo, not runtime network enforcement — don't mark a network/egress-isolation AC Verified on a static guardrail alone; it needs real runtime enforcement (firewall, network policy, egress proxy) or an explicit re-scope in spec.md.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `infra` · harmful: 0
+- features: architecture-canvas
+- evidence: apps/server/src/core/no-egress.spec.ts (infra) (infra)
+- last seen: 2026-08-12T04:20:39Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

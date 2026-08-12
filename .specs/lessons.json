@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 5,
+  "next_id": 6,
   "lessons": [
     {
       "id": "L-001",
@@ -77,6 +77,24 @@
       ],
       "created": "2026-08-12T04:07:17Z",
       "last_seen": "2026-08-12T04:07:17Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::a static source scan test import call site pattern matching proves the absence of code level egress calls in this repo not runtime network enforcement don t mark a network egress isolation ac verified on a static guardrail alone it needs real runtime enforcement firewall network policy egress proxy or an explicit re scope in spec md",
+      "text": "A static source-scan test (import/call-site pattern matching) proves the absence of code-level egress calls in this repo, not runtime network enforcement — don't mark a network/egress-isolation AC Verified on a static guardrail alone; it needs real runtime enforcement (firewall, network policy, egress proxy) or an explicit re-scope in spec.md.",
+      "signal": "spec_precision_gap",
+      "scope": "infra",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/core/no-egress.spec.ts (infra) (infra)"
+      ],
+      "created": "2026-08-12T04:20:39Z",
+      "last_seen": "2026-08-12T04:20:39Z"
     }
   ]
 }
