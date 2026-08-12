@@ -105,6 +105,14 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(response.statusCode).toBe(401);
   });
 
+  it('reaches the snapshot module route through the same wiring path (T30) — 401 without a session, never 404', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/diagrams/some-diagram-id/snapshots',
+    });
+    expect(response.statusCode).toBe(401);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 

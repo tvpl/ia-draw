@@ -3,6 +3,9 @@ import { registerAssetModule } from '../modules/asset/routes.js';
 import type { Db } from '../modules/auth/db.js';
 import { registerAuthModule } from '../modules/auth/routes.js';
 import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
+import type { JobQueue } from '../modules/jobs/index.js';
+import { registerCompactionJob } from '../modules/snapshot/compaction.js';
+import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
 import { createStorageClient, type StorageClient } from '../modules/storage/signedUrl.js';
 import { registerWorkspaceModule } from '../modules/workspace/routes.js';
@@ -11,6 +14,8 @@ import type { AppConfig } from './config.js';
 export interface ModuleDependencies {
   /** Injectable so tests can supply a pre-built client (mocked send) instead of a real S3Client. */
   storage?: StorageClient;
+  /** Injectable job queue (T28). Omitted entirely = automatic compaction (VER-01) stays inactive — a legitimate degrade path, not a boot requirement. */
+  jobs?: JobQueue;
 }
 
 /**
@@ -33,6 +38,11 @@ export async function registerAllModules(
   // avvio boot graph to settle.
   await registerAuthModule(app, { db, config });
   registerWorkspaceModule(app, { db });
-  registerDiagramSyncModule(app, { db });
+  registerDiagramSyncModule(app, { db, jobs: deps.jobs });
   registerAssetModule(app, { db, storage });
+  registerSnapshotModule(app, { db, storage });
+
+  if (deps.jobs) {
+    await registerCompactionJob(deps.jobs, db, storage);
+  }
 }

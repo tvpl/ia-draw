@@ -6,6 +6,12 @@ import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
+import {
+  type CompactionThresholds,
+  enqueueCompaction,
+  shouldCompact,
+} from '../snapshot/index.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import { loadOperationsAfter } from './catchup.js';
 import { appendOperation } from './operations.js';
@@ -13,6 +19,9 @@ import { loadDiagramScene } from './scene.js';
 
 export interface DiagramSyncModuleDeps {
   db: Db;
+  /** Enables the VER-01 compaction trigger below when supplied — omitted call sites keep working unchanged, just without automatic compaction (e.g. tests that don't exercise it). */
+  jobs?: JobQueue;
+  compactionThresholds?: CompactionThresholds;
 }
 
 function notFound(): never {
@@ -28,7 +37,7 @@ const catchupQuerySchema = z.object({ afterSequence: z.coerce.number().int().non
 
 /** Registers the diagram-sync module's routes — the server-first persistence core (T21). */
 export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyncModuleDeps): void {
-  const { db } = deps;
+  const { db, jobs, compactionThresholds } = deps;
 
   app.get('/diagrams/:id/bootstrap', { preHandler: requireSession(db) }, async (request) => {
     const { id } = diagramIdParamsSchema.parse(request.params);
@@ -91,6 +100,14 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       // request body, mirroring the workspace module's "never accept scope/identity
       // fields from the caller" convention (see project-diagram-routes.ts).
       const result = await appendOperation(db, diagramId, user.id, envelope);
+
+      // VER-01: checked at the end of every successful batch (cheap — a handful of
+      // rows in the common case) — the actual compaction work is deferred to the job
+      // queue (T28) so a threshold crossing never blocks this response. Omitted
+      // entirely when no job queue is wired in (see DiagramSyncModuleDeps.jobs).
+      if (jobs && (await shouldCompact(db, diagramId, compactionThresholds))) {
+        await enqueueCompaction(jobs, diagramId);
+      }
 
       reply.code(200);
       return result;

@@ -196,6 +196,8 @@ T36
 
 **Commit**: `feat(server): add snapshot creation and threshold-based compaction job`
 
+**Status**: ✅ Complete — `apps/server/src/modules/snapshot/` (`scene.ts` materializes a scene up to an optional revision by folding the op-log — a small, documented duplicate of diagram-sync's own fold rather than touching that module beyond its pre-approved surgical spots; `snapshots.ts` DB access + `createSnapshot` writing the canonical scene JSON to `EXPORT_BUCKET`; `compaction.ts` threshold check + `compact-diagram` pg-boss job; `routes.ts` `GET/POST /diagrams/{id}/snapshots`). Surgical addition to diagram-sync's `operations:batch`: an optional `jobs`/`compactionThresholds` dep triggers `enqueueCompaction` after a successful batch crosses a threshold — never inline, never blocking the ack. `registerAllModules`/`index.ts` now start a real `pg-boss` (T28) and thread it through, non-fatally (try/catch — job startup failure degrades to "jobs disabled", never blocks HTTP boot); `registerJobsGracefulShutdown` wired alongside the existing shutdown handler. Compaction test uses a documented lowered threshold (`maxOperations: 3` instead of 100) against a REAL pg-boss instance (`fromPglite`) over the same PGlite database — not a mock — and asserts a real `auto` snapshot row with the correct materialized scene appears. `registerModules.int.spec.ts` extended for the snapshot route (401, not 404). `pnpm -w test:unit && pnpm -w test:integration`: 76 unit / 143 integration passed, all green.
+
 ---
 
 ### T31: apps/server — restore de snapshot e diff estrutural
