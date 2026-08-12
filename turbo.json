@@ -15,7 +15,8 @@
       "dependsOn": ["^build"]
     },
     "test:e2e": {
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build"],
+      "env": ["PLAYWRIGHT_BROWSERS_PATH", "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD"]
     }
   }
 }

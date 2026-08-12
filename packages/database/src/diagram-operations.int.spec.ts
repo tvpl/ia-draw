@@ -195,9 +195,21 @@ describe('diagram_operations + diagram_snapshots schema (T20, VER-01)', () => {
   it('generates a monotonically increasing sequence per diagram across multiple inserts', async () => {
     const { user, diagram } = await seedDiagram('monotonic');
 
-    const first = await insertOperation(diagram.id, user.id, '55555555-5555-4555-8555-555555555555');
-    const second = await insertOperation(diagram.id, user.id, '66666666-6666-4666-8666-666666666666');
-    const third = await insertOperation(diagram.id, user.id, '77777777-7777-4777-8777-777777777777');
+    const first = await insertOperation(
+      diagram.id,
+      user.id,
+      '55555555-5555-4555-8555-555555555555',
+    );
+    const second = await insertOperation(
+      diagram.id,
+      user.id,
+      '66666666-6666-4666-8666-666666666666',
+    );
+    const third = await insertOperation(
+      diagram.id,
+      user.id,
+      '77777777-7777-4777-8777-777777777777',
+    );
 
     expect([first?.sequence, second?.sequence, third?.sequence]).toEqual([1, 2, 3]);
 
@@ -213,8 +225,16 @@ describe('diagram_operations + diagram_snapshots schema (T20, VER-01)', () => {
     const a = await seedDiagram('diagram-a');
     const b = await seedDiagram('diagram-b');
 
-    const opA = await insertOperation(a.diagram.id, a.user.id, '88888888-8888-4888-8888-888888888888');
-    const opB = await insertOperation(b.diagram.id, b.user.id, '99999999-9999-4999-8999-999999999999');
+    const opA = await insertOperation(
+      a.diagram.id,
+      a.user.id,
+      '88888888-8888-4888-8888-888888888888',
+    );
+    const opB = await insertOperation(
+      b.diagram.id,
+      b.user.id,
+      '99999999-9999-4999-8999-999999999999',
+    );
 
     expect(opA?.sequence).toBe(1);
     expect(opB?.sequence).toBe(1);

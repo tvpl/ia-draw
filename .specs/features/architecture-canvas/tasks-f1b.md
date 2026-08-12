@@ -298,14 +298,17 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Teste roda contra o `apps/server` real (subido no `beforeAll` do teste ou via um `webServer` do Playwright config apontando para PostgreSQL via PGlite/instância de teste) — documente exatamente como o servidor de teste é levantado
-- [ ] 100% das edições marcadas `Salvo` antes do "crash" reaparecem no novo contexto
-- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e`
+- [x] Teste roda contra o `apps/server` real (subido no `beforeAll` do teste ou via um `webServer` do Playwright config apontando para PostgreSQL via PGlite/instância de teste) — documente exatamente como o servidor de teste é levantado
+- [x] 100% das edições marcadas `Salvo` antes do "crash" reaparecem no novo contexto
+- [x] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e`
 
 **Tests**: e2e
 **Gate**: e2e-build
 
 **Commit**: `test(web): add e2e crash-and-reload zero-loss journey`
+
+**Status**: ✅ Complete — `apps/web/e2e/crash-recovery.spec.ts`, N=20 (documented in-file: enough debounce/flush cycles without a slow/flaky run). Both the API (real `apps/server`, PGlite-backed, AD-007) and frontend (`vite dev`) are started as Playwright `webServer`s (`playwright.config.ts`); the API is run via `vite-node` (`e2e/support/vite-node.config.ts` + `runTestServer.ts` + `domShim.ts`) because `diagram-sync` transitively imports `@excalidraw/excalidraw`, whose compiled bundle only resolves through a bundler-style resolver — confirmed this breaks plain `node` too (`node dist/modules/diagram-sync/index.js` throws the same `roughjs/bin/rough` resolution error), a real pre-existing gap since no prior task ever loaded that chain outside Vitest. A fixed seed (`fixedSeed.ts`) avoids any cross-process handshake. First-context: real `/auth/login`, 20 confirmed (`Salvo`-gated) rectangle edits via keyboard+mouse on the real canvas, verified server-side via `bootstrap`. `context.close()` simulates the crash (no logout). Fresh context: new browser context, re-authenticate, reopen, verify `Salvo` and all 20 elements present server-side. 3 consecutive local runs green; ran the declared e2e-build gate command verbatim, all green.
+- **Full-gate lint sweep** (done at end of batch, before this commit): ran `pnpm -w lint` over the whole workspace and fixed all drift with `biome check --write .` — 2 pre-existing-task formatting fixes folded into this commit (`infra/migrations/meta/*.json` array formatting, `packages/database/src/diagram-operations.int.spec.ts` line wrapping — both cosmetic only, confirmed by the still-passing integration suite).
 
 ---
 

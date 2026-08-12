@@ -70,7 +70,10 @@ export class DiagramSyncClient {
     this.diagramId = options.diagramId;
     this.queue = options.queue;
     this.status = options.status;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+    // `fetch` must be invoked with `window` as its receiver in real browsers (storing
+    // the bare function reference and calling it as `this.fetchImpl(...)` loses that
+    // binding and throws "Illegal invocation") — bind it once here.
+    this.fetchImpl = options.fetchImpl ?? fetch.bind(globalThis);
     this.retryDelayMs = options.retryDelayMs ?? DEFAULT_RETRY_DELAY;
     this.scheduleRetryTimer = options.scheduleRetryTimer ?? ((cb, ms) => setTimeout(cb, ms));
     this.onReconcile = options.onReconcile;

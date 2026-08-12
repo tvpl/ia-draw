@@ -112,9 +112,24 @@ importers:
         specifier: ^5.0.14
         version: 5.0.14(@types/react@19.2.18)(react@19.2.8)(use-sync-external-store@1.6.0(react@19.2.8))
     devDependencies:
+      '@arch-canvas/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@arch-canvas/server':
+        specifier: workspace:*
+        version: link:../server
       '@arch-canvas/test-fixtures':
         specifier: workspace:*
         version: link:../../packages/test-fixtures
+      '@electric-sql/pglite':
+        specifier: ^0.5.4
+        version: 0.5.4
+      '@playwright/test':
+        specifier: 1.56.1
+        version: 1.56.1
+      '@types/jsdom':
+        specifier: ^30.0.0
+        version: 30.0.0
       '@types/node':
         specifier: ^22.20.1
         version: 22.20.1
@@ -127,6 +142,12 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.0.5
         version: 6.0.5(vite@8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(tsx@4.23.12))
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(@electric-sql/pglite@0.5.4)(@types/pg@8.21.0)(pg@8.23.0)
+      fastify:
+        specifier: ^5.11.3
+        version: 5.11.3
       jsdom:
         specifier: ^30.0.1
         version: 30.0.1(canvas@3.2.3)
@@ -136,6 +157,9 @@ importers:
       vite:
         specifier: ^8.2.1
         version: 8.2.1(@types/node@22.20.1)(esbuild@0.28.2)(tsx@4.23.12)
+      vite-node:
+        specifier: ^3.2.4
+        version: 3.2.4(@types/node@22.20.1)(lightningcss@1.33.0)(tsx@4.23.12)
       vitest:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
@@ -983,6 +1007,11 @@ packages:
 
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
+
+  '@playwright/test@1.56.1':
+    resolution: {integrity: sha512-vSMYtL/zOcFpvJCW71Q/OEGQb7KYBPAdKh35WNSkaZA75JlAO8ED8UN6GUNTm3drWomcbcqRPFqQbLae8yBTdg==}
+    engines: {node: '>=18'}
+    hasBin: true
 
   '@radix-ui/primitive@1.0.0':
     resolution: {integrity: sha512-3e7rn8FDMin4CgeL7Z/49smCA3rFYY3Ha2rUQ7HRWFadS5iCRw08ZgVT1LaNTCNqgvrUiyczLflrVrF0SRQtNA==}
@@ -2322,6 +2351,11 @@ packages:
   fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
 
+  fsevents@2.3.2:
+    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
+    os: [darwin]
+
   fsevents@2.3.3:
     resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
@@ -2733,6 +2767,16 @@ packages:
 
   pino@10.3.1:
     resolution: {integrity: sha512-r34yH/GlQpKZbU1BvFFqOjhISRo1MNx1tWYsYvmj6KIRHSPMT2+yHOEb1SG6NMvRoHRF0a07kCOox/9yakl1vg==}
+    hasBin: true
+
+  playwright-core@1.56.1:
+    resolution: {integrity: sha512-hutraynyn31F+Bifme+Ps9Vq59hKuUCz7H1kDOcBs+2oGguKkWTU50bBWrtz34OUWmIwpBTWDxaRPXrIXkgvmQ==}
+    engines: {node: '>=18'}
+    hasBin: true
+
+  playwright@1.56.1:
+    resolution: {integrity: sha512-aFi5B0WovBHTEvpM3DzXTUaeN6eN0qWnTkKx4NQaH4Wvcmc153PdaY2UBdSYKaGYw+UyWXSVyxDUg5DoPEttjw==}
+    engines: {node: '>=18'}
     hasBin: true
 
   png-chunk-text@1.0.0:
@@ -3862,6 +3906,10 @@ snapshots:
   '@phc/format@1.0.0': {}
 
   '@pinojs/redact@0.4.0': {}
+
+  '@playwright/test@1.56.1':
+    dependencies:
+      playwright: 1.56.1
 
   '@radix-ui/primitive@1.0.0':
     dependencies:
@@ -5095,6 +5143,9 @@ snapshots:
 
   fs-constants@1.0.0: {}
 
+  fsevents@2.3.2:
+    optional: true
+
   fsevents@2.3.3:
     optional: true
 
@@ -5460,6 +5511,14 @@ snapshots:
       safe-stable-stringify: 2.5.0
       sonic-boom: 4.2.1
       thread-stream: 4.2.0
+
+  playwright-core@1.56.1: {}
+
+  playwright@1.56.1:
+    dependencies:
+      playwright-core: 1.56.1
+    optionalDependencies:
+      fsevents: 2.3.2
 
   png-chunk-text@1.0.0: {}
 

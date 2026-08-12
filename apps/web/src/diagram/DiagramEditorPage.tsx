@@ -69,13 +69,17 @@ export function DiagramEditorPage(): JSX.Element {
   if (!diagramId) return <p>Missing diagram id.</p>;
 
   return (
-    <div>
+    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
       <p data-testid="save-status">{t(saveStatusTranslationKey(kind), { count: pendingCount })}</p>
       {initialElements ? (
-        <EditorSurface
-          initialElements={initialElements}
-          onDeltas={(deltas) => queue.getState().enqueue(deltas)}
-        />
+        // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
+        // concrete height it needs (an unstyled ancestor chain collapses to 0 height).
+        <div style={{ flex: 1, minHeight: 0 }}>
+          <EditorSurface
+            initialElements={initialElements}
+            onDeltas={(deltas) => queue.getState().enqueue(deltas)}
+          />
+        </div>
       ) : (
         <p>{t('diagram.loading')}</p>
       )}

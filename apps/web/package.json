@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@arch-canvas/editor-adapter": "workspace:*",
@@ -21,14 +22,22 @@
     "zustand": "^5.0.14"
   },
   "devDependencies": {
+    "@arch-canvas/database": "workspace:*",
+    "@arch-canvas/server": "workspace:*",
     "@arch-canvas/test-fixtures": "workspace:*",
+    "@electric-sql/pglite": "^0.5.4",
+    "@playwright/test": "1.56.1",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^22.20.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
+    "drizzle-orm": "^0.45.2",
+    "fastify": "^5.11.3",
     "jsdom": "^30.0.1",
     "typescript": "^5.9.3",
     "vite": "^8.2.1",
+    "vite-node": "^3.2.4",
     "vitest": "^3.2.4"
   }
 }
