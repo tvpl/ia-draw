@@ -408,7 +408,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | REC-03 | P1: Recuperação após crash | F1 | Pending |
 | REC-04 | P1: Recuperação após crash | F1 | Pending |
 | REC-05 | P1: Recuperação após crash | F1 | Pending |
-| VER-01 | P1: Snapshots e restore | F1 | Pending |
+| VER-01 | P1: Snapshots e restore | F1 | Implementing |
 | VER-02 | P1: Snapshots e restore | F1 | Pending |
 | VER-03 | P1: Snapshots e restore | F1 | Pending |
 | VER-04 | P1: Snapshots e restore | F1 | Pending |

@@ -1,4 +1,5 @@
 import {
+  boolean,
   index,
   integer,
   jsonb,
@@ -163,6 +164,78 @@ export const diagrams = pgTable('diagrams', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const diagramSnapshotKind = pgEnum('diagram_snapshot_kind', [
+  'auto',
+  'named',
+  'published',
+  'pre_ai',
+  'restore_point',
+]);
+
+/**
+ * Op-log append-only (design.md "Data Models", EDT-03/04, REC-04/05). The
+ * only writer is `diagram-sync`'s `operations:batch` route (T22), always
+ * inside the same transaction that computes `sequence`.
+ *
+ * `(diagram_id, client_mutation_id)` UNIQUE is the idempotency invariant
+ * (EDT-04): resubmitting the same `clientMutationId` can never produce a
+ * second row. `(diagram_id, sequence)` is also UNIQUE — one integer per
+ * position in a diagram's op-log, never assigned twice — so a
+ * monotonicity bug in the sequence-computing transaction (T22) fails loudly
+ * at the database instead of silently corrupting the log.
+ */
+export const diagramOperations = pgTable(
+  'diagram_operations',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    sequence: integer('sequence').notNull(),
+    clientMutationId: uuid('client_mutation_id').notNull(),
+    actorId: uuid('actor_id')
+      .notNull()
+      .references(() => users.id),
+    baseRevision: integer('base_revision').notNull(),
+    elementsDeltaJson: jsonb('elements_delta_json').notNull(),
+    operationSummaryJson: jsonb('operation_summary_json').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('diagram_operations_diagram_client_mutation_unique').on(
+      table.diagramId,
+      table.clientMutationId,
+    ),
+    uniqueIndex('diagram_operations_diagram_sequence_unique').on(table.diagramId, table.sequence),
+  ],
+);
+
+/**
+ * Compacted materializations + named/published versions (design.md "Data
+ * Models", VER-01). Real compaction logic lands in F1c; this wave only
+ * needs the schema to exist and be insertable.
+ */
+export const diagramSnapshots = pgTable(
+  'diagram_snapshots',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    revision: integer('revision').notNull(),
+    kind: diagramSnapshotKind('kind').notNull(),
+    name: text('name'),
+    sceneJsonKey: text('scene_json_key').notNull(),
+    checksum: text('checksum').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    immutable: boolean('immutable').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('diagram_snapshots_diagram_revision_idx').on(table.diagramId, table.revision)],
+);
 
 /**
  * Single-use WebSocket handshake tickets (AUTH-02, design.md Tech Decisions).

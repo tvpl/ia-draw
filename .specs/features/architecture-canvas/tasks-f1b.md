@@ -117,15 +117,17 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Migration aplica limpa sobre as migrations anteriores (T5, T13)
-- [ ] Teste de integração: inserir duas operações com o mesmo `(diagram_id, client_mutation_id)` — a segunda viola a constraint única (prova de idempotência no nível de dado, EDT-04)
-- [ ] `sequence` é gerado de forma monotônica por diagrama (teste com múltiplas inserções)
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Migration aplica limpa sobre as migrations anteriores (T5, T13)
+- [x] Teste de integração: inserir duas operações com o mesmo `(diagram_id, client_mutation_id)` — a segunda viola a constraint única (prova de idempotência no nível de dado, EDT-04)
+- [x] `sequence` é gerado de forma monotônica por diagrama (teste com múltiplas inserções)
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(database): add diagram_operations and diagram_snapshots schema`
+
+**Status**: ✅ Complete — `diagram_operations` (unique `(diagram_id, client_mutation_id)` + unique `(diagram_id, sequence)`) and `diagram_snapshots` added to `packages/database/src/schema.ts`, migration `0004_slimy_ben_parker.sql` applies cleanly over T5/T13. 5 new integration tests (idempotency 23505, duplicate-sequence 23505, monotonic sequence across inserts, per-diagram independence) on PGlite, all green.
 
 ---
 
