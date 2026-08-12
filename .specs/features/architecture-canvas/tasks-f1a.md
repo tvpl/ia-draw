@@ -108,15 +108,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Migration aplica limpa sobre a migration inicial de T5 (sem conflito)
-- [ ] `recordAuditEvent` insere e é lido de volta corretamente (teste de integração via PGlite, mesmo padrão SPEC_DEVIATION de T5)
-- [ ] Índice em `(resource_type, resource_id)` e em `created_at` para consulta futura de `GET /audit-events`
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Migration aplica limpa sobre a migration inicial de T5 (sem conflito)
+- [x] `recordAuditEvent` insere e é lido de volta corretamente (teste de integração via PGlite, mesmo padrão SPEC_DEVIATION de T5)
+- [x] Índice em `(resource_type, resource_id)` e em `created_at` para consulta futura de `GET /audit-events`
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(database): add append-only audit_events table and record helper`
+
+**Status**: ✅ Complete — migration `0001_neat_the_enforcers.sql` adiciona `audit_events` (`actor_id` nullable, `action`, `resource_type`, `resource_id`, `ip_hash`, `metadata_json`, `created_at`; sem `updated_at`) com índices `audit_events_resource_idx (resource_type, resource_id)` e `audit_events_created_at_idx (created_at)`; `recordAuditEvent(db, event)` em `packages/database/src/audit.ts` só faz INSERT. 4 testes de integração novos (PGlite, mesmo padrão SPEC_DEVIATION de T5) cobrindo round-trip, append-only (duas chamadas → duas linhas, nunca update), `actorId` nulo para eventos de sistema, e existência dos dois índices via `pg_indexes`. Gate full (`pnpm -w test:unit && pnpm -w test:integration`) verde — 9 testes de integração no pacote (5 pré-existentes + 4 novos).
 
 ---
 

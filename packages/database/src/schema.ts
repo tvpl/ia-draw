@@ -1,4 +1,5 @@
 import {
+  index,
   integer,
   jsonb,
   pgEnum,
@@ -118,6 +119,29 @@ export const projects = pgTable('projects', {
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Append-only audit trail (AUTH-03). No `updated_at` — rows are never
+ * mutated after insert; `recordAuditEvent` (tx.ts) is the only writer and
+ * only ever INSERTs.
+ */
+export const auditEvents = pgTable(
+  'audit_events',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    actorId: uuid('actor_id').references(() => users.id),
+    action: text('action').notNull(),
+    resourceType: text('resource_type').notNull(),
+    resourceId: uuid('resource_id').notNull(),
+    ipHash: text('ip_hash'),
+    metadataJson: jsonb('metadata_json').notNull().default({}),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('audit_events_resource_idx').on(table.resourceType, table.resourceId),
+    index('audit_events_created_at_idx').on(table.createdAt),
+  ],
+);
 
 export const diagrams = pgTable('diagrams', {
   id: uuid('id').primaryKey().defaultRandom(),

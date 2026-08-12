@@ -392,7 +392,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | FND-05 | P1: Instalação self-hosted | F0 | Implementing |
 | AUTH-01 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-02 | P1: Contas, workspaces e RBAC | F1 | Implementing |
-| AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Pending |
+| AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Implementing |
 | AUTH-04 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | AUTH-05 | P1: Contas, workspaces e RBAC | F1 | Pending |
 | EDT-01 | P1: Edição server-first | F1 | Implementing |
