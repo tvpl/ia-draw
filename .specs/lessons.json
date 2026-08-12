@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 8,
+  "next_id": 11,
   "lessons": [
     {
       "id": "L-001",
@@ -131,6 +131,60 @@
       ],
       "created": "2026-08-12T05:13:32Z",
       "last_seen": "2026-08-12T05:13:32Z"
+    },
+    {
+      "id": "L-008",
+      "key": "gate_fail::a module s routes being reachable through per test hand registration is not evidence the production entrypoint wires them boot the real compiled entrypoint under plain node not only vitest s bundler mediated resolution at least once per feature wave that adds a new server module and curl a route from each newly added module",
+      "text": "A module's routes being reachable through per-test hand-registration is not evidence the production entrypoint wires them — boot the real compiled entrypoint under plain node (not only Vitest's bundler-mediated resolution) at least once per feature wave that adds a new server module, and curl a route from each newly-added module.",
+      "signal": "gate_fail",
+      "scope": "server-wiring",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/index.ts (pre-fix, commits e8b7bf6~1 through a8d8927) (server-wiring)"
+      ],
+      "created": "2026-08-12T07:17:54Z",
+      "last_seen": "2026-08-12T07:17:54Z"
+    },
+    {
+      "id": "L-009",
+      "key": "spec_precision_gap::when a spec s independent test narrative states a specific count but the formal ac only requires a qualitative guarantee e g every confirmed change a reduced count e2e test is acceptable only if the in file comment argues the mechanism is count invariant flag the divergence explicitly in the validation report rather than silently matching the narrative number or silently reducing it",
+      "text": "When a spec's Independent Test narrative states a specific count but the formal AC only requires a qualitative guarantee (e.g. 'every confirmed change'), a reduced-count E2E test is acceptable only if the in-file comment argues the mechanism is count-invariant — flag the divergence explicitly in the validation report rather than silently matching the narrative number or silently reducing it.",
+      "signal": "spec_precision_gap",
+      "scope": "e2e-scoping",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "REC-01 (spec.md Independent Test narrative vs. formal AC text) (e2e-scoping)"
+      ],
+      "created": "2026-08-12T07:18:00Z",
+      "last_seen": "2026-08-12T07:18:00Z"
+    },
+    {
+      "id": "L-010",
+      "key": "spec_deviation::when a server side domain package must avoid a workspace dependency s runtime footprint e g a browser oriented rendering library pulled in transitively keep only import type from that dependency and reimplement the minimal logic locally then verify zero runtime coupling by grepping the compiled dist output for import require statements not just by reading source level import type annotations",
+      "text": "When a server-side domain package must avoid a workspace dependency's runtime footprint (e.g. a browser-oriented rendering library pulled in transitively), keep only import type from that dependency and reimplement the minimal logic locally, then verify zero runtime coupling by grepping the compiled dist output for import/require statements, not just by reading source-level import type annotations.",
+      "signal": "spec_deviation",
+      "scope": "package-boundaries",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/diagram-domain/src/mergeScene.ts:1-29 (SPEC_DEVIATION docstring) (package-boundaries)"
+      ],
+      "created": "2026-08-12T07:18:07Z",
+      "last_seen": "2026-08-12T07:18:07Z"
     }
   ]
 }

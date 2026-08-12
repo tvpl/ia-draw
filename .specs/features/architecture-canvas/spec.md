@@ -396,18 +396,18 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AUTH-03 | P1: Contas, workspaces e RBAC | F1 | Implementing |
 | AUTH-04 | P1: Contas, workspaces e RBAC | F1 | ✅ Verified |
 | AUTH-05 | P1: Contas, workspaces e RBAC | F1 | Implementing |
-| EDT-01 | P1: Edição server-first | F1 | Implementing |
-| EDT-02 | P1: Edição server-first | F1 | Implementing |
-| EDT-03 | P1: Edição server-first | F1 | Implementing |
-| EDT-04 | P1: Edição server-first | F1 | Implementing |
-| EDT-05 | P1: Edição server-first | F1 | Implementing |
+| EDT-01 | P1: Edição server-first | F1 | ✅ Verified |
+| EDT-02 | P1: Edição server-first | F1 | ✅ Verified |
+| EDT-03 | P1: Edição server-first | F1 | ✅ Verified |
+| EDT-04 | P1: Edição server-first | F1 | ✅ Verified |
+| EDT-05 | P1: Edição server-first | F1 | ✅ Verified |
 | EDT-06 | P1: Edição server-first | F1 | Pending |
 | EDT-07 | P1: Edição server-first | F1 | ✅ Verified |
 | REC-01 | P1: Recuperação após crash | F1 | ✅ Verified |
-| REC-02 | P1: Recuperação após crash | F1 | Implementing |
-| REC-03 | P1: Recuperação após crash | F1 | Implementing |
-| REC-04 | P1: Recuperação após crash | F1 | Implementing |
-| REC-05 | P1: Recuperação após crash | F1 | Implementing |
+| REC-02 | P1: Recuperação após crash | F1 | ✅ Verified |
+| REC-03 | P1: Recuperação após crash | F1 | ✅ Verified |
+| REC-04 | P1: Recuperação após crash | F1 | ✅ Verified |
+| REC-05 | P1: Recuperação após crash | F1 | ✅ Verified |
 | VER-01 | P1: Snapshots e restore | F1 | Implementing |
 | VER-02 | P1: Snapshots e restore | F1 | Pending |
 | VER-03 | P1: Snapshots e restore | F1 | Pending |

@@ -397,3 +397,198 @@ Only AUTH-01 and AUTH-04 move to ✅ Verified this wave — AUTH-02, AUTH-03, AU
 **Next steps**: No fix→re-verify iteration needed for F1a itself — nothing here is a defect, every gap is a real, correctly-scoped, honestly-documented boundary against F1b's not-yet-built surface. Carry AUTH-02/AUTH-03/AUTH-05's residual WebSocket/mutation-endpoint evidence gaps into F1b's own task Done-when criteria and re-verify them for real once the ws-gateway and canvas-mutation persistence land.
 
 ---
+
+## F1b Wave Report (Persistência do Canvas) — PASS ✅
+
+**Date**: 2026-08-12
+**Diff range**: `d5fe705..HEAD` (T19-T26 batch `2646c9e..c10ea99`, plus post-batch fixes `e8b7bf6`, `a8d8927`)
+**Verifier**: independent sub-agent (author ≠ verifier); this agent did not write any of the F1b code and re-derived every claim below from source, not from the batch worker's or orchestrator's self-reports.
+
+Op-log persistence, idempotent batch ACK, catch-up reconnection and the client save-status machine — the server-first invariant's core. This wave also carried two critical post-batch fixes the orchestrator applied after discovering the real production entrypoint never wired any module. Both the original claim and the fixes were independently re-derived below, not taken on faith.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T19 | ✅ Done | `packages/diagram-domain` — envelope validation + `reconcileOperation`. Commit `2646c9e` real. |
+| T20 | ✅ Done | `diagram_operations`/`diagram_snapshots` schema + idempotency/monotonic-sequence integration tests. Commit `ac2b500` real. |
+| T21 | ✅ Done | `GET /diagrams/:id/bootstrap`. Commit `0ca4cc7` real. |
+| T22 | ✅ Done | `POST /diagrams/:id/operations:batch`. Commit `b6d02f7` real. |
+| T23 | ✅ Done | `GET /diagrams/:id/operations?afterSequence=`. Commit `417bd35` real. |
+| T24 | ✅ Done | Real `<EditorSurface/>` + debounced mutation queue. Commit `40aec2c` real. |
+| T25 | ✅ Done | Save-status machine + `DiagramSyncClient`. Commit `ea8e11a` real. |
+| T26 | ✅ Done | E2E crash/reload (N=20). Commit `c10ea99` real. |
+| Post-batch fix 1 | ✅ Done | `fix(diagram-domain): decouple server-side reconcile from excalidraw runtime`. Commit `e8b7bf6` real, independently re-verified (see below). |
+| Post-batch fix 2 | ✅ Done | `fix(server): wire feature modules into the real production entrypoint`. Commit `a8d8927` real, independently re-verified (see below). |
+
+All 10 commits exist in `git log d5fe705..HEAD` and match their stated hashes.
+
+---
+
+### Real Server Boot Check (independent reproduction, mandatory per this wave's assignment)
+
+**Pre-fix bug, reproduced independently, not taken on the commit message's word:**
+- `git show e8b7bf6~1:apps/server/src/index.ts` — confirmed the pre-fix production entrypoint called only `buildServer`/`loadConfig`/`registerGracefulShutdown`. No module's `register*` function is called anywhere. A real `docker compose up` boot would 404 every route except `/health/*`. Matches the claim exactly.
+- `git show e8b7bf6~1:packages/diagram-domain/src/reconcile.ts` + `packages/diagram-domain/package.json` — confirmed the pre-fix `reconcile.ts` did `import { applyRemote, buildSceneIndex } from '@arch-canvas/editor-adapter'` (a real value import, not `import type`), and `diagram-domain`'s `package.json` listed `@arch-canvas/editor-adapter` as a runtime `dependencies` entry. `editor-adapter`'s own `package.json` depends on `@excalidraw/excalidraw`. The claimed transitive chain (diagram-domain → editor-adapter → excalidraw → roughjs) is real, not invented.
+
+**Post-fix, independently booted on this HEAD (not the orchestrator's run, a fresh one done by this Verifier):**
+```
+pnpm -w build
+sudo pg_ctlcluster 16 main start   # local Postgres 16, created role/db matching config.ts's default DATABASE_URL
+node -e "import('./packages/database/dist/migrate.js').then(m=>m.migrate(process.env.DATABASE_URL))"  # migrations applied clean
+DATABASE_URL=... NODE_ENV=development PORT=48173 SESSION_SECRET=... ENCRYPTION_KEY=... node apps/server/dist/index.js &
+curl -o /dev/null -w '%{http_code}' http://localhost:48173/health/live   # → 200
+curl -o /dev/null -w '%{http_code}' http://localhost:48173/me            # → 401 (route exists, session absent)
+curl http://localhost:48173/health/ready                                 # → {"status":"ok","dependencies":[{"name":"postgres","status":"up"}]}
+```
+All three checks passed exactly as claimed. `/me` returning 401 (not 404) is the discriminating proof that the auth module's route is genuinely registered on the real boot path, not merely reachable through test hand-registration. Process killed cleanly afterward (`kill -9`, confirmed zombie reaped and port 48173 free — verified via `ps`/`ss`).
+
+**Runtime decoupling, independently confirmed on compiled output, not the source comments:**
+```
+grep -n "^import\|require(" packages/diagram-domain/dist/*.js
+  envelope.js:1: import { MAX_WS_MESSAGE_BYTES } from '@arch-canvas/shared-contracts';
+  envelope.js:2: import { z } from 'zod';
+  reconcile.js:1: import { buildSceneIndex, mergeScene } from './mergeScene.js';
+```
+Zero runtime imports of `@arch-canvas/editor-adapter` or `@excalidraw/excalidraw` anywhere in `packages/diagram-domain/dist/*.js`. The only string matches for "excalidraw"/"editor-adapter" in `dist/*.js` are inside `/** ... */` docstrings (`mergeScene.js:7,10`), never in executable code — `import type` was fully erased at compile time as claimed.
+
+**Tie-break fidelity, independently confirmed:** `packages/diagram-domain/src/mergeScene.ts:35-38`'s `remoteWins` (`remote.version > local.version` when versions differ; `remote.versionNonce < local.versionNonce` at equal version) is a literal match for `packages/editor-adapter/src/applyRemote.ts:28-31`'s documented rule. `git diff e8b7bf6~1 e8b7bf6 -- packages/diagram-domain/src/reconcile.spec.ts` shows **zero changes** to that pre-existing (T19, commit `2646c9e`) behavioral test file — the same 6 tests, unmodified, still pass post-fix (confirmed by this wave's own `pnpm -w test:unit` run). This is direct evidence the runtime swap preserved behavior rather than silently changing it.
+
+**Verdict: the pre-fix bug is real and matches the description; the post-fix boot is real and independently reproduced. This wave's central claim — server-first persistence works against the actual deployable artifact, not just Vitest-mediated test doubles — holds.**
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+**P1: Edição server-first** (EDT-07 already ✅ Verified from F0, not re-derived; no regression found — `packages/editor-adapter/src/no-internal-import.spec.ts` still passes, 9/9 tests)
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| EDT-01: bootstrap serves scene/revision/assets/permissions before editing | New diagram → `scene: []`, `revision: 0`, correct permissions for role | `apps/server/src/modules/diagram-sync/bootstrap.int.spec.ts:78-95` — `expect(body.scene).toEqual([])`, `expect(body.revision).toBe(0)`, `expect(body.assets).toEqual([])`, `expect(body.permissions).toMatchObject({allowed:true})` | ✅ PASS |
+| EDT-02: client batches into mutations w/ clientMutationId/baseRevision/author, debounced 500-1000ms, flush on visibilitychange/pagehide/nav | Exact fields per batch; debounce window enforced; forced flush on both events | `apps/web/src/sync/mutationQueue.spec.ts:25-39` (fields), `:41-61` (debounce grouping), `:63-88` (500/1000ms clamp), `:147-191` (visibilitychange/pagehide force flush) | ✅ PASS |
+| EDT-03: ack only after durable commit (ack strictly after commit) | Response cannot resolve before the DB transaction commits | `apps/server/src/modules/diagram-sync/operations-batch.int.spec.ts:212-274` — gated-Proxy test asserts `resolved === false` while the commit gate is held, `true` only after `releaseCommit()` | ✅ PASS (also sensor-confirmed, see below) |
+| EDT-04: same clientMutationId resubmitted → exactly one durable op, idempotent re-ack | 1 row persisted; both responses' acks equal | `apps/server/src/modules/diagram-sync/operations-batch.int.spec.ts:143-167` — `expect(rows).toHaveLength(1)`; DB-level defense-in-depth at `packages/database/src/diagram-operations.int.spec.ts:117` (unique-constraint violation on 2nd insert) | ✅ PASS (also sensor-confirmed) |
+| EDT-05: save state exactly one of the 5 defined values | `Salvo\|Salvando…\|Offline — N alterações pendentes\|Conflito\|Somente leitura`, PT-BR literal | `apps/web/src/sync/saveStatus.spec.ts:11-29` (exhaustive 5-kind machine test) + `apps/web/src/i18n/locales/pt-BR/translation.json` (`saveStatus.*` keys match the literal spec strings verbatim, incl. `"offline": "Offline — {{count}} alterações pendentes"`) | ✅ PASS |
+| EDT-06: image upload confirmed to object storage before ACK | N/A — explicitly out of scope this wave | `apps/server/src/modules/diagram-sync/routes.ts:55` — `assets: []` hardcoded; no upload endpoint exists anywhere under `apps/server/src` or `apps/web/src` (`grep -rln asset` returns only the bootstrap route's stub and a client-side `syncClient.ts` reference to the empty array) | Correctly absent — not claimed, not silently skipped. No AC regression. |
+| EDT-07 | already ✅ Verified (F0) | `packages/editor-adapter/src/no-internal-import.spec.ts` — 9/9 still passing, re-run this wave | No regression |
+
+**P1: Recuperação após crash e reconexão**
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| REC-01: browser killed, diagram reopened on any machine → every `Salvo` change restored | All confirmed edits present after crash+reopen in a fresh context | `apps/web/e2e/crash-recovery.spec.ts:86-113` — `expect(sceneAfterReopen).toHaveLength(EDIT_COUNT)`, `expect(new Set(...).size).toBe(EDIT_COUNT)` against the real server, not just the UI | ⚠️ Spec-precision gap on N (see below) — mechanism ✅ PASS |
+| REC-02: pending queue resent after auth, reconciliation reported, never silently overwrites newer server revision | Resend + report; pending local edits preserved across catch-up | `apps/web/src/sync/syncClient.spec.ts:150-169` — `expect(reports).toEqual([{appliedCount:1, revision:5}])`, `expect(queue.getState().pendingCount).toBe(pendingBefore)` (local edit not discarded) | ✅ PASS |
+| REC-03: Postgres unavailable → UI stays out of Salvo, queue resent in order on recovery | Never a 2xx/ack on DB failure; client transitions to offline and retries | Server: `apps/server/src/modules/diagram-sync/operations-batch.int.spec.ts:169-210` — `expect(rows).toHaveLength(0)`, 5xx status. Client: `apps/web/src/sync/syncClient.spec.ts:79-94` (offline transition) + `:96-118` (scheduled retry resends queue) | ✅ PASS |
+| REC-04: stale-revision reconnect → server sends missing ops, acks duplicates, rejects unauthorized | Exactly the missing ops, sequence-ordered; IDOR 404 | `apps/server/src/modules/diagram-sync/catchup.int.spec.ts:95-119` (`[2,3]` in order), `:142-154` (404 IDOR) | ✅ PASS |
+| REC-05: concurrent same-element edits converge via versionNonce LWW, both variants stay detectable in op-log | Op-log row count reflects BOTH ops; materialized scene reflects the winner | `apps/server/src/modules/diagram-sync/operations-batch.int.spec.ts:344-417` — `expect(rows).toHaveLength(2)` + both `clientMutationId`s present (asserts on **persisted op-log rows**, not merely the merged scene), separately `expect(scene[0]).toMatchObject({versionNonce:100})` for the materialized winner | ✅ PASS |
+
+**Status**: ✅ 11/12 ACs matched spec outcome exactly (EDT-01..05, REC-02..05, plus EDT-07 no-regression); 1 correctly-absent-by-design (EDT-06); 1 flagged spec-precision gap (REC-01's N).
+
+**REC-01's N=20-vs-100 call (independent judgment, not deferring to the batch worker's note):** spec.md's formal AC text for REC-01 ("restore every change previously confirmed as Salvo") states no fixed count — the number 100 appears only in the *Independent Test* narrative, which is illustrative test design, not a load-bearing acceptance number. `apps/web/e2e/crash-recovery.spec.ts:10-19` documents the N=20 choice in-file with reasoning: the mechanism being proven (every batch's ack precedes the next edit; batch count scales linearly with edit count) is already saturated at N=20, and 100 edits at ~5x the per-edit wall-clock cost of this suite would only exercise the same mechanism for longer, not a materially different code path. I concur this is an acceptable, honestly-documented scope reduction, not a hidden gap — but flag it explicitly per instructions since it diverges from the spec's literal Independent Test text.
+
+---
+
+### Discrimination Sensor
+
+Isolated scratch worktree (`git worktree add /tmp/f1b-verify-scratch HEAD`, never `git stash`). Baseline `git status --porcelain` was empty before and after; confirmed identical via diff after cleanup.
+
+| # | File:line | Mutation | Target AC | Killed? |
+| --- | --- | --- | --- | --- |
+| 1 | `packages/diagram-domain/src/mergeScene.ts:37` | Flipped LWW tie-break `remote.versionNonce < local.versionNonce` → `>` (reverses which side wins at equal version) | REC-05 | ✅ Killed — `mergeScene.spec.ts` ("at equal version, the lower versionNonce wins") and `reconcile.spec.ts` ("uses the same versionNonce tie-break as applyRemote") both failed with the exact wrong winner (200 instead of 100) |
+| 2 | `apps/server/src/modules/diagram-sync/operations.ts:129-161` | Disabled the idempotency fast-path pre-check and made the unique-violation catch-and-reread retry with a mangled `clientMutationId` (`-dup-${attempt}`) instead of deduplicating, so a resubmission could land as a genuinely new row | EDT-04 | ✅ Killed — `operations-batch.int.spec.ts` "resubmitting the same clientMutationId..." failed (500 instead of 200); REC-05 op-log test also broke as a side effect |
+| 3 | `apps/server/src/modules/diagram-sync/operations.ts:134-152` | Fired the transaction promise without awaiting it (`void txPromise`) and resolved `appendOperation` with a fabricated row immediately — ack could fire before commit | EDT-03 | ✅ Killed — `operations-batch.int.spec.ts` "the ack response never resolves before the transaction has actually committed" failed exactly as predicted (`resolved` was `true` before `releaseCommit()`); 2 other tests broke as a side effect |
+
+**Sensor depth**: lightweight (3 targeted mutations, default tier)
+**Outcome**: 3/3 killed, 0 survived — PASS ✅
+
+Isolation re-verified after each revert and after final cleanup (`git worktree remove --force`): `git status --porcelain` on the real tree matched the pre-sensor baseline (empty) at every checkpoint.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| Minimum code | ✅ — `mergeScene.ts` is a ~20-line reimplementation, not a framework; no speculative abstraction |
+| Surgical changes | ✅ — `a8d8927` touches only what wiring requires (config, index.ts, one new shared function, one new test) |
+| No scope creep | ✅ — EDT-06 correctly left unimplemented, not stubbed with fake logic |
+| Matches patterns | ✅ — IDOR 404-never-403 pattern, `notFound()`/`forbidden()` helpers, PGlite integration-test scaffold all reused verbatim from F1a |
+| Spec-anchored outcome check (asserted values match spec) | ✅ — see table above; PT-BR strings match spec literally |
+| Per-layer Coverage Expectation met | ✅ — domain (diagram-domain) has 1:1 branch coverage incl. delete-tombstone/no-op edge cases; routes cover happy/IDOR/401/403/malformed/stale-revision/DB-failure |
+| Every test maps to a spec requirement | ✅ — every `it()` title cross-references its task/AC (T19-T26, EDT-*, REC-*) |
+| Documented guidelines followed | ✅ — `.claude/skills/tlc-spec-driven/references/coding-principles.md`, AD-007 (PGlite for integration) |
+
+**Self-reported deviations, independently assessed:**
+1. **`<EditorSurface/>` built in `packages/editor-adapter` (T24)** — the batch worker flagged this as a deviation from F0/T9's original scope. Independently checked against `design.md:154` ("`<EditorSurface/>` — componente React que encapsula `<Excalidraw/>`...") under the `packages/editor-adapter` section: this is not a deviation at all, it is the exact package design.md already assigned. Legitimate, correctly placed — building it in `apps/web` instead would have been the actual violation (a second Excalidraw integration point, breaking EDT-07's single-boundary invariant).
+2. **`vite.config.ts` dev-proxy prefix fix (T25)** — pre-existing scaffold bug (`/api` prefix that no route ever used), fixed incidentally while wiring the sync client. Reasonable, in-scope (the client couldn't reach the server in dev otherwise); a stricter read would have preferred a separate one-line commit, but the fix is a single line and directly required for T25's own manual verification to work — not scope creep.
+3. **`turbo.json` `test:e2e` env passthrough (`PLAYWRIGHT_BROWSERS_PATH`, `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD`)** — confirmed via `git diff d5fe705..HEAD -- turbo.json`, a 2-line addition. Legitimate: without declaring these env vars, Turborepo's strict env mode would not account for them in the task hash, risking a stale cache hit/miss mismatch for the e2e task. Correctly scoped.
+4. **T19 typecheck gap found and fixed in T22's commit** — confirmed via `git diff 2646c9e b6d02f7 -- packages/diagram-domain/src/envelope.spec.ts`: a real `noUncheckedIndexedAccess` narrowing issue (`allFixtures.text` needed a `as readonly SceneElement[]` cast after array destructuring) that T19's `test:unit`-only gate never caught. Legitimate bug fix, correctly attributed to the gate gap that let it through (T19 ran `test:unit` only, not `typecheck`, per its own Gate Check Commands row).
+5. **`diagram-domain/package.json` still lists `@arch-canvas/editor-adapter` under `dependencies` (not `devDependencies`) post-fix**, even though only `import type` is now used from it. Minor, non-blocking: this is a private workspace-only package (never published), pnpm's linking behaves identically either way, and the compiled `dist/*.js` output (independently verified above) proves zero runtime coupling regardless of the package.json classification. Worth a `devDependencies` cleanup in a future pass, not a defect.
+
+---
+
+### Edge Cases
+
+- [x] Mutation batch exceeding 500 elements or 256KB — `packages/diagram-domain/src/envelope.spec.ts` (rejected with `too_many_elements`/`payload_too_large`, distinct problem+json codes)
+- [x] Operations arriving out of order after reconnection — `catchup.int.spec.ts:95-119` returns them `sequence`-ordered regardless of insertion order
+- [x] PostgreSQL unavailable during a mutation — `operations-batch.int.spec.ts:169-210` (server never acks) + `syncClient.spec.ts:79-94` (client goes offline, not silently "saved")
+- [ ] MinIO unavailable during image insert (spec.md edge case) — N/A this wave, no asset module exists yet (correctly deferred to F1c alongside EDT-06)
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e` (E2E-Build gate, run verbatim by this Verifier, not copied from the batch worker's report)
+- **Outcome**: 6/6 stages exited 0. Lint: clean (160 files, 0 fixes needed). Typecheck: 15/15 packages clean. Build: 8/8 packages clean.
+- **Unit**: 221 tests passed, 0 failed (auth 52, shared-contracts 17, test-fixtures 8, editor-adapter 54, diagram-domain 15, server 53, web 22)
+- **Integration**: 132 tests passed, 0 failed (database 14, server 118)
+- **E2E**: 1 test passed, 0 failed (`crash-recovery.spec.ts`, N=20, ~24s)
+- **Test count before this wave** (F1a's reported total): 283
+- **Test count after this wave**: 354 (221 unit + 132 integration + 1 e2e)
+- **Delta**: +71 new tests over F1a's baseline
+- **Skipped tests**: none observed
+- **Failures**: none
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| EDT-01 | Implementing | ✅ Verified *(bootstrap contract fully proven incl. IDOR/401/op-log-fold, `bootstrap.int.spec.ts`)* |
+| EDT-02 | Implementing | ✅ Verified *(debounce/clamp/forced-flush fully proven, `mutationQueue.spec.ts`)* |
+| EDT-03 | Implementing | ✅ Verified *(ack-strictly-after-commit proven with a genuine commit-gate test AND sensor-confirmed against a fabricated-early-ack mutant)* |
+| EDT-04 | Implementing | ✅ Verified *(idempotent resubmission proven at both app and DB constraint level, sensor-confirmed)* |
+| EDT-05 | Implementing | ✅ Verified *(exhaustive 5-state machine test; PT-BR strings match spec literally)* |
+| EDT-06 | Pending | Pending *(unchanged — correctly absent, F1c scope, no false claim made)* |
+| REC-01 | ✅ Verified | ✅ Verified *(unchanged from F0 — F1b adds the real E2E mechanism proof; N=20 vs. spec's illustrative 100 is a documented, reasoned scope reduction, not a mechanism gap)* |
+| REC-02 | Implementing | ✅ Verified *(reconciliation-without-overwrite proven, `syncClient.spec.ts:150-169`)* |
+| REC-03 | Implementing | ✅ Verified *(DB-failure-never-acks and client-offline-transition both proven)* |
+| REC-04 | Implementing | ✅ Verified *(catch-up ordering + IDOR proven, `catchup.int.spec.ts`)* |
+| REC-05 | Implementing | ✅ Verified *(op-log-preserves-both-variants proven at the row level, not just the merged scene, AND sensor-confirmed against a tie-break-flip mutant)* |
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready
+
+**Spec-anchored check**: 11/12 ACs matched spec outcome exactly; 1 correctly-absent (EDT-06, F1c scope); 1 documented spec-precision gap (REC-01's N=20 vs. illustrative 100 — judged acceptable, reasoning above)
+
+**Sensor tally**: 3/3 mutations killed, 0 survived
+
+**Gate**: 6/6 stages passed (lint, typecheck, build, test:unit, test:integration, test:e2e), 354/354 tests passed, 0 failed, +71 tests over F1a's baseline of 283
+
+**Real server boot check**: independently reproduced both the pre-fix bug (no module wiring; `roughjs` resolution crash under plain Node) and the post-fix success (`/health/live` 200, `/me` 401, `/health/ready` up) on a freshly booted compiled `dist/index.js` against real Postgres 16 — not PGlite, not Vitest's bundler-mediated resolution.
+
+**What works**: The op-log is genuinely append-only and idempotent at two independent layers (app pre-check + DB unique constraint), sensor-confirmed. Ack-after-commit is structural, not just documented, sensor-confirmed. The LWW tie-break was successfully decoupled from the Excalidraw runtime with byte-for-byte behavioral preservation (unchanged pre-existing test file, same assertions, same pass result) and zero runtime footprint in the compiled output. The production entrypoint now genuinely serves every module it claims to, verified by an independent process boot outside any test framework. The client save-status machine is exhaustively state-checked and its PT-BR labels match the spec's literal text.
+
+**Issues found**:
+1. REC-01's E2E uses N=20 against the spec's illustrative N=100 — documented, reasoned, judged acceptable (see Spec-Anchored Acceptance Criteria above). Not a fix task; flagged for visibility only.
+2. `diagram-domain/package.json` still lists `editor-adapter` under `dependencies` rather than `devDependencies` post-fix — cosmetic, non-blocking, does not affect runtime behavior (independently confirmed via compiled `dist/*.js`). Worth a follow-up cleanup, not a gate blocker.
+
+**Next steps**: No fix→re-verify iteration needed. Carry EDT-06 (asset upload confirmation) and the MinIO-unavailable edge case into F1c's own task Done-when criteria, where the asset module actually gets built.
+
+---

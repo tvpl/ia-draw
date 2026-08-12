@@ -56,6 +56,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AUTH-03 (spec.md:88) (backend-auth)
 - last seen: 2026-08-12T05:13:32Z
 
+### L-008 - A module's routes being reachable through per-test hand-registration is not evidence the production entrypoint wires them — boot the real compiled entrypoint under plain node (not only Vitest's bundler-mediated resolution) at least once per feature wave that adds a new server module, and curl a route from each newly-added module.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `server-wiring` · harmful: 0
+- features: architecture-canvas
+- evidence: apps/server/src/index.ts (pre-fix, commits e8b7bf6~1 through a8d8927) (server-wiring)
+- last seen: 2026-08-12T07:17:54Z
+
+### L-009 - When a spec's Independent Test narrative states a specific count but the formal AC only requires a qualitative guarantee (e.g. 'every confirmed change'), a reduced-count E2E test is acceptable only if the in-file comment argues the mechanism is count-invariant — flag the divergence explicitly in the validation report rather than silently matching the narrative number or silently reducing it.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `e2e-scoping` · harmful: 0
+- features: architecture-canvas
+- evidence: REC-01 (spec.md Independent Test narrative vs. formal AC text) (e2e-scoping)
+- last seen: 2026-08-12T07:18:00Z
+
+### L-010 - When a server-side domain package must avoid a workspace dependency's runtime footprint (e.g. a browser-oriented rendering library pulled in transitively), keep only import type from that dependency and reimplement the minimal logic locally, then verify zero runtime coupling by grepping the compiled dist output for import/require statements, not just by reading source-level import type annotations.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `package-boundaries` · harmful: 0
+- features: architecture-canvas
+- evidence: packages/diagram-domain/src/mergeScene.ts:1-29 (SPEC_DEVIATION docstring) (package-boundaries)
+- last seen: 2026-08-12T07:18:07Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
