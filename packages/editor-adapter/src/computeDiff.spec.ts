@@ -99,6 +99,50 @@ describe('computeDiff', () => {
           },
         ]);
       });
+
+      it('detects an upsert when only version changes and versionNonce is unchanged', () => {
+        const prev = buildSceneIndex(elements);
+        const target = firstOf(elements);
+        const [, ...rest] = elements;
+        const bumped: SceneElement = {
+          ...target,
+          version: target.version + 1,
+        };
+
+        const deltas = computeDiff(prev, [bumped, ...rest]);
+
+        expect(deltas).toEqual([
+          {
+            elementId: target.id,
+            kind: 'upsert',
+            element: bumped,
+            version: bumped.version,
+            versionNonce: bumped.versionNonce,
+          },
+        ]);
+      });
+
+      it('detects an upsert when only versionNonce changes and version is unchanged', () => {
+        const prev = buildSceneIndex(elements);
+        const target = firstOf(elements);
+        const [, ...rest] = elements;
+        const renonced: SceneElement = {
+          ...target,
+          versionNonce: target.versionNonce + 1,
+        };
+
+        const deltas = computeDiff(prev, [renonced, ...rest]);
+
+        expect(deltas).toEqual([
+          {
+            elementId: target.id,
+            kind: 'upsert',
+            element: renonced,
+            version: renonced.version,
+            versionNonce: renonced.versionNonce,
+          },
+        ]);
+      });
     });
   }
 });
