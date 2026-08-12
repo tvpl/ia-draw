@@ -26,6 +26,12 @@ importers:
       '@arch-canvas/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@arch-canvas/diagram-domain':
+        specifier: workspace:*
+        version: link:../../packages/diagram-domain
+      '@arch-canvas/editor-adapter':
+        specifier: workspace:*
+        version: link:../../packages/editor-adapter
       '@arch-canvas/shared-contracts':
         specifier: workspace:*
         version: link:../../packages/shared-contracts

@@ -148,14 +148,16 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Bootstrap de diagrama novo retorna cena vazia, `revision: 0`, permissões corretas para o papel do actor
-- [ ] Usuário fora do workspace recebe 404 (não 403)
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Bootstrap de diagrama novo retorna cena vazia, `revision: 0`, permissões corretas para o papel do actor
+- [x] Usuário fora do workspace recebe 404 (não 403)
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add diagram bootstrap endpoint`
+
+**Status**: ✅ Complete — `apps/server/src/modules/diagram-sync/` added: `scene.ts` (`loadDiagramScene` folds the op-log via `reconcileOperation`, TODO(F1c) documented for snapshot-based reconstruction), `routes.ts` (`GET /diagrams/:id/bootstrap`, IDOR 404-not-403 pattern mirrored from workspace module). 6 integration tests on PGlite (empty-scene bootstrap, viewer read, IDOR 404, missing diagram 404, unauthenticated 401, op-log folding). `pnpm -w test:unit && pnpm -w test:integration` green (103 integration + unit tests).
 
 ---
 
