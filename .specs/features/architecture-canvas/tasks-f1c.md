@@ -306,15 +306,17 @@ T36
 
 **Done when**:
 
-- [ ] `backup:create` produz um arquivo com manifesto de checksums válido (teste against PGlite/Postgres real conforme disponibilidade do ambiente)
-- [ ] `backup:verify` detecta um checksum adulterado propositalmente no teste (prova de que a verificação é real, não um no-op)
-- [ ] `backup:restore` contra um banco vazio recupera os dados com os mesmos checksums — se este ambiente não tiver um segundo Postgres/MinIO isolado para testar o restore de ponta a ponta, documente exatamente essa limitação (mesmo padrão de honestidade de T6) e cubra o máximo possível via PGlite
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration` (ou `build` se o ambiente genuinamente não permitir o teste de integração completo — documente qual)
+- [x] `backup:create` produz um arquivo com manifesto de checksums válido (teste against PGlite/Postgres real conforme disponibilidade do ambiente)
+- [x] `backup:verify` detecta um checksum adulterado propositalmente no teste (prova de que a verificação é real, não um no-op)
+- [x] `backup:restore` contra um banco vazio recupera os dados com os mesmos checksums — se este ambiente não tiver um segundo Postgres/MinIO isolado para testar o restore de ponta a ponta, documente exatamente essa limitação (mesmo padrão de honestidade de T6) e cubra o máximo possível via PGlite
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration` (ou `build` se o ambiente genuinamente não permitir o teste de integração completo — documente qual)
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(infra): add backup create, verify and restore scripts with checksums`
+
+**Status**: ✅ Complete — new workspace package `infra/backup/` (added to `pnpm-workspace.yaml`): `create.ts`/`verify.ts`/`restore.ts` orchestrate a single-file `.zip` backup (via `jszip`, same library T33 chose) containing `dump.sql` + `objects/{bucket}/{key}` + a SHA-256 checksum manifest; `pgDump.ts` wraps the real `pg_dump`/`psql` binaries (present in this sandbox: `/usr/bin/pg_dump`, `/usr/bin/psql`); `objectStore.ts` is a minimal S3-compatible client (own copy, not importable from `apps/server` which isn't a shared workspace package). CLI entry points (`cli/create.cli.ts`/`verify.cli.ts`/`restore.cli.ts`) are wired to the root `pnpm backup:create|verify|restore` scripts. **Honesty note, more precise than T6/T27's "no Docker" default**: this sandbox genuinely has no second isolated Postgres/MinIO stack, but `@electric-sql/pglite-socket` can expose a real PGlite engine over an actual TCP Postgres wire-protocol socket — verified manually that `psql` connects and queries it for real. `pg_dump` specifically cannot: it refuses with "aborting because of server version mismatch" (PGlite reports `server_version` 18.3; this sandbox's `pg_dump` is 16.13 with no override flag and no `postgresql-client-18` package available via this sandbox's apt sources) — a precisely diagnosed, reproducible constraint, not a vague limitation. That reproduction was flaky under the Vitest runner's process/socket handling (reliable standalone, timed out under vitest) so it was **not** committed as an automated test — documented instead of shipped unreliable. `create.ts`/`restore.ts` accept injectable `dump`/`restore` functions (default to the real `pg_dump`/`psql` wrappers) so `create.int.spec.ts` exercises the REAL create→verify→restore orchestration (zip packaging, checksum manifest, object-store round-trip) with the DB boundary substituted — and the substitution itself is not a bare mock: the injected `restore` applies the dump SQL to a genuinely separate, fresh `@electric-sql/pglite` instance via its own `.exec()`, then queries it back, proving data really lands. `verify.spec.ts` (4 unit tests) proves tamper-detection is real (a deliberately mismatched checksum, a manifest-listed-but-missing file, a missing manifest entirely, and the valid case). `pnpm -w test:unit && pnpm -w test:integration`: 4 unit / 4 integration passed in `@arch-canvas/backup`; workspace-wide both green (282 unit / 177 integration total across all packages).
 
 ---
 

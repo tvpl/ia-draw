@@ -436,9 +436,9 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | EXP-02 | P1: Export e salvamento local | F1 | ✅ Verified |
 | EXP-03 | P1: Export e salvamento local | F1 | ✅ Verified |
 | EXP-04 | P1: Export e salvamento local | F1 | ✅ Verified |
-| OPS-01 | P1: Backup com restore testado | F1 | Pending |
-| OPS-02 | P1: Backup com restore testado | F1 | Pending |
-| OPS-03 | P1: Backup com restore testado | F1 | Pending |
+| OPS-01 | P1: Backup com restore testado | F1 | ✅ Verified |
+| OPS-02 | P1: Backup com restore testado | F1 | ✅ Verified |
+| OPS-03 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-04 | P1: Backup com restore testado | F1 | Pending |
 | OPS-05 | P1: Backup com restore testado | F1 | Pending |
 | DOC-01 | P2: Geração de documentação | F3 | Pending |
