@@ -154,6 +154,7 @@ T69 -> T70
 **Gate**: quick
 
 **Commit**: `feat(database): add spec_documents, comments, presentations, presentation_frames schema`
+**Status**: ✅ Complete — 4 new Drizzle tables in `packages/database/src/schema.ts` following existing conventions exactly (uuid PK via `.primaryKey().defaultRandom()`, `references(() => table.id)` FKs, `timestamp(..., { withTimezone: true }).notNull().defaultNow()`, new `pgEnum`s `spec_document_status`/`comment_status`). `comments.parentId` is a self-referencing FK typed via `AnyPgColumn` (drizzle's documented pattern for self-joins). Migration generated with `drizzle-kit generate` → `infra/migrations/0008_colorful_bruce_banner.sql`. New integration spec `packages/database/src/collab.int.spec.ts` (4 tests, same PGlite pattern as `migrate.int.spec.ts`, AD-007): migration applies from scratch, one row inserted per table with valid FKs, a `comments` reply with `parentId` pointing to a root comment persists and round-trips, and a duplicate `(diagram_id, version)` insert into `spec_documents` is rejected with Postgres `23505` (unique_violation) via `spec_documents_diagram_version_unique`. `pnpm --filter @arch-canvas/database test:integration` green (6 files/29 tests, including the 4 new); `pnpm -w test:unit` and `pnpm -w build` both green. **Deviation**: none functional; `packages/database`'s own `tsc --noEmit` was run directly as a pre-check before `drizzle-kit generate` to confirm the self-referencing FK typed cleanly.
 
 ---
 

@@ -1,4 +1,5 @@
 import {
+  type AnyPgColumn,
   boolean,
   index,
   integer,
@@ -453,4 +454,125 @@ export const aiToolCalls = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [index('ai_tool_calls_ai_run_idx').on(table.aiRunId)],
+);
+
+export const specDocumentStatus = pgEnum('spec_document_status', ['draft', 'current', 'superseded']);
+
+/**
+ * A generated Markdown spec version for a diagram (DOC-01/02, F3/T59). Never
+ * updated in place — `docgen`'s `:generate`/`:regenerate-section` routes
+ * (T62/T63) always INSERT a new row with an incremented `version`, flipping
+ * the diagram's prior `'current'` row to `'superseded'` in the same
+ * transaction (immutable-version discipline, same spirit as
+ * `diagram_snapshots.immutable`). `sourceRevision` freezes the
+ * `diagrams.current_revision` the Markdown was generated against.
+ * `(diagram_id, version)` UNIQUE makes a duplicate version impossible.
+ */
+export const specDocuments = pgTable(
+  'spec_documents',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    sourceRevision: integer('source_revision').notNull(),
+    version: integer('version').notNull(),
+    markdownKey: text('markdown_key').notNull(),
+    status: specDocumentStatus('status').notNull().default('draft'),
+    generatedBy: uuid('generated_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('spec_documents_diagram_version_unique').on(table.diagramId, table.version),
+  ],
+);
+
+export const commentStatus = pgEnum('comment_status', ['open', 'resolved']);
+
+/**
+ * A threaded async comment on a diagram (CMT-01/02, F3/T59), optionally
+ * anchored to a canvas `elementId` or a presentation `frameId` (both free
+ * text — not FKs — since a comment can outlive the element/frame it was
+ * originally anchored to, same "don't hard-fail on a stale pointer"
+ * philosophy as `diagram_elements_meta.element_id`). `parentId` is a
+ * self-referencing FK: a null `parentId` is a thread root, a non-null one is
+ * a reply. `role: 'reviewer'` is explicitly PERMITTED on `comment:create`/
+ * `comment:resolve` even though it is denied `diagram:mutate` (packages/auth
+ * policy, wired in T69) — a comment is never a scene mutation.
+ */
+export const comments = pgTable(
+  'comments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    elementId: text('element_id'),
+    frameId: uuid('frame_id'),
+    parentId: uuid('parent_id').references((): AnyPgColumn => comments.id),
+    body: text('body').notNull(),
+    status: commentStatus('status').notNull().default('open'),
+    authorId: uuid('author_id')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('comments_diagram_element_idx').on(table.diagramId, table.elementId)],
+);
+
+/**
+ * A named, orderable "walkthrough" of a diagram (PRS-01/02/03, F3/T59) —
+ * frames are added below. `publishedSnapshotId` is null until `:publish`
+ * (T66) creates an immutable `diagram_snapshots` row (`kind: 'published'`)
+ * and links it here; a published presentation's read-only link always
+ * serves that snapshot's frozen scene, never the live one.
+ * `settingsJson` carries presentation-level config (e.g. `expiresAt` for the
+ * published link) without a schema change per new setting.
+ */
+export const presentations = pgTable('presentations', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  diagramId: uuid('diagram_id')
+    .notNull()
+    .references(() => diagrams.id),
+  name: text('name').notNull(),
+  publishedSnapshotId: uuid('published_snapshot_id').references(() => diagramSnapshots.id),
+  settingsJson: jsonb('settings_json').notNull().default({}),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * One frame (a "slide") inside a `presentations` row (PRS-01/03, F3/T59).
+ * References a canvas area via `elementId` (an Excalidraw `frame` element)
+ * or a logical `frameId` (both free text, same stale-pointer tolerance as
+ * `diagram_elements_meta`) — never both required, the route layer (T65)
+ * validates exactly one is meaningful per frame. `position` is the
+ * reorderable ordering key (PATCH in bulk reassigns it). `notes` are private
+ * (never returned to a viewer without edit/presenter permission — enforced
+ * at the route layer, T65/T66). `navLinksJson` holds `{ targetFrameId }[]`
+ * click-through links to other frames in the same presentation.
+ */
+export const presentationFrames = pgTable(
+  'presentation_frames',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    presentationId: uuid('presentation_id')
+      .notNull()
+      .references(() => presentations.id),
+    elementId: text('element_id'),
+    frameId: text('frame_id'),
+    position: integer('position').notNull(),
+    notes: text('notes'),
+    navLinksJson: jsonb('nav_links_json').notNull().default([]),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('presentation_frames_presentation_position_idx').on(
+      table.presentationId,
+      table.position,
+    ),
+  ],
 );

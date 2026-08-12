@@ -57,6 +57,13 @@
       "when": 1786529157777,
       "tag": "0007_dashing_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786568112889,
+      "tag": "0008_colorful_bruce_banner",
+      "breakpoints": true
     }
   ]
 }
