@@ -9,4 +9,5 @@ export {
   type LibraryManifest,
   libraryItemSchema,
   libraryManifestSchema,
+  SOURCE_DOCUMENT_CATEGORIES,
 } from './schema.js';

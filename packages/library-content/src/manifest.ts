@@ -1,3 +1,4 @@
+import { WIREFRAME_LOFI_ITEMS } from './presets/wireframe-lofi.js';
 import { type LibraryItem, type LibraryManifest, libraryManifestSchema } from './schema.js';
 
 /**
@@ -320,7 +321,7 @@ const AWS_ITEMS: LibraryItem[] = [
 const rawManifest: LibraryManifest = {
   name: 'architecture-canvas-core',
   version: '1.0.0',
-  items: [...GENERIC_ITEMS, ...AWS_ITEMS],
+  items: [...GENERIC_ITEMS, ...AWS_ITEMS, ...WIREFRAME_LOFI_ITEMS],
 };
 
 /** Validated at import time — an invalid item fails the moment this module loads, not later. */

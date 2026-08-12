@@ -6,7 +6,7 @@ import { z } from 'zod';
  * database, networking, security, observability, messaging, integration,
  * user/client, external system.
  */
-export const CATEGORIES = [
+export const SOURCE_DOCUMENT_CATEGORIES = [
   'compute',
   'containers',
   'serverless',
@@ -20,6 +20,17 @@ export const CATEGORIES = [
   'user_client',
   'external_system',
 ] as const;
+
+/**
+ * T67 (PRS-04) adds `wireframe` as a 13th category for the low-fi
+ * prototyping kit (screens, buttons, inputs, lists) — it does not map to
+ * any of the 12 infra-taxonomy categories above, which come verbatim from
+ * the source document and are deliberately kept as their own constant
+ * (`SOURCE_DOCUMENT_CATEGORIES`) so `manifest.spec.ts`'s "every source-
+ * document category has a generic component" assertion keeps checking
+ * exactly those 12, unaffected by this addition.
+ */
+export const CATEGORIES = [...SOURCE_DOCUMENT_CATEGORIES, 'wireframe'] as const;
 
 export type Category = (typeof CATEGORIES)[number];
 

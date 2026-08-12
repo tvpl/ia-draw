@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { LIBRARY_MANIFEST } from './manifest.js';
-import { CATEGORIES, libraryItemSchema, libraryManifestSchema } from './schema.js';
+import {
+  CATEGORIES,
+  libraryItemSchema,
+  libraryManifestSchema,
+  SOURCE_DOCUMENT_CATEGORIES,
+} from './schema.js';
 
 describe('library-content manifest (T37, spec.md LIB-01)', () => {
   it('validates against the Zod manifest schema', () => {
@@ -58,14 +63,19 @@ describe('library-content manifest (T37, spec.md LIB-01)', () => {
   });
 
   it('covers all 12 categories from the source document with at least one generic component each', () => {
-    expect(CATEGORIES).toHaveLength(12);
+    expect(SOURCE_DOCUMENT_CATEGORIES).toHaveLength(12);
     const genericItems = LIBRARY_MANIFEST.items.filter((item) =>
       item.stableKey.startsWith('generic.'),
     );
     const coveredCategories = new Set(genericItems.map((item) => item.category));
-    for (const category of CATEGORIES) {
+    for (const category of SOURCE_DOCUMENT_CATEGORIES) {
       expect(coveredCategories.has(category)).toBe(true);
     }
+  });
+
+  it('T67 (PRS-04): CATEGORIES extends the 12 source-document categories with `wireframe`', () => {
+    expect(CATEGORIES).toHaveLength(13);
+    expect(CATEGORIES).toContain('wireframe');
   });
 
   it('ships at least 5 real AWS components with a verified, documented license', () => {
