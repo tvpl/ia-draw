@@ -142,16 +142,18 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] `loadConfig` lança erro nomeando a variável quando produção usa default inseguro (FND-03)
-- [ ] `/health/live` responde 200 sempre; `/health/ready` reflete dependências (FND-05)
-- [ ] Shutdown SIGTERM fecha conexões com drain antes de sair
-- [ ] Testes via `fastify.inject` cobrem happy + failure de config + readiness degradado
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] `loadConfig` lança erro nomeando a variável quando produção usa default inseguro (FND-03)
+- [x] `/health/live` responde 200 sempre; `/health/ready` reflete dependências (FND-05)
+- [x] Shutdown SIGTERM fecha conexões com drain antes de sair
+- [x] Testes via `fastify.inject` cobrem happy + failure de config + readiness degradado
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(server): add fastify core with validated config, health and json logs`
+
+**Status**: ✅ Complete — 11 testes unit (2 arquivos), gate quick (`pnpm -w test:unit`) + lint + typecheck + build verdes
 
 ---
 
