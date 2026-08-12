@@ -69,16 +69,18 @@
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
-- **Phase / Task**: Execute AUTÔNOMO em andamento (autorizado pelo usuário em 2026-08-12: "siga até terminá-lo totalmente", "sem precisar me perguntar nada", usando sub-agents em loop com Verifier independente por onda)
-- **Completed**:
-  - **F0 (Fundação)** — 11 tasks, ✅ Verified (2 iterações do Verifier; FND-03/EDT-07 Verified, demais Implementing por escopo de spike, corretamente).
-  - **F1a (Identidade/RBAC)** — T12-T18, ✅ Verified na 1ª iteração. AUTH-01/04 Verified; AUTH-02/03/05 Implementing (gaps honestos contra superfícies ainda não construídas).
-  - **F1b (Persistência do canvas — núcleo do invariante server-first)** — T19-T26, ✅ Verified. **Achado crítico pós-batch, corrigido pelo orquestrador**: `apps/server/src/index.ts` nunca registrava nenhum módulo (produção real 404ava em tudo) e `diagram-domain` quebrava o boot sob Node puro por importar `@excalidraw/excalidraw` transitivamente — ambos corrigidos (commits `e8b7bf6`, `a8d8927`), registrado como AD-008, e confirmado pelo Verifier via boot real do binário compilado + curl. EDT-01..05/07 e REC-01..05 → ✅ Verified.
-  - **F1c batch 1 (T27-T31: storage/jobs/assets/snapshots)** — completo, commitado, pushed, gate verde, wiring em `registerAllModules` já aplicado (lição AD-008/L-008 seguida desde o início desta vez).
-  - Ondas **F2a** (biblioteca+provider IA, T37-T42), **F2b** (diagram-ir, T43-T48) e **F2c** (agente de IA, T49-T57) autoradas, validadas (`validate_tasks.py` 0 erros cada) e pushed — ainda NÃO executadas.
-- **In-progress**: F1c batch 2 (T32-T36: export/backup/logs) rodando em sub-agent background — fecha a onda F1 inteira ao concluir.
-- **Next step**: ao completar F1c batch 2 → gate, push, Verifier da onda F1c completa → autorar/disparar F3 (docs/apresentação/protótipos), F4 (realtime), F5 (hardening) na mesma cadência: autoria → validate_tasks → batch(es) → gate real → Verifier independente com sensor de mutação → fix-loop se FAIL → próxima onda, sem pausar salvo bloqueio genuíno.
-- **Lições registradas** (`.specs/lessons.json`, todas `candidate`): L-001..L-010, cobrindo cobertura de branch OR/AND, evidência de egress, traceability de spike-vs-implementação, ACs multi-parte, gap REST/WS, infra-vs-comportamento, **L-008 (o achado de wiring de produção acima — aplicado proativamente desde F1c)**, precisão de contagem em E2E, e reimplementação de fronteira de pacote (AD-008).
+- **Phase / Task**: Execute AUTÔNOMO em andamento (autorizado pelo usuário em 2026-08-12: "siga até terminá-lo totalmente", "sem precisar me perguntar nada", usando sub-agents em loop com Verifier independente por onda). **Nota operacional**: o ambiente de execução já reiniciou uma vez nesta sessão (silenciosamente matou um sub-agent Verifier em background sem notificação) — o repositório git é sempre a fonte da verdade após um reinício, nunca assumir que um sub-agent despachado ainda está vivo só por falta de notificação; checar `git log`/`git status` e timestamps de arquivo antes de concluir que algo travou de verdade.
+- **Completed (todas com Verifier independente + sensor de mutação, PASS)**:
+  - **F0 (Fundação)** — 11 tasks. FND-03/EDT-07 Verified, demais Implementing por escopo de spike (corretamente).
+  - **F1a (Identidade/RBAC)** — T12-T18. AUTH-01/04 Verified; AUTH-02/03/05 Implementing (gaps honestos).
+  - **F1b (Persistência do canvas — núcleo do invariante server-first)** — T19-T26. Achado crítico pós-batch corrigido pelo orquestrador: `index.ts` nunca registrava módulos + `diagram-domain` quebrava boot sob Node puro (AD-008). EDT-01..05/07, REC-01..05 → Verified.
+  - **F1c (Assets/Snapshots/Export/Backup)** — T27-T36, PASS na 1ª iteração. Log redaction, AD-008 e backup/restore real (2 Postgres 16 genuínos neste sandbox) todos reproduzidos independentemente pelo Verifier. VER-01..04/EXP-01..04/OPS-01..05/EDT-06 → Verified. **F1 está inteiramente fechada.**
+  - Gap de follow-up do F1c (zip-bomb/tamanho de import sem limite explícito) corrigido pelo orquestrador (`7667df6`): `bodyLimit` 10MB + `MAX_IMPORT_ELEMENTS` 20k.
+  - **F2a (Biblioteca + Provider de IA)** — T37-T42. Iteração 1: FAIL (1 mutante sobrevivente — teste só checava substring do token, não ausência do campo `encryptedToken` na resposta). Fix aplicado e commitado (`38b320c`). Reverificação (iteração 2) despachada, aguardando resultado.
+  - Ondas **F2b** (diagram-ir, T43-T48) e **F2c** (agente de IA, T49-T57) autoradas, validadas (`validate_tasks.py` 0 erros cada) e pushed — ainda NÃO executadas.
+- **In-progress**: F2a Verifier iteração 2 (reverificação pós-fix) rodando em sub-agent background.
+- **Next step**: ao PASS da iteração 2 → dispatch F2b (depende de F2a mergeada para resolução de `stable_key`) → F2c → autorar/disparar F3 (docs/apresentação/protótipos), F4 (realtime), F5 (hardening) na mesma cadência: autoria → validate_tasks → batch(es) → gate real → Verifier independente com sensor de mutação → fix-loop se FAIL (máx. 3 iterações) → próxima onda, sem pausar salvo bloqueio genuíno.
+- **Lições registradas** (`.specs/lessons.json`, todas `candidate`): L-001..L-013, incluindo L-008 (wiring de produção, aplicada proativamente desde F1c) e a mais recente sobre asserção de shape de resposta vs. substring (F2a iteração 1).
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: claude/architecture-canvas-system-cdwop7
