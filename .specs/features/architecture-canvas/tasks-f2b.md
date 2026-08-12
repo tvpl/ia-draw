@@ -146,14 +146,17 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] Uma cadeia linear de 5 nodes conectados produz posições em ordem topológica crescente (sem ciclos na entrada de teste)
-- [ ] Zero overlaps entre bounding boxes dos nodes posicionados
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Uma cadeia linear de 5 nodes conectados produz posições em ordem topológica crescente (sem ciclos na entrada de teste)
+- [x] Zero overlaps entre bounding boxes dos nodes posicionados
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-ir): add elk-layered layout engine for flows and microservices`
+
+**Status**: ✅ Complete — `layoutElkLayered` in `src/layout/elkLayered.ts`, using `elkjs`'s `layered` algorithm (direction `RIGHT`), `IrContainer`s built as ELK compound nodes with `INCLUDE_CHILDREN` hierarchy handling, absolute positions reconstructed from ELK's parent-relative coordinates. Confirmed live that `elkjs`'s default import runs `elk.layout()` purely in Node with no browser/worker dependency. 2 tests in `src/layout/elkLayered.spec.ts` (topological order, zero overlaps). `pnpm -w test:unit` green.
+**Deviation**: `elkjs`'s shipped `main.d.ts` re-exports its default constructor through an indirection that `tsc` under `moduleResolution: NodeNext` mis-resolves to the module's namespace type (`TS2351: not constructable`) despite the runtime value being correct (verified directly in Node). Routed around it with a local `ElkInstance` interface (typed against `elkjs`'s own real `ElkNode`) and a documented cast — see the comment above `const ELK = ...` in `elkLayered.ts`.
 
 ---
 

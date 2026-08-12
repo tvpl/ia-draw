@@ -1,3 +1,4 @@
+export { layoutElkLayered } from './layout/elkLayered.js';
 export { layoutGridZones } from './layout/gridZones.js';
 export type { PositionedNode } from './layout/types.js';
 export {
