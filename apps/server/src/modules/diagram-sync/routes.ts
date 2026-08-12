@@ -6,6 +6,7 @@ import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
+import { loadOperationsAfter } from './catchup.js';
 import { appendOperation } from './operations.js';
 import { loadDiagramScene } from './scene.js';
 
@@ -22,6 +23,7 @@ function forbidden(): never {
 }
 
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
+const catchupQuerySchema = z.object({ afterSequence: z.coerce.number().int().nonnegative() });
 
 /** Registers the diagram-sync module's routes — the server-first persistence core (T21). */
 export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyncModuleDeps): void {
@@ -88,4 +90,23 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       return result;
     },
   );
+
+  app.get('/diagrams/:id/operations', { preHandler: requireSession(db) }, async (request) => {
+    const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
+    const { afterSequence } = catchupQuerySchema.parse(request.query);
+    const user = request.authContext?.user;
+    if (!user) forbidden();
+
+    const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
+    if (!workspaceId) notFound();
+
+    const role = await resolveWorkspaceRole(db, workspaceId, user.id);
+    if (!role) notFound();
+
+    const decision = can({ role }, 'diagram:read', { workspaceId });
+    if (!decision.allowed) notFound();
+
+    const operations = await loadOperationsAfter(db, diagramId, afterSequence);
+    return { operations };
+  });
 }

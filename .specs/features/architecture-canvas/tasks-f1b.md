@@ -207,14 +207,16 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Cliente com revisão desatualizada recebe exatamente as operações faltantes, em ordem de `sequence`
-- [ ] Actor sem `diagram:read` no workspace recebe 404
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Cliente com revisão desatualizada recebe exatamente as operações faltantes, em ordem de `sequence`
+- [x] Actor sem `diagram:read` no workspace recebe 404
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add operations catch-up endpoint for stale-revision reconnect`
+
+**Status**: ✅ Complete — `GET /diagrams/:id/operations?afterSequence=` added (`catchup.ts`'s `loadOperationsAfter`, same RBAC pattern as bootstrap). 5 integration tests: exact missing-ops slice in sequence order, already-caught-up empty list, IDOR 404, viewer read access, unauthenticated 401.
 
 ---
 

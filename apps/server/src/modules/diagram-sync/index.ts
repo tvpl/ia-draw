@@ -1,3 +1,4 @@
+export { loadOperationsAfter } from './catchup.js';
 export {
   appendOperation,
   type BatchResult,
