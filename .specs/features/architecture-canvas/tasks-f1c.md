@@ -275,15 +275,17 @@ T36
 
 **Done when**:
 
-- [ ] Bundle descompactado localmente contém cena + assets + manifesto com checksums que batem com os bytes reais dos arquivos
-- [ ] Import de um `.excalidraw` malformado é rejeitado com erro claro antes de qualquer criação; um válido retorna preview correto
-- [ ] Bulk export só é acessível a `workspace_admin` (403 para os demais papéis)
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Bundle descompactado localmente contém cena + assets + manifesto com checksums que batem com os bytes reais dos arquivos
+- [x] Import de um `.excalidraw` malformado é rejeitado com erro claro antes de qualquer criação; um válido retorna preview correto
+- [x] Bulk export só é acessível a `workspace_admin` (403 para os demais papéis)
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add local zip bundle export, import preview and bulk workspace export`
+
+**Status**: ✅ Complete — extends `apps/server/src/modules/export/` with `bundle.ts` (`buildDiagramBundle`: scene + `ready` assets the scene's image elements actually reference (via `fileId`, the same binding T29's `assertAssetsReady` uses) + `metadata.json`/empty semantic placeholder (semantic layer is F2/F3) + a SHA-256 checksum manifest, using `jszip` — chosen over `archiver` after discovering `archiver@8`'s real runtime API (`ZipArchive` class) has no matching `@types/archiver` release at all (latest published types are for the old v6 default-export-function API), while `jszip` ships its own bundled, accurate `.d.ts`; verified directly against the installed package before writing any code), `import.ts` (`previewImport`/`confirmImport`), `bulkBundle.ts` (`runBulkWorkspaceBundle` + pg-boss `bulk-workspace-bundle` job, T28). Routes added to `routes.ts`: `POST /diagrams/{id}/bundle`, `POST /projects/{id}/import` (SPEC_DEVIATION, documented inline in `routes.ts`: the task names this route `/diagrams/{id}/import`, but its own text says the diagram doesn't exist yet at preview time — there is no diagram id to scope it under, so it's registered under the target project instead, which is what creating a diagram actually requires; "sua escolha, documente" explicitly license this), and `POST /workspaces/{id}/bundles` (gated on `workspace:manage_members`, the same action already used for workspace admin-only routes — held exclusively by `workspace_admin`/`org_admin`). **Wired into `registerAllModules`** (`apps/server/src/core/registerModules.ts`) in this same commit — the export module (including T32's `/exports` route, previously unwired) is reachable in production for the first time; `registerModules.int.spec.ts` extended with a 401-not-404 reachability check across all 4 export-module routes. Import's "preview vs. create" split: `confirm: true` + `title` in the body triggers actual creation (reuses T31's `buildRestoreDeltas([], elements)` against an empty "current scene" plus diagram-sync's own `appendOperation`, T22 — no new write path). `pnpm -w test:unit && pnpm -w test:integration`: 104 unit / 159 integration passed in `apps/server`, both green; new coverage: `import.spec.ts` (4 unit tests — preview happy path, malformed JSON, wrong envelope type, non-array elements) and `export.int.spec.ts` (8 integration tests — export happy path with checksum verification against real object bytes, 401 reachability, bundle checksum/asset verification via a real unzip, import preview-vs-confirm + malformed rejection + scene seeding, bulk export workspace_admin-only vs 403 for editor).
 
 ---
 

@@ -113,6 +113,33 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(response.statusCode).toBe(401);
   });
 
+  it('reaches the export module routes through the same wiring path (T32/T33) — 401 without a session, never 404', async () => {
+    const exportsResponse = await app.inject({
+      method: 'POST',
+      url: '/diagrams/some-diagram-id/exports',
+    });
+    expect(exportsResponse.statusCode).toBe(401);
+
+    const bundleResponse = await app.inject({
+      method: 'POST',
+      url: '/diagrams/some-diagram-id/bundle',
+    });
+    expect(bundleResponse.statusCode).toBe(401);
+
+    const importResponse = await app.inject({
+      method: 'POST',
+      url: '/projects/some-project-id/import',
+      payload: { fileContent: '{}' },
+    });
+    expect(importResponse.statusCode).toBe(401);
+
+    const bulkResponse = await app.inject({
+      method: 'POST',
+      url: '/workspaces/some-workspace-id/bundles',
+    });
+    expect(bulkResponse.statusCode).toBe(401);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 
