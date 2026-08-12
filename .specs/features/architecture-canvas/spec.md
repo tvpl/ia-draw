@@ -387,7 +387,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | --- | --- | --- | --- |
 | FND-01 | P1: Instalação self-hosted | F0 | Implementing |
 | FND-02 | P1: Instalação self-hosted | F0 | Implementing |
-| FND-03 | P1: Instalação self-hosted | F0 | Implementing |
+| FND-03 | P1: Instalação self-hosted | F0 | ✅ Verified |
 | FND-04 | P1: Instalação self-hosted | F0 | In Tasks |
 | FND-05 | P1: Instalação self-hosted | F0 | Implementing |
 | AUTH-01 | P1: Contas, workspaces e RBAC | F1 | Pending |
@@ -401,7 +401,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | EDT-04 | P1: Edição server-first | F1 | Pending |
 | EDT-05 | P1: Edição server-first | F1 | Pending |
 | EDT-06 | P1: Edição server-first | F1 | Pending |
-| EDT-07 | P1: Edição server-first | F1 | Implementing |
+| EDT-07 | P1: Edição server-first | F1 | ✅ Verified |
 | REC-01 | P1: Recuperação após crash | F1 | Pending |
 | REC-02 | P1: Recuperação após crash | F1 | Pending |
 | REC-03 | P1: Recuperação após crash | F1 | Pending |

@@ -1,0 +1,82 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 5,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::when a change detection condition combines multiple fields with or test each field changing alone not just all fields changing together or the or and boundary is untested",
+      "text": "When a change-detection condition combines multiple fields with OR, test each field changing alone, not just all fields changing together, or the OR/AND boundary is untested.",
+      "signal": "surviving_mutant",
+      "scope": "domain-logic",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/editor-adapter/src/computeDiff.ts:50 (domain-logic)"
+      ],
+      "created": "2026-08-12T04:07:09Z",
+      "last_seen": "2026-08-12T04:07:09Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::don t leave a network egress isolation acceptance criterion evidenced only by the current absence of outbound calls add an explicit automated check before any feature that could add an external call lands",
+      "text": "Don't leave a network/egress-isolation acceptance criterion evidenced only by the current absence of outbound calls — add an explicit automated check before any feature that could add an external call lands.",
+      "signal": "ac_gap",
+      "scope": "infra",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FND-02 (infra)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T04:07:17Z"
+    },
+    {
+      "id": "L-003",
+      "key": "ac_gap::a benchmark or spike task must not be traced as covering an ac that requires a server side flow the spike itself doesn t build keep the requirement s status at implementing until the real flow exists",
+      "text": "A benchmark or spike task must not be traced as covering an AC that requires a server-side flow the spike itself doesn't build; keep the requirement's status at Implementing until the real flow exists.",
+      "signal": "ac_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EDT-01 (traceability)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T04:07:17Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::when an ac bundles multiple subsystems or formats into one requirement verify and trace each subsystem format independently rather than advancing the whole ac s status on partial coverage",
+      "text": "When an AC bundles multiple subsystems or formats into one requirement, verify and trace each subsystem/format independently rather than advancing the whole AC's status on partial coverage.",
+      "signal": "ac_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FND-05 (traceability)",
+        "EXP-01 (traceability)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T04:07:17Z"
+    }
+  ]
+}
