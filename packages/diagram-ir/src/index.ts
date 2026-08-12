@@ -1,3 +1,5 @@
+export { layoutGridZones } from './layout/gridZones.js';
+export type { PositionedNode } from './layout/types.js';
 export {
   CONTAINER_KINDS,
   type ContainerKind,

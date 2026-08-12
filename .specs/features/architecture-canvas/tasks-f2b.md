@@ -117,15 +117,17 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] Cenário com 2 containers-irmãos contendo 3 nodes cada produz zero overlaps (bounding boxes não se interceptam) — teste geométrico explícito
-- [ ] Containers aninhados (container dentro de container) são posicionados sem overlap entre pai e filhos de outro ramo
-- [ ] Determinístico: mesma IR produz exatamente as mesmas posições em duas chamadas
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Cenário com 2 containers-irmãos contendo 3 nodes cada produz zero overlaps (bounding boxes não se interceptam) — teste geométrico explícito
+- [x] Containers aninhados (container dentro de container) são posicionados sem overlap entre pai e filhos de outro ramo
+- [x] Determinístico: mesma IR produz exatamente as mesmas posições em duas chamadas
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-ir): add deterministic grid-zones layout for cloud/c4 containers`
+
+**Status**: ✅ Complete — `layoutGridZones` in `src/layout/gridZones.ts`, recursive grid packing with per-level padding growth; 3 tests in `src/layout/gridZones.spec.ts` (sibling containers, nested containers cross-branch, determinism). `pnpm -w test:unit` green.
 
 ---
 
