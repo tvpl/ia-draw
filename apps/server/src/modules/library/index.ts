@@ -3,6 +3,7 @@ export { type LibraryRow, listAuthorizedLibraries } from './libraries.js';
 export {
   type ElementMetadataRow,
   getElementMetadata,
+  listElementMetadata,
   type UpsertElementMetadataInput,
   upsertElementMetadata,
 } from './metadata.js';

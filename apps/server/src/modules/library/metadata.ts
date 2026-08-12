@@ -34,6 +34,18 @@ export async function getElementMetadata(
 }
 
 /**
+ * Reads every semantic metadata row for a diagram (F3/T62 docgen, T64 lint —
+ * both need the full per-element metadata set, not one element at a time).
+ * Read-only, no ordering guarantee beyond whatever Postgres returns.
+ */
+export async function listElementMetadata(
+  db: Db,
+  diagramId: string,
+): Promise<ElementMetadataRow[]> {
+  return db.select().from(diagramElementsMeta).where(eq(diagramElementsMeta.diagramId, diagramId));
+}
+
+/**
  * Upserts semantic metadata for one element (LIB-02/LIB-03) — never touches
  * `diagram_operations`/scene data, entirely in this table, keyed only by
  * `elementId`. Idempotent by construction: the composite PK means a second

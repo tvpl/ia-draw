@@ -5,6 +5,7 @@ import { registerAssetModule } from '../modules/asset/routes.js';
 import type { Db } from '../modules/auth/db.js';
 import { registerAuthModule } from '../modules/auth/routes.js';
 import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
+import { registerDocgenModule } from '../modules/docgen/routes.js';
 import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
 import { registerExportModule } from '../modules/export/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
@@ -50,6 +51,7 @@ export async function registerAllModules(
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
   registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
+  registerDocgenModule(app, { db, storage });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);
