@@ -4,5 +4,15 @@
   },
   "languageSwitcher": {
     "label": "Idioma"
+  },
+  "diagram": {
+    "loading": "Carregando…"
+  },
+  "saveStatus": {
+    "saved": "Salvo",
+    "saving": "Salvando…",
+    "offline": "Offline — {{count}} alterações pendentes",
+    "conflict": "Conflito",
+    "readOnly": "Somente leitura"
   }
 }

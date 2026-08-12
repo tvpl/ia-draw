@@ -266,16 +266,18 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Estado nunca assume um valor fora dos 5 definidos (teste de máquina de estados exaustivo)
-- [ ] `Salvo` só é atingido após resposta 2xx do `operations:batch` (mock de resposta pendente mantém `Salvando…`)
-- [ ] Falha de rede transita para `Offline — N alterações pendentes` com N correto
-- [ ] Reconexão com fila pendente reenvia e reporta o resultado, sem sobrescrever uma revisão mais nova recebida via catch-up
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Estado nunca assume um valor fora dos 5 definidos (teste de máquina de estados exaustivo)
+- [x] `Salvo` só é atingido após resposta 2xx do `operations:batch` (mock de resposta pendente mantém `Salvando…`)
+- [x] Falha de rede transita para `Offline — N alterações pendentes` com N correto
+- [x] Reconexão com fila pendente reenvia e reporta o resultado, sem sobrescrever uma revisão mais nova recebida via catch-up
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(web): add save-status state machine and reconnect reconciliation client`
+
+**Status**: ✅ Complete — `apps/web/src/sync/saveStatus.ts` (Zustand store, exactly 5 kinds, i18n keys `saveStatus.*` in both locales matching the literal PT-BR strings) and `apps/web/src/sync/syncClient.ts` (`DiagramSyncClient`: `bootstrap()`, `sendBatch()` wired as the queue's `onFlush`, `catchUp()`, backoff retry via injectable timer, reconciliation that updates `baseRevision`/reports via `onReconcile` without touching pending local edits). `DiagramEditorPage` now calls `/me` + `bootstrap()` before mounting `<EditorSurface/>` and renders the status text (`data-testid="save-status"`) T26 will assert on. Also fixed a pre-existing scaffold bug: `vite.config.ts`'s dev proxy targeted `/api`, which no server route has ever used (all routes are unprefixed) — proxies the real route prefixes instead. 18 new unit tests (4 save-status + 7 sync-client, plus existing queue tests). `pnpm -w test:unit` green (13/13 packages).
 
 ---
 
