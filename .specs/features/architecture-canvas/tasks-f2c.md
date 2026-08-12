@@ -250,16 +250,18 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Patch com uma remoção marca `requiresExplicitApproval: true`
-- [ ] Patch afetando 51 elementos marca `requiresExplicitApproval: true`; 50 exatos não marca (limiar exato testado)
-- [ ] Patch alterando um elemento fora da seleção original marca `requiresExplicitApproval: true`
-- [ ] Preview nunca modifica `diagram_operations`/a cena real — teste que a revisão do diagrama é idêntica antes/depois de gerar o preview
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Patch com uma remoção marca `requiresExplicitApproval: true`
+- [x] Patch afetando 51 elementos marca `requiresExplicitApproval: true`; 50 exatos não marca (limiar exato testado)
+- [x] Patch alterando um elemento fora da seleção original marca `requiresExplicitApproval: true`
+- [x] Preview nunca modifica `diagram_operations`/a cena real — teste que a revisão do diagrama é idêntica antes/depois de gerar o preview
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add ai preview generation with explicit-approval thresholds`
+
+**Status**: ✅ Complete — `apps/server/src/modules/ai-engine/preview.ts`: `buildPreviewSummary` reuses `packages/diagram-domain`'s `structuralDiff` against an in-memory hypothetical scene (`applyPatchInMemory` — never persisted, never calls `appendOperation`) plus a `metadataChanged` list for `setMetadata` ops. `computeApprovalThreshold` implements spec.md AIE-02's literal rule (removal / >50 touched elements / a pre-existing element modified outside the declared selection); the 50/51 boundary is tested exactly (`> 50`, not `>= 50`), and a brand-new element the patch creates never counts against the outside-selection rule (documented interpretation, mirrors `structuralDiff`'s own precedent for undefined-by-spec edge cases). `attachPreview` continues T53's `createAiRun` pipeline in the SAME request (`routes.ts` now calls it right after a `previewing` result), advancing `previewing → awaiting_approval` and returning `requiresExplicitApproval`/`preview` in the response; T53's own tests are untouched since they call `createAiRun` directly, never through the full route. `pnpm -w test:unit`: 172 server tests passed (9 new: `preview.spec.ts`); `pnpm -w test:integration`: 187 server tests passed (2 new: `preview.int.spec.ts`, proving diagram_operations/revision are untouched by preview generation), full workspace green.
 
 ---
 

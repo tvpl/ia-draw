@@ -44,6 +44,15 @@ export {
   createAiRun,
   resolveLibraryItems,
 } from './pipeline.js';
+export {
+  type ApprovalThresholdReason,
+  type ApprovalThresholdResult,
+  type AttachPreviewResult,
+  attachPreview,
+  buildPreviewSummary,
+  computeApprovalThreshold,
+  type PreviewSummary,
+} from './preview.js';
 export { redactToolArguments } from './redact.js';
 export { type ResolvedProviderConfig, resolveProviderConfig } from './resolveProvider.js';
 export { type AiEngineModuleDeps, registerAiEngineModule } from './routes.js';

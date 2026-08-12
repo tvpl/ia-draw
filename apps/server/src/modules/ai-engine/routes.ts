@@ -7,6 +7,7 @@ import '../auth/types.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import type { AiRunStatus } from './aiRuns.js';
 import { type CreateAiRunDeps, createAiRun } from './pipeline.js';
+import { attachPreview } from './preview.js';
 import { RunStore } from './runStore.js';
 
 export interface AiEngineModuleDeps {
@@ -75,6 +76,22 @@ export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModul
     });
 
     reply.code(201);
+
+    // T54: a run that reached `previewing` continues, in the same request, to
+    // the preview + approval-threshold step (previewing -> awaiting_approval)
+    // — design.md's pipeline has no separate endpoint for this. A run T53
+    // already failed (no RunStore entry) is returned unchanged.
+    const withPreview = await attachPreview(db, runStore, result.run);
+    if (withPreview) {
+      return {
+        run: withPreview.run,
+        patch: result.patch,
+        preview: withPreview.preview,
+        requiresExplicitApproval: withPreview.requiresExplicitApproval,
+        toolCallCount: result.toolCallCount,
+      };
+    }
+
     return { run: result.run, patch: result.patch, toolCallCount: result.toolCallCount };
   });
 }
