@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 13,
+  "next_id": 14,
   "lessons": [
     {
       "id": "L-001",
@@ -73,10 +73,11 @@
       "harmful": 0,
       "evidence": [
         "FND-05 (traceability)",
-        "EXP-01 (traceability)"
+        "EXP-01 (traceability)",
+        "AIC-04 (traceability)"
       ],
       "created": "2026-08-12T04:07:17Z",
-      "last_seen": "2026-08-12T04:07:17Z"
+      "last_seen": "2026-08-12T17:55:26Z"
     },
     {
       "id": "L-005",
@@ -221,6 +222,24 @@
       ],
       "created": "2026-08-12T09:37:18Z",
       "last_seen": "2026-08-12T09:37:18Z"
+    },
+    {
+      "id": "L-013",
+      "key": "surviving_mutant::for a secret never in response guarantee assert the response object lacks the secret bearing field entirely not tohaveproperty not just that it lacks the raw plaintext as a substring a ciphertext field can leak undetected past a substring only check",
+      "text": "For a 'secret never in response' guarantee, assert the response object lacks the secret-bearing field entirely (not.toHaveProperty), not just that it lacks the raw plaintext as a substring — a ciphertext field can leak undetected past a substring-only check.",
+      "signal": "surviving_mutant",
+      "scope": "security",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/ai-provider/providerConfigs.ts:26-35 (security)"
+      ],
+      "created": "2026-08-12T17:55:26Z",
+      "last_seen": "2026-08-12T17:55:26Z"
     }
   ]
 }

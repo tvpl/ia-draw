@@ -806,3 +806,183 @@ F1 ("Persistência server-first") is now fully verified across all four independ
 - **F1c (Assets, Snapshots, Export e Backup)** — ✅ Verified, this section, closing VER-01..04, EXP-01..04, OPS-01..05 and EDT-06.
 
 Every F1 story from spec.md's Requirement Traceability table (Contas/workspaces/RBAC, Edição server-first, Recuperação após crash, Snapshots/histórico/diff/restore) plus the two P1 stories layered on top of it this wave (Export e salvamento local, Backup com restore testado) are `✅ Verified` with real `file:line` evidence, not self-reported claims. The two open items are AUTH-02/03/05's honestly-disclosed pending scope (surfaces not yet built, not gaps in what WAS built) and this section's single new gap (zip-bomb protection on import/bundle, flagged above as a follow-up, not a blocker). F1's own invariant — every commit visible to a user is a durable PostgreSQL commit, verifiable, restorable, exportable and recoverable via a tested backup — now has independent evidence behind every clause of it, not just the implementer's word.
+
+## F2a Wave Report (Biblioteca de Componentes e Configuração de IA) — FAIL ❌
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `2cb7b7b..f73f19f` (T37-T42: `feat(library-content): add licensed generic and aws component manifest` through `feat(server): add ai provider admin routes with token-safe test-connection`; `b16eb57..HEAD` minus the docs-only `7667df6` F1c follow-up, which this section does not re-verify)
+**Verifier**: independent sub-agent (author ≠ verifier) — fresh session, no access to prior agents' chat transcripts. A previous verification attempt for this exact wave was lost to an environment restart before writing anything; this is a full re-run, not a continuation, and found one stray uncommitted mutation left in a leftover `/tmp/f2a-verify-scratch` git worktree from that lost attempt — removed before starting (never touched the real tree).
+
+The verdict is FAIL solely on the discrimination sensor: 1 of 3 mandatory mutations survived, on the AIC-01 token-never-in-response guarantee (see below). Every other check — task completion, spec-anchored ACs, the real build/test gate, AD-008 wiring, and two independently-reproduced security claims — passed cleanly.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T37 | ✅ Done | `packages/library-content/` — 12 generic (CC0-1.0, original) + 7 AWS (CC-BY-ND-2.0, license verified indirectly, external-reference-only artwork) components, Zod-enforced license/attribution |
+| T38 | ✅ Done | `infra/migrations/0006_harsh_green_goblin.sql` — `diagram_elements_meta` (composite PK), `libraries`, `library_items`; `seedGlobalLibrary()` idempotent |
+| T39 | ✅ Done | `apps/server/src/modules/library/` — libraries listing, elementId-scoped metadata, CSV/JSON inventory export, wired into `registerAllModules` |
+| T40 | ✅ Done | `infra/migrations/0007_dashing_mister_fear.sql` — `ai_provider_configs` (`encrypted_token` only), `ai_runs`, `ai_tool_calls` |
+| T41 | ✅ Done | `packages/ai-tools/` — AES-256-GCM `encryptToken`/`decryptToken`, DNS-resolving `validateProviderBaseUrl` |
+| T42 | ✅ Done | `apps/server/src/modules/ai-provider/` — admin CRUD, `:test`, rate-limit middleware, wired into `registerAllModules` |
+
+All 6 commit hashes exist in `git log` at the exact positions the task file cites; every task carries a `**Status**: ✅ Complete` entry with concrete evidence, not a bare checkbox.
+
+---
+
+### Independently Reproduced Claims
+
+**AWS icon licensing (LIB-01)** — reproduced, not accepted on faith. `curl -s -o /dev/null -w "%{http_code}" https://aws.amazon.com --max-time 5` from this sandbox returned `HTTP:000`/curl exit 56 (connection failure) — confirms the batch's "aws.amazon.com is egress-blocked here" claim rather than contradicting it. Read `packages/library-content/src/manifest.ts` and `schema.ts` directly:
+- Every AWS item (`aws.ec2`, `aws.lambda`, `aws.s3`, `aws.rds`, `aws.vpc`, `aws.api-gateway`, `aws.cloudfront` — 7, exceeding the ≥5 done-when) uses `icon: awsIcon()` → `{ kind: 'external', sourceUrl: 'https://aws.amazon.com/architecture/icons/', note: AWS_SOURCE_VERIFICATION }` — **no fabricated or embedded SVG artwork for AWS items anywhere**; `iconArtworkSchema` (`schema.ts:41-48`) is a discriminated union that structurally forbids an AWS item from silently reusing the `inline` SVG branch.
+- The indirect verification path (`awslabs/aws-icons-for-plantuml`, an official AWS GitHub org repo) and the reason artwork isn't embedded (ND license + no egress) are both stated in-code (`manifest.ts:17-37`), not hidden behind a bare license string.
+- `libraryItemSchema` (`schema.ts:71-72`) enforces `license: z.string().min(1)` and `attribution: z.string().min(1)` on **every** item — verified all 19 items (12 generic + 7 AWS) pass this at import time (`LIBRARY_MANIFEST = libraryManifestSchema.parse(rawManifest)`, `manifest.ts:327`, throws at module load on any violation).
+- Verdict: **honest, defensible**. The disclosure is in the code the next engineer reads, not just a batch chat message.
+
+**Token-never-in-response (AIC-01)** — reproduced with a live `app.inject` call against the real compiled server (`apps/server/dist`), not the batch's own test file. Booted `buildServer`+`registerAuthModule`+`registerWorkspaceModule`+`registerAiProviderModule` against a fresh PGlite instance, `NODE_ENV=development` (so the pino logger actually emits — `test` mode is silent by design), created a provider config with a distinctive canary token (`VERIFIER-CANARY-TOKEN-8f3c9a11-do-not-leak`), then POST/GET/`:test` against it:
+```
+createBodyContainsToken: false   getBodyContainsToken: false   testBodyContainsToken: false
+logsContainToken: false (8 log lines captured)   dbCiphertextContainsToken: false
+roundTripDecryptMatches: true   roundTripCiphertextContainsPlaintext: false   wrongKeyDecryptThrows: true
+```
+Also independently exercised `encryptToken`/`decryptToken` (`packages/ai-tools/src/crypto.ts`) directly: round-trips correctly, ciphertext never contains the plaintext as a substring, and a wrong master key throws (GCM auth-tag mismatch) rather than silently returning garbage.
+Verdict: **the current implementation is correct** — but see the Discrimination Sensor section below, which found the regression-test safety net for this exact guarantee has a real hole.
+
+**SSRF validation (AIC-03)** — reproduced by calling `validateProviderBaseUrl` (`packages/ai-tools/src/ssrf.ts`) directly, outside any test file:
+```
+169.254.169.254 (no allowlist)     → rejected: "resolves to a blocked address range"
+10.0.0.5 (no allowlist)            → rejected
+192.168.1.1 (no allowlist)         → rejected
+127.0.0.1 / localhost (no allowlist) → rejected
+10.0.0.5 (allowlist: ['10.0.0.5']) → allowed
+api.openai.com                     → allowed
+```
+Then read `apps/server/src/modules/ai-provider/routes.ts` and `apps/server/src/core/registerModules.ts:50` directly: `registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey })` — **no `baseUrlAllowlist` is passed at all**, so `deps.baseUrlAllowlist ?? []` (`routes.ts:98`) resolves to an empty allowlist in real production wiring. Neither `createBodySchema` nor `updateBodySchema` (`routes.ts:74-88`) has an `allowlist` field, so no request body can ever widen it. Confirms the batch's claim exactly: the allowlist is a deployment-level dependency-injection knob, not an API-reachable field — a compromised admin session cannot self-allowlist around SSRF protection.
+Verdict: **reproduced, true as claimed**.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+**P1: Biblioteca de componentes e metadados semânticos**
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| LIB-01: curated library where every icon records license+attribution | every item non-empty `license`/`attribution`, schema-enforced | `packages/library-content/src/schema.ts:71-72` (`z.string().min(1)` both fields) + `manifest.spec.ts:10-15` (`expect(item.license.length).toBeGreaterThan(0)`) — independently re-verified above | ✅ PASS |
+| LIB-02: WHEN inserted via palette/search/slash command THEN metadata attaches by elementId, never touching upstream Excalidraw types | metadata lives in the platform's own model, keyed only by `elementId` | `apps/server/src/modules/library/metadata.ts:45-73` (`upsertElementMetadata` writes only to `diagram_elements_meta`, composite-PK upsert, never touches `diagram_operations`/scene) + `library.int.spec.ts` "a reviewer CAN still read metadata" | ⚠️ Partial — the backend attachment mechanism is built and correctly isolated (verified); the actual UI trigger ("via palette, busca ou slash command") does not exist in `apps/web` yet and no task in any wave file currently claims it. This wave never claimed to deliver the UI half — correctly scoped in `tasks-f2a.md`'s own framing — but spec.md's traceability table should not read as fully closed until that half exists. |
+| LIB-03: WHEN edited in properties panel THEN persisted linked to element+current revision | write path stamps the diagram's real current revision | `apps/server/src/modules/library/routes.ts:100-105` (`revision` from `loadDiagramScene`, documented as intentionally NOT the unused `diagrams.current_revision` column) + `library.int.spec.ts` | ⚠️ Partial — same UI-trigger caveat as LIB-02 ("properties panel" doesn't exist yet); persistence mechanism itself verified correct. |
+| LIB-04: WHEN inventory export requested THEN CSV and JSON produced with matching content | same data, two formats | `apps/server/src/modules/library/inventory.ts:44-58` (`toCsv`) + `routes.ts:119-139` + `library.int.spec.ts` "CSV and JSON exports carry the same persisted content in different formats" | ✅ PASS |
+
+**P1: Configuração segura de provider de IA**
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| AIC-01: encrypt with AES-256-GCM, never in any API response/log/trace/frontend bundle | ciphertext-only persistence; zero leakage in responses/logs | `packages/ai-tools/src/crypto.ts:28-58` (AES-256-GCM, versioned ciphertext) + `providerConfigs.ts:26-35` (`PUBLIC_COLUMNS` omits `encryptedToken`) + `ai-provider.int.spec.ts:213-253` + this Verifier's own live reproduction (see above) | ❌ GAP — see Discrimination Sensor: the assertion at `ai-provider.int.spec.ts:224/234/243` only checks the raw plaintext token is absent as a substring, never that the `encryptedToken` field itself is absent from the response shape. A mutant that adds `encryptedToken` back into `PUBLIC_COLUMNS` (exposing valid AES-256-GCM ciphertext — not the plaintext — in every list/create/patch response) survives all 7 tests in this file. Current shipped code is correct; the regression safety net for this specific security invariant is not. |
+| AIC-02: "Testar conexão" verifies auth/model/tool-calling without persisting/logging the token | mock-provider-only test, token used exclusively as outbound header | `apps/server/src/modules/ai-provider/testConnection.ts:20-75` (token read into a local var, used only as `Authorization` header, never logged — confirmed zero `log`/`console` calls anywhere in the module by grep) + `ai-provider.int.spec.ts` "confirms tool-calling ... and leaves no token in the audit log" | ✅ PASS |
+| AIC-03: reject baseUrl resolving to link-local/metadata/private ranges without explicit allowlist | DNS-resolved rejection, allowlist opt-in only | `packages/ai-tools/src/ssrf.ts:64-105` + `ssrf.spec.ts` + `ai-provider.int.spec.ts` "rejects a baseUrl that resolves to a blocked range" + this Verifier's own reproduction (see above) | ✅ PASS |
+| AIC-04: per-user AND per-workspace rate limits AND token budgets on AI runs | both dimensions enforced on AI runs | `apps/server/src/modules/ai-provider/rateLimit.ts` (generic `InMemoryRateLimiter`, unit-tested for the N+1 rejection case) wired only onto `:test` (`routes.ts:100-105`), keyed only by `request.authContext?.user?.id ?? request.ip` — **no per-workspace dimension, no token-budget tracking anywhere in this module**, and no "AI runs" route exists yet to enforce limits on (that's F2c) | ⚠️ Partial, disclosed — `tasks-f2a.md`'s own T42 body states this delivers only the reusable middleware primitive, with real `ai/runs` orchestration (including, implicitly, the per-workspace and budget dimensions) deferred to F2c. Correctly scoped, but the spec.md traceability table should not read AIC-04 as fully closed. |
+
+**Spec-anchored outcome**: 4/8 ACs fully matched their spec-defined outcome with no caveat (LIB-01, LIB-04, AIC-02, AIC-03); 2 ACs (LIB-02, LIB-03) have a correctly-scoped but real UI-trigger gap; 1 AC (AIC-04) is a disclosed partial foundation; 1 AC (AIC-01) has a demonstrated test-coverage gap via the discrimination sensor. Evidence-or-zero satisfied throughout — every row above cites `file:line`.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/f2a-verify-scratch HEAD` (never `git stash`). Found and removed a stray uncommitted mutation left in this same path by the environment-restart-interrupted prior attempt before starting (the real tree was never touched by it — confirmed via `git status --porcelain` on `/home/user/ia-draw`, empty both before and after cleanup). Symlinked `node_modules` from the main tree into the fresh scratch worktree rather than reinstalling.
+
+| # | File:line | Mutation | Target AC | Killed? |
+| --- | --- | --- | --- | --- |
+| 1 | `packages/ai-tools/src/ssrf.ts:30` | Removed the `{ base: '169.254.0.0', prefix: 16 }` link-local/metadata range from `BLOCKED_IPV4_RANGES` | AIC-03 | ✅ Killed — `ssrf.spec.ts` "rejects the cloud metadata address without an allowlist" and "an allowlist entry for a different host does not accidentally allow a blocked one" both failed (`expected true to be false`) |
+| 2 | `apps/server/src/modules/ai-provider/providerConfigs.ts:26-35` | Added `encryptedToken: aiProviderConfigs.encryptedToken` into `PUBLIC_COLUMNS` — the "public" response shape now carries the ciphertext | AIC-01 | ❌ **Survived** — all 7 tests in `ai-provider.int.spec.ts` (run via `vitest run -c vitest.integration.config.ts`) still passed; the "token never appears in any response" test only substring-checks for the raw `TEST_TOKEN`, which a ciphertext by construction never contains |
+| 3 | `packages/library-content/src/schema.ts:71-72` | `license: z.string().min(1)` / `attribution: z.string().min(1)` → `z.string()` (empty string now valid) | LIB-01 | ✅ Killed — `manifest.spec.ts` "rejects an item with an empty license" and "...empty attribution" both failed (`expected [Function] to throw an error`) |
+
+All three mutations were individually applied, run, and reverted (`git checkout -- <file>`) before the next was injected. After removing the scratch worktree (`git worktree remove --force /tmp/f2a-verify-scratch`), the real tree's `git status --porcelain` was re-diffed against the pre-sensor baseline and found identical (both empty).
+
+**Sensor depth**: lightweight (3 targeted mutations, default tier)
+**Outcome**: 2/3 killed, 1 survived — **FAIL ❌** (mandatory per validate.md: "do not mark the feature done if the sensor found weak tests")
+
+**Fix task for the survived mutant**: strengthen `apps/server/src/modules/ai-provider/ai-provider.int.spec.ts`'s "token never appears in any response" test to also assert the response's `config` object has no `encryptedToken` key at all (e.g. `expect(created.json().config).not.toHaveProperty('encryptedToken')`, repeated for the GET list item and the PATCH response), not only that it lacks the raw plaintext substring. This closes the gap between the AC's own wording ("nem cifrado nem em claro" / "em nenhum formato") and what the test actually enforces, without requiring any production code change — `providerConfigs.ts`'s real `PUBLIC_COLUMNS` is already correct.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| Minimum code | ✅ — `packages/ai-tools` and `packages/library-content` are each scoped to exactly their task; `InMemoryRateLimiter` is a ~50-line fixed-window counter, no speculative abstraction |
+| Surgical changes | ✅ — diff touches only `packages/library-content`, `packages/ai-tools`, `packages/database`, `infra/migrations`, `apps/server/src/modules/{library,ai-provider}`, `apps/server/src/core/registerModules.ts` — zero touches to `apps/web` |
+| No scope creep | ✅ — rate-limit middleware explicitly stops at "reusable primitive", does not attempt the F2c `ai/runs` orchestration it will eventually gate |
+| Matches patterns | ✅ — IDOR 404-never-403 pattern, `notFound()`/`forbidden()` helpers, PGlite integration scaffold, audit-event recording all reused verbatim from F1a/F1b/F1c |
+| Spec-anchored outcome check | ⚠️ — see AC table; one demonstrated test-precision gap (AIC-01) |
+| Per-layer Coverage Expectation met | ✅ — `library-content`'s schema has 1:1 branch coverage (missing license, missing attribution, missing both, valid); every new route has happy+IDOR+403+401 coverage |
+| Every test maps to a spec requirement | ✅ — every new `it()`/`describe()` title cross-references its task/AC (T37-T42, LIB-*, AIC-*) |
+| Documented guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md`, AD-007 (PGlite), AD-008 (no by-value `@excalidraw/excalidraw`/`editor-adapter` import) |
+
+**AD-008 spot-check**: `grep -rn "excalidraw\|editor-adapter" packages/library-content/src packages/ai-tools/src apps/server/src/modules/{library,ai-provider}` — zero matches, and neither package lists either dependency in `package.json`. Confirmed via real compiled-server boot (`node apps/server/dist/index.js`, `DATABASE_URL` pointed at an unreachable host): `GET /health/live` → 200; `GET /libraries` → 401; `GET /admin/ai-providers` → 401 — both new modules reachable through `registerAllModules`, never 404. Server process killed after the check.
+
+**Self-reported deviations, independently assessed:**
+1. **`org_admin` as an org-wide admin proxy** (`assertProviderAdmin`, `routes.ts:53-70`) — legitimate, disclosed in the docstring: this codebase has no separate organization-level membership table (AUTH's RBAC model is workspace-scoped only), so `scope === 'global'` requires `org_admin` membership in *any* workspace. This means an `org_admin` of workspace A can create/update the `global`-scope AI provider config that affects every workspace org-wide — a real widening of blast radius versus a true org-level role, but the only option available given F1a's actual RBAC schema, and the same trade-off would need to be made by any implementer working within this codebase's existing role model. Worth a dedicated organization-level admin role in a future wave; not a defect of this one.
+2. **Metadata/inventory `revision` sourced from the op-log's max sequence, not `diagrams.current_revision`** (`routes.ts:101-104`, `inventory.ts`) — legitimate and consistent: this is the exact same source of truth `diagram-sync`'s own `loadDiagramScene` uses everywhere else in the codebase (verified at `apps/server/src/modules/diagram-sync/scene.ts:33-42`); `diagrams.current_revision` is genuinely unused elsewhere. Using a second, different revision source here would have been the actual bug.
+
+---
+
+### Edge Cases
+
+- [x] AWS icon license unverifiable in this sandbox (`aws.amazon.com` egress-blocked) — handled by never embedding artwork and disclosing the indirect verification path in-code, not guessing
+- [x] SSRF via a hostname that merely resolves to a blocked address (not just a literal IP) — `validateProviderBaseUrl` does a real DNS lookup, confirmed via `http://localhost:9999/v1` → rejected (resolves to `127.0.0.1`)
+- [ ] IPv6 private/unique-local ranges (`fc00::/7`) — explicitly out of scope per `ssrf.ts`'s own docstring, only `::1` (loopback) and the IPv4 ranges are checked. Documented limitation, not silently missing; worth a follow-up task before any deployment where IPv6-addressable internal services exist.
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` (run verbatim by this Verifier)
+- **Outcome**: 5/5 stages exit 0. Lint: clean (255 files, 0 fixes applied). Typecheck: 11/11 packages clean. Build: clean.
+- **Unit**: 332 passed, 0 failed (backup 4, shared-contracts 17, ai-tools 18, test-fixtures 8, auth 52, library-content 8, editor-adapter 54, diagram-domain 21, server 128, web 22)
+- **Integration**: 207 passed, 0 failed (database 25, backup 4, server 178)
+- **Total**: 539 passed, 0 failed, 0 skipped — matches the batch's own reported ~539 total exactly
+- **Test count before this wave** (F1c's reported total): 289 unit + 177 integration = 466
+- **Test count after this wave**: 332 unit + 207 integration = 539
+- **Delta**: +43 unit, +30 integration (+73 total)
+- **Skipped tests**: none observed
+- **Failures**: none
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| LIB-01 | Implementing | ✅ Verified — schema-enforced non-empty license/attribution on all 19 items, AWS licensing independently reproduced |
+| LIB-02 | Implementing | ✅ Verified (backend) — elementId-scoped metadata attachment mechanism proven correct; palette/search/slash-command UI trigger not yet built, no task claims it yet (flag for future wave planning) |
+| LIB-03 | Implementing | ✅ Verified (backend) — persistence linked to element+current-revision proven; properties-panel UI not yet built (same caveat as LIB-02) |
+| LIB-04 | Implementing | ✅ Verified — CSV/JSON inventory parity proven |
+| AIC-01 | Implementing | ❌ Needs Fix — implementation correct (independently reproduced live), but the discrimination sensor found the regression test for this exact guarantee does not catch a ciphertext-field leak, only a plaintext-substring leak; fix task specified above |
+| AIC-02 | Implementing | ✅ Verified — "Testar conexão" proven token-free in process and audit log |
+| AIC-03 | Implementing | ✅ Verified — SSRF rejection independently reproduced, allowlist confirmed not request-body-reachable |
+| AIC-04 | Implementing | ⚠️ Partial — rate-limit middleware primitive proven; per-workspace dimension and token budgets are disclosed F2c scope, not yet built |
+
+---
+
+### Summary
+
+**Outcome**: ❌ Not Ready — one fix task required before this wave can close
+
+**Spec-anchored check**: 4/8 ACs matched spec outcome with no caveat; 2 disclosed UI-trigger-scope caveats (LIB-02/03); 1 disclosed partial foundation (AIC-04); 1 demonstrated test-coverage gap (AIC-01)
+
+**Sensor**: 2/3 mutations killed, 1 survived (AIC-01)
+
+**Gate**: 5/5 stages passed, 539/539 tests passed, 0 failed, +73 tests over F1c's baseline of 466
+
+**Independently reproduced, not taken on faith**: AWS icon licensing disclosure (egress failure confirmed, schema/manifest read directly); token-never-in-response against a live real-compiled-server `app.inject` run with a distinctive canary token (response bodies, DB row, and captured logs all clean) plus direct `encryptToken`/`decryptToken` round-trip and wrong-key-rejection; SSRF rejection for metadata/private/loopback addresses and hostname-that-resolves-to-loopback, both with and without an allowlist, plus static confirmation that the allowlist is a deployment-only DI parameter never reachable from a request body; AD-008 compliance via grep and a real compiled-binary boot returning 401 (never 404) on both new modules' routes.
+
+**What works**: The library manifest's licensing discipline is real — Zod enforces it at import time, not just by convention, and the AWS items are honest about being metadata-only references rather than fabricated or misappropriated artwork. The SSRF protection resolves real DNS, not just string patterns, and its allowlist genuinely cannot be widened by an API caller. Token encryption is AES-256-GCM with correct key-derivation and auth-tag verification, and the "public" response shape is, in the code that ships today, exactly what it claims to be.
+
+**Issues found**:
+1. **(Blocking this wave's PASS)** `ai-provider.int.spec.ts`'s token-never-in-response test only checks for the plaintext substring, not for the `encryptedToken` field's absence from the response shape — a regression that re-adds the ciphertext to `PUBLIC_COLUMNS` would ship undetected. Fix: add a `not.toHaveProperty('encryptedToken')` (or equivalent full-shape) assertion to the existing test. No production code change needed.
+2. LIB-02/LIB-03's UI-trigger half (palette/search/slash-command insertion, properties panel) has no task in any wave file yet — flag for whoever plans the next apps/web-touching wave, not a defect of this one.
+3. AIC-04's per-workspace rate-limit dimension and token-budget enforcement are disclosed as deferred to F2c — flag to confirm F2c's task file actually picks this up explicitly rather than assuming T42 already covered it.
+
+**Next steps**: Route issue 1 to a fix task (test-only change, low risk, no re-migration needed) and re-verify with a 4th sensor mutation targeting the same file to confirm it's killed. Issues 2-3 are traceability/planning notes for future waves, not blockers.

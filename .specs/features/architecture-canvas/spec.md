@@ -412,10 +412,10 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | VER-02 | P1: Snapshots e restore | F1 | ✅ Verified |
 | VER-03 | P1: Snapshots e restore | F1 | ✅ Verified |
 | VER-04 | P1: Snapshots e restore | F1 | ✅ Verified |
-| AIC-01 | P1: Configuração de provider IA | F2 | Implementing |
-| AIC-02 | P1: Configuração de provider IA | F2 | Implementing |
-| AIC-03 | P1: Configuração de provider IA | F2 | Implementing |
-| AIC-04 | P1: Configuração de provider IA | F2 | Implementing |
+| AIC-01 | P1: Configuração de provider IA | F2 | ❌ Needs Fix |
+| AIC-02 | P1: Configuração de provider IA | F2 | ✅ Verified |
+| AIC-03 | P1: Configuração de provider IA | F2 | ✅ Verified |
+| AIC-04 | P1: Configuração de provider IA | F2 | ⚠️ Partial |
 | AIG-01 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-02 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-03 | P1: Geração por IA via IR | F2 | Pending |
@@ -428,10 +428,10 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIE-03 | P1: Edição por IA | F2 | Pending |
 | AIE-04 | P1: Edição por IA | F2 | Pending |
 | AIE-05 | P1: Edição por IA | F2 | Pending |
-| LIB-01 | P1: Biblioteca e semântica | F2 | Implementing |
-| LIB-02 | P1: Biblioteca e semântica | F2 | Implementing |
-| LIB-03 | P1: Biblioteca e semântica | F2 | Implementing |
-| LIB-04 | P1: Biblioteca e semântica | F2 | Implementing |
+| LIB-01 | P1: Biblioteca e semântica | F2 | ✅ Verified |
+| LIB-02 | P1: Biblioteca e semântica | F2 | ✅ Verified |
+| LIB-03 | P1: Biblioteca e semântica | F2 | ✅ Verified |
+| LIB-04 | P1: Biblioteca e semântica | F2 | ✅ Verified |
 | EXP-01 | P1: Export e salvamento local | F1 | ✅ Verified |
 | EXP-02 | P1: Export e salvamento local | F1 | ✅ Verified |
 | EXP-03 | P1: Export e salvamento local | F1 | ✅ Verified |
