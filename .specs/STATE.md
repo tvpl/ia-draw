@@ -53,10 +53,10 @@
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
-- **Phase / Task**: Tasks — design.md e tasks.md (onda F0, T1..T11) escritos e validados; aguardando aprovação para Execute
-- **Completed**: Specify aprovado pelo usuário (spec.md 77 requisitos); design.md (arquitetura completa, APIs upstream verificadas); tasks.md F0 com 11 tasks em 3 fases, validate_tasks 0 erros; traceability FND-01..05 + EDT-07 → In Tasks
+- **Phase / Task**: Execute PAUSADO a pedido do usuário (2026-08-12) — "somente crie o plano e tasks, não desenvolva ainda"
+- **Completed**: Specify + Design + Tasks (onda F0). Execução iniciada e pausada: T1 (commit 235b53a) e T2 (commit c859aa0) completas com gates verdes; T3..T11 NÃO iniciadas
 - **In-progress** (file:line): none
-- **Next step**: usuário aprova tasks.md + escolhe execução inline vs sub-agents (2 batches: A=T1..T7, B=T8..T11) → Execute Batch A
-- **Blockers**: aprovação do usuário para iniciar implementação
-- **Uncommitted files**: none (após commit desta sessão)
+- **Next step**: aguardar ordem explícita do usuário para retomar Execute em T3 (apps/server core). Ambiente local sem Docker: integração via PGlite, verificação plena de compose/testcontainers no CI
+- **Blockers**: retomada bloqueada por decisão do usuário
+- **Uncommitted files**: none
 - **Branch**: claude/architecture-canvas-system-cdwop7
