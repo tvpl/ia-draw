@@ -2,6 +2,7 @@ import { PROBLEM_CONTENT_TYPE, problem } from '@arch-canvas/shared-contracts';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { AppConfig } from './config.js';
+import { buildLoggerOptions, type LoggerOverrides, REQUEST_ID_LOG_LABEL } from './logging.js';
 
 export type DependencyStatus = 'up' | 'down';
 
@@ -19,6 +20,8 @@ export interface DependencyCheck {
 export interface BuildServerOptions {
   /** Readiness dependency pings (stubbed until PG/MinIO clients land). */
   dependencyChecks?: DependencyCheck[];
+  /** Injectable pino destination (OPS-05) — `logging.spec.ts` uses this to capture and assert on real log output instead of writing to the console. */
+  loggerOverrides?: LoggerOverrides;
 }
 
 export function buildServer(config: AppConfig, options: BuildServerOptions = {}): FastifyInstance {
@@ -26,9 +29,9 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
 
   const app = Fastify({
     // Fastify's default logger is pino, which emits structured JSON logs.
-    logger: {
-      level: config.nodeEnv === 'test' ? 'silent' : 'info',
-    },
+    // buildLoggerOptions (OPS-05) adds secret/PII redaction and a requestId label.
+    logger: buildLoggerOptions(config, options.loggerOverrides),
+    requestIdLogLabel: REQUEST_ID_LOG_LABEL,
   });
 
   app.get('/health/live', async () => ({ status: 'ok' as const }));
