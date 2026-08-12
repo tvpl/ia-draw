@@ -21,6 +21,11 @@ const envSchema = z.object({
     .string()
     .min(1)
     .default('postgres://arch_canvas:dev-insecure-secret-change-me@localhost:5432/arch_canvas'),
+  /** MinIO/S3-compatible endpoint (infra/compose's `minio` service, T27). */
+  S3_ENDPOINT: z.string().min(1).default('http://localhost:9000'),
+  S3_ACCESS_KEY: z.string().min(1).default('arch-canvas-dev'),
+  S3_SECRET_KEY: z.string().min(1).default(INSECURE_DEV_SECRET),
+  S3_REGION: z.string().min(1).default('us-east-1'),
 });
 
 export interface AppConfig {
@@ -30,6 +35,12 @@ export interface AppConfig {
   encryptionKey: string;
   publicUrl: string;
   databaseUrl: string;
+  s3: {
+    endpoint: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+  };
 }
 
 /**
@@ -58,5 +69,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     encryptionKey: parsed.ENCRYPTION_KEY,
     publicUrl: parsed.PUBLIC_URL,
     databaseUrl: parsed.DATABASE_URL,
+    s3: {
+      endpoint: parsed.S3_ENDPOINT,
+      accessKeyId: parsed.S3_ACCESS_KEY,
+      secretAccessKey: parsed.S3_SECRET_KEY,
+      region: parsed.S3_REGION,
+    },
   };
 }

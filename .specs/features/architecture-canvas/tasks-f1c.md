@@ -106,6 +106,8 @@ T36
 
 **Commit**: `feat(server): add s3-compatible storage client and signed url helpers`
 
+**Status**: ✅ Complete — `apps/server/src/modules/storage/` (`client.ts`, `signedUrl.ts`, `index.ts`) wraps `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, configured from `loadConfig`'s new `s3` block (`S3_ENDPOINT`/`S3_ACCESS_KEY`/`S3_SECRET_KEY`/`S3_REGION`, `apps/server/src/core/config.ts`). No real MinIO is reachable in this sandbox (no Docker daemon — AD-007); `putSignedUrl`/`getSignedUrl` are exercised for real against the SDK's local SigV4 presigner (no network call — confirmed by reading the installed package), asserting `X-Amz-Expires` matches the requested TTL exactly. `headObject`/`putObject`/`getObject` mock `S3Client.send` at the SDK boundary, documented in `signedUrl.spec.ts` and `index.ts`. `pnpm -w test:unit`: 62/62 passed in `apps/server` (workspace total unaffected elsewhere).
+
 ---
 
 ### T28: apps/server — fila de jobs pg-boss

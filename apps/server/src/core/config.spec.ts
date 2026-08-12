@@ -9,6 +9,12 @@ describe('loadConfig (spec §12 / FND-03)', () => {
     expect(config.encryptionKey).toBe(INSECURE_DEV_SECRET);
     expect(config.port).toBe(3000);
     expect(config.publicUrl).toBe('http://localhost:3000');
+    expect(config.s3).toEqual({
+      endpoint: 'http://localhost:9000',
+      accessKeyId: 'arch-canvas-dev',
+      secretAccessKey: INSECURE_DEV_SECRET,
+      region: 'us-east-1',
+    });
   });
 
   it('throws naming SESSION_SECRET when production keeps the insecure default', () => {
