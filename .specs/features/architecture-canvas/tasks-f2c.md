@@ -100,15 +100,17 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Chamada bem-sucedida contra o mock retorna a resposta parseada corretamente
-- [ ] Timeout do mock produz `error_code` estruturado, nunca lança sem tratamento
-- [ ] Nenhum teste (nem o corpo da função) referencia o token decifrado fora do escopo da chamada HTTP — grep do arquivo compilado não encontra o valor de teste do token fora da chamada
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Chamada bem-sucedida contra o mock retorna a resposta parseada corretamente
+- [x] Timeout do mock produz `error_code` estruturado, nunca lança sem tratamento
+- [x] Nenhum teste (nem o corpo da função) referencia o token decifrado fora do escopo da chamada HTTP — grep do arquivo compilado não encontra o valor de teste do token fora da chamada
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(server): add ai provider http client with scoped token decryption`
+
+**Status**: ✅ Complete — `callProvider` in `apps/server/src/modules/ai-engine/callProvider.ts` decrypts the token into a function-scoped local only, used solely as the outbound `Authorization` header (never returned/logged); network/timeout/malformed-response/http/invalid-token failures all resolve as structured `CallProviderResult` errors, never throw. Tests use a real local ephemeral (`port: 0`) `node:http` server, never a real network call; `callProvider.ts` is the second entry in `no-egress.spec.ts`'s `ALLOWED_EGRESS_FILES`. Post-build grep of `apps/server/dist` for the test token string returns no matches. `pnpm -w test:unit`: 137 server tests passed (7 new), full workspace green.
 
 ---
 

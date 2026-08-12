@@ -24,6 +24,14 @@ const ALLOWED_EGRESS_FILES = new Set<string>([
   // production call is preceded by validateProviderBaseUrl at config write time (routes.ts);
   // tests always inject a mock fetchImpl, never hitting the network (see ai-provider.int.spec.ts).
   'modules/ai-provider/testConnection.ts',
+  // F2c's AI run pipeline HTTP client (T49, AIC-02) — calls only `{baseUrl}/chat/completions`
+  // for the admin-configured provider, same SSRF-validated baseUrl (validated at config write
+  // time in modules/ai-provider/routes.ts, reused unchanged here — this file does not
+  // re-validate). Decrypts the provider token into a function-scoped local, used solely for
+  // this request's Authorization header, never stored/logged/returned. Tests always point
+  // `fetchImpl` at a local ephemeral (`port: 0`) HTTP server, never the real network — see
+  // callProvider.spec.ts.
+  'modules/ai-engine/callProvider.ts',
 ]);
 
 // Matches an actual import/require of a network-capable module, or a call to the
