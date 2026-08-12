@@ -192,16 +192,18 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] `encryptToken`/`decryptToken` fazem round-trip correto; ciphertext nunca contém o plaintext como substring
-- [ ] `http://169.254.169.254/...` é rejeitado sem allowlist
-- [ ] `http://10.0.0.5/...` e `http://192.168.1.1/...` são rejeitados sem allowlist, aceitos com allowlist explícito contendo o host
-- [ ] Um `baseUrl` público comum (ex. `https://api.openai.com`) é aceito
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] `encryptToken`/`decryptToken` fazem round-trip correto; ciphertext nunca contém o plaintext como substring
+- [x] `http://169.254.169.254/...` é rejeitado sem allowlist
+- [x] `http://10.0.0.5/...` e `http://192.168.1.1/...` são rejeitados sem allowlist, aceitos com allowlist explícito contendo o host
+- [x] Um `baseUrl` público comum (ex. `https://api.openai.com`) é aceito
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(ai-tools): add aes-256-gcm token crypto and ssrf-safe baseurl validation`
+
+**Status**: ✅ Complete — `packages/ai-tools/` ships `encryptToken`/`decryptToken` (AES-256-GCM, Node native `crypto`, versioned `v1:iv:authTag:data` ciphertext) and `validateProviderBaseUrl` (resolves the hostname via real DNS lookup — not just string pattern-matching — rejecting loopback/link-local/metadata/private ranges unless allowlisted). 18/18 unit tests pass.
 
 ---
 
