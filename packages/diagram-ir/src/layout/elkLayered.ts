@@ -1,5 +1,5 @@
-import ElkConstructor from 'elkjs';
 import type { ElkNode } from 'elkjs';
+import ElkConstructor from 'elkjs';
 import type { IrContainer, IrDocument, IrNode } from '../schema.js';
 import type { PositionedNode } from './types.js';
 

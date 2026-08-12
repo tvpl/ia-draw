@@ -2,8 +2,8 @@ export {
   type ArrowElement,
   type CompiledElement,
   type CompiledScene,
-  type CompileErrorCode,
   CompileError,
+  type CompileErrorCode,
   type CompileIssue,
   type CompileOptions,
   compile,
@@ -14,6 +14,7 @@ export { layoutElkLayered } from './layout/elkLayered.js';
 export { layoutGridZones } from './layout/gridZones.js';
 export { layoutSwimlane } from './layout/swimlane.js';
 export type { PositionedNode } from './layout/types.js';
+export { type GeometryMetrics, geometryMetrics } from './metrics.js';
 export {
   CONTAINER_KINDS,
   type ContainerKind,
@@ -24,15 +25,15 @@ export {
   IR_JSON_SCHEMA,
   IR_KINDS,
   type IrContainer,
-  irContainerSchema,
   type IrDocument,
-  irDocumentSchema,
   type IrEdge,
-  irEdgeSchema,
   type IrKind,
   type IrNode,
-  irNodeSchema,
   IrValidationError,
   type IrValidationIssue,
+  irContainerSchema,
+  irDocumentSchema,
+  irEdgeSchema,
+  irNodeSchema,
   validateIr,
 } from './schema.js';

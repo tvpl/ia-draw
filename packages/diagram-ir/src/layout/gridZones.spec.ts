@@ -63,14 +63,7 @@ function baseDoc(overrides: Partial<IrDocument>): IrDocument {
 describe('layoutGridZones', () => {
   it('places 2 sibling containers with 3 nodes each with zero pairwise overlaps', () => {
     const ir = baseDoc({
-      nodes: [
-        node('n1'),
-        node('n2'),
-        node('n3'),
-        node('n4'),
-        node('n5'),
-        node('n6'),
-      ],
+      nodes: [node('n1'), node('n2'), node('n3'), node('n4'), node('n5'), node('n6')],
       containers: [
         { id: 'c1', label: 'Zone A', kind: 'zone', children: ['n1', 'n2', 'n3'] },
         { id: 'c2', label: 'Zone B', kind: 'zone', children: ['n4', 'n5', 'n6'] },
@@ -82,7 +75,7 @@ describe('layoutGridZones', () => {
     expect(badOverlapCount(ir, positions)).toBe(0);
   });
 
-  it('positions nested containers (container inside container) without overlap between a parent and another branch\'s children', () => {
+  it("positions nested containers (container inside container) without overlap between a parent and another branch's children", () => {
     const ir = baseDoc({
       nodes: [node('inner1'), node('inner2'), node('sibling1'), node('sibling2')],
       containers: [

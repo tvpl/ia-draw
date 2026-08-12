@@ -13,7 +13,7 @@ import type { PositionedNode } from './types.js';
  * assigned to any swimlane container are placed in one implicit trailing
  * lane, ordered the same way, so every node always gets a position.
  */
-const LANE_WIDTH = 1200;
+const MIN_LANE_WIDTH = 1200;
 const LANE_HEIGHT = 160;
 const LANE_GAP = 24;
 const LANE_HEADER = 32;
@@ -31,7 +31,10 @@ const NODE_GAP = 40;
  * BFS/DFS a partir dos nodes sem edges de entrada" means in practice for
  * a lane that isn't a single connected chain.
  */
-function topologicalOrder(nodeIds: string[], edges: readonly { from: string; to: string }[]): string[] {
+function topologicalOrder(
+  nodeIds: string[],
+  edges: readonly { from: string; to: string }[],
+): string[] {
   const inLane = new Set(nodeIds);
   const laneEdges = edges.filter((edge) => inLane.has(edge.from) && inLane.has(edge.to));
   const adjacency = new Map<string, string[]>();
@@ -91,11 +94,21 @@ export function layoutSwimlane(ir: IrDocument): PositionedNode[] {
   let laneY = 0;
 
   for (const lane of lanes) {
+    const ordered = topologicalOrder(lane.nodeIds, ir.edges);
+
+    // The lane's own rectangle must always be at least as wide as the row of
+    // nodes it encloses — a fixed width alone would let a lane with enough
+    // nodes overflow past its own right edge (a real defect T48's overlap
+    // metric caught: an overflowing node stops being fully nested inside its
+    // lane, so it registers as genuinely overlapping the lane rectangle).
+    const contentWidth =
+      ordered.length > 0 ? ordered.length * NODE_WIDTH + (ordered.length - 1) * NODE_GAP : 0;
+    const laneWidth = Math.max(MIN_LANE_WIDTH, contentWidth + LANE_PADDING * 2);
+
     if (lane.id !== null) {
-      out.push({ id: lane.id, x: 0, y: laneY, width: LANE_WIDTH, height: LANE_HEIGHT });
+      out.push({ id: lane.id, x: 0, y: laneY, width: laneWidth, height: LANE_HEIGHT });
     }
 
-    const ordered = topologicalOrder(lane.nodeIds, ir.edges);
     let nodeX = LANE_PADDING;
     const nodeY = laneY + LANE_HEADER + Math.max(0, (LANE_HEIGHT - LANE_HEADER - NODE_HEIGHT) / 2);
     for (const nodeId of ordered) {

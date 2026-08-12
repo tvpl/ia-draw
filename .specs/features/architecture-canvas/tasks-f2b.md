@@ -236,14 +236,17 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] `geometryMetrics` retorna 0 para uma cena manualmente construída sem overlaps/crossings, e valores > 0 para uma cena com overlap/crossing propositais (teste positivo E negativo, não só o caminho feliz)
-- [ ] Property-based test: N cenas sintéticas (documente N — sugestão: pelo menos 20 variações) até 200 elementos, todas com `overlaps === 0` e `crossings === 0` após `compile()` + layout
-- [ ] Gate check passes (última task da onda — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
+- [x] `geometryMetrics` retorna 0 para uma cena manualmente construída sem overlaps/crossings, e valores > 0 para uma cena com overlap/crossing propositais (teste positivo E negativo, não só o caminho feliz)
+- [x] Property-based test: N cenas sintéticas (documente N — sugestão: pelo menos 20 variações) até 200 elementos, todas com `overlaps === 0` e `crossings === 0` após `compile()` + layout
+- [x] Gate check passes (última task da onda — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: build
 
 **Commit**: `feat(diagram-ir): add deterministic geometry metrics and zero-overlap property tests`
+
+**Status**: ✅ Complete — `geometryMetrics()` in `src/metrics.ts`: `overlaps` (pairwise rectangle-bbox intersection, excluding legitimate container-encloses-child nesting via a fully-contains + strictly-larger-area heuristic, documented), `crossings` (orientation-based proper segment intersection over arrow center-to-center segments, excluding edges sharing an endpoint node), `truncatedLabels` (documented average-char-width-per-font heuristic vs. recorded element width), `whitespaceBalance` (coefficient of variation of nearest-neighbor center distances). 9 direct unit tests (positive + negative for every metric) plus a 21-case property-based suite (7 sizes × 3 kinds/engines, up to 200 nodes, seeded/deterministic) in `src/metrics.spec.ts`, all asserting `overlaps === 0` and `crossings === 0` on real `compile()` output. Full build gate green: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit` (52/52 in-package, 20/20 workspace packages). AD-008 grep re-confirmed clean after this build.
+**Deviation**: the property-based test (this task) surfaced a genuine bug in T46's `layoutSwimlane`: its `LANE_WIDTH` was a fixed constant that didn't grow with node count, so a lane with enough nodes overflowed its own lane rectangle — `geometryMetrics`'s `overlaps` metric correctly flagged this as a real defect (an overflowing node stops being fully nested inside its own lane). Fixed in `src/layout/swimlane.ts` by sizing each lane's width to its actual content (`max(MIN_LANE_WIDTH, contentWidth + padding*2)`); T46's own existing tests (small lane counts, under the old fixed width) still pass unchanged. This is a required fix, not scope creep — T48's own Done-when explicitly requires zero overlaps for `compile()` output "usando os layout engines de T44-T46", which cannot be true without it.
 
 ---
 

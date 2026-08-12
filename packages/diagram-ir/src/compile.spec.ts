@@ -149,7 +149,10 @@ describe('compile', () => {
   it('picks the elk-layered engine for a "microservices" kind and grid-zones for "c4-context" (positions differ from a no-op)', async () => {
     const flowIr = baseDoc({
       kind: 'microservices',
-      nodes: [{ id: 'n1', label: 'A' }, { id: 'n2', label: 'B' }],
+      nodes: [
+        { id: 'n1', label: 'A' },
+        { id: 'n2', label: 'B' },
+      ],
       edges: [{ from: 'n1', to: 'n2', semantics: { mode: 'sync', direction: 'oneway' } }],
     });
     const flowScene = await compile(flowIr, library, { seed: 1 });

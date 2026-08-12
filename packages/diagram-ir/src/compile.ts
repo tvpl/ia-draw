@@ -114,7 +114,10 @@ export class CompileError extends Error {
   constructor(issues: CompileIssue[]) {
     super(
       `compile failed: ${issues
-        .map((issue) => `node "${issue.nodeId}" references unknown componentKey "${issue.componentKey}"`)
+        .map(
+          (issue) =>
+            `node "${issue.nodeId}" references unknown componentKey "${issue.componentKey}"`,
+        )
         .join('; ')}`,
     );
     this.name = 'CompileError';
@@ -198,7 +201,13 @@ function buildLabelElement(
   return {
     ...baseFields(
       labelId,
-      { id: labelId, x: containerBox.x, y: containerBox.y, width: containerBox.width, height: containerBox.height },
+      {
+        id: labelId,
+        x: containerBox.x,
+        y: containerBox.y,
+        width: containerBox.width,
+        height: containerBox.height,
+      },
       randomInt,
       DEFAULT_STROKE_COLOR,
     ),
@@ -338,7 +347,11 @@ export async function compile(
   const issues: CompileIssue[] = ir.nodes
     .filter((node): node is IrNode & { componentKey: string } => Boolean(node.componentKey))
     .filter((node) => !libraryByKey.has(node.componentKey))
-    .map((node) => ({ code: 'unknown_component_key' as const, nodeId: node.id, componentKey: node.componentKey }));
+    .map((node) => ({
+      code: 'unknown_component_key' as const,
+      nodeId: node.id,
+      componentKey: node.componentKey,
+    }));
 
   if (issues.length > 0) {
     throw new CompileError(issues);
@@ -353,7 +366,14 @@ export async function compile(
   for (const container of ir.containers) {
     const box = positionedById.get(container.id);
     if (!box) continue;
-    buildRectangleElement(container.id, container.label, box, DEFAULT_STROKE_COLOR, randomInt, elements);
+    buildRectangleElement(
+      container.id,
+      container.label,
+      box,
+      DEFAULT_STROKE_COLOR,
+      randomInt,
+      elements,
+    );
   }
 
   for (const node of ir.nodes) {

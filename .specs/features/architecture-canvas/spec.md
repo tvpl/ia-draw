@@ -418,11 +418,11 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIC-04 | P1: Configuração de provider IA | F2 | ⚠️ Partial |
 | AIG-01 | P1: Geração por IA via IR | F2 | Implementing |
 | AIG-02 | P1: Geração por IA via IR | F2 | Implementing |
-| AIG-03 | P1: Geração por IA via IR | F2 | Pending |
+| AIG-03 | P1: Geração por IA via IR | F2 | Implementing |
 | AIG-04 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-05 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-06 | P1: Geração por IA via IR | F2 | Implementing |
-| AIG-07 | P1: Geração por IA via IR | F2 | Pending |
+| AIG-07 | P1: Geração por IA via IR | F2 | Implementing |
 | AIE-01 | P1: Edição por IA | F2 | Pending |
 | AIE-02 | P1: Edição por IA | F2 | Pending |
 | AIE-03 | P1: Edição por IA | F2 | Pending |

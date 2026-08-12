@@ -17,9 +17,25 @@ function validDocument() {
     ],
     edges: [
       { from: 'n1', to: 'n2', semantics: { mode: 'sync' as const, direction: 'oneway' as const } },
-      { from: 'n1', to: 'n3', semantics: { mode: 'async' as const, direction: 'bidirectional' as const, label: 'publish' } },
-      { from: 'n2', to: 'n3', semantics: { mode: 'data' as const, direction: 'oneway' as const, protocol: 'tcp' } },
-      { from: 'n3', to: 'n1', semantics: { mode: 'dependency' as const, direction: 'oneway' as const } },
+      {
+        from: 'n1',
+        to: 'n3',
+        semantics: {
+          mode: 'async' as const,
+          direction: 'bidirectional' as const,
+          label: 'publish',
+        },
+      },
+      {
+        from: 'n2',
+        to: 'n3',
+        semantics: { mode: 'data' as const, direction: 'oneway' as const, protocol: 'tcp' },
+      },
+      {
+        from: 'n3',
+        to: 'n1',
+        semantics: { mode: 'dependency' as const, direction: 'oneway' as const },
+      },
     ],
   };
 }
@@ -29,7 +45,12 @@ describe('validateIr', () => {
     const doc = validateIr(validDocument());
     expect(doc.nodes).toHaveLength(3);
     expect(doc.containers).toHaveLength(2);
-    expect(doc.edges.map((edge) => edge.semantics.mode)).toEqual(['sync', 'async', 'data', 'dependency']);
+    expect(doc.edges.map((edge) => edge.semantics.mode)).toEqual([
+      'sync',
+      'async',
+      'data',
+      'dependency',
+    ]);
   });
 
   it('accepts an empty document (no nodes/containers/edges)', () => {
