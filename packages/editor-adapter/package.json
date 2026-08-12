@@ -1,0 +1,30 @@
+{
+  "name": "@arch-canvas/editor-adapter",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@excalidraw/excalidraw": "0.18.1"
+  },
+  "devDependencies": {
+    "@arch-canvas/test-fixtures": "workspace:*",
+    "@types/node": "^22.20.1",
+    "canvas": "^3.2.3",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

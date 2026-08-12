@@ -319,16 +319,18 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] `computeDiff` detecta upsert/delete/no-op corretamente nas fixtures (todos os branches)
-- [ ] `applyRemote` converge cenários de conflito (mesmo elemento, versões divergentes) igual ao upstream
-- [ ] Round-trip `serializeScene→parseScene` preserva campos desconhecidos
-- [ ] Nenhum import de caminho interno do pacote Excalidraw (verificado por regra de lint)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] `computeDiff` detecta upsert/delete/no-op corretamente nas fixtures (todos os branches)
+- [x] `applyRemote` converge cenários de conflito (mesmo elemento, versões divergentes) igual ao upstream
+- [x] Round-trip `serializeScene→parseScene` preserva campos desconhecidos
+- [x] Nenhum import de caminho interno do pacote Excalidraw (verificado por regra de lint)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(editor-adapter): add diff, reconcile wrapper and scene round-trip spike`
+
+**Status**: ✅ Complete — `packages/editor-adapter/` (`computeDiff`, `applyRemote`, `sanitizeAppState`, `serializeScene`/`parseScene`) + `packages/test-fixtures/` (5 fixtures via `convertToExcalidrawElements`+`restoreElements`); 42 testes unit, gate quick verde. Spike findings: `reconcileElements` real signature exige `localAppState` (3º arg); tie-break confirmado lendo `dist/dev/index.js` — em empate de `version`, vence o menor `versionNonce`, local ou remoto. Achado de ambiente: importar qualquer função de `@excalidraw/excalidraw` (mesmo as não-UI) exige jsdom + shim de `FontFace` + `canvas` nativo, documentado nos `vitest.config.ts`/`vitest.setup.ts` dos dois pacotes — alimenta o spike T10 (mesmo pacote, mesma restrição de ambiente headless)
 
 ---
 
