@@ -160,16 +160,18 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Cada uma das 6 ferramentas retorna o resultado esperado contra uma cena de teste (fixtures reaproveitados)
-- [ ] `search_library`/`get_library_component` só retorna itens da `library` autorizada passada no `ToolContext`, nunca de uma biblioteca arbitrária
-- [ ] Ferramenta com args inválidos (schema) retorna erro estruturado, não lança
-- [ ] Nenhuma ferramenta desta lista tem qualquer forma de acesso a rede/arquivo/processo (auditável por leitura do código — sem `fetch`/`fs`/`child_process` em nenhum arquivo do diretório)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Cada uma das 6 ferramentas retorna o resultado esperado contra uma cena de teste (fixtures reaproveitados)
+- [x] `search_library`/`get_library_component` só retorna itens da `library` autorizada passada no `ToolContext`, nunca de uma biblioteca arbitrária
+- [x] Ferramenta com args inválidos (schema) retorna erro estruturado, não lança
+- [x] Nenhuma ferramenta desta lista tem qualquer forma de acesso a rede/arquivo/processo (auditável por leitura do código — sem `fetch`/`fs`/`child_process` em nenhum arquivo do diretório)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(ai-tools): add read-only inspection and search domain tools`
+
+**Status**: ✅ Complete — `packages/ai-tools/src/tools/`: `ToolRegistry`/`defineTool` (`types.ts`) plus the 6 read tools (`readTools.ts`) — `inspect_diagram`, `get_selection`, `search_elements`, `get_neighbors`, `search_library`, `get_library_component` — each a pure `{scene, selection, library} + args -> ToolResult` function, tested against `@arch-canvas/test-fixtures`' `arrowWithBindingsFixture`/`textFixture` (ids read back off the fixture itself since `restoreElements` regenerates them on every load). `search_library`/`get_library_component` resolve only against `ctx.library`, proven by a restricted-library test that still matches in the full manifest. Schema-invalid args and an unknown tool name both resolve as structured `ToolResult` errors via `ToolRegistry.execute`, never a throw. `no-side-effects.spec.ts` scans every non-spec file in `tools/` for `fetch`/`fs`/`child_process` and finds none — it will keep covering T52's write tools once they land in the same directory. `pnpm -w test:unit`: 36 ai-tools tests passed (all new), full workspace green.
 
 ---
 

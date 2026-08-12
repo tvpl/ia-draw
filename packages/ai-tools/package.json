@@ -16,8 +16,14 @@
     "typecheck": "tsc --noEmit",
     "test:unit": "vitest run"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@arch-canvas/diagram-ir": "workspace:*",
+    "@arch-canvas/editor-adapter": "workspace:*",
+    "@arch-canvas/library-content": "workspace:*",
+    "zod": "^4.1.12"
+  },
   "devDependencies": {
+    "@arch-canvas/test-fixtures": "workspace:*",
     "@types/node": "^22.20.1",
     "typescript": "^5.9.3",
     "vitest": "^3.2.4"

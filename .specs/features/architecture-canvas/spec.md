@@ -423,7 +423,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIG-05 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-06 | P1: Geração por IA via IR | F2 | Implementing |
 | AIG-07 | P1: Geração por IA via IR | F2 | ✅ Verified |
-| AIE-01 | P1: Edição por IA | F2 | Pending |
+| AIE-01 | P1: Edição por IA | F2 | Implementing |
 | AIE-02 | P1: Edição por IA | F2 | Pending |
 | AIE-03 | P1: Edição por IA | F2 | Pending |
 | AIE-04 | P1: Edição por IA | F2 | Implementing |
