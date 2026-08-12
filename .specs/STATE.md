@@ -58,13 +58,27 @@
 - **Date**: 2026-08-12
 - **Status**: active
 
+### AD-008
+- **Decision**: Nenhum pacote/módulo que roda server-side (`apps/server/**`, `packages/diagram-domain`, `packages/diagram-ir`, `packages/ai-tools`) pode importar `@excalidraw/excalidraw` ou `@arch-canvas/editor-adapter` **por valor** (chamada de função real) — somente `import type`. Elementos de cena construídos/mesclados no servidor usam implementações locais e dependency-free (ex. `packages/diagram-domain/src/mergeScene.ts`).
+- **Reason**: o bundle publicado de `@excalidraw/excalidraw` importa `roughjs/bin/rough` sem extensão `.js`; o resolvedor ESM estrito do Node rejeita isso (`ERR_MODULE_NOT_FOUND`), funcionando só sob bundlers (Vite/webpack). `apps/server`'s entrypoint real (`node dist/index.js`) quebra no boot se qualquer coisa no seu grafo de import carregar esse pacote. Todos os testes (Vitest, via Vite) passavam porque o transform do Vite resolve isso de forma lenient — só descoberto ao tentar subir o `dist/index.js` compilado de verdade.
+- **Trade-off**: pequena duplicação da regra de desempate LWW (poucas linhas, documentadas e testadas independentemente) em vez de reusar `applyRemote` do `editor-adapter`; cada novo pacote server-side que precisar de lógica de elemento precisa da mesma disciplina.
+- **Scope**: todo pacote/módulo server-side atual e futuro que manipula `SceneElement`/diffs de elemento.
+- **Date**: 2026-08-12
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
 - **Phase / Task**: Execute AUTÔNOMO em andamento (autorizado pelo usuário em 2026-08-12: "siga até terminá-lo totalmente", "sem precisar me perguntar nada", usando sub-agents em loop com Verifier independente por onda)
-- **Completed**: onda F0 (Fundação) — 11 tasks (T1-T11) implementadas, commitadas, pushed. Verifier rodou 2 iterações: iteration 1 FAIL (1 mutante sobrevivente em `computeDiff`, FND-02 sem evidência) → 2 fix tasks aplicados e re-verificados → iteration 2 PASS. `validate_state.py architecture-canvas` exit 0. FND-03/EDT-07 → ✅ Verified; FND-01/02/05, EXP-01, EDT-01 seguem `Implementing` (spike/sandbox scope, corretos por design). Onda F1a (Identidade/Workspaces/RBAC — T12-T18, AUTH-01..05) autorada e validada (`tasks-f1a.md`, `validate_tasks.py` 0 erros), ainda NÃO executada.
-- **In-progress** (file:line): none — próximo passo é despachar o batch worker de T12-T18
-- **Next step**: dispatch de 1 batch sub-agent para T12-T18 (`tasks-f1a.md`), gate, push, Verifier da onda F1a; depois autorar F1b (EDT-01..06 real + REC-01..05 — core do op-log/WS) e F1c (VER, EXP restante, OPS/backup); seguir para F2 (IA), F3 (docs/apresentação), F4 (realtime), F5 (hardening) sem pausar entre ondas, salvo bloqueio genuíno
+- **Completed**:
+  - **F0 (Fundação)** — 11 tasks, ✅ Verified (2 iterações do Verifier; FND-03/EDT-07 Verified, demais Implementing por escopo de spike, corretamente).
+  - **F1a (Identidade/RBAC)** — T12-T18, ✅ Verified na 1ª iteração. AUTH-01/04 Verified; AUTH-02/03/05 Implementing (gaps honestos contra superfícies ainda não construídas).
+  - **F1b (Persistência do canvas — núcleo do invariante server-first)** — T19-T26, ✅ Verified. **Achado crítico pós-batch, corrigido pelo orquestrador**: `apps/server/src/index.ts` nunca registrava nenhum módulo (produção real 404ava em tudo) e `diagram-domain` quebrava o boot sob Node puro por importar `@excalidraw/excalidraw` transitivamente — ambos corrigidos (commits `e8b7bf6`, `a8d8927`), registrado como AD-008, e confirmado pelo Verifier via boot real do binário compilado + curl. EDT-01..05/07 e REC-01..05 → ✅ Verified.
+  - **F1c batch 1 (T27-T31: storage/jobs/assets/snapshots)** — completo, commitado, pushed, gate verde, wiring em `registerAllModules` já aplicado (lição AD-008/L-008 seguida desde o início desta vez).
+  - Ondas **F2a** (biblioteca+provider IA, T37-T42), **F2b** (diagram-ir, T43-T48) e **F2c** (agente de IA, T49-T57) autoradas, validadas (`validate_tasks.py` 0 erros cada) e pushed — ainda NÃO executadas.
+- **In-progress**: F1c batch 2 (T32-T36: export/backup/logs) rodando em sub-agent background — fecha a onda F1 inteira ao concluir.
+- **Next step**: ao completar F1c batch 2 → gate, push, Verifier da onda F1c completa → autorar/disparar F3 (docs/apresentação/protótipos), F4 (realtime), F5 (hardening) na mesma cadência: autoria → validate_tasks → batch(es) → gate real → Verifier independente com sensor de mutação → fix-loop se FAIL → próxima onda, sem pausar salvo bloqueio genuíno.
+- **Lições registradas** (`.specs/lessons.json`, todas `candidate`): L-001..L-010, cobrindo cobertura de branch OR/AND, evidência de egress, traceability de spike-vs-implementação, ACs multi-parte, gap REST/WS, infra-vs-comportamento, **L-008 (o achado de wiring de produção acima — aplicado proativamente desde F1c)**, precisão de contagem em E2E, e reimplementação de fronteira de pacote (AD-008).
 - **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: claude/architecture-canvas-system-cdwop7
