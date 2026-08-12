@@ -291,14 +291,16 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] Seis ADRs numeradas espelhando AD-001..AD-006, com status e data
-- [ ] ADR-005 marca explicitamente "aguardando spike T10"
-- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
+- [x] Seis ADRs numeradas espelhando AD-001..AD-006, com status e data
+- [x] ADR-005 marca explicitamente "aguardando spike T10"
+- [x] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
 
 **Tests**: none
 **Gate**: build
 
 **Commit**: `docs(adr): record adr-001..006 from project decision log`
+
+**Status**: ✅ Complete — 6 ADRs em `docs/adr/` (0001..0006) espelhando AD-001..AD-006; ADR-0005 com status "Proposta — aguardando veredito do spike T10"; gate build (lint/typecheck/build/test:unit) verde
 
 ---
 
