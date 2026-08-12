@@ -1,5 +1,5 @@
 import type { ElementDelta, SceneElement, SceneIndex } from '@arch-canvas/editor-adapter';
-import { applyRemote, buildSceneIndex } from '@arch-canvas/editor-adapter';
+import { buildSceneIndex, mergeScene } from './mergeScene.js';
 
 export interface ReconcileOperationResult {
   scene: SceneIndex;
@@ -8,9 +8,10 @@ export interface ReconcileOperationResult {
 }
 
 /**
- * Applies `deltas` to the server's authoritative `currentScene`, reusing
- * `applyRemote` (editor-adapter's `reconcileElements` wrapper) for the LWW
- * tie-break — this function never reimplements that semantics (T19).
+ * Applies `deltas` to the server's authoritative `currentScene`, using
+ * `mergeScene`'s local LWW tie-break (see mergeScene.ts's SPEC_DEVIATION
+ * docstring for why this package cannot import editor-adapter's `applyRemote`
+ * at runtime — the semantics are identical, only the import path changed).
  *
  * `deltas` don't carry a full element payload for `kind: 'delete'` (see
  * editor-adapter's `computeDiff`), so a delete is turned into a tombstone by
@@ -45,6 +46,6 @@ export function reconcileOperation(
     applied.push(delta);
   }
 
-  const reconciled = applyRemote(localElements, remoteElements);
+  const reconciled = mergeScene(localElements, remoteElements);
   return { scene: buildSceneIndex(reconciled), applied };
 }
