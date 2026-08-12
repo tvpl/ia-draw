@@ -1,0 +1,131 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_ENV: test
+
+jobs:
+  lint:
+    name: Lint + format (Biome)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -w lint
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -w typecheck
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -w test:unit
+
+  integration:
+    name: Integration tests (real Postgres)
+    runs-on: ubuntu-latest
+    # Local dev (and this repo's own sandboxed authoring session) runs the
+    # packages/database integration test against @electric-sql/pglite — see
+    # the SPEC_DEVIATION comment at the top of
+    # packages/database/src/migrate.int.spec.ts. CI has real Docker, so this
+    # job additionally exercises the generated migration against an actual
+    # postgres:16 service container for maximum fidelity.
+    services:
+      postgres:
+        image: postgres:16.14-alpine3.24
+        env:
+          POSTGRES_USER: arch_canvas
+          POSTGRES_PASSWORD: ci-postgres-password
+          POSTGRES_DB: arch_canvas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arch_canvas -d arch_canvas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://arch_canvas:ci-postgres-password@localhost:5432/arch_canvas
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -w test:integration
+      - name: Apply migration against the real postgres:16 service
+        run: |
+          pnpm --filter @arch-canvas/database build
+          node --input-type=module -e "
+            import('./packages/database/dist/migrate.js')
+              .then(({ migrate }) => migrate(process.env.DATABASE_URL))
+              .then(() => { console.log('migration applied against real postgres:16'); })
+              .catch((error) => { console.error(error); process.exit(1); });
+          "
+
+  build-images:
+    name: Build Docker images
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build server image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/compose/server.Dockerfile
+          push: false
+          tags: arch-canvas-server:ci
+          cache-from: type=gha,scope=server
+          cache-to: type=gha,mode=max,scope=server
+      - name: Build web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/compose/web.Dockerfile
+          push: false
+          tags: arch-canvas-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
+      - name: Build migrate image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: infra/compose/migrate.Dockerfile
+          push: false
+          tags: arch-canvas-migrate:ci
+          cache-from: type=gha,scope=migrate
+          cache-to: type=gha,mode=max,scope=migrate
