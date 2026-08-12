@@ -19,7 +19,11 @@ export interface CreateWorkspaceInput {
 }
 
 /** Creates a workspace and its creator's `workspace_admin` membership atomically (T16). */
-export async function createWorkspace(db: Db, creatorUserId: string, input: CreateWorkspaceInput): Promise<Workspace> {
+export async function createWorkspace(
+  db: Db,
+  creatorUserId: string,
+  input: CreateWorkspaceInput,
+): Promise<Workspace> {
   return withTx(db, async (tx) => {
     const org = await getOrCreateDefaultOrganization(tx);
     const [workspace] = await tx
@@ -69,7 +73,11 @@ export interface UpdateWorkspaceInput {
   slug?: string;
 }
 
-export async function updateWorkspace(db: Db, workspaceId: string, input: UpdateWorkspaceInput): Promise<Workspace | null> {
+export async function updateWorkspace(
+  db: Db,
+  workspaceId: string,
+  input: UpdateWorkspaceInput,
+): Promise<Workspace | null> {
   const [row] = await db
     .update(workspaces)
     .set({ ...input, updatedAt: new Date() })

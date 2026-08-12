@@ -89,5 +89,11 @@ export function can(actor: Actor, action: Action, _resource: Resource): Decision
   };
 }
 
-export const ROLES: readonly Role[] = ['org_admin', 'workspace_admin', 'editor', 'reviewer', 'viewer'];
+export const ROLES: readonly Role[] = [
+  'org_admin',
+  'workspace_admin',
+  'editor',
+  'reviewer',
+  'viewer',
+];
 export const ACTIONS: readonly Action[] = ALL_ACTIONS;

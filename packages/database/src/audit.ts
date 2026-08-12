@@ -1,7 +1,7 @@
 import type { ExtractTablesWithRelations } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
-import { auditEvents } from './schema.js';
 import type * as schema from './schema.js';
+import { auditEvents } from './schema.js';
 
 type Schema = typeof schema;
 type Db<TQueryResult extends PgQueryResultHKT> =

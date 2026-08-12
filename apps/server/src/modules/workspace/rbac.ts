@@ -9,7 +9,11 @@ import type { Db } from '../auth/db.js';
  * next request (AUTH-05 / T18). Returns `null` when there is no membership
  * row, which routes must turn into a 404 (never 403 — AUTH-04 IDOR rule).
  */
-export async function resolveWorkspaceRole(db: Db, workspaceId: string, userId: string): Promise<Role | null> {
+export async function resolveWorkspaceRole(
+  db: Db,
+  workspaceId: string,
+  userId: string,
+): Promise<Role | null> {
   const [row] = await db
     .select({ role: workspaceMembers.role })
     .from(workspaceMembers)

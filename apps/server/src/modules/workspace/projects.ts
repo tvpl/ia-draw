@@ -60,7 +60,11 @@ export interface UpdateProjectInput {
   ownerId?: string;
 }
 
-export async function updateProject(db: Db, projectId: string, input: UpdateProjectInput): Promise<Project | null> {
+export async function updateProject(
+  db: Db,
+  projectId: string,
+  input: UpdateProjectInput,
+): Promise<Project | null> {
   const [row] = await db
     .update(projects)
     .set({ ...input, updatedAt: new Date() })

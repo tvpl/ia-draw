@@ -1,5 +1,5 @@
-import * as argon2 from 'argon2';
 import { users } from '@arch-canvas/database';
+import * as argon2 from 'argon2';
 import { eq } from 'drizzle-orm';
 import type { Db } from './db.js';
 
@@ -16,7 +16,10 @@ export interface LocalUser {
 }
 
 /** Hashes `password` with Argon2id and inserts a new local account (AUTH-01). */
-export async function createLocalAccount(db: Db, input: CreateLocalAccountInput): Promise<LocalUser> {
+export async function createLocalAccount(
+  db: Db,
+  input: CreateLocalAccountInput,
+): Promise<LocalUser> {
   const passwordHash = await argon2.hash(input.password, { type: argon2.argon2id });
   const [user] = await db
     .insert(users)
@@ -36,9 +39,13 @@ export async function createLocalAccount(db: Db, input: CreateLocalAccountInput)
  * OIDC-only user with no password hash, or a wrong password) — the
  * caller must not distinguish these cases in its response (AUTH-01).
  */
-export async function verifyLocalPassword(db: Db, email: string, password: string): Promise<LocalUser | null> {
+export async function verifyLocalPassword(
+  db: Db,
+  email: string,
+  password: string,
+): Promise<LocalUser | null> {
   const [user] = await db.select().from(users).where(eq(users.email, email));
-  if (!user || !user.passwordHash) return null;
+  if (!user?.passwordHash) return null;
 
   const valid = await argon2.verify(user.passwordHash, password);
   if (!valid) return null;

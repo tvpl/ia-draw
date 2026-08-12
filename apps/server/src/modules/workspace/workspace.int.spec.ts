@@ -1,7 +1,8 @@
 // SPEC_DEVIATION: using PGlite instead of testcontainers — no Docker in this sandbox; PGlite runs a real Postgres engine so integration fidelity is preserved. CI (T7) uses real Postgres via GitHub Actions services (see packages/database/src/migrate.int.spec.ts for the established pattern this mirrors).
-import { PGlite } from '@electric-sql/pglite';
-import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+
 import * as schema from '@arch-canvas/database';
+import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { PGlite } from '@electric-sql/pglite';
 import { and, eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
@@ -76,19 +77,28 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
     const [membership] = await db
       .select()
       .from(schema.workspaceMembers)
-      .where(and(eq(schema.workspaceMembers.workspaceId, workspaceId), eq(schema.workspaceMembers.userId, admin.user.id)));
+      .where(
+        and(
+          eq(schema.workspaceMembers.workspaceId, workspaceId),
+          eq(schema.workspaceMembers.userId, admin.user.id),
+        ),
+      );
     expect(membership?.role).toBe('workspace_admin');
   });
 
   describe('member management permissions', () => {
-    async function seedWorkspaceWithRole(role: 'workspace_admin' | 'editor' | 'reviewer' | 'viewer') {
+    async function seedWorkspaceWithRole(
+      role: 'workspace_admin' | 'editor' | 'reviewer' | 'viewer',
+    ) {
       const admin = await seedUserWithSession('member-mgmt-admin');
       const create = await createWorkspaceAs(admin.cookies, `member-mgmt-${role}-${Date.now()}`);
       const workspaceId = create.json().workspace.id;
 
       const actor = await seedUserWithSession(`member-mgmt-${role}`);
       if (role !== 'workspace_admin') {
-        await db.insert(schema.workspaceMembers).values({ workspaceId, userId: actor.user.id, role });
+        await db
+          .insert(schema.workspaceMembers)
+          .values({ workspaceId, userId: actor.user.id, role });
       }
       return { workspaceId, actor, admin };
     }
@@ -109,7 +119,9 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
     it('workspace_admin can remove a member', async () => {
       const { workspaceId, admin } = await seedWorkspaceWithRole('workspace_admin');
       const target = await seedUserWithSession('removed-by-admin');
-      await db.insert(schema.workspaceMembers).values({ workspaceId, userId: target.user.id, role: 'viewer' });
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: target.user.id, role: 'viewer' });
 
       const response = await app.inject({
         method: 'DELETE',
@@ -119,29 +131,35 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
       expect(response.statusCode).toBe(204);
     });
 
-    it.each(['editor', 'reviewer', 'viewer'] as const)('%s receives 403 adding a member', async (role) => {
-      const { workspaceId, actor } = await seedWorkspaceWithRole(role);
-      const target = await seedUserWithSession(`blocked-add-target-${role}`);
+    it.each(['editor', 'reviewer', 'viewer'] as const)(
+      '%s receives 403 adding a member',
+      async (role) => {
+        const { workspaceId, actor } = await seedWorkspaceWithRole(role);
+        const target = await seedUserWithSession(`blocked-add-target-${role}`);
 
-      const response = await app.inject({
-        method: 'POST',
-        url: `/workspaces/${workspaceId}/members`,
-        cookies: actor.cookies,
-        payload: { userId: target.user.id, role: 'viewer' },
-      });
-      expect(response.statusCode).toBe(403);
-    });
+        const response = await app.inject({
+          method: 'POST',
+          url: `/workspaces/${workspaceId}/members`,
+          cookies: actor.cookies,
+          payload: { userId: target.user.id, role: 'viewer' },
+        });
+        expect(response.statusCode).toBe(403);
+      },
+    );
 
-    it.each(['editor', 'reviewer', 'viewer'] as const)('%s receives 403 removing a member', async (role) => {
-      const { workspaceId, actor, admin } = await seedWorkspaceWithRole(role);
+    it.each(['editor', 'reviewer', 'viewer'] as const)(
+      '%s receives 403 removing a member',
+      async (role) => {
+        const { workspaceId, actor, admin } = await seedWorkspaceWithRole(role);
 
-      const response = await app.inject({
-        method: 'DELETE',
-        url: `/workspaces/${workspaceId}/members/${admin.user.id}`,
-        cookies: actor.cookies,
-      });
-      expect(response.statusCode).toBe(403);
-    });
+        const response = await app.inject({
+          method: 'DELETE',
+          url: `/workspaces/${workspaceId}/members/${admin.user.id}`,
+          cookies: actor.cookies,
+        });
+        expect(response.statusCode).toBe(403);
+      },
+    );
   });
 
   it('a successful mutation records one row in audit_events', async () => {
@@ -153,7 +171,12 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
     const rows = await db
       .select()
       .from(schema.auditEvents)
-      .where(and(eq(schema.auditEvents.resourceType, 'workspace'), eq(schema.auditEvents.resourceId, workspaceId)));
+      .where(
+        and(
+          eq(schema.auditEvents.resourceType, 'workspace'),
+          eq(schema.auditEvents.resourceId, workspaceId),
+        ),
+      );
 
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({

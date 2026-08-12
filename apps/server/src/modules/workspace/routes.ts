@@ -2,13 +2,24 @@ import { can, type Role } from '@arch-canvas/auth';
 import { recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
-import { requireSession } from '../auth/middleware.js';
 import type { Db } from '../auth/db.js';
+import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
-import { addWorkspaceMember, listWorkspaceMembers, removeWorkspaceMember, updateWorkspaceMemberRole } from './members.js';
+import {
+  addWorkspaceMember,
+  listWorkspaceMembers,
+  removeWorkspaceMember,
+  updateWorkspaceMemberRole,
+} from './members.js';
 import { registerProjectAndDiagramRoutes } from './project-diagram-routes.js';
 import { isUniqueViolation, resolveWorkspaceRole } from './rbac.js';
-import { createWorkspace, deleteWorkspace, getWorkspaceById, listWorkspacesForUser, updateWorkspace } from './workspaces.js';
+import {
+  createWorkspace,
+  deleteWorkspace,
+  getWorkspaceById,
+  listWorkspacesForUser,
+  updateWorkspace,
+} from './workspaces.js';
 
 export interface WorkspaceModuleDeps {
   db: Db;
@@ -170,81 +181,93 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
     return { items };
   });
 
-  app.post('/workspaces/:id/members', { preHandler: requireSession(db) }, async (request, reply) => {
-    const { id } = workspaceIdParamsSchema.parse(request.params);
-    const user = request.authContext?.user;
-    if (!user) forbidden();
-    const role = await requireMembership(db, id, user.id);
+  app.post(
+    '/workspaces/:id/members',
+    { preHandler: requireSession(db) },
+    async (request, reply) => {
+      const { id } = workspaceIdParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      const role = await requireMembership(db, id, user.id);
 
-    const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
-    if (!decision.allowed) forbidden();
+      const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
+      if (!decision.allowed) forbidden();
 
-    const body = addMemberBodySchema.parse(request.body);
-    let member: Awaited<ReturnType<typeof addWorkspaceMember>>;
-    try {
-      member = await addWorkspaceMember(db, id, body.userId, body.role);
-    } catch (error) {
-      if (isUniqueViolation(error)) conflict('user is already a member of this workspace');
-      throw error;
-    }
+      const body = addMemberBodySchema.parse(request.body);
+      let member: Awaited<ReturnType<typeof addWorkspaceMember>>;
+      try {
+        member = await addWorkspaceMember(db, id, body.userId, body.role);
+      } catch (error) {
+        if (isUniqueViolation(error)) conflict('user is already a member of this workspace');
+        throw error;
+      }
 
-    await recordAuditEvent(db, {
-      actorId: user.id,
-      action: 'workspace.member.added',
-      resourceType: 'workspace',
-      resourceId: id,
-      metadataJson: { targetUserId: body.userId, role: body.role },
-    });
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'workspace.member.added',
+        resourceType: 'workspace',
+        resourceId: id,
+        metadataJson: { targetUserId: body.userId, role: body.role },
+      });
 
-    reply.code(201);
-    return { member };
-  });
+      reply.code(201);
+      return { member };
+    },
+  );
 
-  app.patch('/workspaces/:id/members/:userId', { preHandler: requireSession(db) }, async (request) => {
-    const { id, userId: targetUserId } = memberParamsSchema.parse(request.params);
-    const user = request.authContext?.user;
-    if (!user) forbidden();
-    const role = await requireMembership(db, id, user.id);
+  app.patch(
+    '/workspaces/:id/members/:userId',
+    { preHandler: requireSession(db) },
+    async (request) => {
+      const { id, userId: targetUserId } = memberParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      const role = await requireMembership(db, id, user.id);
 
-    const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
-    if (!decision.allowed) forbidden();
+      const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
+      if (!decision.allowed) forbidden();
 
-    const body = updateMemberBodySchema.parse(request.body);
-    const updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
-    if (!updated) notFound();
+      const body = updateMemberBodySchema.parse(request.body);
+      const updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
+      if (!updated) notFound();
 
-    await recordAuditEvent(db, {
-      actorId: user.id,
-      action: 'workspace.member.updated',
-      resourceType: 'workspace',
-      resourceId: id,
-      metadataJson: { targetUserId, role: body.role },
-    });
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'workspace.member.updated',
+        resourceType: 'workspace',
+        resourceId: id,
+        metadataJson: { targetUserId, role: body.role },
+      });
 
-    return { ok: true };
-  });
+      return { ok: true };
+    },
+  );
 
-  app.delete('/workspaces/:id/members/:userId', { preHandler: requireSession(db) }, async (request, reply) => {
-    const { id, userId: targetUserId } = memberParamsSchema.parse(request.params);
-    const user = request.authContext?.user;
-    if (!user) forbidden();
-    const role = await requireMembership(db, id, user.id);
+  app.delete(
+    '/workspaces/:id/members/:userId',
+    { preHandler: requireSession(db) },
+    async (request, reply) => {
+      const { id, userId: targetUserId } = memberParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      const role = await requireMembership(db, id, user.id);
 
-    const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
-    if (!decision.allowed) forbidden();
+      const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
+      if (!decision.allowed) forbidden();
 
-    const removed = await removeWorkspaceMember(db, id, targetUserId);
-    if (!removed) notFound();
+      const removed = await removeWorkspaceMember(db, id, targetUserId);
+      if (!removed) notFound();
 
-    await recordAuditEvent(db, {
-      actorId: user.id,
-      action: 'workspace.member.removed',
-      resourceType: 'workspace',
-      resourceId: id,
-      metadataJson: { targetUserId },
-    });
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'workspace.member.removed',
+        resourceType: 'workspace',
+        resourceId: id,
+        metadataJson: { targetUserId },
+      });
 
-    reply.code(204);
-    return null;
-  });
+      reply.code(204);
+      return null;
+    },
+  );
 }

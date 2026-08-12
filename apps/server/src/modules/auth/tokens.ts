@@ -1,4 +1,4 @@
-import { randomBytes, createHash } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 
 /** 256 bits of entropy, URL-safe — used as the opaque session/ticket token. */
 export function generateOpaqueToken(): string {

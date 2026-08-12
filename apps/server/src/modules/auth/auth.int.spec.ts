@@ -1,7 +1,8 @@
 // SPEC_DEVIATION: using PGlite instead of testcontainers — no Docker in this sandbox; PGlite runs a real Postgres engine so integration fidelity is preserved. CI (T7) uses real Postgres via GitHub Actions services (see packages/database/src/migrate.int.spec.ts for the established pattern this mirrors).
-import { PGlite } from '@electric-sql/pglite';
-import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+
 import * as schema from '@arch-canvas/database';
+import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { PGlite } from '@electric-sql/pglite';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';

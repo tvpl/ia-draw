@@ -1,7 +1,7 @@
 import { sessions, users, withTx } from '@arch-canvas/database';
 import { and, eq, isNull } from 'drizzle-orm';
-import type { Db } from './db.js';
 import type { LocalUser } from './accounts.js';
+import type { Db } from './db.js';
 import { generateOpaqueToken, hashToken } from './tokens.js';
 
 /** Engineering default — not spec-mandated; sessions are opaque and immediately revocable regardless of TTL. */
@@ -33,7 +33,10 @@ export function createSession(db: Db, userId: string): Promise<SessionIssue> {
  * Verifies `token` against `sessions` and returns the authenticated user,
  * or `null` if the token is unknown, revoked, or expired.
  */
-export async function verifySession(db: Db, token: string): Promise<{ user: LocalUser; sessionId: string } | null> {
+export async function verifySession(
+  db: Db,
+  token: string,
+): Promise<{ user: LocalUser; sessionId: string } | null> {
   const tokenHash = hashToken(token);
   const [row] = await db
     .select({

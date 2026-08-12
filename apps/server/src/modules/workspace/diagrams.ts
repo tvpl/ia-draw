@@ -61,7 +61,11 @@ export interface UpdateDiagramInput {
   ownerId?: string;
 }
 
-export async function updateDiagram(db: Db, diagramId: string, input: UpdateDiagramInput): Promise<Diagram | null> {
+export async function updateDiagram(
+  db: Db,
+  diagramId: string,
+  input: UpdateDiagramInput,
+): Promise<Diagram | null> {
   const [row] = await db
     .update(diagrams)
     .set({ ...input, updatedAt: new Date() })

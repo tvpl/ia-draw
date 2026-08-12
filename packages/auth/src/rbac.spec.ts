@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type Action, type Role, can } from './rbac.js';
+import { type Action, can, type Role } from './rbac.js';
 
 const resource = { workspaceId: 'ws-1' };
 

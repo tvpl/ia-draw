@@ -1,5 +1,5 @@
-import { diagrams, projects, workspaceMembers, wsTickets } from '@arch-canvas/database';
 import type { Role } from '@arch-canvas/auth';
+import { diagrams, projects, workspaceMembers, wsTickets } from '@arch-canvas/database';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import type { Db } from './db.js';
 import { generateOpaqueToken, hashToken } from './tokens.js';
@@ -26,7 +26,10 @@ export async function resolveDiagramMembership(
     .innerJoin(projects, eq(diagrams.projectId, projects.id))
     .innerJoin(
       workspaceMembers,
-      and(eq(workspaceMembers.workspaceId, projects.workspaceId), eq(workspaceMembers.userId, userId)),
+      and(
+        eq(workspaceMembers.workspaceId, projects.workspaceId),
+        eq(workspaceMembers.userId, userId),
+      ),
     )
     .where(eq(diagrams.id, diagramId));
 
@@ -47,7 +50,11 @@ export interface WsTicketClaim {
 }
 
 /** Issues a 30s single-use ticket for `userId` to open a WebSocket session on `diagramId`. */
-export async function issueWsTicket(db: Db, userId: string, diagramId: string): Promise<WsTicketIssue> {
+export async function issueWsTicket(
+  db: Db,
+  userId: string,
+  diagramId: string,
+): Promise<WsTicketIssue> {
   const ticket = generateOpaqueToken();
   const expiresAt = new Date(Date.now() + WS_TICKET_TTL_MS);
   await db.insert(wsTickets).values({
@@ -70,7 +77,13 @@ export async function consumeWsTicket(db: Db, ticket: string): Promise<WsTicketC
   const [row] = await db
     .update(wsTickets)
     .set({ usedAt: new Date() })
-    .where(and(eq(wsTickets.tokenHash, tokenHash), isNull(wsTickets.usedAt), gt(wsTickets.expiresAt, new Date())))
+    .where(
+      and(
+        eq(wsTickets.tokenHash, tokenHash),
+        isNull(wsTickets.usedAt),
+        gt(wsTickets.expiresAt, new Date()),
+      ),
+    )
     .returning({ userId: wsTickets.userId, diagramId: wsTickets.diagramId });
 
   return row ?? null;

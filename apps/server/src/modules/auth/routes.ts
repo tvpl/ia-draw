@@ -4,7 +4,11 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { AppConfig } from '../../core/config.js';
 import { verifyLocalPassword } from './accounts.js';
-import { clearedSessionCookieOptions, SESSION_COOKIE_NAME, sessionCookieOptions } from './cookie.js';
+import {
+  clearedSessionCookieOptions,
+  SESSION_COOKIE_NAME,
+  sessionCookieOptions,
+} from './cookie.js';
 import type { Db } from './db.js';
 import { requireSession } from './middleware.js';
 import { createSession, revokeSession, rotateSession } from './session.js';
@@ -36,7 +40,10 @@ function notFound(): never {
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
-export async function registerAuthModule(app: FastifyInstance, deps: AuthModuleDeps): Promise<void> {
+export async function registerAuthModule(
+  app: FastifyInstance,
+  deps: AuthModuleDeps,
+): Promise<void> {
   const { db, config } = deps;
 
   await app.register(fastifyCookie);

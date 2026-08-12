@@ -1,7 +1,8 @@
 // SPEC_DEVIATION: using PGlite instead of testcontainers — no Docker in this sandbox; PGlite runs a real Postgres engine so integration fidelity is preserved. CI (T7) uses real Postgres via GitHub Actions services (see packages/database/src/migrate.int.spec.ts for the established pattern this mirrors).
-import { PGlite } from '@electric-sql/pglite';
-import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+
 import * as schema from '@arch-canvas/database';
+import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { PGlite } from '@electric-sql/pglite';
 import { eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
@@ -74,39 +75,45 @@ describe('project + diagram metadata CRUD (T17, EDT-01 partial)', () => {
   }
 
   describe('reviewer/viewer can GET but are denied writes on projects/diagrams', () => {
-    it.each(['reviewer', 'viewer'] as const)('%s: GET /projects succeeds, POST /projects is 403', async (role) => {
-      const { workspaceId, actor } = await seedWorkspaceWithActorRole(role);
+    it.each(['reviewer', 'viewer'] as const)(
+      '%s: GET /projects succeeds, POST /projects is 403',
+      async (role) => {
+        const { workspaceId, actor } = await seedWorkspaceWithActorRole(role);
 
-      const get = await app.inject({
-        method: 'GET',
-        url: `/projects?workspaceId=${workspaceId}`,
-        cookies: actor.cookies,
-      });
-      expect(get.statusCode).toBe(200);
+        const get = await app.inject({
+          method: 'GET',
+          url: `/projects?workspaceId=${workspaceId}`,
+          cookies: actor.cookies,
+        });
+        expect(get.statusCode).toBe(200);
 
-      const post = await createProjectAs(actor.cookies, workspaceId);
-      expect(post.statusCode).toBe(403);
-    });
+        const post = await createProjectAs(actor.cookies, workspaceId);
+        expect(post.statusCode).toBe(403);
+      },
+    );
 
-    it.each(['reviewer', 'viewer'] as const)('%s: PATCH and DELETE /projects/:id are 403', async (role) => {
-      const { workspaceId, admin, actor } = await seedWorkspaceWithActorRole(role);
-      const project = (await createProjectAs(admin.cookies, workspaceId)).json().project;
+    it.each(['reviewer', 'viewer'] as const)(
+      '%s: PATCH and DELETE /projects/:id are 403',
+      async (role) => {
+        const { workspaceId, admin, actor } = await seedWorkspaceWithActorRole(role);
+        const project = (await createProjectAs(admin.cookies, workspaceId)).json().project;
 
-      const patch = await app.inject({
-        method: 'PATCH',
-        url: `/projects/${project.id}`,
-        cookies: actor.cookies,
-        payload: { name: 'Renamed' },
-      });
-      expect(patch.statusCode).toBe(403);
+        const patch = await app.inject({
+          method: 'PATCH',
+          url: `/projects/${project.id}`,
+          cookies: actor.cookies,
+          payload: { name: 'Renamed' },
+        });
+        expect(patch.statusCode).toBe(403);
 
-      const del = await app.inject({
-        method: 'DELETE',
-        url: `/projects/${project.id}`,
-        cookies: actor.cookies,
-      });
-      expect(del.statusCode).toBe(403);
-    });
+        const del = await app.inject({
+          method: 'DELETE',
+          url: `/projects/${project.id}`,
+          cookies: actor.cookies,
+        });
+        expect(del.statusCode).toBe(403);
+      },
+    );
 
     it.each(['reviewer', 'viewer'] as const)(
       '%s: GET /diagrams succeeds, POST/PATCH/DELETE /diagrams are 403',
@@ -219,7 +226,11 @@ describe('project + diagram metadata CRUD (T17, EDT-01 partial)', () => {
       cookies: admin.cookies,
       // The route schema has no workspaceId field for diagrams at all — this
       // extra key must be silently ignored, not used to override the join.
-      payload: { projectId: project.id, title: 'Spoofed Workspace Diagram', workspaceId: otherWorkspaceId },
+      payload: {
+        projectId: project.id,
+        title: 'Spoofed Workspace Diagram',
+        workspaceId: otherWorkspaceId,
+      },
     });
     expect(response.statusCode).toBe(201);
     const diagramId = response.json().diagram.id;

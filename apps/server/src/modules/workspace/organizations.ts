@@ -10,10 +10,7 @@ import type { Db } from '../auth/db.js';
 const DEFAULT_ORGANIZATION_SLUG = 'default';
 
 export async function getOrCreateDefaultOrganization(db: Db): Promise<{ id: string }> {
-  const [existing] = await db
-    .select({ id: organizations.id })
-    .from(organizations)
-    .limit(1);
+  const [existing] = await db.select({ id: organizations.id }).from(organizations).limit(1);
   if (existing) return existing;
 
   const [created] = await db

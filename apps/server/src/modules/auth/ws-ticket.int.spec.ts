@@ -1,7 +1,8 @@
 // SPEC_DEVIATION: using PGlite instead of testcontainers — no Docker in this sandbox; PGlite runs a real Postgres engine so integration fidelity is preserved. CI (T7) uses real Postgres via GitHub Actions services (see packages/database/src/migrate.int.spec.ts for the established pattern this mirrors).
-import { PGlite } from '@electric-sql/pglite';
-import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+
 import * as schema from '@arch-canvas/database';
+import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { PGlite } from '@electric-sql/pglite';
 import { and, eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
@@ -39,7 +40,11 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
 
     const [workspace] = await db
       .insert(schema.workspaces)
-      .values({ organizationId: org.id, name: 'Platform', slug: `platform-${Date.now()}-${Math.random()}` })
+      .values({
+        organizationId: org.id,
+        name: 'Platform',
+        slug: `platform-${Date.now()}-${Math.random()}`,
+      })
       .returning();
     if (!workspace) throw new Error('workspace insert failed');
 
@@ -72,7 +77,9 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
         displayName: 'Member',
         password: 'member-password',
       });
-      await db.insert(schema.workspaceMembers).values({ workspaceId, userId: user.id, role: 'editor' });
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: user.id, role: 'editor' });
 
       const issued = await issueWsTicket(db, user.id, diagramId);
 
@@ -90,7 +97,9 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
         displayName: 'Expired Ticket User',
         password: 'expired-password',
       });
-      await db.insert(schema.workspaceMembers).values({ workspaceId, userId: user.id, role: 'editor' });
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: user.id, role: 'editor' });
 
       const issued = await issueWsTicket(db, user.id, diagramId);
       // Force the TTL to have already elapsed, without touching consumeWsTicket's
@@ -101,7 +110,9 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
       await db
         .update(schema.wsTickets)
         .set({ expiresAt: new Date(Date.now() - 1_000) })
-        .where(and(eq(schema.wsTickets.diagramId, diagramId), eq(schema.wsTickets.userId, user.id)));
+        .where(
+          and(eq(schema.wsTickets.diagramId, diagramId), eq(schema.wsTickets.userId, user.id)),
+        );
 
       const consumed = await consumeWsTicket(db, issued.ticket);
       expect(consumed).toBeNull();
@@ -121,7 +132,10 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
       const app = await buildApp();
       const { diagramId } = await seedDiagram();
 
-      const response = await app.inject({ method: 'POST', url: `/diagrams/${diagramId}/ws-ticket` });
+      const response = await app.inject({
+        method: 'POST',
+        url: `/diagrams/${diagramId}/ws-ticket`,
+      });
       expect(response.statusCode).toBe(401);
       await app.close();
     });
@@ -155,7 +169,9 @@ describe('WebSocket ticket issuance + consumption (T15, AUTH-02)', () => {
         displayName: 'Route Member',
         password: 'route-member-password',
       });
-      await db.insert(schema.workspaceMembers).values({ workspaceId, userId: member.id, role: 'viewer' });
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: member.id, role: 'viewer' });
       const session = await createSession(db, member.id);
 
       const response = await app.inject({

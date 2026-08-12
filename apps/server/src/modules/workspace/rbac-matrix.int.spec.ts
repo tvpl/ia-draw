@@ -10,10 +10,11 @@
 // already-open WebSocket connection is explicitly out of scope here — the
 // ws-gateway module that owns live connections doesn't exist until F1b
 // (see spec.md Edge Cases and design.md ws-gateway component).
-import { PGlite } from '@electric-sql/pglite';
+
 import type { Role } from '@arch-canvas/auth';
-import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import * as schema from '@arch-canvas/database';
+import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { PGlite } from '@electric-sql/pglite';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance, InjectOptions, LightMyRequestResponse } from 'fastify';

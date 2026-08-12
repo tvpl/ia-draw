@@ -72,7 +72,10 @@ const updateDiagramBodySchema = z.object({
 });
 
 /** Registers project + diagram metadata CRUD, RBAC-gated and workspace-scoped (T17). */
-export function registerProjectAndDiagramRoutes(app: FastifyInstance, deps: ProjectDiagramModuleDeps): void {
+export function registerProjectAndDiagramRoutes(
+  app: FastifyInstance,
+  deps: ProjectDiagramModuleDeps,
+): void {
   const { db } = deps;
 
   // ---- projects -----------------------------------------------------
@@ -121,7 +124,8 @@ export function registerProjectAndDiagramRoutes(app: FastifyInstance, deps: Proj
     if (!project) notFound();
 
     const role = await resolveWorkspaceRole(db, project.workspaceId, user.id);
-    if (!role || !can({ role }, 'project:read', { workspaceId: project.workspaceId }).allowed) notFound();
+    if (!role || !can({ role }, 'project:read', { workspaceId: project.workspaceId }).allowed)
+      notFound();
 
     return { project };
   });

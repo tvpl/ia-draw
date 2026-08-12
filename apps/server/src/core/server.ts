@@ -64,7 +64,9 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     // let this handler translate the thrown ZodError.
     if (error instanceof ZodError) {
       const body = problem(400, 'Validation Error', {
-        detail: error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`).join('; '),
+        detail: error.issues
+          .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`)
+          .join('; '),
         instance: request.url,
       });
       reply.code(400).type(PROBLEM_CONTENT_TYPE).send(body);

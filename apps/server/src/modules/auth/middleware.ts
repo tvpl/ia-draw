@@ -1,6 +1,6 @@
 import type { FastifyRequest } from 'fastify';
-import type { Db } from './db.js';
 import { SESSION_COOKIE_NAME } from './cookie.js';
+import type { Db } from './db.js';
 import { verifySession } from './session.js';
 import './types.js';
 
