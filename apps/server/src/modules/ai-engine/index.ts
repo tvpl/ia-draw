@@ -1,4 +1,16 @@
 export {
+  type AiContext,
+  type BuildContextInput,
+  type BuildContextOptions,
+  buildContext,
+  type ElementMetadataInput,
+  type ElementSemanticMetadata,
+  type LibrarySummary,
+  type SceneDataEdge,
+  type SceneDataElement,
+  type WorkspaceArchitecturalRule,
+} from './buildContext.js';
+export {
   type AiProviderCallConfig,
   callProvider,
   type CallProviderError,

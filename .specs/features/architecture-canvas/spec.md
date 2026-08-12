@@ -426,7 +426,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIE-01 | P1: Edição por IA | F2 | Pending |
 | AIE-02 | P1: Edição por IA | F2 | Pending |
 | AIE-03 | P1: Edição por IA | F2 | Pending |
-| AIE-04 | P1: Edição por IA | F2 | Pending |
+| AIE-04 | P1: Edição por IA | F2 | Implementing |
 | AIE-05 | P1: Edição por IA | F2 | Pending |
 | LIB-01 | P1: Biblioteca e semântica | F2 | ✅ Verified |
 | LIB-02 | P1: Biblioteca e semântica | F2 | ✅ Verified |

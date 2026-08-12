@@ -129,15 +129,17 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Contexto para uma cena pequena inclui todos os elementos; para uma seleção específica, inclui a seleção + vizinhança (elementos conectados por edge), não a cena inteira
-- [ ] Texto de um elemento contendo algo como "ignore previous instructions" aparece apenas dentro do campo de dados serializado do contexto, nunca é injetado em um campo separado de "instruções"/"system prompt" da estrutura retornada — teste explícito que verifica a *estrutura* do objeto retornado, não apenas o conteúdo
-- [ ] Anexos/comentários não aparecem no contexto por padrão
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Contexto para uma cena pequena inclui todos os elementos; para uma seleção específica, inclui a seleção + vizinhança (elementos conectados por edge), não a cena inteira
+- [x] Texto de um elemento contendo algo como "ignore previous instructions" aparece apenas dentro do campo de dados serializado do contexto, nunca é injetado em um campo separado de "instruções"/"system prompt" da estrutura retornada — teste explícito que verifica a *estrutura* do objeto retornado, não apenas o conteúdo
+- [x] Anexos/comentários não aparecem no contexto por padrão
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(server): add compact context builder with untrusted-data scene serialization`
+
+**Status**: ✅ Complete — `buildContext` in `apps/server/src/modules/ai-engine/buildContext.ts` is a pure function: no selection → whole (non-deleted) scene; non-empty selection → selection + edge-connected neighborhood only, never the whole scene (full hierarchical-summary tier for large unselected scenes is a documented TODO, out of this task's scope). `AiContext.instructions` carries only the caller-supplied userRequest/language/diagramKind; all scene-derived text (including adversarial content) lives exclusively in `AiContext.sceneData`, structurally verified by asserting the returned object's exact top-level keys and that `instructions`'s serialization never contains the malicious substring. Semantic metadata is copied field-by-field (technology/provider/environment/dataClassification/criticality only), silently dropping any stray comments/attachment keys. `pnpm -w test:unit`: 145 server tests passed (7 new), full workspace green.
 
 ---
 
