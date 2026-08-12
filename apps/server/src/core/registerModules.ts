@@ -49,7 +49,7 @@ export async function registerAllModules(
   registerExportModule(app, { db, storage, jobs: deps.jobs });
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
-  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey });
+  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);

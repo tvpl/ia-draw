@@ -6,6 +6,13 @@ export {
   listAiToolCalls,
 } from './aiRuns.js';
 export {
+  type ApproveAiRunDeps,
+  type ApproveAiRunResult,
+  approveAiRun,
+  cancelAiRun,
+  patchToDeltas,
+} from './applyPatch.js';
+export {
   type AiContext,
   type BuildContextInput,
   type BuildContextOptions,

@@ -15,6 +15,7 @@ import { createLocalAccount } from '../auth/accounts.js';
 import { SESSION_COOKIE_NAME } from '../auth/cookie.js';
 import { registerAuthModule } from '../auth/routes.js';
 import { createSession } from '../auth/session.js';
+import type { StorageClient } from '../storage/signedUrl.js';
 import { registerWorkspaceModule } from '../workspace/index.js';
 import type { AiRunStatus } from './aiRuns.js';
 import { createAiRun } from './pipeline.js';
@@ -23,6 +24,25 @@ import { RunStore } from './runStore.js';
 
 const ENCRYPTION_KEY = 'test-encryption-master-key-for-ai-engine';
 const TEST_TOKEN = 'sk-ai-engine-pipeline-test-token';
+
+/** Not exercised by this file's scenarios (no `:approve` call here — that's applyPatch.int.spec.ts) — a minimal fake satisfying `AiEngineModuleDeps.storage`'s required shape. */
+function createFakeStorage(): StorageClient {
+  return {
+    async putSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async getSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async headObject() {
+      return { exists: false };
+    },
+    async putObject() {},
+    async getObject() {
+      throw new Error('createFakeStorage: getObject not exercised by this test file');
+    },
+  };
+}
 
 /** Deterministic provider double — never a real network call (T53 "Done when"). Each call to `next()` returns the next queued response, so a test can script a sequence of provider replies. */
 function scriptedFetch(responses: Array<{ status: number; body: unknown }>): {
@@ -286,7 +306,12 @@ describe('ai-engine pipeline (T53, AIG-01/AIE-01/AIE-05)', () => {
       const rbacApp = buildServer(loadConfig({ NODE_ENV: 'test' }));
       await registerAuthModule(rbacApp, { db, config: loadConfig({ NODE_ENV: 'test' }) });
       registerWorkspaceModule(rbacApp, { db });
-      registerAiEngineModule(rbacApp, { db, encryptionKey: ENCRYPTION_KEY, runStore });
+      registerAiEngineModule(rbacApp, {
+        db,
+        encryptionKey: ENCRYPTION_KEY,
+        storage: createFakeStorage(),
+        runStore,
+      });
       await rbacApp.ready();
 
       try {
@@ -330,7 +355,11 @@ describe('ai-engine pipeline (T53, AIG-01/AIE-01/AIE-05)', () => {
       const noProviderApp = buildServer(loadConfig({ NODE_ENV: 'test' }));
       await registerAuthModule(noProviderApp, { db, config: loadConfig({ NODE_ENV: 'test' }) });
       registerWorkspaceModule(noProviderApp, { db });
-      registerAiEngineModule(noProviderApp, { db, encryptionKey: ENCRYPTION_KEY });
+      registerAiEngineModule(noProviderApp, {
+        db,
+        encryptionKey: ENCRYPTION_KEY,
+        storage: createFakeStorage(),
+      });
       await noProviderApp.ready();
 
       try {

@@ -280,16 +280,18 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Aprovar um run com `sourceRevision` ainda válida aplica o patch atomicamente e cria o snapshot `pre_ai`
-- [ ] Aprovar um run cuja `sourceRevision` ficou desatualizada (outra mutação aconteceu nesse meio-tempo) retorna 409/recomputa — nunca aplica silenciosamente sobre a mudança mais nova
-- [ ] Restaurar o snapshot `pre_ai` reverte a cena ao estado anterior à aplicação da IA (undo completo)
-- [ ] `POST :cancel` não deixa nenhum rastro na cena real
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Aprovar um run com `sourceRevision` ainda válida aplica o patch atomicamente e cria o snapshot `pre_ai`
+- [x] Aprovar um run cuja `sourceRevision` ficou desatualizada (outra mutação aconteceu nesse meio-tempo) retorna 409/recomputa — nunca aplica silenciosamente sobre a mudança mais nova
+- [x] Restaurar o snapshot `pre_ai` reverte a cena ao estado anterior à aplicação da IA (undo completo)
+- [x] `POST :cancel` não deixa nenhum rastro na cena real
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add atomic ai patch application with pre-ai snapshot and undo`
+
+**Status**: ✅ Complete — `apps/server/src/modules/ai-engine/applyPatch.ts`: `patchToDeltas` converts the T53-computed `AbstractPatch` into `ElementDelta[]`, bumping each touched element's version strictly above the current scene's (mirrors `snapshot/restore.ts`'s `buildRestoreDeltas` exactly). `approveAiRun` checks `run.status === 'awaiting_approval'`, then the frozen `sourceRevision` against the freshly-loaded scene — a mismatch throws `StaleRevisionError` (409) BEFORE any write, never silently overwriting; on success it creates the `pre_ai` snapshot, then applies via `appendOperation` (F1b's own commit path, reused directly — not duplicated), applies any `setMetadata` ops via the library module's `upsertElementMetadata`, and transitions `applying → applied`. `cancelAiRun` transitions to `cancelled` from any non-terminal state without ever calling `appendOperation`/`createSnapshot`. `POST /ai/runs/{id}:approve|:cancel` are registered as ONE route (`POST /ai/runs/:runRef`, parsed into `{runId, action}`) — **deviation, documented in `routes.ts`**: Fastify's router (`find-my-way`) collapses two differently-suffixed `:id(regex):action` routes on the same prefix into a single dedup key and throws on the second registration (confirmed by direct repro against the installed version); every prior single-action route in this codebase (`:test`, `:restore`) never hit this because it only ever registered one such route per prefix. The external URL contract (`POST /ai/runs/{id}:approve`, `POST /ai/runs/{id}:cancel`) is unchanged. `pnpm -w test:unit`: 173 server tests passed; `pnpm -w test:integration`: 192 server tests passed (5 new: `applyPatch.int.spec.ts` — happy-path apply+snapshot, stale-revision 409, undo-via-restore round-trip, cancel-leaves-no-trace, reviewer/viewer 403), full workspace green.
 
 ---
 

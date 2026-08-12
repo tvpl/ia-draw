@@ -18,11 +18,31 @@ import { registerAuthModule } from '../auth/routes.js';
 import { createSession } from '../auth/session.js';
 import { registerDiagramSyncModule } from '../diagram-sync/routes.js';
 import { loadDiagramScene } from '../diagram-sync/scene.js';
+import type { StorageClient } from '../storage/signedUrl.js';
 import { registerWorkspaceModule } from '../workspace/index.js';
 import { registerAiEngineModule } from './routes.js';
 
 const ENCRYPTION_KEY = 'test-encryption-master-key-for-ai-engine-preview';
 const TEST_TOKEN = 'sk-ai-engine-preview-test-token';
+
+/** Not exercised by this file's scenarios (no `:approve` call here — that's applyPatch.int.spec.ts) — a minimal fake satisfying `AiEngineModuleDeps.storage`'s required shape. */
+function createFakeStorage(): StorageClient {
+  return {
+    async putSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async getSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async headObject() {
+      return { exists: false };
+    },
+    async putObject() {},
+    async getObject() {
+      throw new Error('createFakeStorage: getObject not exercised by this test file');
+    },
+  };
+}
 
 function toolCallResponse(toolName: string, args: Record<string, unknown>) {
   return {
@@ -76,6 +96,7 @@ describe('ai-engine preview generation (T54, AIE-02/AIG-04)', () => {
     registerAiEngineModule(app, {
       db,
       encryptionKey: ENCRYPTION_KEY,
+      storage: createFakeStorage(),
       fetchImpl: scriptedFetch([]),
     });
     await app.ready();
@@ -142,6 +163,7 @@ describe('ai-engine preview generation (T54, AIE-02/AIG-04)', () => {
     registerAiEngineModule(previewApp, {
       db,
       encryptionKey: ENCRYPTION_KEY,
+      storage: createFakeStorage(),
       fetchImpl: scriptedFetch([
         toolCallResponse('create_element', { type: 'rectangle', x: 0, y: 0, label: 'API' }),
       ]),
@@ -210,6 +232,7 @@ describe('ai-engine preview generation (T54, AIE-02/AIG-04)', () => {
     registerAiEngineModule(removalApp, {
       db,
       encryptionKey: ENCRYPTION_KEY,
+      storage: createFakeStorage(),
       fetchImpl: scriptedFetch([
         toolCallResponse('delete_elements', { elementIds: ['el-to-delete'] }),
       ]),
