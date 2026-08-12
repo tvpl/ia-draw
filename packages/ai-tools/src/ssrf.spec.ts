@@ -58,7 +58,9 @@ describe('validateProviderBaseUrl (T41, AIC-03)', () => {
   });
 
   it('an allowlist entry for a different host does not accidentally allow a blocked one', async () => {
-    const result = await validateProviderBaseUrl('http://169.254.169.254/', ['some-other-host.example']);
+    const result = await validateProviderBaseUrl('http://169.254.169.254/', [
+      'some-other-host.example',
+    ]);
     expect(result.allowed).toBe(false);
   });
 });

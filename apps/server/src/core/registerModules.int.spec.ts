@@ -157,6 +157,24 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(inventoryResponse.statusCode).toBe(401);
   });
 
+  it('reaches the ai-provider module routes through the same wiring path (T42) — 401 without a session, never 404', async () => {
+    const listResponse = await app.inject({ method: 'GET', url: '/admin/ai-providers' });
+    expect(listResponse.statusCode).toBe(401);
+
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/admin/ai-providers',
+      payload: { scope: 'global', baseUrl: 'https://api.openai.com/v1', model: 'gpt', token: 'x' },
+    });
+    expect(createResponse.statusCode).toBe(401);
+
+    const testResponse = await app.inject({
+      method: 'POST',
+      url: '/admin/ai-providers/some-config-id:test',
+    });
+    expect(testResponse.statusCode).toBe(401);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 

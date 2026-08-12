@@ -18,7 +18,13 @@ const SRC_DIR = join(dirname(fileURLToPath(import.meta.url)), '..');
  * Empty today by design (see file header) — F2's AI provider client is the first
  * expected entry, added deliberately alongside its own SSRF/allowlist safeguards.
  */
-const ALLOWED_EGRESS_FILES = new Set<string>();
+const ALLOWED_EGRESS_FILES = new Set<string>([
+  // F2's single allowlisted AI HTTP client (T42, AIC-02) — calls only the admin-configured
+  // provider's baseUrl, server-side, behind SSRF validation (packages/ai-tools). Every
+  // production call is preceded by validateProviderBaseUrl at config write time (routes.ts);
+  // tests always inject a mock fetchImpl, never hitting the network (see ai-provider.int.spec.ts).
+  'modules/ai-provider/testConnection.ts',
+]);
 
 // Matches an actual import/require of a network-capable module, or a call to the
 // global `fetch`. Anchored to import/require syntax and to `fetch(` as a call (not a

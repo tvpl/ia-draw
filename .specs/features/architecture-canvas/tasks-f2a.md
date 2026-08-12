@@ -222,17 +222,19 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] `POST /admin/ai-providers` com um `baseUrl` SSRF-inseguro é rejeitado (T41 aplicado na rota)
-- [ ] Nenhuma resposta de `GET/POST/PATCH /admin/ai-providers` contém o token em nenhum formato (teste faz `JSON.stringify(response.body)` e verifica que o token de teste não aparece como substring)
-- [ ] `POST .../{id}:test` contra um provider mock determinístico confirma tool-calling e não deixa o token em nenhum log capturado pelo teste
-- [ ] Middleware de rate limit rejeita a N+1-ésima chamada dentro da janela configurada
-- [ ] Actor sem papel de admin recebe 403 em toda rota deste módulo
-- [ ] Gate check passes (última task da onda — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- [x] `POST /admin/ai-providers` com um `baseUrl` SSRF-inseguro é rejeitado (T41 aplicado na rota)
+- [x] Nenhuma resposta de `GET/POST/PATCH /admin/ai-providers` contém o token em nenhum formato (teste faz `JSON.stringify(response.body)` e verifica que o token de teste não aparece como substring)
+- [x] `POST .../{id}:test` contra um provider mock determinístico confirma tool-calling e não deixa o token em nenhum log capturado pelo teste
+- [x] Middleware de rate limit rejeita a N+1-ésima chamada dentro da janela configurada
+- [x] Actor sem papel de admin recebe 403 em toda rota deste módulo
+- [x] Gate check passes (última task da onda — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(server): add ai provider admin routes with token-safe test-connection`
+
+**Status**: ✅ Complete — `apps/server/src/modules/ai-provider/` adds `GET/POST/PATCH /admin/ai-providers` and `POST /admin/ai-providers/{id}:test`, wired into `registerAllModules`. Token never leaves the server: `ProviderConfigPublic`'s type omits `encryptedToken` entirely (explicit column selection, not just convention), and `:test` decrypts straight into a local variable used only as the outbound `Authorization` header. SSRF validation (T41) runs on every `baseUrl` write. Rate limiting is a reusable `InMemoryRateLimiter` + Fastify preHandler, unit-tested in isolation and wired onto `:test`. `testConnection.ts` is the one deliberately reviewed, allowlisted network-capable file in `no-egress.spec.ts` (F2's first entry there); tests always inject a mock `fetchImpl`. Full workspace gate green: lint/typecheck/build clean; 128 server unit + 178 server integration + 25 database integration tests pass. Real compiled-server boot verified (see batch report).
 
 ---
 

@@ -20,6 +20,9 @@ importers:
 
   apps/server:
     dependencies:
+      '@arch-canvas/ai-tools':
+        specifier: workspace:*
+        version: link:../../packages/ai-tools
       '@arch-canvas/auth':
         specifier: workspace:*
         version: link:../../packages/auth
