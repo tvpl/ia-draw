@@ -33,8 +33,8 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | --- | --- | --- |
 | Quick | Tasks com testes unit apenas | `pnpm -w test:unit` |
 | Full | Tasks com testes integration | `pnpm -w test:unit && pnpm -w test:integration` |
-| E2E | Task com teste e2e | `pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e` |
-| Build | Fim de fase | `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` |
+| Build | Fim de fase (não-final) | `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` |
+| E2E-Build | Última task da onda (T26) — inclui lint/typecheck/build, não só os testes | `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e` |
 
 ---
 
@@ -286,10 +286,10 @@ T25 -> T26
 
 - [ ] Teste roda contra o `apps/server` real (subido no `beforeAll` do teste ou via um `webServer` do Playwright config apontando para PostgreSQL via PGlite/instância de teste) — documente exatamente como o servidor de teste é levantado
 - [ ] 100% das edições marcadas `Salvo` antes do "crash" reaparecem no novo contexto
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e`
+- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration && pnpm -w test:e2e`
 
 **Tests**: e2e
-**Gate**: e2e
+**Gate**: e2e-build
 
 **Commit**: `test(web): add e2e crash-and-reload zero-loss journey`
 

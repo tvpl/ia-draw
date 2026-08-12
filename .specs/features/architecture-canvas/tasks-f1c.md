@@ -33,7 +33,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | --- | --- | --- |
 | Quick | Tasks com testes unit apenas | `pnpm -w test:unit` |
 | Full | Tasks com testes integration | `pnpm -w test:unit && pnpm -w test:integration` |
-| Build | Fim de fase ou tasks infra-only | `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` |
+| Build | Última task de cada batch (T31 fecha o Batch 1; T36 fecha o Batch 2 e a onda) — inclui lint/typecheck/build, não só os testes | `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` |
 
 ---
 
@@ -210,10 +210,10 @@ T36
 - [ ] Restore cria nova revisão; revisões e snapshots posteriores ao restaurado continuam consultáveis via `GET /diagrams/{id}/operations`/`/snapshots`
 - [ ] Snapshot `published`/`pre_ai` nunca tem seus bytes (`scene_json_key`/`checksum`) alterados por nenhuma rota
 - [ ] `diff` entre duas revisões reporta corretamente added/removed/moved/modified para um cenário com pelo menos um elemento de cada categoria
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [ ] Gate check passes (última task do Batch 1 — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
-**Gate**: full
+**Gate**: build
 
 **Commit**: `feat(server): add snapshot restore as new revision and structural diff endpoint`
 
@@ -324,7 +324,7 @@ T36
 - [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
-**Gate**: full
+**Gate**: build
 
 **Commit**: `feat(infra): add scheduled automated restore verification`
 
@@ -348,10 +348,10 @@ T36
 - [ ] Uma requisição com header `Authorization: Bearer secret-token` nunca produz `secret-token` em texto plano na saída de log capturada pelo teste
 - [ ] Um cookie de sessão em `Set-Cookie` é redigido na saída de log
 - [ ] Toda linha de log de uma requisição HTTP inclui `requestId`
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [ ] Gate check passes (última task da onda F1c — inclui lint/typecheck/build): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: unit
-**Gate**: quick
+**Gate**: build
 
 **Commit**: `feat(server): redact secrets and pii from structured json logs`
 
