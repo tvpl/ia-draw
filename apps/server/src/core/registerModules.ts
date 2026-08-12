@@ -8,6 +8,7 @@ import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
 import { registerDocgenModule } from '../modules/docgen/routes.js';
 import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
 import { registerExportModule } from '../modules/export/routes.js';
+import { registerInteropModule } from '../modules/interop/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
 import { registerLibraryModule } from '../modules/library/routes.js';
 import { registerLintModule } from '../modules/lint/routes.js';
@@ -51,6 +52,7 @@ export async function registerAllModules(
   registerAssetModule(app, { db, storage });
   registerSnapshotModule(app, { db, storage });
   registerExportModule(app, { db, storage, jobs: deps.jobs });
+  registerInteropModule(app, { db, storage, jobs: deps.jobs });
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
   registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });

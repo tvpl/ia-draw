@@ -10,6 +10,12 @@ export {
   type RectangleElement,
   type TextElement,
 } from './compile.js';
+export {
+  parseMermaidFlowchart,
+  parseStructurizrDsl,
+  toMermaidFlowchart,
+  toStructurizrDsl,
+} from './interop/index.js';
 export { layoutElkLayered } from './layout/elkLayered.js';
 export { layoutGridZones } from './layout/gridZones.js';
 export { layoutSwimlane } from './layout/swimlane.js';
