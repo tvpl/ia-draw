@@ -426,7 +426,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIE-01 | P1: Edição por IA | F2 | ✅ Verified *(T53-T55 — o pipeline completo (criação → preview → aprovação → aplicação) só grava cena via `packages/ai-tools`' `ToolRegistry` + `patchToDeltas`/`appendOperation`; nenhum caminho aceita JSON de cena bruto, SQL ou URL arbitrária do modelo)* |
 | AIE-02 | P1: Edição por IA | F2 | ✅ Verified *(T54 — `computeApprovalThreshold` implementa a regra literal (remoção / >50 elementos / fora da seleção); limiar 50/51 testado exatamente em `preview.spec.ts`)* |
 | AIE-03 | P1: Edição por IA | F2 | ✅ Verified *(T55 — `approveAiRun` compara a revisão atual contra `run.source_revision` ANTES de qualquer escrita; divergência retorna 409 (`StaleRevisionError`), nunca sobrescreve — testado em `applyPatch.int.spec.ts`)* |
-| AIE-04 | P1: Edição por IA | F2 | Implementing |
+| AIE-04 | P1: Edição por IA | F2 | ✅ Verified *(T56 — 5 cenários adversariais rodam pelo pipeline real contra um provider mock que ativamente tenta obedecer texto malicioso embutido em elementos; nenhuma ferramenta proibida executa, nenhum escopo/config muda (tool list e system prompt idênticos em toda requisição capturada), e patches perigosos ficam presos em `awaiting_approval` — a defesa é da camada de aplicação, não do bom comportamento do modelo)* |
 | AIE-05 | P1: Edição por IA | F2 | ✅ Verified *(T55 — `markToolCallsApproved` fecha o rastro de auditoria no momento da aplicação; `ai_runs`/`ai_tool_calls` cobrem todo o ciclo de vida do run, criação a `applied`/`cancelled`/`failed`)* |
 | LIB-01 | P1: Biblioteca e semântica | F2 | ✅ Verified |
 | LIB-02 | P1: Biblioteca e semântica | F2 | ✅ Verified |
