@@ -421,13 +421,13 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIG-03 | P1: Geração por IA via IR | F2 | ✅ Verified *(gap fechado por fix direto do orquestrador pós-Verifier — `packages/diagram-ir/src/metrics.spec.ts` agora varre `truncatedLabels===0` nos mesmos 21 casos sintéticos até 200 elementos; não é uma nova passada formal do Verifier, mas o teste roda e passa de fato — commit `9fa4492`)* |
 | AIG-04 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-05 | P1: Geração por IA via IR | F2 | Pending |
-| AIG-06 | P1: Geração por IA via IR | F2 | Implementing |
+| AIG-06 | P1: Geração por IA via IR | F2 | ✅ Verified *(T53 — o pipeline real (`pipeline.ts`) falha o run inteiro antes de `previewing` quando qualquer chamada de ferramenta retorna erro estruturado, cobrindo tanto elementId quanto componente de biblioteca fora do escopo; `pipeline.int.spec.ts` testa o caso de elementId, `writeTools.spec.ts`/T52 já cobre o caso de `compile_ir` com componente não resolvido)* |
 | AIG-07 | P1: Geração por IA via IR | F2 | ✅ Verified |
 | AIE-01 | P1: Edição por IA | F2 | Implementing |
 | AIE-02 | P1: Edição por IA | F2 | Pending |
 | AIE-03 | P1: Edição por IA | F2 | Pending |
 | AIE-04 | P1: Edição por IA | F2 | Implementing |
-| AIE-05 | P1: Edição por IA | F2 | Pending |
+| AIE-05 | P1: Edição por IA | F2 | Implementing *(T53 — `ai_runs`/`ai_tool_calls` gravados com argumentos redigidos e uso de tokens por run que termina em `previewing`/`failed`; falta o lado de aplicação/cancelamento, T55)* |
 | LIB-01 | P1: Biblioteca e semântica | F2 | ✅ Verified |
 | LIB-02 | P1: Biblioteca e semântica | F2 | ✅ Verified |
 | LIB-03 | P1: Biblioteca e semântica | F2 | ✅ Verified |

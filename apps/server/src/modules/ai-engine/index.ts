@@ -1,4 +1,11 @@
 export {
+  type AiRunRow,
+  type AiRunStatus,
+  type AiToolCallRow,
+  getAiRunById,
+  listAiToolCalls,
+} from './aiRuns.js';
+export {
   type AiContext,
   type BuildContextInput,
   type BuildContextOptions,
@@ -22,3 +29,22 @@ export {
   callProvider,
   type ProviderToolDefinition,
 } from './callProvider.js';
+export {
+  AiRunNotFoundError,
+  InvalidRunStateError,
+  NoProviderConfiguredError,
+  PatchNotFoundError,
+  StaleRevisionError,
+} from './errors.js';
+export { type AiIntent, classifyIntent } from './intent.js';
+export {
+  type CreateAiRunDeps,
+  type CreateAiRunParams,
+  type CreateAiRunResult,
+  createAiRun,
+  resolveLibraryItems,
+} from './pipeline.js';
+export { redactToolArguments } from './redact.js';
+export { type ResolvedProviderConfig, resolveProviderConfig } from './resolveProvider.js';
+export { type AiEngineModuleDeps, registerAiEngineModule } from './routes.js';
+export { type PendingRunEntry, RunStore } from './runStore.js';

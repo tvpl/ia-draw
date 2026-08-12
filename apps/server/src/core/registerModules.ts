@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { registerAiEngineModule } from '../modules/ai-engine/routes.js';
 import { registerAiProviderModule } from '../modules/ai-provider/routes.js';
 import { registerAssetModule } from '../modules/asset/routes.js';
 import type { Db } from '../modules/auth/db.js';
@@ -48,6 +49,7 @@ export async function registerAllModules(
   registerExportModule(app, { db, storage, jobs: deps.jobs });
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
+  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);

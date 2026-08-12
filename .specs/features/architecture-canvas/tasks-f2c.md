@@ -221,15 +221,17 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Run criado contra um provider mock determinístico progride por todos os estados esperados até `previewing` ou `failed`
-- [ ] `ai_tool_calls` grava cada chamada de ferramenta com argumentos redigidos (teste explícito: nenhum dado sensível de teste aparece em texto plano na linha persistida)
-- [ ] `reviewer`/`viewer` recebem 403 ao tentar criar um run
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Run criado contra um provider mock determinístico progride por todos os estados esperados até `previewing` ou `failed`
+- [x] `ai_tool_calls` grava cada chamada de ferramenta com argumentos redigidos (teste explícito: nenhum dado sensível de teste aparece em texto plano na linha persistida)
+- [x] `reviewer`/`viewer` recebem 403 ao tentar criar um run
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add ai run state machine and creation endpoint with audit trail`
+
+**Status**: ✅ Complete — `apps/server/src/modules/ai-engine/`: `createAiRun` (`pipeline.ts`) drives a run through `queued → building_context → calling_model → validating → previewing | failed`, each transition its own persisted `UPDATE ai_runs` (observable mid-flight; captured in tests via an injectable `onTransition` hook). Intent classification (`intent.ts`) is a simple PT/EN keyword heuristic per the task's own allowance. Every tool call the model requests is executed through `packages/ai-tools`' real `ToolRegistry` and logged to `ai_tool_calls` with `redactToolArguments` (`redact.ts`) stripping every free-text field (`label`/`text`/`query`, recursively — covers `generate_ir`/`compile_ir`'s nested IR argument too) before persisting; a dedicated unit test and an integration test both prove the sensitive substring never reaches the persisted row in plain text. A tool call that fails structurally (e.g. `delete_elements` referencing an id outside the diagram) fails the whole run before `previewing`, per AIG-06. `POST /diagrams/{id}/ai/runs` wires this in behind `diagram:mutate` (403 for reviewer/viewer, tested) and is registered in `registerAllModules`. The proposed `AbstractPatch` has no `ai_runs` column to live in (F2a's schema, confirmed against `docs/product-spec.md` §6) — it is held in a new in-process `RunStore` (`runStore.ts`) keyed by run id for T54/T55 to pick up; this is a documented, deliberate scope decision (see the file's own docstring), not an oversight. Token usage from the provider's response is recorded on `ai_runs.usage_json` (AIE-05's "token usage" clause), never the token itself. `pnpm -w test:unit`: 163 server tests passed (10 new); `pnpm -w test:integration`: 185 server tests passed (7 new, `pipeline.int.spec.ts`), full workspace green.
 
 ---
 
