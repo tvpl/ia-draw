@@ -1,5 +1,6 @@
-import { allFixtures } from '@arch-canvas/test-fixtures';
+import type { SceneElement } from '@arch-canvas/editor-adapter';
 import { MAX_WS_MESSAGE_BYTES } from '@arch-canvas/shared-contracts';
+import { allFixtures } from '@arch-canvas/test-fixtures';
 import { describe, expect, it } from 'vitest';
 import {
   MAX_OPERATION_ELEMENTS,
@@ -11,7 +12,7 @@ const CLIENT_MUTATION_ID = '3f9e6f2a-3d3a-4b6a-9b9a-0f7a2f6a1c11';
 const ACTOR_ID = '7a1b6f2a-3d3a-4b6a-9b9a-0f7a2f6a1c22';
 
 function upsertDelta(elementId: string, overrides: Record<string, unknown> = {}) {
-  const [fixtureElement] = allFixtures.text;
+  const [fixtureElement] = allFixtures.text as readonly SceneElement[];
   if (!fixtureElement) throw new Error('fixture must have at least one element');
   return {
     elementId,

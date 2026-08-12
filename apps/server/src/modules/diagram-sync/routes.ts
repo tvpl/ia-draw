@@ -1,10 +1,12 @@
 import { can } from '@arch-canvas/auth';
+import { parseOperationEnvelope } from '@arch-canvas/diagram-domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
+import { appendOperation } from './operations.js';
 import { loadDiagramScene } from './scene.js';
 
 export interface DiagramSyncModuleDeps {
@@ -52,4 +54,38 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       permissions: decision,
     };
   });
+
+  app.post(
+    '/diagrams/:id/operations:batch',
+    { preHandler: requireSession(db) },
+    async (request, reply) => {
+      const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+
+      const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
+      if (!workspaceId) notFound();
+
+      const role = await resolveWorkspaceRole(db, workspaceId, user.id);
+      if (!role) notFound();
+
+      // reviewer/viewer never hold diagram:mutate (packages/auth) — 403, distinct
+      // from diagram:read which they do hold (AUTH-03 canvas-mutation rejection).
+      const decision = can({ role }, 'diagram:mutate', { workspaceId });
+      if (!decision.allowed) forbidden();
+
+      // Validates shape + the 500-element/256KB limits (T19); throws
+      // OperationEnvelopeError (carries .statusCode) on violation, which core's
+      // generic error handler renders as problem+json — same as notFound()/forbidden().
+      const envelope = parseOperationEnvelope(request.body);
+
+      // actorId is always the authenticated session's user, never trusted from the
+      // request body, mirroring the workspace module's "never accept scope/identity
+      // fields from the caller" convention (see project-diagram-routes.ts).
+      const result = await appendOperation(db, diagramId, user.id, envelope);
+
+      reply.code(200);
+      return result;
+    },
+  );
 }

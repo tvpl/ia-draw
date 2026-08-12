@@ -40,7 +40,10 @@ export interface OperationEnvelope {
   deltas: ElementDelta[];
 }
 
-export type OperationEnvelopeErrorCode = 'payload_too_large' | 'too_many_elements' | 'invalid_envelope';
+export type OperationEnvelopeErrorCode =
+  | 'payload_too_large'
+  | 'too_many_elements'
+  | 'invalid_envelope';
 
 /**
  * Thrown by `parseOperationEnvelope` when a limit is exceeded or the shape

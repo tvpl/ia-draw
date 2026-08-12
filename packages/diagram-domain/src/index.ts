@@ -6,4 +6,4 @@ export {
   operationEnvelopeSchema,
   parseOperationEnvelope,
 } from './envelope.js';
-export { reconcileOperation, type ReconcileOperationResult } from './reconcile.js';
+export { type ReconcileOperationResult, reconcileOperation } from './reconcile.js';

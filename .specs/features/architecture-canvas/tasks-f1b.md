@@ -176,17 +176,19 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] ACK só é retornado após commit real (teste: mock de commit lento — resposta não chega antes do commit resolver)
-- [ ] Reenvio do mesmo `clientMutationId` produz exatamente uma linha em `diagram_operations` e um ACK idempotente (não um erro)
-- [ ] Falha simulada de escrita no banco retorna erro HTTP (nunca 200/ack) — prova server-side de REC-03
-- [ ] Duas operações concorrentes no MESMO `elementId` convergem: a cena final reflete o desempate de `versionNonce`, e ambas as operações permanecem no op-log (histórico não perde a "perdedora") — prova de REC-05
-- [ ] `reviewer`/`viewer` recebem 403 ao tentar mutar
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] ACK só é retornado após commit real (teste: mock de commit lento — resposta não chega antes do commit resolver)
+- [x] Reenvio do mesmo `clientMutationId` produz exatamente uma linha em `diagram_operations` e um ACK idempotente (não um erro)
+- [x] Falha simulada de escrita no banco retorna erro HTTP (nunca 200/ack) — prova server-side de REC-03
+- [x] Duas operações concorrentes no MESMO `elementId` convergem: a cena final reflete o desempate de `versionNonce`, e ambas as operações permanecem no op-log (histórico não perde a "perdedora") — prova de REC-05
+- [x] `reviewer`/`viewer` recebem 403 ao tentar mutar
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add idempotent operations batch endpoint with post-commit ack`
+
+**Status**: ✅ Complete — `POST /diagrams/:id/operations:batch` added (`operations.ts`'s `appendOperation`): append-only op-log write inside `withTx`, idempotent via pre-check + unique-violation catch-and-reread, bounded retry on a `(diagram_id, sequence)` collision, `missingOperations` reported (never auto-rejected) when `baseRevision` is stale. 8 integration tests on PGlite: happy path, idempotent resubmission (1 row), simulated DB failure via a transaction-throwing `Proxy` (never 2xx, 0 rows), ack-strictly-after-commit via a gated `Proxy`, reviewer/viewer 403, malformed envelope, stale-baseRevision missing-ops report, and REC-05 same-element LWW convergence (both ops survive in the log, `loadDiagramScene` shows the versionNonce winner). Found and fixed a pre-existing `noUncheckedIndexedAccess` typecheck gap in T19's `envelope.spec.ts` (never caught because T19's gate was test:unit only, not typecheck) in the same commit.
 
 ---
 

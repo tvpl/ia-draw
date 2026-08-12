@@ -1,6 +1,6 @@
-import type { ElementDelta, SceneElement, SceneIndex } from '@arch-canvas/editor-adapter';
-import { reconcileOperation } from '@arch-canvas/diagram-domain';
 import { diagramOperations } from '@arch-canvas/database';
+import { reconcileOperation } from '@arch-canvas/diagram-domain';
+import type { ElementDelta, SceneElement, SceneIndex } from '@arch-canvas/editor-adapter';
 import { asc, eq } from 'drizzle-orm';
 import type { Db } from '../auth/db.js';
 
