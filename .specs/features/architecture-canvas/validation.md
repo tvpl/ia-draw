@@ -231,3 +231,169 @@ No regressions were introduced: the full gate is still green, test count only gr
 **Note on `validate_state.py`'s automated check for this file (resolved by the orchestrator after this report was written)**: the script originally returned a non-zero exit on this file, because it pools every line shaped like a bold "Result" label across the whole accumulating file and derives its verdict from whatever pass/fail wording it finds there, with no concept of iteration boundaries. Iteration 1's discrimination-sensor line legitimately described a sensor gate that did not clear at the time — a true statement about iteration 1's state, kept in the history above under "Outcome at iteration 1 (superseded...)" precisely so it isn't lost. Once that historical line's label was reworded away from the exact "bold-Result-colon" shape (data unchanged, only the label), and a single canonical `## Validation: ... - PASS ✅` heading was added above as this file's one authoritative verdict, the script reads cleanly: `python3 <skill-dir>/scripts/validate_state.py architecture-canvas` now exits 0. This is a tooling limitation specific to multi-iteration accumulating validation.md files (the checker expects one report, one verdict), not a project-execution gap — worth flagging to the skill maintainer separately, and noted in the lessons store as a tooling observation rather than a project lesson.
 
 ---
+
+## F1a Wave Report (Identidade, Workspaces e RBAC) — PASS ✅
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md` — story "P1: Contas, workspaces e RBAC" (AUTH-01..05)
+**Diff range**: `29adf1c..57b7f99` (source-bearing commits only: T12-T18; `0251d13`/`56ca330`/`cbc8998`/`9bb1206`/`eee2ab3`/`04d0c95`/`b5b6465`/`a5fd2c3` in the `d5fe705..HEAD` window are `.specs/`-only docs or F0 wave commits, out of scope here)
+**Verifier**: independent sub-agent (author ≠ verifier) — fresh session, no access to the implementer's chat transcript, every claim below re-derived from the artifacts
+
+**Verdict**: PASS. All 7 tasks complete with real commits, the full gate is green (283 tests, 0 failed), all 3 discrimination-sensor mutations were killed, and the two AC gaps found (AUTH-02/AUTH-05's WebSocket half, AUTH-03's reject+audit-on-mutation endpoint) are honestly out of this wave's buildable surface — no ws-gateway or canvas-mutation route exists until F1b — and are correctly left `Implementing`, not silently marked done. This mirrors the F0 iteration-2 pattern above: a real gap, explicitly scoped and evidenced, does not by itself force FAIL when nothing was hidden and the sensor/gate are clean.
+
+---
+
+### Task Completion
+
+| Task | Status | Commit | Notes |
+| ---- | ------ | ------ | ----- |
+| T12 | ✅ Done | `29adf1c` | `packages/auth` RBAC engine, 52 unit tests |
+| T13 | ✅ Done | `e320a76` | `audit_events` migration + `recordAuditEvent`, 4 new integration tests |
+| T14 | ✅ Done | `fc89359` | local auth module (Argon2id, session cookie, `/me`), 8 integration tests |
+| T15 | ✅ Done | `e77884d` | single-use WS ticket issue/consume, 5 integration tests |
+| T16 | ✅ Done | `020a077` | workspace + member CRUD, RBAC-gated, audited, 11 integration tests |
+| T17 | ✅ Done | `e26160b` | project/diagram metadata CRUD, 9 integration tests, shared ZodError→400 fix |
+| T18 | ✅ Done | `9b542d1` | full IDOR + role-operation matrix, 64 integration tests |
+
+All 7 commit hashes confirmed present via `git log --oneline d5fe705..HEAD -- packages/auth packages/database apps/server` (see command output captured this session). The trailing `57b7f99` (`style(server): fix pre-existing biome formatting drift from f1a wave`) is a follow-up formatting-only commit on top of T18, not a separate task; it's included in the diff range but carries no task ID of its own. All 7 tasks in `tasks-f1a.md` carry a `**Status**: ✅ Complete` line with commit evidence, matching `git log` exactly.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+Scope: AUTH-01..05 (P1: Contas, workspaces e RBAC — the only story this wave claims).
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion expression | Result |
+| --- | --- | --- | --- |
+| AUTH-01: WHEN a user authenticates with email/password THEN verify an Argon2id hash and establish the session via HttpOnly, Secure, SameSite=Lax cookie | 200 + cookie with `httpOnly=true`, `sameSite=Lax`, `secure` per scheme; wrong password/unknown email → 401, indistinguishable | `apps/server/src/modules/auth/accounts.ts:50` — `argon2.verify(user.passwordHash, password)`; `apps/server/src/modules/auth/cookie.ts:19-24` — `httpOnly: true, sameSite: 'lax', secure: isHttpsPublicUrl(...)`; `apps/server/src/modules/auth/auth.int.spec.ts:52-58` — `expect(cookie?.httpOnly).toBe(true)`, `expect(cookie?.sameSite).toBe('Lax')`; `:75` — `expect(cookie?.secure).toBe(true)` on https `publicUrl`; `:98-101` — `expect(cookie?.secure).not.toBe(true)` + raw header has no `Secure` token on http `publicUrl`; `:124-129` — `expect(wrongPassword.statusCode).toBe(401)`, `expect(unknownEmail.statusCode).toBe(401)`, `expect(wrongPassword.json()).toEqual(unknownEmail.json())`. **Confirmed by discrimination sensor** (mutation 2, killed). The literal AC says "Secure" unconditionally; `cookie.ts:7` documents the dev-only exception (non-HTTPS localhost) explicitly required by T14's own "What", and production (`https://` `publicUrl`) always gets `Secure` — a defensible, task-authorized reading, not a silent deviation | ✅ PASS |
+| AUTH-02: The system SHALL compute permissions in the backend for the 5 roles on every REST and WebSocket operation | Every REST route resolves role fresh and calls `can()`; every WS operation does too | REST: `packages/auth/src/rbac.ts:81-90` (`can()`); called at every route in `apps/server/src/modules/workspace/routes.ts` (7 call sites), `project-diagram-routes.ts` (10 call sites), `apps/server/src/modules/auth/routes.ts:96-99` (ws-ticket issuance); proven end-to-end by `apps/server/src/modules/workspace/rbac-matrix.int.spec.ts:253-268` (60 named assertions, 12 operations × 5 roles). **WebSocket: zero evidence** — no WS gateway/server exists in this wave (only ticket issuance/consumption, T15); `grep -rn "WebSocketServer\|ws-gateway" apps/server/src` finds nothing. `packages/auth/src/rbac.spec.ts` proves the underlying decision table (`diagram:mutate` denied to reviewer/viewer) but that is AUTH-02's REST-adjacent building block, not "on every... WebSocket operation" | ⚠️ Spec-precision gap — REST half fully proven; WebSocket half has no buildable surface until F1b's ws-gateway lands (documented in `spec.md:381`) |
+| AUTH-03: IF a viewer/reviewer sends a canvas mutation via REST or WebSocket THEN reject with 403 (or `mutation_rejected`) and record an audit event | A rejected mutation attempt produces both a 403 response and an `audit_events` row | No route in this wave accepts a canvas-content mutation payload at all — diagram routes are metadata-only (T17's own scope note: "operando apenas em metadados... não no conteúdo do canvas, que é escopo F1b") and no WS gateway exists to receive one either. `packages/auth/src/rbac.spec.ts:81-91` proves `diagram:mutate` is computed as denied for reviewer/viewer (the permission-decision half), and `packages/database/src/audit.ts:25-37` + `audit.int.spec.ts` prove the audit table is append-only and readable — but neither test, nor any other in the diff surface, exercises an actual "attempt a canvas mutation → 403 + audit row" flow, because the endpoint that combo requires doesn't exist yet | ❌ GAP against the literal AC — zero evidence for the reject+audit combo itself; the two prerequisite pieces (permission decision, audit infra) are independently proven, comparable to F0's EDT-01 treatment (spike-level de-risking of a later AC, not the AC itself) |
+| AUTH-04: IF a user requests a resource in a workspace they don't belong to THEN respond 404, never revealing existence | 404, never 403, on every such request | `apps/server/src/modules/workspace/routes.ts:60-64` (`requireMembership` throws `notFound()` on no membership row, used by all workspace/member routes); `project-diagram-routes.ts` (`notFound()` on missing project/diagram or missing role, e.g. `:89`, `:127-128`, `:196`, `:241`); `apps/server/src/modules/auth/ws-ticket.ts:18-37` (`resolveDiagramMembership` returns `null` on no membership, `routes.ts:94-99` turns that into 404); `rbac-matrix.int.spec.ts:270-306` — `expect(response.statusCode).toBe(404)` for workspace/project/diagram GETs by a non-member; `ws-ticket.int.spec.ts` — `returns 404 (not 403) when the session holder has no membership`. **Confirmed by discrimination sensor** (mutation 3: flipped `requireMembership`'s `notFound()`→`forbidden()`, killed by the workspace IDOR test) | ✅ PASS |
+| AUTH-05: WHEN a workspace admin changes a member's role THEN enforce the new permission on already-open sessions within 10 seconds | The very next request on the same (already-authenticated) session reflects the new role | `apps/server/src/modules/workspace/rbac.ts:12-22` (`resolveWorkspaceRole` queries `workspace_members` fresh, no cache, on every call); `rbac-matrix.int.spec.ts:308-337` — same session cookie mutates successfully (200), gets downgraded via `PATCH /workspaces/:id/members/:userId` (200), then the identical cookie's next `PATCH /diagrams/:id` is asserted `expect(afterDowngrade.statusCode).toBe(403)` — a real immediate-next-request proof, not eventual consistency (no polling, no sleep, no cache-invalidation timer). This satisfies the REST half of "already-open sessions" by construction. **WebSocket half: zero evidence** — an already-open *live WS connection* continuing to write after a downgrade cannot be tested because no WS gateway exists yet; `spec.md:381` documents this exclusion explicitly as F1b scope | ⚠️ Spec-precision gap — REST half proven with a genuine immediate-effect assertion; WebSocket "already-open connection" half has no buildable surface until F1b |
+
+**Status**: ⚠️ Spec-precision gaps flagged (2: AUTH-02, AUTH-05 — WebSocket half unbuildable this wave, explicitly deferred in spec.md); 1 real gap against literal AC text (AUTH-03 — reject+audit combo has no endpoint yet); 2 clean PASS (AUTH-01, AUTH-04)
+
+---
+
+### T12 Interpretation Decision — Independent Judgment
+
+T12's "What" describes reviewer as having `diagram:write` "para metadados", but `packages/auth/src/rbac.ts:67-73` denies `diagram:write` to `reviewer` entirely (identical grant set to `viewer`). Verified independently: `project-diagram-routes.ts` gates every diagram/project `POST`/`PATCH`/`DELETE` on `can({role}, 'diagram:write'|'project:write', ...)` (e.g. `:214`, `:256`, `:282`), and T17/T18's own Done-when criteria require reviewer to get 403 on those exact routes — confirmed live by `project-diagram.int.spec.ts:164-198` and `rbac-matrix.int.spec.ts`'s 403 rows for `reviewer` on every write scenario. Granting `reviewer` a bare `diagram:write` (as T12's prose literally suggests) would flip those routes to 200 and directly contradict T17/T18's concrete, tested Done-when criteria. Critically, **spec.md's own AUTH-02/AUTH-03 AC text never claims reviewer holds `diagram:write`** — only T12's descriptive prose does, and that prose is not itself a Done-when bullet. Judgment: this is a defensible, correctly-documented resolution of a real ambiguity in the task's free-text description, prioritizing the concrete testable criteria over an underspecified prose clause — not a functional gap. `rbac.ts:47-53`'s inline comment records the same reasoning for future readers.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/f1a-verify-scratch HEAD` (never `git stash`). Baseline `git status --porcelain` on the real tree was empty before and after (byte-identical). `pnpm install --frozen-lockfile` run once in the scratch worktree; `pnpm -w build` re-run after each mutation to materialize the mutated `dist/` before testing (workspace packages consumed via built output).
+
+| # | Mutation | File:line | Description | Killed? |
+| - | -------- | --------- | ------------ | ------- |
+| 1 | `packages/auth/src/rbac.ts:71` | `reviewer: new Set(READ_ACTIONS)` → `reviewer: new Set([...READ_ACTIONS, 'diagram:mutate'])` (reviewer illegitimately gains canvas-mutate) | ✅ Killed — `pnpm vitest run src/rbac.spec.ts` → 2 of 52 tests failed: `role=reviewer action=diagram:mutate -> allowed=false` (`expected true to be false`) and `reviewer never receives diagram:mutate, independent of diagram:write` |
+| 2 | `apps/server/src/modules/auth/accounts.ts:50` | `const valid = await argon2.verify(...)` → `const valid = await argon2.verify(...) \|\| true` (password verification always succeeds) | ✅ Killed — `pnpm vitest run -c vitest.integration.config.ts src/modules/auth/auth.int.spec.ts` → 1 of 8 tests failed: `rejects a wrong password with 401...` (`expected 200 to be 401`) |
+| 3 | `apps/server/src/modules/workspace/routes.ts:61` | `requireMembership`'s `if (!role) notFound();` → `if (!role) forbidden();` (IDOR leaks existence via 403 instead of 404) | ✅ Killed — `pnpm vitest run -c vitest.integration.config.ts src/modules/workspace/rbac-matrix.int.spec.ts` → 1 of 64 tests failed: `GET /workspaces/:id returns 404 for a user with no membership row` (`expected 403 to be 404`) |
+
+Each mutation was applied, tested, and reverted (`git checkout -- <file>`) individually before the next was injected. `git worktree remove --force /tmp/f1a-verify-scratch` succeeded; the real tree's `git status --porcelain` was re-captured after cleanup and diffed byte-for-byte against the pre-sensor baseline — identical (empty both times). No source or test file in the real tree was ever touched.
+
+**Sensor depth**: lightweight (3 targeted mutations, default tier — F1a is P1/auth-adjacent but the mutations target the highest-risk new logic per validate.md's proportional guidance: RBAC role hierarchy, password verification, IDOR branch)
+**Sensor tally**: 3/3 killed, 0 survived — sensor gate clear
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| Minimum code | ✅ — each task's diff matches its stated scope |
+| Surgical changes | ✅ — T17's shared `ZodError` → 400 fix in `core/server.ts` was a genuine cross-cutting bug (pre-existing since T14-T16, just never exercised by a prior test) fixed once at the shared error handler rather than duplicated per-route; correctly scoped, with its own dedicated test (`core/server.spec.ts`) |
+| No scope creep | ⚠️ — `tasks-f1a.md`'s header claims to "cobrir integralmente" AUTH-01..05, but AUTH-03's literal reject+audit behavior has no endpoint yet (see AC table); this is a documentation overstatement in the wave's own scope note, not unauthorized code — the same task file's later scope line ("Não cobre ainda a persistência do canvas... WebSocket sync — onda F1b") already anticipates the gap in spirit |
+| Matches patterns | ✅ — consistent Zod/Fastify/Drizzle/Vitest conventions, `requireSession`/`can()`/`recordAuditEvent` reused exactly as F0/T12/T13 established them |
+| Spec-anchored outcome check (asserted values match spec) | ⚠️ — see AC table; 2 clean PASS, 2 spec-precision gaps, 1 real gap |
+| Per-layer Coverage Expectation met (domain 1:1 ACs; routes happy+edge+error) | ✅ — `rbac.spec.ts` covers all 5×8 role/action combinations; `rbac-matrix.int.spec.ts` covers all 12 operations × 5 roles + 3 IDOR cases + 1 downgrade case, each a named assertion, not a blind loop |
+| Every test maps to a spec requirement — no unclaimed tests | ✅ — spot-checked `rbac.spec.ts`, `auth.int.spec.ts`, `ws-ticket.int.spec.ts`, `workspace.int.spec.ts`, `project-diagram.int.spec.ts`, `rbac-matrix.int.spec.ts`, `audit.int.spec.ts`; every describe/it cites its Done-when or AC in a comment or docstring |
+| Documented guidelines followed | `docs/product-spec.md` §17, `design.md` Test Strategy (per `tasks-f1a.md`'s Test Coverage Matrix header, reused verbatim from F0) — followed |
+
+**Self-reported deviations, independently assessed:**
+
+1. **T16's lazy default-organization provisioning is not race-safe** (`organizations.ts:12-22`: `SELECT ... LIMIT 1` then `INSERT` with no transaction/advisory lock, and `organizations.slug` has no unique constraint — confirmed by reading `schema.ts:62-70`). Two concurrent first-workspace-creations could both pass the `SELECT` and both `INSERT`, producing two "Default Organization" rows. **Judgment**: real and correctly self-identified; low practical severity for a self-hosted single-org MVP where this only fires at first-ever-workspace bootstrap, not steady-state traffic; no task Done-when requires concurrency-safety here. Accepted as a legitimate, correctly-scoped known limitation — not a blocking gap for this wave, but should be closed (unique constraint on `organizations.slug`, or wrap in `SELECT ... FOR UPDATE`/advisory lock) before any multi-instance or high-concurrency deployment. No fix task created now; flagged for awareness.
+2. **`tags` field on diagrams treated as spec-precision gap** (T17's "What" mentions `tags` as a metadata field; neither `projects` nor `diagrams` has a `tags` column in the schema inherited from T5, and no T17 Done-when requires it). **Judgment**: correct call — adding an untested column contradicts "no abstractions/fields not required by a Done-when"; the coding-principles.md bias here is explicit ("No 'flexibility' or 'configurability' not requested"). No fix needed.
+3. **ZodError→400 fix in T17** — already assessed above under "Surgical changes": legitimate, correctly-scoped shared-handler fix with its own test.
+4. **Ad-hoc lint-drift revert in T18** — T18 ran the `build` gate as an end-of-phase precaution (beyond its declared `full` gate), found pre-existing Biome formatting drift in T12/T14/T15/T16/T17's already-committed files, and reverted the auto-fix rather than silently amending closed commits, per "one task = one commit." Independently confirmed: `pnpm -w lint` on the current tree (after `57b7f99`, a dedicated follow-up formatting commit) is clean — `Checked 120 files. No fixes applied.` **Judgment**: correct call; the revert-then-fix-in-a-dedicated-commit sequence is exactly right and left the tree in a clean, gate-passing state without violating atomic-commit discipline.
+
+---
+
+### Edge Cases
+
+- [x] "WHEN a workspace admin changes a member's role THEN REST enforcement is immediate by construction... enforcement on an already-open WebSocket connection... is out of scope until the ws-gateway module exists (F1b)" (`spec.md:381`) — REST half proven live by the sensor-confirmed downgrade test; WS half correctly and explicitly deferred, not silently dropped
+- [ ] "IF a WebSocket ticket is reused after its single use or expiry THEN reject the connection" (`spec.md:375`) — the *ticket* consumption half is fully proven (`ws-ticket.int.spec.ts`: single-use, TTL-expiry); the *connection rejection* half is out of scope until the WS gateway consumes tickets in F1b, correctly unaddressed this wave
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- **Outcome**: all 5 stages exit 0.
+  - `lint`: `biome check .` → Checked 120 files, no fixes applied.
+  - `typecheck`: 8/8 package tasks successful (cache hit, replaying prior clean run).
+  - `build`: 7/7 tasks successful (`apps/web` vite build + 6 package `tsc` builds).
+  - `test:unit`: 9 test files across 3 packages, **177 tests passed, 0 failed** (shared-contracts 17, test-fixtures 8, editor-adapter 53, server 47, auth 52)
+  - `test:integration`: 7 test files, **106 tests passed, 0 failed** (database: audit 4 + migrate 5 = 9; server: auth 8, workspace 11, project-diagram 9, ws-ticket 5, rbac-matrix 64 = 97)
+  - **Total: 283 tests, 0 failed, 0 skipped**
+- **Test count before wave** (F0 iteration 2 final count): 110
+- **Test count after wave**: 283
+- **Delta**: +173 new tests (T12 +52, T13 +4, T14 +8, T15 +5, T16 +11, T17 +9, T18 +64; unit/integration split matches each task's own reported count in `tasks-f1a.md`)
+- **Skipped tests**: none
+- **Failures**: none in the real tree (failures only occurred inside the isolated sensor scratch worktree, always reverted)
+
+---
+
+### Fix Plans
+
+No blocking fix tasks. Two items are recorded as informational/awareness only, matching the F0 iteration-2 precedent for real-but-correctly-scoped gaps:
+
+#### Fix 1 (informational): AUTH-02/AUTH-05 WebSocket half has no buildable surface yet
+
+- **Root cause**: no `ws-gateway` module exists until F1b; T15 only issues/consumes tickets, it does not open or police a live connection.
+- **Fix task**: none needed now — re-verify the WebSocket half of AUTH-02 and AUTH-05 for real once F1b's ws-gateway lands and can enforce `can()` per message and per-connection role staleness.
+- **Priority**: N/A (informational — correctly scoped, already documented in `spec.md:381`)
+
+#### Fix 2 (informational): AUTH-03's reject+audit combo has no endpoint yet
+
+- **Root cause**: canvas-content mutation is F1b scope; T17's diagram routes are metadata-only by explicit design, so there is nowhere to attempt a "canvas mutation" from which to produce a 403+audit pair this wave.
+- **Fix task**: none needed now — re-verify AUTH-03 for real once F1b's canvas-mutation endpoint (REST batch or WS) exists; add a test asserting both the 403 (or `mutation_rejected`) response AND a corresponding `audit_events` row for a reviewer/viewer mutation attempt.
+- **Priority**: N/A for this wave (informational); should become a hard blocker for F1b's own validation if that wave's tasks don't close it, since F1b is exactly where this AC's remaining surface gets built.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| AUTH-01 | Implementing | ✅ Verified *(Argon2id verification, cookie attributes, and no-existence-leak on failed login all sensor-confirmed and file:line-backed)* |
+| AUTH-02 | Implementing | Implementing *(unchanged — REST half fully proven; WebSocket half has zero evidence, no ws-gateway exists until F1b, see Fix 1)* |
+| AUTH-03 | Implementing | Implementing *(unchanged — reject+audit combo has zero evidence, no canvas-mutation endpoint exists until F1b, see Fix 2)* |
+| AUTH-04 | Implementing | ✅ Verified *(404-never-403 IDOR rule proven across workspace/project/diagram/ws-ticket routes, sensor-confirmed)* |
+| AUTH-05 | Implementing | Implementing *(unchanged — REST half proven with a genuine immediate-next-request assertion; WebSocket "already-open connection" half has zero evidence until F1b, see Fix 1)* |
+
+Only AUTH-01 and AUTH-04 move to ✅ Verified this wave — AUTH-02, AUTH-03, AUTH-05 each have a real, evidence-backed, explicitly-scoped-to-F1b gap and correctly stay `Implementing`.
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready (wave-scoped)
+
+**Spec-anchored check**: 2/5 ACs fully matched spec outcome (AUTH-01, AUTH-04); 2/5 have an explicitly-deferred spec-precision gap (AUTH-02, AUTH-05 — WebSocket half, F1b scope); 1/5 has a real gap against its literal text (AUTH-03 — reject+audit combo, F1b scope)
+
+**Sensor tally**: 3/3 mutations killed, 0 survived
+
+**Gate**: 5/5 stages passed (lint, typecheck, build, test:unit, test:integration), 283/283 tests passed, 0 failed, +173 tests over F0's baseline of 110
+
+**What works**: The RBAC engine (`packages/auth`) is a clean, dependency-free decision table with a full 5×8 matrix and explicit write/mutate decoupling, sensor-confirmed against a role-hierarchy escalation mutant. Local auth (Argon2id, opaque session tokens, cookie attributes) is fully proven including the no-account-enumeration property, sensor-confirmed against an always-succeed mutant. The IDOR 404-never-403 rule holds across every workspace/project/diagram/ws-ticket route this wave built, sensor-confirmed against a 403-leak mutant. Immediate role-downgrade enforcement on REST is proven with a genuine same-session, no-relogin, next-request assertion — not eventual consistency. The audit trail is append-only and correctly wired into every successful mutation. All 7 tasks, 283 tests, 5-stage gate: clean.
+
+**Issues found**:
+1. AUTH-02 and AUTH-05's WebSocket halves have no buildable surface this wave (no ws-gateway exists) — correctly left `Implementing`, already anticipated in `spec.md`'s own edge-case note. Re-verify when F1b lands.
+2. AUTH-03's reject+audit-on-mutation combo has no endpoint to test against this wave (canvas mutation is F1b scope) — correctly left `Implementing`. This should become a hard requirement for F1b's own validation to close.
+3. `organizations` lazy-provisioning race (informational, low severity, not blocking) — see Code Quality self-reported deviations.
+
+**Next steps**: No fix→re-verify iteration needed for F1a itself — nothing here is a defect, every gap is a real, correctly-scoped, honestly-documented boundary against F1b's not-yet-built surface. Carry AUTH-02/AUTH-03/AUTH-05's residual WebSocket/mutation-endpoint evidence gaps into F1b's own task Done-when criteria and re-verify them for real once the ws-gateway and canvas-mutation persistence land.
+
+---

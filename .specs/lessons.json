@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 6,
+  "next_id": 8,
   "lessons": [
     {
       "id": "L-001",
@@ -95,6 +95,42 @@
       ],
       "created": "2026-08-12T04:20:39Z",
       "last_seen": "2026-08-12T04:20:39Z"
+    },
+    {
+      "id": "L-006",
+      "key": "spec_precision_gap::when a spec ac requires enforcement on both rest and websocket operations but only the rest surface exists in the current wave keep the requirement at implementing and flag the websocket half as an explicit spec precision gap instead of marking the ac fully verified",
+      "text": "When a spec AC requires enforcement on both REST and WebSocket operations but only the REST surface exists in the current wave, keep the requirement at Implementing and flag the WebSocket half as an explicit spec-precision gap instead of marking the AC fully Verified.",
+      "signal": "spec_precision_gap",
+      "scope": "backend-auth",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AUTH-02 (spec.md:87), AUTH-05 (spec.md:90) (backend-auth)"
+      ],
+      "created": "2026-08-12T05:13:26Z",
+      "last_seen": "2026-08-12T05:13:26Z"
+    },
+    {
+      "id": "L-007",
+      "key": "ac_gap::a task that only builds an ac s supporting infrastructure e g an audit table and insert helper does not satisfy an ac whose literal text describes an end to end behavior reject record keep the ac at implementing until the actual enforcement route exists and is tested",
+      "text": "A task that only builds an AC's supporting infrastructure (e.g. an audit table and insert helper) does not satisfy an AC whose literal text describes an end-to-end behavior (reject + record); keep the AC at Implementing until the actual enforcement route exists and is tested.",
+      "signal": "ac_gap",
+      "scope": "backend-auth",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AUTH-03 (spec.md:88) (backend-auth)"
+      ],
+      "created": "2026-08-12T05:13:32Z",
+      "last_seen": "2026-08-12T05:13:32Z"
     }
   ]
 }

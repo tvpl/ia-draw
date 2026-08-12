@@ -44,6 +44,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/server/src/core/no-egress.spec.ts (infra) (infra)
 - last seen: 2026-08-12T04:20:39Z
 
+### L-006 - When a spec AC requires enforcement on both REST and WebSocket operations but only the REST surface exists in the current wave, keep the requirement at Implementing and flag the WebSocket half as an explicit spec-precision gap instead of marking the AC fully Verified.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `backend-auth` · harmful: 0
+- features: architecture-canvas
+- evidence: AUTH-02 (spec.md:87), AUTH-05 (spec.md:90) (backend-auth)
+- last seen: 2026-08-12T05:13:26Z
+
+### L-007 - A task that only builds an AC's supporting infrastructure (e.g. an audit table and insert helper) does not satisfy an AC whose literal text describes an end-to-end behavior (reject + record); keep the AC at Implementing until the actual enforcement route exists and is tested.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend-auth` · harmful: 0
+- features: architecture-canvas
+- evidence: AUTH-03 (spec.md:88) (backend-auth)
+- last seen: 2026-08-12T05:13:32Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
