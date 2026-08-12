@@ -223,6 +223,10 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
       expect(created.statusCode).toBe(201);
       expect(JSON.stringify(created.json())).not.toContain(TEST_TOKEN);
       expect(created.body).not.toContain(TEST_TOKEN);
+      // Shape-level guard, not just a plaintext substring check: the ciphertext
+      // field itself must never be serialized into any response, valid AES-256-GCM
+      // ciphertext or not — a leaked encryptedToken is still a real secret leak.
+      expect(created.json().config).not.toHaveProperty('encryptedToken');
       const configId = created.json().config.id as string;
 
       const listResponse = await app.inject({
@@ -232,6 +236,9 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
       });
       expect(listResponse.statusCode).toBe(200);
       expect(JSON.stringify(listResponse.json())).not.toContain(TEST_TOKEN);
+      for (const config of listResponse.json().items as unknown[]) {
+        expect(config).not.toHaveProperty('encryptedToken');
+      }
 
       const patched = await app.inject({
         method: 'PATCH',
@@ -242,6 +249,7 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
       expect(patched.statusCode).toBe(200);
       expect(JSON.stringify(patched.json())).not.toContain(TEST_TOKEN);
       expect(JSON.stringify(patched.json())).not.toContain(`${TEST_TOKEN}-rotated`);
+      expect(patched.json().config).not.toHaveProperty('encryptedToken');
 
       // The persisted row itself only ever carries ciphertext.
       const [row] = await db
