@@ -134,6 +134,8 @@ T36
 
 **Commit**: `feat(server): add pg-boss job queue wired into graceful shutdown`
 
+**Status**: ✅ Complete — `apps/server/src/modules/jobs/` (`queue.ts`: `startJobs`/`defineJob`/`enqueue`; `shutdown.ts`: `registerJobsGracefulShutdown`, mirrors T3's `registerGracefulShutdown` pattern) wraps `pg-boss` 12.27.0 over the app's Postgres connection (AD-006). Genuinely real integration test, not mocked: pg-boss ships a first-class `fromPglite` adapter + `backend: 'pglite'` profile, so `queue.int.spec.ts` runs real pg-boss code — real job persistence, polling, and `stop({graceful:true, timeout})` draining — against a real embedded Postgres engine (unlike T27's MinIO, PGlite has no gap here). Confirms a job survives enqueue→handler dispatch, exactly-once delivery, graceful shutdown waiting for an in-flight job to finish, and the configurable timeout cutting off a job that outlives it (`elapsed < 2500ms` while the job itself runs 3000ms). `pnpm -w test:unit && pnpm -w test:integration`: 65 unit / 122 integration passed, all green.
+
 ---
 
 ### Phase 12 — Assets (EDT-06)
