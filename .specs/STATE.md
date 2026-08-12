@@ -50,13 +50,21 @@
 - **Date**: 2026-08-11
 - **Status**: active
 
+### AD-007
+- **Decision**: Testes de integração de PostgreSQL usam `@electric-sql/pglite` (Postgres real compilado para WASM, roda em Node puro) em vez de testcontainers em qualquer ambiente sem daemon Docker; CI (GitHub Actions) continua usando Postgres/MinIO reais via `services:` já que tem Docker.
+- **Reason**: Este ambiente de execução não tem Docker (`docker` CLI presente, socket ausente). PGlite roda um engine Postgres genuíno, preservando fidelidade de constraints/SQL sem exigir daemon.
+- **Trade-off**: Não cobre comportamento específico de rede/socket do Postgres real (irrelevante para os testes de schema/constraint que este projeto escreve); MinIO não tem equivalente WASM — testes de integração de asset/storage ficam reservados ao CI real (onda F1c).
+- **Scope**: todo teste de integração de `packages/database` e futuros módulos do `apps/server` que dependem de Postgres, em qualquer ambiente sem Docker.
+- **Date**: 2026-08-12
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: architecture-canvas (`.specs/features/architecture-canvas/`)
-- **Phase / Task**: Execute PAUSADO a pedido do usuário (2026-08-12) — "somente crie o plano e tasks, não desenvolva ainda"
-- **Completed**: Specify + Design + Tasks (onda F0). Execução iniciada e pausada: T1 (commit 235b53a) e T2 (commit c859aa0) completas com gates verdes; T3..T11 NÃO iniciadas
-- **In-progress** (file:line): none
-- **Next step**: aguardar ordem explícita do usuário para retomar Execute em T3 (apps/server core). Ambiente local sem Docker: integração via PGlite, verificação plena de compose/testcontainers no CI
-- **Blockers**: retomada bloqueada por decisão do usuário
+- **Phase / Task**: Execute AUTÔNOMO em andamento (autorizado pelo usuário em 2026-08-12: "siga até terminá-lo totalmente", "sem precisar me perguntar nada", usando sub-agents em loop com Verifier independente por onda)
+- **Completed**: onda F0 (Fundação) — 11 tasks (T1-T11) implementadas, commitadas, pushed. Verifier rodou 2 iterações: iteration 1 FAIL (1 mutante sobrevivente em `computeDiff`, FND-02 sem evidência) → 2 fix tasks aplicados e re-verificados → iteration 2 PASS. `validate_state.py architecture-canvas` exit 0. FND-03/EDT-07 → ✅ Verified; FND-01/02/05, EXP-01, EDT-01 seguem `Implementing` (spike/sandbox scope, corretos por design). Onda F1a (Identidade/Workspaces/RBAC — T12-T18, AUTH-01..05) autorada e validada (`tasks-f1a.md`, `validate_tasks.py` 0 erros), ainda NÃO executada.
+- **In-progress** (file:line): none — próximo passo é despachar o batch worker de T12-T18
+- **Next step**: dispatch de 1 batch sub-agent para T12-T18 (`tasks-f1a.md`), gate, push, Verifier da onda F1a; depois autorar F1b (EDT-01..06 real + REC-01..05 — core do op-log/WS) e F1c (VER, EXP restante, OPS/backup); seguir para F2 (IA), F3 (docs/apresentação), F4 (realtime), F5 (hardening) sem pausar entre ondas, salvo bloqueio genuíno
+- **Blockers**: none
 - **Uncommitted files**: none
 - **Branch**: claude/architecture-canvas-system-cdwop7
