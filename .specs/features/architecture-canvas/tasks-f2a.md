@@ -75,15 +75,17 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] Manifesto valida contra o schema Zod; nenhum item passa sem `license`/`attribution`
-- [ ] Cobertura das 12 categorias com pelo menos 1 componente genérico cada
-- [ ] Pelo menos 5 componentes AWS reais com licença verificada e documentada na fonte do dado
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Manifesto valida contra o schema Zod; nenhum item passa sem `license`/`attribution`
+- [x] Cobertura das 12 categorias com pelo menos 1 componente genérico cada
+- [x] Pelo menos 5 componentes AWS reais com licença verificada e documentada na fonte do dado
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(library-content): add licensed generic and aws component manifest`
+
+**Status**: ✅ Complete — `packages/library-content/` ships 12 generic components (1+ per category, original CC0 artwork) plus 7 real AWS components (EC2, Lambda, S3, RDS, VPC, API Gateway, CloudFront) with CC-BY-ND-2.0 license verified indirectly via `awslabs/aws-icons-for-plantuml` (official AWS GitHub org — `aws.amazon.com` itself is egress-blocked in this sandbox). AWS items reference the artwork externally rather than embedding it (ND license forbids derivatives; the actual files are unreachable here) — documented honestly in `manifest.ts` rather than guessed. 8/8 tests pass.
 
 ---
 

@@ -327,6 +327,22 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(@noble/hashes@1.8.0)(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
 
+  packages/library-content:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.4.3
+    devDependencies:
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(@noble/hashes@1.8.0)(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
+
   packages/shared-contracts:
     dependencies:
       zod:
