@@ -230,15 +230,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] `reviewer`/`viewer` conseguem `GET` mas recebem 403 em `POST/PATCH/DELETE` de projeto/diagrama
-- [ ] `status` fora do enum é rejeitado com 400 (problem+json)
-- [ ] Diagrama criado herda `workspace_id` do projeto via join, nunca aceito diretamente do payload
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] `reviewer`/`viewer` conseguem `GET` mas recebem 403 em `POST/PATCH/DELETE` de projeto/diagrama
+- [x] `status` fora do enum é rejeitado com 400 (problem+json)
+- [x] Diagrama criado herda `workspace_id` do projeto via join, nunca aceito diretamente do payload
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add project and diagram metadata crud scoped by workspace`
+
+**Status**: ✅ Complete — `apps/server/src/modules/workspace/` ganhou `projects.ts`, `diagrams.ts` e `project-diagram-routes.ts` (`GET/POST /projects`, `GET/PATCH/DELETE /projects/:id`, `GET/POST /diagrams`, `GET/PATCH/DELETE /diagrams/:id`), registrados junto de `registerWorkspaceModule`. `status` de diagrama validado contra `diagramStatus.enumValues` (o enum real do Drizzle, não uma lista duplicada) via zod; falha de validação retorna 400 problem+json. `POST /diagrams` só aceita `projectId` no corpo — `workspace_id` é resolvido inteiramente server-side via `resolveProjectWorkspaceId` (join `projects`), com teste explícito provando que um `workspaceId` forjado no payload é ignorado. 9 testes de integração cobrindo os 3 done-when + transição de status válida. Gate full verde — 33 testes de integração no server. **Achado corrigido durante o gate (fora do diretório do módulo, mas necessário)**: `schema.parse()` inválido (ex.: enum fora do range) lançava `ZodError` sem `statusCode`, caindo no branch `500` do error handler de `core/server.ts` em vez de 400 — `packages/*` e as rotas de T14-T16 já tinham essa mesma lacuna latente, só não exercitada por nenhum teste anterior. Corrigido no error handler compartilhado (`ZodError` → 400 problem+json), com teste dedicado adicionado a `core/server.spec.ts`; nenhuma rota individual precisou de try/catch próprio. **Precisão registrada**: o "What" deste task menciona `tags` como um dos campos de metadados; nem `projects` nem `diagrams` têm coluna `tags` no schema herdado de T5, e nenhum "Done when" a exige — tratado como gap de precisão do spec, não implementado (evita adicionar coluna sem teste que a exija).
 
 ---
 

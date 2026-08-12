@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events';
 import { problemDetailsSchema } from '@arch-canvas/shared-contracts';
 import { describe, expect, it, vi } from 'vitest';
+import { z } from 'zod';
 import { loadConfig } from './config.js';
 import { buildServer, registerGracefulShutdown } from './server.js';
 
@@ -73,6 +74,21 @@ describe('buildServer (spec §11 / FND-05)', () => {
       status: 'degraded',
       dependencies: [{ name: 'postgres', status: 'down' }],
     });
+    await app.close();
+  });
+
+  it('maps a thrown ZodError to 400 problem+json instead of 500', async () => {
+    const app = buildServer(testConfig());
+    app.get('/zod-throws', async () => {
+      z.object({ id: z.string() }).parse({});
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/zod-throws' });
+    expect(response.statusCode).toBe(400);
+    expect(response.headers['content-type']).toContain('application/problem+json');
+    const parsed = problemDetailsSchema.safeParse(response.json());
+    expect(parsed.success).toBe(true);
+    expect(parsed.success && parsed.data.status).toBe(400);
     await app.close();
   });
 

@@ -6,6 +6,7 @@ import { requireSession } from '../auth/middleware.js';
 import type { Db } from '../auth/db.js';
 import '../auth/types.js';
 import { addWorkspaceMember, listWorkspaceMembers, removeWorkspaceMember, updateWorkspaceMemberRole } from './members.js';
+import { registerProjectAndDiagramRoutes } from './project-diagram-routes.js';
 import { isUniqueViolation, resolveWorkspaceRole } from './rbac.js';
 import { createWorkspace, deleteWorkspace, getWorkspaceById, listWorkspacesForUser, updateWorkspace } from './workspaces.js';
 
@@ -51,9 +52,13 @@ async function requireMembership(db: Db, workspaceId: string, userId: string): P
   return role;
 }
 
-/** Registers workspace + workspace-member CRUD routes, RBAC-gated and audit-logged (T16). */
+/**
+ * Registers workspace + workspace-member CRUD (T16) and project + diagram
+ * metadata CRUD (T17), all RBAC-gated and audit-logged.
+ */
 export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceModuleDeps): void {
   const { db } = deps;
+  registerProjectAndDiagramRoutes(app, { db });
 
   app.get('/workspaces', { preHandler: requireSession(db) }, async (request) => {
     const user = request.authContext?.user;

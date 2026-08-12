@@ -1,5 +1,6 @@
 import { PROBLEM_CONTENT_TYPE, problem } from '@arch-canvas/shared-contracts';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
+import { ZodError } from 'zod';
 import type { AppConfig } from './config.js';
 
 export type DependencyStatus = 'up' | 'down';
@@ -58,6 +59,18 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
   });
 
   app.setErrorHandler((error: FastifyError, request, reply) => {
+    // A request body/params/query failing zod validation is a client error
+    // (400), never a 500 — routes call `schema.parse(...)` directly and
+    // let this handler translate the thrown ZodError.
+    if (error instanceof ZodError) {
+      const body = problem(400, 'Validation Error', {
+        detail: error.issues.map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.message}`).join('; '),
+        instance: request.url,
+      });
+      reply.code(400).type(PROBLEM_CONTENT_TYPE).send(body);
+      return;
+    }
+
     const statusCode = error.statusCode ?? 500;
     const body = problem(statusCode, error.message || 'Internal Server Error', {
       instance: request.url,
