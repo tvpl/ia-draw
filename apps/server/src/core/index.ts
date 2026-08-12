@@ -1,4 +1,5 @@
 export { type AppConfig, INSECURE_DEV_SECRET, loadConfig } from './config.js';
+export { registerAllModules } from './registerModules.js';
 export {
   type BuildServerOptions,
   buildServer,

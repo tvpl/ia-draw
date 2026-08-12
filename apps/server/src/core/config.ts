@@ -16,6 +16,11 @@ const envSchema = z.object({
   ENCRYPTION_KEY: z.string().min(1).default(INSECURE_DEV_SECRET),
   /** Public origin the server is reachable at; scheme drives the session cookie's Secure flag. */
   PUBLIC_URL: z.string().min(1).default('http://localhost:3000'),
+  /** Postgres connection string; matches infra/compose's server service default for local dev. */
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default('postgres://arch_canvas:dev-insecure-secret-change-me@localhost:5432/arch_canvas'),
 });
 
 export interface AppConfig {
@@ -24,6 +29,7 @@ export interface AppConfig {
   sessionSecret: string;
   encryptionKey: string;
   publicUrl: string;
+  databaseUrl: string;
 }
 
 /**
@@ -51,5 +57,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     sessionSecret: parsed.SESSION_SECRET,
     encryptionKey: parsed.ENCRYPTION_KEY,
     publicUrl: parsed.PUBLIC_URL,
+    databaseUrl: parsed.DATABASE_URL,
   };
 }
