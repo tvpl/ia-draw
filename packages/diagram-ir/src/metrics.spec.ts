@@ -309,6 +309,10 @@ describe('geometryMetrics property-based: zero overlaps/crossings across synthet
       const metrics = geometryMetrics(scene);
       expect(metrics.overlaps).toBe(0);
       expect(metrics.crossings).toBe(0);
+      // F2b Verifier (validation.md, AIG-03 gap): the zero-overlap/crossing sweep
+      // never checked truncated labels at the same 200-element scale, only by hand
+      // at small scenes. Sweep it here too — same synthetic cases, same assertion style.
+      expect(metrics.truncatedLabels).toBe(0);
     });
   }
 });
