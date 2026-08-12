@@ -88,15 +88,17 @@ T25 -> T26
 
 **Done when**:
 
-- [ ] Envelope válido passa; envelope com >500 elementos ou >256KB serializado é rejeitado com erro específico
-- [ ] `reconcileOperation` aplica upserts/deletes corretamente e usa o mesmo desempate de `versionNonce` de `applyRemote`
-- [ ] Nenhum tipo duplicado — `ElementDelta` etc. importados de `editor-adapter`, não redefinidos
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Envelope válido passa; envelope com >500 elementos ou >256KB serializado é rejeitado com erro específico
+- [x] `reconcileOperation` aplica upserts/deletes corretamente e usa o mesmo desempate de `versionNonce` de `applyRemote`
+- [x] Nenhum tipo duplicado — `ElementDelta` etc. importados de `editor-adapter`, não redefinidos
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-domain): add operation envelope validation and server reconcile`
+
+**Status**: ✅ Complete — `packages/diagram-domain` added (`envelope.ts`: `OperationEnvelope` Zod schema + `parseOperationEnvelope` with distinct `payload_too_large`/`too_many_elements`/`invalid_envelope` errors; `reconcile.ts`: `reconcileOperation` composing `applyRemote`/`buildSceneIndex` from editor-adapter, no LWW reimplementation). 10 unit tests, `pnpm -w test:unit` green (11/11 packages).
 
 ---
 

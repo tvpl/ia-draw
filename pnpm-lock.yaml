@@ -153,6 +153,37 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
 
+  packages/diagram-domain:
+    dependencies:
+      '@arch-canvas/editor-adapter':
+        specifier: workspace:*
+        version: link:../editor-adapter
+      '@arch-canvas/shared-contracts':
+        specifier: workspace:*
+        version: link:../shared-contracts
+      zod:
+        specifier: ^4.1.12
+        version: 4.4.3
+    devDependencies:
+      '@arch-canvas/test-fixtures':
+        specifier: workspace:*
+        version: link:../test-fixtures
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
+      canvas:
+        specifier: ^3.2.3
+        version: 3.2.3
+      jsdom:
+        specifier: ^30.0.1
+        version: 30.0.1(canvas@3.2.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
+
   packages/editor-adapter:
     dependencies:
       '@excalidraw/excalidraw':

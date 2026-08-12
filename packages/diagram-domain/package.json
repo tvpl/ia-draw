@@ -1,0 +1,32 @@
+{
+  "name": "@arch-canvas/diagram-domain",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@arch-canvas/editor-adapter": "workspace:*",
+    "@arch-canvas/shared-contracts": "workspace:*",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@arch-canvas/test-fixtures": "workspace:*",
+    "@types/node": "^22.20.1",
+    "canvas": "^3.2.3",
+    "jsdom": "^30.0.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
