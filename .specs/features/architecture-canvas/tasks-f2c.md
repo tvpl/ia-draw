@@ -340,14 +340,18 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Os 5 casos listados (ou os viáveis, com os pulados documentados e justificados) passam contra o provider mock, sem chamada de rede
-- [ ] `geometryMetrics` reporta zero overlaps/crossings para cada cena gerada
-- [ ] `pnpm -w lint` no workspace inteiro está limpo (drift corrigido e incluído neste commit, se houver)
-- [ ] Servidor real compilado sobe sob `node` puro; ao menos uma rota de `ai-engine` responde 401 sem sessão (resultado exato documentado no commit)
-- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- [x] Os 5 casos listados (ou os viáveis, com os pulados documentados e justificados) passam contra o provider mock, sem chamada de rede
+- [x] `geometryMetrics` reporta zero overlaps/crossings para cada cena gerada
+- [x] `pnpm -w lint` no workspace inteiro está limpo (drift corrigido e incluído neste commit, se houver)
+- [x] Servidor real compilado sobe sob `node` puro; ao menos uma rota de `ai-engine` responde 401 sem sessão (resultado exato documentado no commit)
+- [x] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: unit
 **Gate**: build
+
+**Status**: ✅ Complete — `apps/server/src/modules/ai-engine/evals/`: `harness.ts` runs a FIXED, hard-coded tool-call list (the deterministic "provider mock" this task asks for) through the REAL `packages/ai-tools` `ToolRegistry` with no DB and no network (this whole directory is covered by `no-egress.spec.ts`'s scan, which passed with zero new exceptions needed). `evals.spec.ts` covers the 5 cases the task lists as viable in this batch's scope: (1) AWS multi-AZ — SIMPLIFIED/documented in the file header (this library only ships `aws.cloudfront/ec2/lambda/s3/rds/vpc/api-gateway`; no WAF/dedicated ECS/Redis/observability icons, so ALB→api-gateway and ECS→ec2 stand in, WAF/Redis/observability are dropped, not silently); (4) C4 Context de e-commerce (fully viable, generic library); (6) reorganize without changing semantics (`auto_layout`, same 3 elementIds before/after, only position changes); (9) refuse prompt injection (reuses T56's scenario shape one layer down — pure tool registry + `computeApprovalThreshold`, no DB); (10) alter only the declared selection. Cases 1/4/6 validate `geometryMetrics(overlaps===0, crossings===0)` (case 1 also `truncatedLabels===0`) against a real `compile()`/`auto_layout()`-produced scene, reinterpreted as a `CompiledScene` (structurally identical field set to `packages/ai-tools`' own patch-element builders — documented, not a hack) — plus semantic-fidelity checks (expected labels/relations present). Cases 2/3/5/7/8/11 from product-spec.md §8.6's full 11-case list were never asked for by this task (only 1/4/6/9/10 are listed) and are out of this batch's scope.
+
+Final-task verification (mandatory for the last task of F2): `pnpm -w lint` — clean across all 307 files, zero drift. `pnpm -w typecheck` — 22/22 tasks pass (added `@arch-canvas/diagram-ir` as a server devDependency, mirroring `@arch-canvas/library-content`'s existing placement, since the eval harness needs `geometryMetrics`/`CompiledScene` directly). `pnpm -w build` — 12/12 tasks pass. Real server boot check: built `apps/server/dist/index.js` (from this same `pnpm -w build`), then ran `DATABASE_URL="postgres://x:x@localhost:5432/x" NODE_ENV=development PORT=18321 SESSION_SECRET=test-secret ENCRYPTION_KEY=test-key node apps/server/dist/index.js` (no real Postgres reachable — pg-boss job-queue startup logged a caught `ECONNREFUSED` warning and the server still booted and listened, exactly as `index.ts`'s try/catch is designed to do). curl results against the live process: `POST /diagrams/<uuid>/ai/runs` → `401 {"title":"Unauthorized"}`; `POST /ai/runs/<uuid>:approve` → `401`; `POST /ai/runs/<uuid>:cancel` → `401`; `GET /health/live` → `200 {"status":"ok"}` (control); `GET /nonexistent-route-xyz` → `404` (control, proving 401 on the ai-engine routes is real route-level auth, not a router miss). Process killed after verification. `pnpm -w test:unit`: 179 server tests passed (5 new: `evals.spec.ts`), 21/21 workspace tasks green. `pnpm -w test:integration`: 198 server tests passed (unchanged from T56 — this task adds no integration tests by design), 13/13 workspace tasks green.
 
 **Commit**: `test(server): add deterministic ai eval harness for the required prompt set`
 
