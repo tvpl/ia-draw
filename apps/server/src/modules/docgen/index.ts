@@ -10,6 +10,14 @@ export {
   markdownObjectKey,
   type SpecDocumentRow,
 } from './generate.js';
+export {
+  buildSection,
+  isSectionName,
+  parseMarkdownSections,
+  type RegenerateSectionInput,
+  regenerateSpecSection,
+  SpecDocumentNotFoundError,
+} from './regenerateSection.js';
 export { type DocgenModuleDeps, registerDocgenModule } from './routes.js';
 export {
   assembleMarkdown,
