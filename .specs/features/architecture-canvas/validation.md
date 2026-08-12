@@ -592,3 +592,217 @@ Isolation re-verified after each revert and after final cleanup (`git worktree r
 **Next steps**: No fix→re-verify iteration needed. Carry EDT-06 (asset upload confirmation) and the MinIO-unavailable edge case into F1c's own task Done-when criteria, where the asset module actually gets built.
 
 ---
+
+---
+
+## F1c Wave Report (Assets, Snapshots, Export e Backup) — PASS ✅
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `1c9867f~1..fcd690e` (T27-T36: `feat(server): add s3-compatible storage client and signed url helpers` through `feat(server): redact secrets and pii from structured json logs`, docs-only `.specs/` commits excluded)
+**Verifier**: independent sub-agent (author ≠ verifier) — fresh session, no access to prior agents' chat transcripts
+
+This wave closes the entire F1 (Persistência server-first) phase. See the F0/F1a/F1b sections above for the earlier three-quarters of F1; the summary at the end of this section gives F1's overall status.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T27 | ✅ Done | `apps/server/src/modules/storage/` — S3 client + signed URLs, no real MinIO in sandbox (documented, consistent with AD-007) |
+| T28 | ✅ Done | `apps/server/src/modules/jobs/` — pg-boss over PGlite via its real `fromPglite` adapter, genuine integration test |
+| T29 | ✅ Done | `apps/server/src/modules/asset/` — two-phase upload, EDT-06 wired into `operations:batch` |
+| T30 | ✅ Done | `apps/server/src/modules/snapshot/` — on-demand + threshold-triggered compaction via real pg-boss job |
+| T31 | ✅ Done | Restore-as-new-revision + `structuralDiff`, gate: lint/typecheck/build/unit/integration all green |
+| T32 | ✅ Done | `apps/server/src/modules/export/` — 4-format export, AD-008-compliant, two real T10-spike bugs found+fixed on real boot |
+| T33 | ✅ Done | Bundle/import/bulk-export, wired into `registerAllModules` |
+| T34 | ✅ Done | `infra/backup/` — create/verify/restore, real `pg_dump`/`psql` wrappers, injectable DB boundary for the sandbox's version-mismatch gap |
+| T35 | ✅ Done | `.github/workflows/backup-restore-drill.yaml` scheduled drill with an asserted negative check |
+| T36 | ✅ Done | `apps/server/src/core/logging.ts` — pino redaction + `requestId`, real-boot-verified |
+
+All 10 commit hashes exist in `git log` at the exact positions cited in the task file; every task carries a real `**Status**: ✅ Complete` entry with concrete evidence (`tasks-f1c.md`), not a bare checkbox.
+
+---
+
+### Independently Reproduced Claims
+
+**Log redaction (OPS-05, T36)** — reproduced against the real server, not the unit test alone. Built `apps/server/dist/index.js`, booted it (`DATABASE_URL` pointed at an unreachable host, `NODE_ENV=development`), sent `curl -H "Authorization: Bearer real-secret-verifier-9f8e7d6c5b4a" -H "Cookie: session=verifier-session-cookie-1a2b3c4d5e6f"`, and grepped the captured stdout log:
+- `grep -c "real-secret-verifier-9f8e7d6c5b4a\|verifier-session-cookie-1a2b3c4d5e6f" server-boot.log` → **0** matches.
+- `"authorization":"[REDACTED]"` and `"cookie":"[REDACTED]"` both present in the same captured log lines.
+Confirms `apps/server/src/core/logging.ts:15-18` (`REDACT_PATHS`) is real, not vacuous — matches T36's own claim exactly.
+
+**AD-008 compliance in export code (T32/T33)** — reproduced two ways:
+1. Static check: `grep -rn "editor-adapter" apps/server/src/modules/export/*.ts apps/server/src/modules/snapshot/*.ts apps/server/src/modules/asset/*.ts packages/diagram-domain/src/*.ts` — every match across all 10 files is `import type { ... } from '@arch-canvas/editor-adapter'`, zero by-value imports.
+2. Compiled-output check: `grep -n "excalidraw" apps/server/dist/modules/export/*.js` after a real `pnpm -w build` — every hit is inside a `.js` comment or a string literal like `'scene.excalidraw'`/`excalidraw: {...}` (a format key, not an import); `apps/server/dist/modules/export/*.d.ts` carries `import type` only (erased at runtime, never present in the `.js` files).
+3. Real-server-boot: `node apps/server/dist/index.js` with an unreachable `DATABASE_URL` — `GET /health/live` → 200; `POST /diagrams/x/assets:initiate` → 401; `GET /diagrams/x/snapshots` → 401; `POST /diagrams/x/exports` → 401; `POST /diagrams/x/bundle` → 401; `POST /projects/x/import` → 401; `POST /workspaces/x/bundles` → 401; `GET /diagrams/x/diff` → 401. Every route this wave added is reachable through `registerAllModules`, never 404. Server process killed after the check (`pkill -f apps/server/dist/index.js`, confirmed dead).
+
+**Backup restore (OPS-01..03, T34)** — this sandbox has a real, installed-but-stopped PostgreSQL 16 cluster (`pg_ctlcluster 16 main start`; `pg_lsclusters` showed `down` before, `online` after), matching T34/T35's own diagnosis exactly (`pg_dump`/`psql` 16.13 present, no Docker daemon). Started the cluster, created two genuinely separate databases (`verifier_src` seeded with a `widgets` table, `verifier_restore_target` left empty), and ran the actual compiled `createBackup` → `verifyBackup` → `restoreBackup` functions from `infra/backup/dist/` (no injection — real `pg_dump`/`psql` wrappers, `dumpDatabase`/`restoreDatabase` in `infra/backup/src/pgDump.ts:10-24`) against them directly:
+- `backup:create` against `verifier_src` produced a manifest with `dump.sql` + the seeded object.
+- `backup:verify` on the fresh archive: `valid: true`, 0 mismatches.
+- `backup:restore` against the empty `verifier_restore_target`: `psql -d verifier_restore_target -c 'SELECT * FROM widgets'` → both seeded rows (`alpha`, `beta`) present, confirmed via direct query after restore, not inferred from the tool's own return value.
+- Negative check: tampered `dump.sql` bytes (manifest checksum left untouched) → `restoreBackup` threw `BackupVerificationError`, target database left with the single pre-existing `widgets` table, no partial application.
+Cleaned up: dropped both scratch databases, reset the `postgres` role password, stopped the cluster (`pg_ctlcluster 16 main stop` → `down` again), removed the scratch script. `git status --porcelain` on the real tree was empty before and after this drill.
+Also read `infra/backup/src/verify.spec.ts` (4 unit tests: valid case, tampered checksum, missing-listed-file, missing-manifest) and `infra/backup/src/create.int.spec.ts` (4 integration tests, restore proven against a genuinely separate `@electric-sql/pglite` instance via its own `.exec()`, not a bare mock) directly — the suite's own claims about what was proven hold up; nothing vacuous.
+The scheduled drill (`.github/workflows/backup-restore-drill.yaml`) genuinely asserts failure: its "Verify the restored data landed" step computes a row count and `exit 1`s with `::error::` if it's not exactly 1, and its dedicated negative-check step corrupts `dump.sql`, expects `backup:restore` to exit non-zero, and itself `exit 1`s with `::error::` if it doesn't — this is an asserted mechanism, not an unconditional run. YAML parses cleanly via `python3 -c "import yaml; yaml.safe_load(...)"` (same benign `on:`→`True` PyYAML key artifact the repo's existing `ci.yaml` also has).
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+**EDT-06** (from "P1: Edição server-first com persistência durável"):
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| WHEN an image is added to the canvas THEN the system SHALL upload the asset to object storage and confirm it before acknowledging the referencing element | element referencing a non-`ready` asset is never ACKed | `apps/server/src/modules/diagram-sync/operations-batch.int.spec.ts:443-467` — `expect(response.statusCode).toBe(409); expect(rows).toHaveLength(0)` for a `pending` asset | ✅ PASS |
+| (same, nonexistent asset) | same | `operations-batch.int.spec.ts:469-483` — 409, 0 rows persisted for a nonexistent `assetId` | ✅ PASS |
+| (same, ready asset — must NOT block legitimate uploads) | element referencing a `ready` asset is accepted normally | `operations-batch.int.spec.ts:485-515` — `expect(response.statusCode).toBe(200); expect(rows).toHaveLength(1)` | ✅ PASS |
+| Upload completion marks asset `ready` with checksum verification | `headObject` confirms upload before `ready` | `apps/server/src/modules/asset/asset.int.spec.ts` — "a completed upload with a valid checksum marks the asset ready" | ✅ PASS |
+| SVG sanitization before `ready` | malicious SVG sanitized/rejected | `apps/server/src/modules/asset/sanitizeSvg.ts` (DOMPurify restricted profile) + asset unit/integration coverage | ✅ PASS |
+| Checksum dedup within workspace | two uploads, same SHA-256, same object | `apps/server/src/modules/asset/assets.ts` dedup-by-checksum path, integration-covered | ✅ PASS |
+
+**VER-01..04** ("P1: Snapshots, histórico, diff e restore"):
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| VER-01: WHEN 100 ops/5min/1MB reached THEN compact into a snapshot without interrupting editing | automatic `auto`-kind snapshot appears; every batch still acks 200 (never blocks on compaction) | `apps/server/src/modules/snapshot/snapshot.int.spec.ts:365-389` — 3 batches all ack 200, `rows[0]` matches `{kind:'auto', revision:3}`, materialized scene has 3 elements | ✅ PASS *(threshold lowered to `maxOperations:3`, documented per T30's own Done-when — real 100-threshold not exercised, correctly disclosed)* |
+| VER-02: WHEN a user restores a snapshot THEN a new revision is created; later revisions/snapshots stay queryable | restore creates revision N+1; revisions/snapshots before AND after the restored point remain fetchable | `apps/server/src/modules/snapshot/restore.int.spec.ts:140-221` — restore returns `currentRevision: 3` after 2 prior ops, `restoredFromSnapshotId` matches, op-log for revisions 1-2 untouched | ✅ PASS |
+| VER-03: published snapshots are immutable | restoring OVER a published snapshot never changes its own bytes | `restore.int.spec.ts:222-269` — `checksum`/`sceneJsonKey` byte-identical before/after a restore targeting the published snapshot; `restoreSnapshot` (`apps/server/src/modules/snapshot/restore.ts:79-104`) issues no `UPDATE` against `diagram_snapshots` at all — immutability is structural | ✅ PASS |
+| VER-04: WHEN comparing two snapshots THEN report added/removed/moved/modified | all four categories correctly populated for a scenario with one of each | `restore.int.spec.ts:304-398` — `expect(body.added).toEqual(['el-added']); expect(body.removed).toEqual(['el-removed']); expect(body.moved).toEqual(['el-moved']); expect(body.modified).toEqual(['el-modified'])` | ✅ PASS |
+| VER-04 edge: element both moved and content-modified | spec does not define precedence | `packages/diagram-domain/src/structuralDiff.spec.ts:66-73` — documented interpretation (modified wins), `structuralDiff.ts:30-38` docstring | ⚠️ Spec-precision gap (documented, reasonable, not a defect) |
+
+**EXP-01..04** ("P1: Export e salvamento local"):
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| EXP-01: export produces `.excalidraw`, SVG, PNG and PDF server-side | all 4 formats generated without throwing; PDF has real rendered content, not blank | `apps/server/src/modules/export/generateExports.spec.ts:37-58` — `%PDF-` signature AND `content).toMatch(/\bBT\b/)`/`/\bTj\b/` (real text-drawing operators); `sceneFile.spec.ts:8-15` — `.excalidraw` round-trips via `parseScene` byte-identical | ✅ PASS |
+| EXP-02: bundle produces a `.zip` with scene+assets+metadata+checksum manifest | unzipped bundle's checksums match real bytes | `apps/server/src/modules/export/export.int.spec.ts:213-...` — "produces a .zip whose scene + asset + manifest checksums match the real unzipped bytes" (real unzip, not a mock) | ✅ PASS |
+| EXP-03: import validates schema, returns preview before creation | malformed file rejected with clear error before any diagram exists; valid file returns correct preview | `apps/server/src/modules/export/import.spec.ts:9-34` — 4 tests: valid preview, malformed JSON, wrong envelope, non-array elements, none touching the DB | ✅ PASS |
+| EXP-04: bulk workspace export restricted to `workspace_admin`, asynchronous | non-admin gets 403; admin gets a queued job | `export.int.spec.ts:384-410` — "workspace_admin can enqueue a bulk export (queued, not 403)" / "a non-admin (editor) role is rejected with 403" | ✅ PASS |
+
+**OPS-01..05** ("P1: Backup com restore testado"):
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| OPS-01: scheduled backup produces DB+objects+manifest bundle | `backup:create` output contains `dump.sql`, object files, and a checksum manifest | `infra/backup/src/create.ts:25-58`; independently reproduced against real `pg_dump`/Postgres 16 by this Verifier (see above) | ✅ PASS |
+| OPS-02: documented `backup:create`/`verify`/`restore` commands | root `pnpm backup:create\|verify\|restore` scripts exist and work | `package.json` (root) scripts + `infra/backup/src/cli/*.cli.ts`; independently invoked via the compiled functions (equivalent code path) | ✅ PASS |
+| OPS-03: restore against an empty stack recovers users/permissions/scenes/assets/versions with matching checksums | restored data + checksums match | `infra/backup/src/create.int.spec.ts:113-158` (PGlite target) AND this Verifier's own real-Postgres reproduction (`SELECT * FROM widgets` → both seeded rows present in a genuinely separate, previously-empty database) | ✅ PASS |
+| OPS-04: scheduled automated restore test fails loudly when restore is broken | mechanism asserts failure, not silent pass-through | `.github/workflows/backup-restore-drill.yaml:115-149` — both the row-count check and the negative/tamper check explicitly `exit 1` with `::error::` on failure, verified by reading the step logic directly (workflow itself not runnable from this sandbox, correctly disclosed) | ✅ PASS |
+| OPS-05: structured JSON logs with `requestId`, redacting tokens/cookies/PII | `requestId` on every request log line; secrets never in plaintext | `apps/server/src/core/logging.spec.ts:72-87` (`requestId` on every line) + this Verifier's own real-server-boot grep (0 plaintext matches, `[REDACTED]` present) | ✅ PASS |
+
+**Spec-anchored outcome**: 20/21 ACs matched their spec-defined outcome exactly (evidence-or-zero satisfied for all); 1 documented spec-precision gap (VER-04's move-vs-modify precedence, correctly flagged rather than silently resolved).
+
+---
+
+### Independently Reproduced Discrimination Sensor
+
+Isolated `git worktree add /tmp/f1c-verify-scratch HEAD` (never `git stash`). Baseline `git status --porcelain` on the real tree was empty before and after (confirmed by diff). Symlinked `node_modules` from the main tree into the scratch worktree (dependency versions unaffected by the source mutations under test) rather than reinstalling.
+
+| # | File:line | Mutation | Target AC | Killed? |
+| --- | --- | --- | --- | --- |
+| 1 | `apps/server/src/modules/asset/assertAssetsReady.ts:52` | `if (nonReady.length > 0)` → `if (nonReady.length > 1000)` (EDT-06's readiness check effectively disabled — any realistic batch of non-ready assets sails through) | EDT-06 | ✅ Killed — `operations-batch.int.spec.ts` "a delta referencing a PENDING asset is rejected" and "...NONEXISTENT asset..." both failed (`expected 200 to be 409`) |
+| 2 | `infra/backup/src/verify.ts:44` | `return { valid: mismatches.length === 0, ... }` → `return { valid: true, ... }` (checksum verification always reports valid) | OPS-02 | ✅ Killed — `verify.spec.ts` "detects a deliberately tampered checksum" and "reports a mismatch when a manifest-listed file is missing" both failed (`expected true to be false`) |
+| 3 | `apps/server/src/core/logging.ts:15` | `'req.headers.authorization'` → `'req.headers.Authorization'` (case mismatch against Node's always-lowercased incoming header keys — the redact path silently stops matching) | OPS-05 | ✅ Killed — `logging.spec.ts` "an Authorization: Bearer header is never present in plaintext" failed, log line showed `"authorization":"Bearer secret-token-abc123"` in plaintext |
+
+All three mutations were individually applied, run, and reverted (`git checkout -- <file>`) before the next was injected. After removing the scratch worktree (`git worktree remove --force /tmp/f1c-verify-scratch`), the real tree's `git status --porcelain` was re-diffed against the pre-sensor baseline and found identical (empty both times).
+
+**Sensor depth**: lightweight (3 targeted mutations, default tier)
+**Outcome**: 3/3 killed, 0 survived — PASS ✅
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| Minimum code | ✅ — each module is scoped to exactly its task; no speculative abstraction (e.g. `assertAssetsReady.ts` is a 55-line single-purpose check) |
+| Surgical changes | ✅ — `git diff --stat 1c9867f~1..fcd690e` touches only `apps/server`, `infra/backup`, `infra/migrations`, `packages/database`, `packages/diagram-domain`, `.github/workflows`, and root/`.specs` config — zero touches to `apps/web` or `packages/editor-adapter` runtime code |
+| No scope creep | ✅ — EDT-06's `operations:batch` change is the documented "surgical addition" (one `assertDeltaAssetsReady` call before persist), not a rewrite |
+| Matches patterns | ✅ — IDOR 404-never-403 pattern, `notFound()`/`forbidden()` helpers, PGlite integration scaffold, `registerModules.int.spec.ts` reachability checks all reused verbatim from F1a/F1b |
+| Spec-anchored outcome check | ✅ — see AC table; 20/21 exact, 1 documented gap |
+| Per-layer Coverage Expectation met | ✅ — `structuralDiff` has 1:1 branch coverage (added/removed/moved/modified/unchanged/deleted-tombstone/bookkeeping-only-change); every new route has happy+IDOR+403+401+malformed coverage |
+| Every test maps to a spec requirement | ✅ — every new `it()`/`describe()` title cross-references its task/AC (T27-T36, VER-*, EXP-*, OPS-*, EDT-06) |
+| Documented guidelines followed | ✅ — `.claude/skills/tlc-spec-driven/references/coding-principles.md`, AD-007, AD-008 |
+
+**Self-reported deviations, independently assessed:**
+1. **Import route at `/projects/{id}/import` instead of the task text's literal `/diagrams/{id}/import`** (T33) — legitimate. `apps/server/src/modules/export/routes.ts:140-145` documents the reasoning inline: no diagram exists yet at preview time, so there is no `diagramId` to scope the route under; `confirmImport` creates the diagram via `createDiagram`, which requires a `projectId`, never a pre-existing `diagramId`. The task text itself licenses this ("sua escolha, documente"). Correctly placed, not a hidden API surface change.
+2. **`jszip` instead of `archiver`** (T33/T34) — legitimate. Verified directly: `archiver@8`'s real runtime API (`ZipArchive` class) has no matching `@types/archiver` release (latest published types target the old v6 default-export-function API), while `jszip` ships its own accurate bundled `.d.ts`. A real packaging/typing mismatch, not a preference call, and the task text explicitly allows either library.
+3. **Two T10-spike bugs found and fixed while promoting `render` to a real production route** (T32) — legitimate, and caught by exactly the kind of check this skill mandates. A static `import ... from '@excalidraw/utils'` at the top of `render/svg.ts` executed that package's module body (reading `window`/`devicePixelRatio`) before `ensureDomEnvironment()` ever ran — invisible under Vitest's `jsdom` environment, fatal under a real `node dist/index.js` boot. Fixed with a top-level *dynamic* `await import(...)` after the module-scope `ensureDomEnvironment()` call; `devicePixelRatio` added to the manual DOM shim. Both fixes verified by this Verifier's own real-server-boot check (server started and served `/health/live` 200 without crashing) and by the export module's own `generateExports.spec.ts`, which renders all 5 fixture scenes through the real pipeline end to end.
+
+---
+
+### Edge Cases
+
+- [x] "IF an uploaded SVG contains scripts or external references THEN sanitize or reject" — `apps/server/src/modules/asset/sanitizeSvg.ts` (DOMPurify restricted profile), asset test coverage
+- [x] "IF MinIO is unavailable during an image insert THEN the system SHALL not acknowledge the referencing element with a broken reference" — structurally guaranteed by `assertDeltaAssetsReady`: an asset only reaches `status=ready` after a successful `headObject` confirms the upload landed, so a MinIO outage during upload simply never produces a `ready` row, and EDT-06's check (sensor-confirmed above) rejects any reference to it
+- [ ] "IF an uploaded archive expands beyond the configured size ratio (zip bomb) THEN abort the import with a clear error" — not addressed by any T27-T36 task; `import.ts`/`bundle.ts` don't cap decompressed size. **Gap, F1c scope did not include zip-bomb protection for import; carry into a follow-up task before import is exposed beyond trusted internal use**
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` (run verbatim by this Verifier, not copied from any batch worker's report)
+- **Outcome**: 5/5 stages exit 0. Lint: clean (220 files, 0 fixes applied). Typecheck: 16/16 package tasks clean. Build: 9/9 package tasks clean.
+- **Unit**: 289 tests passed, 0 failed (test-fixtures 8, shared-contracts 17, auth 52, backup 4, editor-adapter 54, diagram-domain 21, server 111, web 22)
+- **Integration**: 177 tests passed, 0 failed (database 14, backup 4, server 159)
+- **Test count before this wave** (F1b's reported total, unit+integration only): 221 unit + 132 integration = 353
+- **Test count after this wave**: 289 unit + 177 integration = 466
+- **Delta**: +68 unit, +45 integration (+113 total) — matches the batch workers' own running counts at each task boundary, independently re-verified rather than copied
+- **Skipped tests**: none observed
+- **Failures**: none
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| EDT-06 | Pending | ✅ Verified — real 409 rejection of pending/nonexistent assets, real 200 acceptance of ready assets, sensor-confirmed |
+| VER-01 | Pending | ✅ Verified — on-demand + threshold-triggered compaction proven against a real pg-boss job; threshold lowered and disclosed |
+| VER-02 | Pending | ✅ Verified — restore-as-new-revision with full history queryability proven |
+| VER-03 | Pending | ✅ Verified — published-snapshot immutability proven structurally (no `UPDATE` path exists) and behaviorally |
+| VER-04 | Pending | ✅ Verified — all 4 diff categories proven for a mixed scenario; move/modify precedence flagged as a documented spec-precision gap |
+| EXP-01 | Pending | ✅ Verified — all 4 formats proven non-blank/round-trippable |
+| EXP-02 | Pending | ✅ Verified — bundle checksum integrity proven via real unzip |
+| EXP-03 | Pending | ✅ Verified — import preview/reject-before-create proven |
+| EXP-04 | Pending | ✅ Verified — bulk export RBAC + async queuing proven |
+| OPS-01 | Pending | ✅ Verified — independently reproduced against real Postgres 16 by this Verifier |
+| OPS-02 | Pending | ✅ Verified — documented commands work; checksum tamper-detection independently reproduced |
+| OPS-03 | Pending | ✅ Verified — restore-into-empty-target independently reproduced against real, genuinely separate databases |
+| OPS-04 | Pending | ✅ Verified — scheduled mechanism asserts failure loudly (row-count check + negative check), confirmed by reading the workflow's assertion logic directly |
+| OPS-05 | Pending | ✅ Verified — redaction independently reproduced against a real server boot with real secret values |
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — F1c wave
+
+**Spec-anchored check**: 20/21 ACs matched spec outcome exactly; 1 documented spec-precision gap (VER-04 move/modify precedence)
+
+**Sensor**: 3/3 mutations killed, 0 survived
+
+**Gate**: 5/5 stages passed (lint, typecheck, build, test:unit, test:integration), 466/466 tests passed (289 unit + 177 integration), 0 failed, +113 tests over F1b's baseline of 353
+
+**Independently reproduced, not taken on faith**: log redaction against a real server boot with real secret header values (0 plaintext matches, `[REDACTED]` present); AD-008 compliance via both static grep and compiled-`dist` grep, plus a real production boot returning 401 (never 404) on every new route; the full `backup:create → backup:verify → backup:restore` pipeline against this sandbox's real, previously-stopped PostgreSQL 16 cluster, including the negative/tamper check, with cleanup restoring the sandbox exactly as found.
+
+**What works**: EDT-06's invariant is enforced at the same layer diagram-sync already trusts (`operations:batch`), sensor-confirmed against a disabled-check mutant. Snapshot restore never mutates existing rows — immutability of published/pre-ai snapshots is structural. Export's AD-008 compliance holds under the strictest test available (a real compiled Node boot, not just Vitest's lenient bundler-mediated resolution). Backup verification is genuinely destructive-tamper-sensitive, not a no-op, confirmed with the actual production dependency chain (`pg_dump`/`psql`) this Verifier ran directly, not just PGlite.
+
+**Issues found**:
+1. Zip-bomb protection is absent from the import/bundle paths (`apps/server/src/modules/export/import.ts`, `bundle.ts`) — spec.md's Edge Cases section requires it, no F1c task claimed it, and none implements it. Real gap, not disclosed as deferred anywhere in `tasks-f1c.md`. Flagged as a follow-up task, not severe enough to fail this wave (import/bundle are RBAC-gated to authenticated workspace members, not a public upload surface) but should not ship to a public-facing deployment unaddressed.
+2. VER-04's moved-vs-modified precedence is a genuine spec ambiguity, resolved reasonably and documented — not a defect, listed for spec.md hygiene only.
+
+**Next steps**: No fix→re-verify iteration needed for this wave to pass. Recommend a small follow-up task (any future wave touching `export`/`bundle`) to cap decompressed/reconstructed size on `POST /projects/{id}/import` and `POST /diagrams/{id}/bundle`'s asset-fetch path before those routes are exposed to untrusted external callers.
+
+---
+
+## F1 Phase Summary (F0 + F1a + F1b + F1c)
+
+F1 ("Persistência server-first") is now fully verified across all four independent Verifier passes recorded in this file:
+
+- **F0 (Fundação)** — ✅ Verified (2 iterations; see the top of this file).
+- **F1a (Identidade, Workspaces e RBAC)** — ✅ Verified, 1st iteration (AUTH-01/04 Verified; AUTH-02/03/05 correctly left `Implementing` pending surfaces this wave didn't build).
+- **F1b (Persistência do canvas — núcleo do invariante server-first)** — ✅ Verified, including the post-batch production-wiring fix (AD-008) this Verifier's F1b section confirmed via a real compiled-binary boot.
+- **F1c (Assets, Snapshots, Export e Backup)** — ✅ Verified, this section, closing VER-01..04, EXP-01..04, OPS-01..05 and EDT-06.
+
+Every F1 story from spec.md's Requirement Traceability table (Contas/workspaces/RBAC, Edição server-first, Recuperação após crash, Snapshots/histórico/diff/restore) plus the two P1 stories layered on top of it this wave (Export e salvamento local, Backup com restore testado) are `✅ Verified` with real `file:line` evidence, not self-reported claims. The two open items are AUTH-02/03/05's honestly-disclosed pending scope (surfaces not yet built, not gaps in what WAS built) and this section's single new gap (zip-bomb protection on import/bundle, flagged above as a follow-up, not a blocker). F1's own invariant — every commit visible to a user is a durable PostgreSQL commit, verifiable, restorable, exportable and recoverable via a tested backup — now has independent evidence behind every clause of it, not just the implementer's word.

@@ -74,6 +74,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: packages/diagram-domain/src/mergeScene.ts:1-29 (SPEC_DEVIATION docstring) (package-boundaries)
 - last seen: 2026-08-12T07:18:07Z
 
+### L-011 - When implementing file import/bundle unpacking (zip, tar, etc.), always enforce a decompressed-size or compression-ratio cap before writing extracted content, even when no task explicitly names 'zip bomb' — check spec.md Edge Cases for storage-expansion attacks whenever a task adds an unzip/decompress code path.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `apps/server/src/modules/export` · harmful: 0
+- features: architecture-canvas
+- evidence: spec.md Edge Cases (zip bomb) - apps/server/src/modules/export/import.ts, bundle.ts (apps/server/src/modules/export)
+- last seen: 2026-08-12T09:37:18Z
+
+### L-012 - When a spec's acceptance criterion lists mutually-possible categories (e.g. 'added/removed/moved/modified') without defining precedence for an item that qualifies for more than one, document the chosen precedence rule in the implementation and flag it explicitly as a spec-precision gap in the validation report rather than resolving it silently.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `packages/diagram-domain` · harmful: 0
+- features: architecture-canvas
+- evidence: spec.md VER-04 - packages/diagram-domain/src/structuralDiff.ts:30-38 (packages/diagram-domain)
+- last seen: 2026-08-12T09:37:18Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
