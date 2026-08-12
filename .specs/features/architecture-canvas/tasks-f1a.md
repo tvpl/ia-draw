@@ -201,15 +201,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Criar workspace com slug duplicado retorna 409 (constraint unique de T5)
-- [ ] `workspace_admin` pode adicionar/remover membros; `editor`/`reviewer`/`viewer` recebem 403
-- [ ] Mutação bem-sucedida gera uma linha em `audit_events`
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Criar workspace com slug duplicado retorna 409 (constraint unique de T5)
+- [x] `workspace_admin` pode adicionar/remover membros; `editor`/`reviewer`/`viewer` recebem 403
+- [x] Mutação bem-sucedida gera uma linha em `audit_events`
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(server): add workspace and member crud with rbac enforcement`
+
+**Status**: ✅ Complete — `apps/server/src/modules/workspace/` (`workspaces.ts`, `members.ts`, `organizations.ts`, `rbac.ts` com `resolveWorkspaceRole` fresco por requisição + `isUniqueViolation`, `routes.ts` com `registerWorkspaceModule`). `GET/POST /workspaces`, `GET/PATCH/DELETE /workspaces/:id`, `GET/POST /workspaces/:id/members`, `PATCH/DELETE /workspaces/:id/members/:userId`; toda rota chama `can()` de `packages/auth` com o papel resolvido de `workspace_members`; ausência de membership → 404 (nunca 403, IDOR-safe, antecipando T18); toda mutação bem-sucedida chama `recordAuditEvent`. 11 testes de integração (PGlite) cobrindo os 3 done-when (409 de slug duplicado, workspace_admin×editor/reviewer/viewer em add/remove membro, linha em `audit_events`) + auto-atribuição de `workspace_admin` ao criador. Gate full verde — 24 testes de integração no server. **Decisão registrada**: "Organização única no MVP" (`docs/product-spec.md` §3.1) — não há rota de criação de organização nesta onda; `getOrCreateDefaultOrganization` provisiona lazily a org canônica única na primeira criação de workspace (não é race-safe sob concorrência real — aceitável para o MVP single-org, sem constraint unique em `organizations.slug`; documentado no código).
 
 ---
 
