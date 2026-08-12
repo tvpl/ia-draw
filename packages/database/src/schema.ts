@@ -584,3 +584,104 @@ export const presentationFrames = pgTable(
     index('presentation_frames_presentation_position_idx').on(table.presentationId, table.position),
   ],
 );
+
+export const shareLinkResourceType = pgEnum('share_link_resource_type', ['diagram', 'presentation']);
+
+/**
+ * A public, capped-role share link (EXT-01, F4/T71/T78). `resourceId` is a
+ * free `uuid` rather than an FK to either `diagrams` or `presentations` —
+ * `resourceType` disambiguates which table it points at, the same
+ * "polymorphic reference, no FK" shape already used by
+ * `presentation_frames.element_id`/`diagram_elements_meta.element_id` for
+ * cross-concept pointers. `role` reuses `workspace_member_role` as the
+ * access ceiling the link is capped to (T78: never above the actor's own
+ * effective role at creation, never above the link's `role` at resolution
+ * time even for a real workspace member with a higher role). `tokenHash`
+ * is the only persisted form of the token — same one-shot-reveal,
+ * hash-only-at-rest discipline as `sessions.token_hash`/`ws_tickets.token_hash`.
+ * `revokedAt` nullable + `expiresAt` together gate `GET /share/{token}`
+ * (T78) into a uniform 404 for expired/revoked/nonexistent — never
+ * distinguishable (same IDOR principle as the rest of the project).
+ */
+export const shareLinks = pgTable(
+  'share_links',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    resourceType: shareLinkResourceType('resource_type').notNull(),
+    resourceId: uuid('resource_id').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    role: workspaceMemberRole('role').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [uniqueIndex('share_links_token_hash_unique').on(table.tokenHash)],
+);
+
+/**
+ * An admin-configured webhook subscription for a workspace (EXT-02,
+ * F4/T71/T79). `secretEncrypted` is AES-256-GCM ciphertext produced by the
+ * same `encryptToken`/`decryptToken` envelope-encryption module already
+ * used for `ai_provider_configs.encrypted_token` (F2a) — never a plaintext
+ * or hashed secret, since the delivery worker (T80) must recover the
+ * plaintext to compute the outbound HMAC signature (a one-way hash, as used
+ * for tokens/tickets, would make that impossible). `eventsJson` holds the
+ * subset of the 5 documented event types (docs/product-spec.md §7.3) this
+ * endpoint subscribes to.
+ */
+export const webhookEndpoints = pgTable('webhook_endpoints', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  workspaceId: uuid('workspace_id')
+    .notNull()
+    .references(() => workspaces.id),
+  url: text('url').notNull(),
+  secretEncrypted: text('secret_encrypted').notNull(),
+  eventsJson: jsonb('events_json').notNull().default([]),
+  enabled: boolean('enabled').notNull().default(true),
+  createdBy: uuid('created_by')
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const webhookDeliveryStatus = pgEnum('webhook_delivery_status', [
+  'pending',
+  'delivered',
+  'failed',
+  'dead_letter',
+]);
+
+/**
+ * One outbound delivery attempt record for a `webhook_endpoints` row
+ * (EXT-02, F4/T71/T80). `(status, next_retry_at)` is indexed for the retry
+ * worker's polling query (`status = 'pending' AND next_retry_at <= now()`,
+ * the same shape as `diagram_snapshots`' revision-scoped index but for a
+ * job-queue scan instead of a point lookup). `attempts` + `nextRetryAt`
+ * drive the exponential backoff schedule; exhausting the retry budget
+ * flips `status` to `'dead_letter'` and clears `nextRetryAt` (no further
+ * attempts scheduled).
+ */
+export const webhookDeliveries = pgTable(
+  'webhook_deliveries',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    webhookEndpointId: uuid('webhook_endpoint_id')
+      .notNull()
+      .references(() => webhookEndpoints.id),
+    eventType: text('event_type').notNull(),
+    payloadJson: jsonb('payload_json').notNull().default({}),
+    status: webhookDeliveryStatus('status').notNull().default('pending'),
+    attempts: integer('attempts').notNull().default(0),
+    nextRetryAt: timestamp('next_retry_at', { withTimezone: true }),
+    lastError: text('last_error'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('webhook_deliveries_status_next_retry_idx').on(table.status, table.nextRetryAt),
+  ],
+);
