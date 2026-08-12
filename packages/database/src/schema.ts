@@ -456,7 +456,11 @@ export const aiToolCalls = pgTable(
   (table) => [index('ai_tool_calls_ai_run_idx').on(table.aiRunId)],
 );
 
-export const specDocumentStatus = pgEnum('spec_document_status', ['draft', 'current', 'superseded']);
+export const specDocumentStatus = pgEnum('spec_document_status', [
+  'draft',
+  'current',
+  'superseded',
+]);
 
 /**
  * A generated Markdown spec version for a diagram (DOC-01/02, F3/T59). Never
@@ -570,9 +574,6 @@ export const presentationFrames = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (table) => [
-    index('presentation_frames_presentation_position_idx').on(
-      table.presentationId,
-      table.position,
-    ),
+    index('presentation_frames_presentation_position_idx').on(table.presentationId, table.position),
   ],
 );

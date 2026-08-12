@@ -9,7 +9,14 @@ import { extractSceneSemantics } from './sceneSemantics.js';
  * in `apps/server/src/modules/ai-engine/buildContext.spec.ts`.
  */
 function rect(id: string, extra: Record<string, unknown> = {}): SceneElement {
-  return { id, type: 'rectangle', x: 0, y: 0, isDeleted: false, ...extra } as unknown as SceneElement;
+  return {
+    id,
+    type: 'rectangle',
+    x: 0,
+    y: 0,
+    isDeleted: false,
+    ...extra,
+  } as unknown as SceneElement;
 }
 
 function looseText(id: string, text: string): SceneElement {
@@ -50,7 +57,9 @@ describe('extractSceneSemantics (dependency-free, no @excalidraw/excalidraw at r
   it('resolves a loose text element label to its own .text', () => {
     const scene = [looseText('t1', 'Hello architecture canvas')];
     const result = extractSceneSemantics(scene);
-    expect(result.elements).toEqual([{ elementId: 't1', type: 'text', label: 'Hello architecture canvas' }]);
+    expect(result.elements).toEqual([
+      { elementId: 't1', type: 'text', label: 'Hello architecture canvas' },
+    ]);
   });
 
   it('resolves a rectangle with a bound text child to the child text', () => {

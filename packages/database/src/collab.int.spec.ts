@@ -119,7 +119,9 @@ describe('database schema: spec_documents/comments/presentations/presentation_fr
       .returning();
     expect(reply?.parentId).toBe(root.id);
 
-    const found = await db.query.comments.findFirst({ where: eq(schema.comments.id, reply?.id ?? '') });
+    const found = await db.query.comments.findFirst({
+      where: eq(schema.comments.id, reply?.id ?? ''),
+    });
     expect(found?.parentId).toBe(root.id);
   });
 

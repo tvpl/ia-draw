@@ -1,4 +1,10 @@
-import { type IrContainer, type IrDocument, type IrEdge, type IrNode, validateIr } from '../schema.js';
+import {
+  type IrContainer,
+  type IrDocument,
+  type IrEdge,
+  type IrNode,
+  validateIr,
+} from '../schema.js';
 
 /**
  * Mermaid flowchart import/export (T60, AAC-01/02). Supported subset only:
@@ -90,7 +96,9 @@ export function parseMermaidFlowchart(dsl: string): { ir: IrDocument; limitation
 
     if (END_RE.test(line)) {
       if (containerStack.length === 0) {
-        limitations.push(`line ${index + 1}: unmatched "end" (no open subgraph): "${rawLine.trim()}"`);
+        limitations.push(
+          `line ${index + 1}: unmatched "end" (no open subgraph): "${rawLine.trim()}"`,
+        );
         return;
       }
       containerStack.pop();

@@ -85,10 +85,14 @@ describe('parseMermaidFlowchart / toMermaidFlowchart (T60, AAC-01/02)', () => {
     const second = parseMermaidFlowchart(exported.dsl);
 
     expect(second.ir.nodes.map((n) => n.id).sort()).toEqual(first.ir.nodes.map((n) => n.id).sort());
-    expect(second.ir.edges.map((e) => [e.from, e.to])).toEqual(first.ir.edges.map((e) => [e.from, e.to]));
+    expect(second.ir.edges.map((e) => [e.from, e.to])).toEqual(
+      first.ir.edges.map((e) => [e.from, e.to]),
+    );
     // Labels are preserved here since both node & edge labels round-trip through `[...]`/`|...|`
     // verbatim in this subset — documented limitation is about SHAPE (rect/round/diamond), which
     // is never preserved (every export re-emits `[label]` regardless of the original shape).
-    expect(second.ir.nodes.map((n) => n.label).sort()).toEqual(first.ir.nodes.map((n) => n.label).sort());
+    expect(second.ir.nodes.map((n) => n.label).sort()).toEqual(
+      first.ir.nodes.map((n) => n.label).sort(),
+    );
   });
 });
