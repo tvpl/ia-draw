@@ -87,6 +87,9 @@ importers:
         specifier: ^4.1.12
         version: 4.4.3
     devDependencies:
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../../packages/library-content
       '@arch-canvas/test-fixtures':
         specifier: workspace:*
         version: link:../../packages/test-fixtures

@@ -164,14 +164,16 @@ T41 -> T42
 
 **Done when**:
 
-- [ ] Migration aplica limpa sobre as anteriores
-- [ ] Nenhuma coluna de `ai_provider_configs` chama-se algo como `token`/`secret` em texto plano — só `encrypted_token`
-- [ ] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
+- [x] Migration aplica limpa sobre as anteriores
+- [x] Nenhuma coluna de `ai_provider_configs` chama-se algo como `token`/`secret` em texto plano — só `encrypted_token`
+- [x] Gate check passes: `pnpm -w test:unit && pnpm -w test:integration`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(database): add ai provider config and run/tool-call audit schema`
+
+**Status**: ✅ Complete — migration `0007_dashing_mister_fear.sql` adds `ai_provider_configs` (`encrypted_token` only, verified column-by-column in a dedicated test), `ai_runs` (state machine `ai_run_status`, FK to `ai_provider_configs`/`diagrams`/`users`) and `ai_tool_calls` (FK to `ai_runs`, ordered by `sequence`). 25/25 database integration tests pass (6 new, PGlite, AD-007).
 
 ---
 

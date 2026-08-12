@@ -412,7 +412,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | VER-02 | P1: Snapshots e restore | F1 | ✅ Verified |
 | VER-03 | P1: Snapshots e restore | F1 | ✅ Verified |
 | VER-04 | P1: Snapshots e restore | F1 | ✅ Verified |
-| AIC-01 | P1: Configuração de provider IA | F2 | Pending |
+| AIC-01 | P1: Configuração de provider IA | F2 | Implementing |
 | AIC-02 | P1: Configuração de provider IA | F2 | Pending |
 | AIC-03 | P1: Configuração de provider IA | F2 | Pending |
 | AIC-04 | P1: Configuração de provider IA | F2 | Pending |

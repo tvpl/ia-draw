@@ -50,6 +50,13 @@
       "when": 1786528329364,
       "tag": "0006_harsh_green_goblin",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786529157777,
+      "tag": "0007_dashing_mister_fear",
+      "breakpoints": true
     }
   ]
 }

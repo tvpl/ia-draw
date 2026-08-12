@@ -28,6 +28,21 @@ export const diagramStatus = pgEnum('diagram_status', [
   'archived',
 ]);
 
+/** AI run state machine (design.md "Estados do run", AIE-05). */
+export const aiRunStatus = pgEnum('ai_run_status', [
+  'queued',
+  'building_context',
+  'calling_model',
+  'validating',
+  'previewing',
+  'awaiting_approval',
+  'applying',
+  'applied',
+  'failed',
+  'cancelled',
+  'rejected',
+]);
+
 export const users = pgTable(
   'users',
   {
@@ -365,4 +380,77 @@ export const libraryItems = pgTable(
   (table) => [
     uniqueIndex('library_items_library_stable_key_unique').on(table.libraryId, table.stableKey),
   ],
+);
+
+/**
+ * An AI provider configuration (AIC-01) — org-wide or workspace-scoped,
+ * `scope` holding either the literal `"global"` or a `workspaceId`. The
+ * token is **never** stored in plaintext: `encrypted_token` is the only
+ * column carrying it, always AES-256-GCM ciphertext produced by
+ * `packages/ai-tools` (T41). No column here is named `token`/`secret` in
+ * plain form — the schema itself is the guarantee (T40 "Done when").
+ */
+export const aiProviderConfigs = pgTable('ai_provider_configs', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  scope: text('scope').notNull(),
+  baseUrl: text('base_url').notNull(),
+  model: text('model').notNull(),
+  encryptedToken: text('encrypted_token').notNull(),
+  capabilitiesJson: jsonb('capabilities_json').notNull().default({}),
+  enabled: boolean('enabled').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * One AI generation/edit run (AIE-05) — `source_revision` freezes the base
+ * the patch was computed against (design.md "Relationships-chave"),
+ * `prompt_redacted`/`usage_json` never carry the provider token, and
+ * `status` follows the state machine in design.md ("Estados do run").
+ */
+export const aiRuns = pgTable(
+  'ai_runs',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    providerConfigId: uuid('provider_config_id')
+      .notNull()
+      .references(() => aiProviderConfigs.id),
+    sourceRevision: integer('source_revision').notNull(),
+    status: aiRunStatus('status').notNull().default('queued'),
+    promptRedacted: text('prompt_redacted'),
+    usageJson: jsonb('usage_json').notNull().default({}),
+    errorCode: text('error_code'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ai_runs_diagram_idx').on(table.diagramId)],
+);
+
+/**
+ * One tool call inside an `ai_runs` row (AIE-01/05) — `arguments_redacted`
+ * never carries the provider token or raw untrusted element text verbatim;
+ * `sequence` orders calls within the run, mirroring `diagram_operations`'
+ * per-scope sequence convention.
+ */
+export const aiToolCalls = pgTable(
+  'ai_tool_calls',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    aiRunId: uuid('ai_run_id')
+      .notNull()
+      .references(() => aiRuns.id),
+    toolName: text('tool_name').notNull(),
+    argumentsRedacted: jsonb('arguments_redacted').notNull().default({}),
+    resultSummary: text('result_summary'),
+    approved: boolean('approved').notNull().default(false),
+    sequence: integer('sequence').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index('ai_tool_calls_ai_run_idx').on(table.aiRunId)],
 );
