@@ -418,7 +418,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AIC-04 | P1: Configuração de provider IA | F2 | ⚠️ Partial |
 | AIG-01 | P1: Geração por IA via IR | F2 | ✅ Verified |
 | AIG-02 | P1: Geração por IA via IR | F2 | ✅ Verified |
-| AIG-03 | P1: Geração por IA via IR | F2 | ⚠️ Partial |
+| AIG-03 | P1: Geração por IA via IR | F2 | ✅ Verified *(gap fechado por fix direto do orquestrador pós-Verifier — `packages/diagram-ir/src/metrics.spec.ts` agora varre `truncatedLabels===0` nos mesmos 21 casos sintéticos até 200 elementos; não é uma nova passada formal do Verifier, mas o teste roda e passa de fato — commit `9fa4492`)* |
 | AIG-04 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-05 | P1: Geração por IA via IR | F2 | Pending |
 | AIG-06 | P1: Geração por IA via IR | F2 | Implementing |
