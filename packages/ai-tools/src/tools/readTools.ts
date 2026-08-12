@@ -9,7 +9,7 @@ import {
   isNonDeleted,
   resolveLabel,
 } from './sceneHelpers.js';
-import { defineTool, toolError, toolOk, type ToolContext } from './types.js';
+import { defineTool, type ToolContext, toolError, toolOk } from './types.js';
 
 /**
  * Read-only inspection/search tools (T51, AIE-01). Every one is a pure
@@ -69,12 +69,17 @@ export interface GetSelectionResult {
   elements: ElementSummary[];
 }
 
-export const getSelectionTool = defineTool('get_selection', 1, getSelectionArgsSchema, (ctx: ToolContext) => {
-  const elements = ctx.selection
-    .map((id) => summarize(ctx.scene, id))
-    .filter((el): el is ElementSummary => el !== null);
-  return toolOk<GetSelectionResult>({ elements });
-});
+export const getSelectionTool = defineTool(
+  'get_selection',
+  1,
+  getSelectionArgsSchema,
+  (ctx: ToolContext) => {
+    const elements = ctx.selection
+      .map((id) => summarize(ctx.scene, id))
+      .filter((el): el is ElementSummary => el !== null);
+    return toolOk<GetSelectionResult>({ elements });
+  },
+);
 
 // --- search_elements -------------------------------------------------------
 
@@ -187,7 +192,13 @@ export const searchLibraryTool = defineTool(
       .filter((item) => {
         if (args.category && item.category !== args.category) return false;
         if (!queryLower) return true;
-        const haystack = [item.name, item.stableKey, item.description, ...item.aliases, ...item.tags]
+        const haystack = [
+          item.name,
+          item.stableKey,
+          item.description,
+          ...item.aliases,
+          ...item.tags,
+        ]
           .join(' ')
           .toLowerCase();
         return haystack.includes(queryLower);
@@ -218,7 +229,10 @@ export const getLibraryComponentTool = defineTool(
   (ctx: ToolContext, args) => {
     const item = ctx.library.find((candidate) => candidate.stableKey === args.stableKey);
     if (!item) {
-      return toolError('not_found', `no library component with stableKey "${args.stableKey}" is authorized`);
+      return toolError(
+        'not_found',
+        `no library component with stableKey "${args.stableKey}" is authorized`,
+      );
     }
     return toolOk(item);
   },

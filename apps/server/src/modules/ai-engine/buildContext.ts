@@ -123,7 +123,9 @@ function arrowBinding(element: SceneElement): ArrowBinding | null {
 }
 
 /** All non-deleted arrows in `scene`, resolved to `{ from, to, label }` — the "relações" the context carries alongside elements. */
-function collectEdges(scene: readonly SceneElement[]): { from: string; to: string; label: string | null }[] {
+function collectEdges(
+  scene: readonly SceneElement[],
+): { from: string; to: string; label: string | null }[] {
   const edges: { from: string; to: string; label: string | null }[] = [];
   for (const element of scene) {
     if (!isNonDeleted(element)) continue;
@@ -176,7 +178,8 @@ function metadataFor(
   if (semantics.technology !== undefined) cleaned.technology = semantics.technology;
   if (semantics.provider !== undefined) cleaned.provider = semantics.provider;
   if (semantics.environment !== undefined) cleaned.environment = semantics.environment;
-  if (semantics.dataClassification !== undefined) cleaned.dataClassification = semantics.dataClassification;
+  if (semantics.dataClassification !== undefined)
+    cleaned.dataClassification = semantics.dataClassification;
   if (semantics.criticality !== undefined) cleaned.criticality = semantics.criticality;
   return Object.keys(cleaned).length > 0 ? cleaned : undefined;
 }
@@ -191,7 +194,10 @@ function metadataFor(
  * here (documented TODO — the "resumo hierárquico" tier from design.md §8.2
  * is deferred, per T50's own scope note, to a future task).
  */
-export function buildContext(input: BuildContextInput, options: BuildContextOptions = {}): AiContext {
+export function buildContext(
+  input: BuildContextInput,
+  options: BuildContextOptions = {},
+): AiContext {
   const depth = options.neighborhoodDepth ?? 1;
   const liveScene = input.scene.filter(isNonDeleted);
   const selection = (input.selection ?? []).filter((id) => id.length > 0);

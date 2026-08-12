@@ -1,18 +1,18 @@
 export { decryptToken, encryptToken } from './crypto.js';
 export { type SsrfCheckResult, validateProviderBaseUrl } from './ssrf.js';
 export {
-  getLibraryComponentTool,
   type GetNeighborsResult,
-  getNeighborsTool,
   type GetSelectionResult,
+  getLibraryComponentTool,
+  getNeighborsTool,
   getSelectionTool,
   type InspectDiagramResult,
   inspectDiagramTool,
   type LibrarySearchItem,
   readTools,
   type SearchElementsResult,
-  searchElementsTool,
   type SearchLibraryResult,
+  searchElementsTool,
   searchLibraryTool,
 } from './tools/readTools.js';
 export { createDefaultToolRegistry } from './tools/registry.js';
@@ -28,3 +28,23 @@ export {
   toolError,
   toolOk,
 } from './tools/types.js';
+export {
+  addAnnotationTool,
+  alignElementsTool,
+  autoLayoutTool,
+  compileIrTool,
+  connectElementsTool,
+  createComponentTool,
+  createElementTool,
+  createFrameTool,
+  createGroupTool,
+  deleteElementsTool,
+  distributeElementsTool,
+  duplicateElementsTool,
+  generateIrTool,
+  resizeContainerTool,
+  setSemanticMetadataTool,
+  updateConnectorTool,
+  updateElementTool,
+  writeTools,
+} from './tools/writeTools.js';

@@ -137,19 +137,27 @@ function parseChatCompletionBody(body: unknown): ChatCompletionResponse | null {
     ) {
       return null;
     }
-    toolCalls.push({ id: rawCall.id, name: rawCall.function.name, arguments: rawCall.function.arguments });
+    toolCalls.push({
+      id: rawCall.id,
+      name: rawCall.function.name,
+      arguments: rawCall.function.arguments,
+    });
   }
 
   const content = message?.content;
   if (content !== undefined && content !== null && typeof content !== 'string') return null;
 
   const finishReason = choice.finish_reason;
-  if (finishReason !== undefined && finishReason !== null && typeof finishReason !== 'string') return null;
+  if (finishReason !== undefined && finishReason !== null && typeof finishReason !== 'string')
+    return null;
 
   let usage: ChatCompletionResponse['usage'];
   if (raw.usage !== undefined) {
-    const { prompt_tokens: promptTokens, completion_tokens: completionTokens, total_tokens: totalTokens } =
-      raw.usage;
+    const {
+      prompt_tokens: promptTokens,
+      completion_tokens: completionTokens,
+      total_tokens: totalTokens,
+    } = raw.usage;
     if (
       typeof promptTokens !== 'number' ||
       typeof completionTokens !== 'number' ||
@@ -239,7 +247,10 @@ export async function callProvider(
       if ((error as { name?: unknown })?.name === 'AbortError') {
         return {
           ok: false,
-          error: { errorCode: 'timeout', message: `provider did not respond within ${timeoutMs}ms` },
+          error: {
+            errorCode: 'timeout',
+            message: `provider did not respond within ${timeoutMs}ms`,
+          },
         };
       }
       return {

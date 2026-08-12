@@ -190,15 +190,17 @@ T56 -> T57
 
 **Done when**:
 
-- [ ] Cada ferramenta de escrita produz um `AbstractPatch` bem-formado contra uma cena de teste, sem qualquer efeito colateral fora do valor retornado
-- [ ] `delete_elements`/`update_element` referenciando um `elementId` fora da cena atual retorna erro estruturado (todo ID deve pertencer ao diagrama — regra do documento-fonte)
-- [ ] Nenhuma ferramenta desta lista tem uma forma de aceitar/executar uma string de código, comando de shell, query SQL literal, ou URL genérica como argumento primário (auditável: os schemas JSON das ferramentas não têm nenhum campo do tipo "url" livre ou "command")
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Cada ferramenta de escrita produz um `AbstractPatch` bem-formado contra uma cena de teste, sem qualquer efeito colateral fora do valor retornado
+- [x] `delete_elements`/`update_element` referenciando um `elementId` fora da cena atual retorna erro estruturado (todo ID deve pertencer ao diagrama — regra do documento-fonte)
+- [x] Nenhuma ferramenta desta lista tem uma forma de aceitar/executar uma string de código, comando de shell, query SQL literal, ou URL genérica como argumento primário (auditável: os schemas JSON das ferramentas não têm nenhum campo do tipo "url" livre ou "command")
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(ai-tools): add write and patch-producing domain tools with no direct writes`
+
+**Status**: ✅ Complete — `packages/ai-tools/src/tools/writeTools.ts`: all 17 write tools (`create_element`, `create_component`, `create_group`, `create_frame`, `update_element`, `delete_elements`, `duplicate_elements`, `connect_elements`, `update_connector`, `set_semantic_metadata`, `align_elements`, `distribute_elements`, `auto_layout`, `resize_container`, `add_annotation`, `generate_ir`, `compile_ir`), each producing an `AbstractPatch` (`upsertElement`/`deleteElement`/`setMetadata` operations) and never writing anywhere directly. Elements a tool creates are hand-assembled plain data (`patchElements.ts`), mirroring `packages/diagram-ir/src/compile.ts`'s convention exactly (no `@excalidraw/excalidraw`/`editor-adapter` value import — AD-008). Every tool that references an existing `elementId` checks it against the scene first (`checkAllExist`/`elementExists`), returning a structured `element_not_found` error, never a throw — explicitly tested for `update_element`/`delete_elements`. `auto_layout` reuses `diagram-ir`'s `layoutElkLayered` as a pure function; `compile_ir` reuses `diagram-ir`'s `compile()`; `generate_ir` reuses `validateIr()` and touches no scene element (empty patch). A dedicated test enumerates every write tool's JSON Schema property names and asserts none is named url/command/cmd/shell/sql. `pnpm -w test:unit`: 70 ai-tools tests passed (32 new for write tools), full workspace green. `pnpm -w lint`/`pnpm -w typecheck`/`pnpm -w build` all clean across the whole workspace.
 
 ---
 

@@ -65,6 +65,24 @@ export function collectEdges(scene: readonly SceneElement[]): SceneEdge[] {
   return edges;
 }
 
+export interface ElementBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** Reads `{x, y, width, height}` off a scene element — every element type carries these four fields. */
+export function elementBox(element: SceneElement): ElementBox {
+  const el = element as { x: number; y: number; width: number; height: number };
+  return { x: el.x, y: el.y, width: el.width, height: el.height };
+}
+
+/** Plain-object copy of `element`'s own fields — a safe starting point for a write tool to patch a handful of keys onto without mutating the original. */
+export function toRecord(element: SceneElement): Record<string, unknown> {
+  return { ...(element as unknown as Record<string, unknown>) };
+}
+
 /** Elements directly connected (either arrow endpoint) to any id in `ids`, expanded `depth` edge-hops. Never includes the seed ids' own... it DOES include them (the neighborhood is inclusive of the seed selection, matching `buildContext`'s "selection + neighborhood" semantics). */
 export function expandNeighborhood(
   ids: ReadonlySet<string>,

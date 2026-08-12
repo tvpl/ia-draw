@@ -1,7 +1,6 @@
-import { arrowWithBindingsFixture, textFixture } from '@arch-canvas/test-fixtures';
 import { LIBRARY_MANIFEST } from '@arch-canvas/library-content';
+import { arrowWithBindingsFixture, textFixture } from '@arch-canvas/test-fixtures';
 import { describe, expect, it } from 'vitest';
-import { createDefaultToolRegistry } from './registry.js';
 import {
   getLibraryComponentTool,
   getNeighborsTool,
@@ -10,6 +9,7 @@ import {
   searchElementsTool,
   searchLibraryTool,
 } from './readTools.js';
+import { createDefaultToolRegistry } from './registry.js';
 import type { ToolContext } from './types.js';
 
 const LIBRARY = LIBRARY_MANIFEST.items;
@@ -49,7 +49,9 @@ describe('read tools (T51, AIE-01)', () => {
     const result = await getSelectionTool.execute(ctx({ selection: [RECT_A_ID] }), {});
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
-    expect(result.data.elements).toEqual([{ elementId: RECT_A_ID, type: 'rectangle', label: null }]);
+    expect(result.data.elements).toEqual([
+      { elementId: RECT_A_ID, type: 'rectangle', label: null },
+    ]);
   });
 
   it('get_selection returns nothing for an id no longer in the scene, without throwing', async () => {
@@ -64,7 +66,9 @@ describe('read tools (T51, AIE-01)', () => {
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     expect(result.data.totalMatches).toBe(2);
-    expect(result.data.elements.map((e) => e.elementId).sort()).toEqual([RECT_A_ID, RECT_B_ID].sort());
+    expect(result.data.elements.map((e) => e.elementId).sort()).toEqual(
+      [RECT_A_ID, RECT_B_ID].sort(),
+    );
   });
 
   it('search_elements filters by label query (case-insensitive) against the test scene', async () => {
@@ -79,7 +83,9 @@ describe('read tools (T51, AIE-01)', () => {
     const result = await getNeighborsTool.execute(ctx(), { elementId: RECT_A_ID, depth: 1 });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
-    expect(result.data.neighbors).toEqual([{ elementId: RECT_B_ID, type: 'rectangle', label: null }]);
+    expect(result.data.neighbors).toEqual([
+      { elementId: RECT_B_ID, type: 'rectangle', label: null },
+    ]);
     expect(result.data.edges).toEqual([{ from: RECT_A_ID, to: RECT_B_ID, label: null }]);
   });
 
@@ -92,7 +98,9 @@ describe('read tools (T51, AIE-01)', () => {
 
   it('search_library only ever resolves against the authorized library passed in ToolContext', async () => {
     const restrictedLibrary = LIBRARY.filter((item) => item.stableKey === 'generic.compute.server');
-    const result = await searchLibraryTool.execute(ctx({ library: restrictedLibrary }), { query: 'aws' });
+    const result = await searchLibraryTool.execute(ctx({ library: restrictedLibrary }), {
+      query: 'aws',
+    });
     expect(result.ok).toBe(true);
     if (!result.ok) throw new Error('expected ok');
     // "aws" matches several real items in the FULL manifest (e.g. aws.ec2) but none in the

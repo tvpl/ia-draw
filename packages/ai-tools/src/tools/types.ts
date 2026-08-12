@@ -96,11 +96,15 @@ export function defineTool<TArgsSchema extends z.ZodType, TData>(
   };
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: a heterogeneous registry needs a type-erased entry
-// shape at its storage boundary — each tool's own `execute` stays fully typed via `defineTool`;
-// only this internal map's value type erases to `any`, the standard pattern for a registry of
-// otherwise-unrelated function signatures (function parameters are contravariant, so `unknown`
-// args would reject every concrete tool at `register()`).
+/**
+ * A heterogeneous registry needs a type-erased entry shape at its storage
+ * boundary — each tool's own `execute` stays fully typed via `defineTool`;
+ * only this internal map's value type erases to `any`, the standard pattern
+ * for a registry of otherwise-unrelated function signatures (function
+ * parameters are contravariant, so `unknown` args would reject every
+ * concrete tool at `register()`).
+ */
+// biome-ignore lint/suspicious/noExplicitAny: see doc comment above
 type AnyToolDefinition = ToolDefinition<any, any> & { argsSchema: z.ZodType<any, any> };
 
 /**
@@ -125,7 +129,12 @@ export class ToolRegistry {
     return [...this.tools.values()];
   }
 
-  async execute(ctx: ToolContext, name: string, version: number, rawArgs: unknown): Promise<ToolResult> {
+  async execute(
+    ctx: ToolContext,
+    name: string,
+    version: number,
+    rawArgs: unknown,
+  ): Promise<ToolResult> {
     const tool = this.get(name, version);
     if (!tool) {
       return toolError('unknown_tool', `no tool registered as "${name}"@${version}`);

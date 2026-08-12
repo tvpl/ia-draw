@@ -12,7 +12,6 @@ export {
 } from './buildContext.js';
 export {
   type AiProviderCallConfig,
-  callProvider,
   type CallProviderError,
   type CallProviderErrorCode,
   type CallProviderResult,
@@ -20,5 +19,6 @@ export {
   type ChatCompletionResponse,
   type ChatCompletionToolCall,
   type ChatMessage,
+  callProvider,
   type ProviderToolDefinition,
 } from './callProvider.js';
