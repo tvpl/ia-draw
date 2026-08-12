@@ -1028,3 +1028,165 @@ Iteration 1's FAIL was driven by exactly one blocker, named explicitly in that r
 - Production code (`providerConfigs.ts`) was not touched by the fix — it was already correct per iteration 1's own live-reproduction finding; only the regression-test safety net was strengthened, exactly as the fix task specified.
 
 **Outcome: ✅ Ready** for wave F2a. AIC-01 moves from `❌ Needs Fix` to `✅ Verified` — the implementation was already correct and is now backed by a test that would actually catch a regression in the exact property the AC requires ("nem cifrado nem em claro" — neither ciphertext nor plaintext ever appears in a response). LIB-02, LIB-03 remain `✅ Verified (backend)` as iteration 1 left them (their real, disclosed UI-trigger gap is unchanged and is a future-wave planning item, not a defect of this wave). AIC-04 remains `⚠️ Partial` in this section's own framing (disclosed F2c scope) — its spec.md traceability row was already left unmarked by iteration 1 and stays that way here; only AIC-01's row is updated by this re-verification. This closes wave F2a as a clean PASS with no fabricated coverage: every remaining gap noted above was already known, already disclosed, and already correctly scoped to a later wave before this re-verification began.
+
+---
+
+## F2b Wave Report (IR Declarativa, Layout e Compilador) — PASS ✅
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `3a7ade8..HEAD` (T43-T48: `7df3aad` `feat(diagram-ir): add diagram-ir/v1 schema, validation and json schema export` through `fa9ea6a` `feat(diagram-ir): add deterministic geometry metrics and zero-overlap property tests`)
+**Verifier**: independent sub-agent (author ≠ verifier) — fresh session, no access to the batch worker's chat transcript; every claim below was re-derived from the artifacts and re-run myself, not taken from the tasks-f2b.md status notes at face value.
+
+The verdict is PASS. Every task is genuinely complete, the build/gate is green from a real from-scratch build (not just cache replay for the package under test), AD-008 compliance was independently reproduced by grepping a freshly rebuilt `dist/`, the claimed swimlane bug fix is a real, meaningful code change (not a cosmetic rename), the property-based test is real and non-vacuous, and all 3 sensor mutations were killed. One genuine, non-blocking coverage gap was found and is flagged below rather than silently passed: the T48 property-based sweep proves `overlaps === 0` and `crossings === 0` up to 200 elements, but never asserts `truncatedLabels === 0` at that same scale — only for small hand-built scenes — so AIG-03's "zero truncated labels ... up to 200 elements" clause is evidenced only at small scale, not proven at scale the way the overlap/crossing clauses are.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T43 | ✅ Done | `packages/diagram-ir/src/schema.ts` — `irDocumentSchema` (Zod), `validateIr` with structured path-pointing issues, `IR_JSON_SCHEMA` via zod v4's native `z.toJSONSchema()`. 10 tests in `schema.spec.ts`, cross-validated against the same cases via `ajv`. |
+| T44 | ✅ Done | `packages/diagram-ir/src/layout/gridZones.ts` — recursive grid packing, per-level padding growth. 3 tests. |
+| T45 | ✅ Done | `packages/diagram-ir/src/layout/elkLayered.ts` — `elkjs` `layered` algorithm, compound nodes for containers. 2 tests. Documented `ElkInstance` TS-resolution workaround, independently reproduced (see below). |
+| T46 | ✅ Done | `packages/diagram-ir/src/layout/swimlane.ts` — horizontal lanes, BFS topological ordering within a lane. 2 tests (later found to under-cover the width-overflow case T48 caught). |
+| T47 | ✅ Done | `packages/diagram-ir/src/compile.ts` — `compile()`: componentKey resolution against a real `library` argument, engine selection by `ir.kind`, hand-assembled plain-data elements. 4 tests. |
+| T48 | ✅ Done | `packages/diagram-ir/src/metrics.ts` — `geometryMetrics()` (overlaps/crossings/truncatedLabels/whitespaceBalance). 9 direct tests + 21-case property-based suite in `metrics.spec.ts`. Real bug found and fixed in T46's `swimlane.ts` (see below). |
+
+All 6 commits present on the branch in the claimed order (`git log --oneline 3a7ade8..HEAD`): `7df3aad`, `2af4cdb`, `ef1f0a3`, `9ee4263`, `b8acc2a`, `fa9ea6a`.
+
+---
+
+### Independently Reproduced Claims
+
+1. **AD-008 compliance (zero real `excalidraw` import in compiled output).** Deleted `packages/diagram-ir/dist/`, ran `pnpm --filter @arch-canvas/diagram-ir build` from a clean state, then `grep -rn "excalidraw" packages/diagram-ir/dist/*.js packages/diagram-ir/dist/**/*.js` — **zero matches** (grep exit 1). Re-confirmed after a full `pnpm -w build` of every package. `compile.ts` (`packages/diagram-ir/src/compile.ts:1-6`) imports only `type { LibraryItem }` from `@arch-canvas/library-content` and never imports `@arch-canvas/editor-adapter` or `@excalidraw/excalidraw` in any form, by value or by type. `package.json`'s `dependencies` list confirms `@arch-canvas/editor-adapter` was never added (T47's stated removal of a speculative T43 entry checks out).
+
+2. **Field-for-field parity with Excalidraw's real shipped `.d.ts` (T47's central claim).** Read `node_modules/.pnpm/@excalidraw+excalidraw@0.18.1.../dist/types/excalidraw/element/types.d.ts` directly (not the compiler's comment, the actual shipped type). `_ExcalidrawElementBase`'s 24 required fields (`id, x, y, strokeColor, backgroundColor, fillStyle, strokeWidth, strokeStyle, roundness, roughness, opacity, width, height, angle, seed, version, versionNonce, index, isDeleted, groupIds, frameId, boundElements, updated, link, locked`) match `BaseElementFields` in `packages/diagram-ir/src/compile.ts:35-61` exactly, field for field. `ExcalidrawTextElement`'s extra fields (`fontSize, fontFamily, text, textAlign, verticalAlign, containerId, originalText, autoResize, lineHeight`) match `TextElement` at `compile.ts:67-78`. `ExcalidrawLinearElement`/`ExcalidrawArrowElement`'s extra fields (`points, lastCommittedPoint, startBinding, endBinding, startArrowhead, endArrowhead, elbowed`) match `ArrowElement` at `compile.ts:80-89`. The claim is accurate, not overclaimed.
+
+3. **Swimlane bug fix (T48) is real, not cosmetic.** `git show 9ee4263:packages/diagram-ir/src/layout/swimlane.ts` (T46 original) vs. the current file: `LANE_WIDTH = 1200` (a fixed constant used directly as every lane rectangle's width) is replaced by `MIN_LANE_WIDTH = 1200` plus a per-lane `contentWidth` computed from `ordered.length * NODE_WIDTH + (ordered.length - 1) * NODE_GAP`, with `laneWidth = Math.max(MIN_LANE_WIDTH, contentWidth + LANE_PADDING * 2)` (`packages/diagram-ir/src/layout/swimlane.ts:94-107`). This is a genuine geometry fix: a lane with enough nodes to exceed 1200px of content previously kept a 1200px-wide rectangle while its last nodes were laid out past that boundary, which is a real overflow bug, not a false positive from the metric. T46's own 2-4-node-per-lane tests never exercised enough nodes to hit the old fixed width, which is why it shipped undetected until the 200-element property sweep.
+
+4. **Property-based test is real, not vacuous.** `packages/diagram-ir/src/metrics.spec.ts:268-314`: three independent seeded generators (`generateContainmentIr` for grid-zones, `generateTreeIr` for elk-layered, `generateSwimlaneIr` for swimlane), 7 sizes (3..200) × 3 kinds = 21 distinct synthetic IRs, each with a different `mulberry32` seed — not the same fixture repeated. Each case runs through the real `compile()` (`compile.ts:340`) and the real corresponding layout engine (T44-T46), not a stub. `geometryMetrics` (`metrics.ts:257-268`) computes `overlaps` via genuine pairwise bounding-box intersection (`rectsOverlap`, `metrics.ts:42-44`, with a documented, non-trivial "legitimate container nesting" exclusion at `metrics.ts:75-81`) and `crossings` via a real orientation-based proper-segment-intersection test (`metrics.ts:151-165`), not a "didn't throw" check. Ran it live: `pnpm --filter @arch-canvas/diagram-ir test:unit` → 52/52 passing including all 21 property cases.
+
+5. **elkjs TypeScript workaround is legitimate, independently reproduced.** Wrote a minimal standalone repro (`import ElkConstructor from 'elkjs'; new ElkConstructor();`) and ran `tsc --noEmit --moduleResolution NodeNext --module NodeNext` against it directly — reproduced the exact claimed error: `TS2351: This expression is not constructable. Type 'typeof import(".../elkjs/lib/main")' has no construct signatures.` Confirmed `elkjs`'s own shipped `lib/main.d.ts` does `export * from "./elk-api"; import ElkConstructor from "./elk-api"; export default ElkConstructor;` — the exact indirection T45's comment describes. The workaround (`ElkInstance` interface typed against the real `ElkNode`, `packages/diagram-ir/src/layout/elkLayered.ts:28-31`) is narrowly scoped to the one method actually called (`layout`) and does not hand-roll or weaken any other type. Legitimate, not a red flag.
+
+6. **Test counts.** Full workspace `pnpm -w test:unit`: 384 tests total, 0 failed (backup 4, test-fixtures 8, ai-tools 18, shared-contracts 17, library-content 8, auth 52, editor-adapter 54, diagram-domain 21, diagram-ir 52, web 22, server 128 = 384), matching the batch's own claimed figure. `diagram-ir` alone: 52/52, matching T48's status note exactly.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+**Story**: "P1: Geração de diagramas por IA via IR declarativa" (spec.md lines 168-184)
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| AIG-01 (AC1): typed IR validated against a versioned JSON Schema before any canvas element is created | A `validateIr` call rejects malformed/referentially-broken documents with structured, path-pointing errors before any compilation happens; a JSON Schema equivalent exists and validates the same cases | `packages/diagram-ir/src/schema.ts:166` `validateIr()`; `schema.spec.ts:44` `expect(doc.nodes).toHaveLength(3)` (valid doc accepted); `schema.spec.ts:67` `expect(irError.issues).toContainEqual(...)` (dangling edge `from` rejected with a `path`-pointing issue); `schema.ts:191` `IR_JSON_SCHEMA = z.toJSONSchema(...)`, cross-checked against `ajv` in `schema.spec.ts:131-152` | ✅ PASS |
+| AIG-02 (AC2): resolve components against the authorized library by stable key; compute positions with a deterministic layout engine (layered for flows, grid for cloud/C4, swimlanes for business processes) | `compile()` resolves `componentKey` via `stableKey` against a real `LibraryItem[]`; engine choice follows `ir.kind` exactly as specified | `compile.ts:340` `compile()`, `compile.ts:306-327` `layoutFor()` kind→engine switch; `compile.spec.ts:85` resolves `generic.compute.server` and inherits its color; `gridZones.spec.ts:64` zero-overlap siblings, `gridZones.spec.ts:115` determinism; `elkLayered.spec.ts:26` topological order; `swimlane.spec.ts:26` zero-overlap lanes, `swimlane.spec.ts:69` dependency-edge ordering | ✅ PASS |
+| AIG-03 (AC3): zero overlapping nodes AND zero truncated labels for scenes up to 200 elements | Both dimensions proven at the stated 200-element scale | `metrics.spec.ts:307` `expect(metrics.overlaps).toBe(0)` / `expect(metrics.crossings).toBe(0)` across 21 synthetic cases up to 200 elements — **overlaps/crossings dimension proven at scale**. `truncatedLabels` dimension: only proven for hand-built small scenes (`metrics.spec.ts:135` positive, `:142` negative) — **never asserted `=== 0` inside the 200-element property sweep** (`metrics.spec.ts:300-314` computes `metrics` but only reads `.overlaps`/`.crossings`, never `.truncatedLabels`) | ⚠️ Spec-precision gap — overlaps/crossings ✅ proven at scale; truncatedLabels ✅ proven only at small scale, not swept to 200 elements as the AC's literal wording requires |
+| AIG-06 (AC6, partial — resolution only): IF the IR references a library component outside the authorized scope THEN reject before preview | This wave builds only the resolution mechanism the rejection needs (T47's stated scope); the actual patch-rejection-before-preview behavior is F2c | `compile.ts:347-358`: unresolved `componentKey` → `CompileError` (structured, `issues: CompileIssue[]`), never a generic exception or partial scene; `compile.spec.ts:102` `await expect(compile(...)).rejects.toThrow(CompileError)` and asserts the exact `issues` shape | ✅ PASS for the resolution mechanism this wave owns; boundary honestly kept — no test or status note in this wave claims the actual "reject the patch" behavior, which does not exist yet outside `compile()` |
+| AIG-07 (AC7): compute deterministic geometric quality metrics (overlap count, edge crossings, truncated labels) for every generation, runnable in CI with a mock provider | The metrics computation is pure/deterministic and the test suite that exercises it makes zero network calls | `metrics.ts:257-268` `geometryMetrics()` — pure function, no I/O; `metrics.spec.ts` makes no HTTP/LLM calls (confirmed by reading the whole file — only `compile()`, `geometryMetrics()`, and local generators are used); ran the whole `diagram-ir` suite offline, all 52 tests pass | ✅ PASS for the diagram-ir-scope computation and CI-safety; the "for every generation in the eval suite" integration point (wiring this into an actual agent eval harness with a swappable mock provider) does not exist yet — that harness is F2c scope, same disclosed-boundary pattern as AIG-06, not a gap of this wave |
+
+**Status**: ⚠️ One spec-precision gap flagged (AIG-03's truncatedLabels-at-scale sub-clause) — non-blocking, see Fix Plan below; every other criterion in this wave's scope is ✅ PASS with real evidence.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/f2b-verify-scratch HEAD` (never `git stash`). Baseline `git status --porcelain` on the real tree was empty before starting and confirmed empty again after cleanup. `pnpm install --frozen-lockfile` + `pnpm --filter @arch-canvas/library-content build` inside the scratch worktree to get a working baseline (52/52 passing) before any mutation.
+
+| # | Mutation | File:line | Description | Result |
+| --- | --- | --- | --- | --- |
+| 1 | `packages/diagram-ir/src/metrics.ts:42-44` | `rectsOverlap` body replaced with `return false;` (always reports no overlap, the LWW-adjacent geometry check named in the assignment) | ✅ Killed — `returns > 0 overlaps for a scene with two same-size sibling rectangles deliberately coinciding`: `AssertionError: expected 0 to be greater than 0` (`metrics.spec.ts:118`). 1 failed / 51 passed. |
+| 2 | `packages/diagram-ir/src/compile.ts:356` | `if (issues.length > 0) { throw new CompileError(issues); }` → `if (false && issues.length > 0) { ... }` (silently accepts an unresolved `componentKey` instead of erroring) | ✅ Killed — `throws a structured CompileError ... for a componentKey absent from the library` failed: `expect(compile(...)).rejects.toThrow(CompileError)` did not throw. 1 failed / 51 passed. |
+| 3 | `packages/diagram-ir/src/layout/gridZones.ts:16` | `GRID_GAP = 24` → `GRID_GAP = -100` (negative gap forces sibling/nested containers to overlap) | ✅ Killed — 9 failures across `gridZones.spec.ts` (both zero-overlap tests, expected `0` got `20`/`7`) and the `metrics.spec.ts` grid-zones property cases that go through `compile()` with the same layout engine. 9 failed / 43 passed. |
+
+All three mutations were applied one at a time inside the scratch worktree, confirmed killed, reverted with `git checkout --`, and the worktree was removed with `git worktree remove --force`. Re-captured `git status --porcelain` on the real tree after cleanup — identical to the pre-sensor baseline (empty). No file in the real working tree was ever touched.
+
+**Sensor depth**: lightweight (3 targeted mutations, default tier)
+**Sensor outcome**: 3/3 killed, 0 survived
+
+---
+
+### Code Quality
+
+| Check | Pass? |
+| --- | --- |
+| No features beyond what was asked | ✅ — every file under `packages/diagram-ir/` traces to a T43-T48 Done-when item |
+| No abstractions for single-use code | ✅ — `layoutFor()`'s switch is the only abstraction over the 3 engines, needed by `compile()`'s actual branching requirement |
+| No unnecessary "flexibility" added | ✅ — `CompileOptions.seed` exists only because tests need determinism, matches `test-fixtures`' own established `mulberry32`-seed convention |
+| Only touched files required for task | ✅ — `git diff --stat 3a7ade8..HEAD` touches only `packages/diagram-ir/**` plus `pnpm-lock.yaml`; no unrelated file modified |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — `mulberry32`, plain-data element construction, and AD-008 discipline all mirror `packages/diagram-domain`'s `mergeScene.ts` and `packages/test-fixtures`'s `generateScene.ts` precedents exactly |
+| Would senior engineer approve? | ✅ — heavy inline documentation is verbose but consistent with the project's established convention in prior waves, not scope creep |
+| Tests map to acceptance criteria and are non-shallow (spot-check one story) | ✅ — spot-checked `compile.spec.ts`: uses the real `LIBRARY_MANIFEST` from `@arch-canvas/library-content` (not a stub), asserts exact `CompileError.issues` shape, checks well-formedness field-by-field |
+| Spec-anchored outcome check | ⚠️ — see AIG-03 gap above; every other criterion's assertion targets the exact spec-defined outcome |
+| Per-layer Coverage Expectation met (domain 1:1 with ACs; property-based for geometric metrics) | ✅ per the Test Coverage Matrix in `tasks-f2b.md`, with the one flagged exception |
+| Every test in scope maps to a spec AC, listed edge case, or Done-when criterion (no unclaimed tests) | ✅ |
+| Documented project quality/testing guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md` — followed; no scope creep, no weakened assertions, no deleted tests |
+
+---
+
+### Edge Cases
+
+- [x] Dangling edge `from`/`to` reference: rejected with a structured, path-pointing `IrValidationError` (`schema.spec.ts:67`, `:84`)
+- [x] Dangling container `children` reference: rejected the same way (`schema.spec.ts:97`)
+- [x] `kind` outside the enum: rejected, both by `validateIr` and by the exported JSON Schema via `ajv` (`schema.spec.ts:113`, `:141`)
+- [x] Nested containers (container inside container): positioned without cross-branch overlap (`gridZones.spec.ts:78`)
+- [x] `componentKey` absent from the library: structured `CompileError`, no partial scene (`compile.spec.ts:102`)
+- [x] Two edges sharing an endpoint node: correctly excluded from the crossings count as an expected junction, not a defect (`metrics.spec.ts:128`)
+- [x] Container legitimately enclosing a child rectangle: correctly excluded from the overlaps count (`metrics.spec.ts:107`)
+- [ ] Truncated-label detection at the 200-element scale the spec's AC3 names explicitly — only proven at small scale (see gap above)
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
+- **Result**: all 4 stages exit 0 — `lint`: 273 files checked, no fixes applied; `typecheck`: 21/21 package tasks successful; `build`: 12/12 package tasks successful (verified with a from-scratch `diagram-ir` rebuild, not just cache replay); `test:unit`: **384 tests passed, 0 failed**, across every workspace package (backup 4, test-fixtures 8, ai-tools 18, shared-contracts 17, library-content 8, auth 52, editor-adapter 54, diagram-domain 21, diagram-ir 52, web 22, server 128)
+- **No integration tests in this wave**: confirmed accurate — `packages/diagram-ir` is a pure, dependency-free-of-I/O domain package (no database, no HTTP, no filesystem); `tasks-f2b.md`'s own Gate Check Commands table lists only `test:unit`, never `test:integration`, and this is the correct scope for this wave.
+- **Test count before this wave**: 332 (F2a iteration 2's reported total)
+- **Test count after this wave**: 384
+- **Delta**: +52, all in `packages/diagram-ir` — matches exactly (no tests added or removed anywhere else)
+- **Skipped tests**: none
+- **Failures**: none
+
+---
+
+### Fix Plan (non-blocking)
+
+#### Fix 1 (recommended, not blocking this wave's PASS): AIG-03's truncatedLabels dimension untested at 200-element scale
+
+- **Root cause**: `metrics.spec.ts`'s property-based loop (`:306-313`) only asserts `overlaps`/`crossings`; `truncatedLabels` is proven correct in isolation (`:135`, `:142`) but never swept across the same 21 synthetic 200-element cases the other two dimensions are proven against.
+- **Fix task**: add `expect(metrics.truncatedLabels).toBe(0)` inside the existing property loop. Given the synthetic generators' short fixed labels (`Node ${i}`) against `NODE_WIDTH = 140`, this assertion is expected to pass without any production-code change — it closes a test-coverage gap, not a functional bug.
+- **Priority**: Minor (spec-precision gap, no evidence of an actual defect; low risk given the label/width margin already in play)
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| AIG-01 | Implementing | ✅ Verified — schema + validation + JSON Schema export independently reproduced, structured errors confirmed |
+| AIG-02 | Implementing | ✅ Verified — stable-key resolution and all 3 deterministic layout engines independently reproduced (zero-overlap, determinism, topological order all proven) |
+| AIG-03 | Implementing | ⚠️ Partial — overlaps/crossings proven zero at the full 200-element scale; truncated-labels proven zero only at small scale, not swept to 200 elements (Fix 1 above closes this cleanly, low risk) |
+| AIG-06 | Implementing | Implementing (unchanged) — componentKey resolution + structured rejection mechanism this wave owns is proven; the actual "reject the patch before preview" behavior is F2c scope and does not exist yet, so the AC as a whole is correctly still not `Verified` |
+| AIG-07 | Implementing | ✅ Verified — deterministic, network-free geometry metrics computation independently reproduced and proven CI-safe; the eval-suite/mock-provider wiring around it is F2c scope, same disclosed boundary as AIG-06 |
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — wave F2b closes as PASS with one flagged, non-blocking spec-precision gap
+
+**Spec-anchored check**: 4/5 criteria in this wave's scope matched the spec-defined outcome with no caveat (AIG-01, AIG-02, AIG-06 within its disclosed partial scope, AIG-07 within its disclosed partial scope); 1 spec-precision gap flagged (AIG-03's truncatedLabels-at-200-elements sub-clause)
+
+**Sensor**: 3/3 mutations killed, 0 survived
+
+**Gate**: 4/4 stages passed, 384/384 tests passed, 0 failed, +52 tests over F2a's baseline of 332
+
+**Independently reproduced, not taken on faith**: AD-008 zero-import compliance via a from-scratch rebuild and grep; field-for-field element-shape parity against Excalidraw's own real shipped `.d.ts` (read directly, not the compiler's own comment); the T46→T48 swimlane fix as a genuine geometry bug fix via `git show` diff; the property-based test's genuineness (real varied seeded generators, real `compile()` + real layout engines, real bounding-box/segment-intersection math); the elkjs TS2351 workaround via an independent minimal repro compiled with `tsc` directly.
+
+**What works**: The IR schema, all three layout engines, and the compiler are all real, deterministic, and dependency-clean per AD-008 — verified by rebuilding from scratch and grepping the actual compiled output, not by reading a status note. The property-based test that's meant to prove AIG-03 is genuinely non-vacuous: it generates real topological variety, runs the real pipeline, and checks real geometry. The one bug this wave's own testing found (the swimlane width overflow) is a legitimate catch, not an inflated claim — the diff proves it.
+
+**Issues found**: 1 (Minor, non-blocking) — AIG-03's truncated-labels dimension is untested at the 200-element scale the AC names; see Fix Plan above.
+
+**Next steps**: Route Fix 1 to a small follow-up task (single `expect()` addition to an existing test loop) whenever `packages/diagram-ir` is next touched — does not need to block F2c, which consumes `compile()`/`geometryMetrics()` as-is and does not depend on this specific assertion existing. No re-verification cycle needed for a test-only, low-risk addition; confirm it in F2c's own gate run or the next diagram-ir-scoped wave.

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 14,
+  "next_id": 15,
   "lessons": [
     {
       "id": "L-001",
@@ -240,6 +240,24 @@
       ],
       "created": "2026-08-12T17:55:26Z",
       "last_seen": "2026-08-12T17:55:26Z"
+    },
+    {
+      "id": "L-014",
+      "key": "spec_precision_gap::when an ac states a property at scale e g zero x and zero y up to n elements the property based sweep must assert every named dimension inside the same loop not just the dimensions the task s own done when happened to list a task s done when can narrow an ac s literal wording without anyone noticing",
+      "text": "When an AC states a property at scale (e.g. 'zero X and zero Y up to N elements'), the property-based sweep must assert every named dimension inside the same loop, not just the dimensions the task's own Done-when happened to list — a task's Done-when can narrow an AC's literal wording without anyone noticing.",
+      "signal": "spec_precision_gap",
+      "scope": "packages/diagram-ir",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AIG-03 / packages/diagram-ir/src/metrics.spec.ts:300-314 (packages/diagram-ir)"
+      ],
+      "created": "2026-08-12T18:45:32Z",
+      "last_seen": "2026-08-12T18:45:32Z"
     }
   ]
 }

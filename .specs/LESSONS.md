@@ -92,6 +92,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/server/src/modules/ai-provider/providerConfigs.ts:26-35 (security)
 - last seen: 2026-08-12T17:55:26Z
 
+### L-014 - When an AC states a property at scale (e.g. 'zero X and zero Y up to N elements'), the property-based sweep must assert every named dimension inside the same loop, not just the dimensions the task's own Done-when happened to list — a task's Done-when can narrow an AC's literal wording without anyone noticing.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `packages/diagram-ir` · harmful: 0
+- features: architecture-canvas
+- evidence: AIG-03 / packages/diagram-ir/src/metrics.spec.ts:300-314 (packages/diagram-ir)
+- last seen: 2026-08-12T18:45:32Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
