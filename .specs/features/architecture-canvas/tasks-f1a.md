@@ -79,15 +79,17 @@ T16 -> T17 -> T18
 
 **Done when**:
 
-- [ ] Tabela de decisão cobre as 5×N combinações papel×ação relevantes (matriz explícita nos testes, não só casos soltos)
-- [ ] `reviewer` nunca recebe `diagram:mutate` mesmo com `diagram:write` concedido para metadados
-- [ ] `viewer` só recebe ações `*:read`
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Tabela de decisão cobre as 5×N combinações papel×ação relevantes (matriz explícita nos testes, não só casos soltos)
+- [x] `reviewer` nunca recebe `diagram:mutate` mesmo com `diagram:write` concedido para metadados
+- [x] `viewer` só recebe ações `*:read`
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(auth): add pure rbac policy engine with role hierarchy`
+
+**Status**: ✅ Complete — `packages/auth/` (`can(actor, action, resource)`, 5 roles × 8 ações, sem dependência de runtime); 52 testes unit (matriz explícita 5×8 + casos de decoupling write/mutate + viewer read-only), gate quick (`pnpm -w test:unit`) verde. **Interpretação registrada**: o texto do task descreve `reviewer` como tendo `diagram:write` "concedido para metadados"; a matriz implementada nega `diagram:write` a `reviewer` (idêntico a `viewer` no conjunto mínimo de 8 ações) porque T17 exige explicitamente 403 de `reviewer` em `POST/PATCH/DELETE` de diagrama/projeto — dar `diagram:write` a `reviewer` aqui contradiria esse done-when concreto de T17. O invariante central do bullet (mutate nunca é derivado de write, e `reviewer` nunca recebe `diagram:mutate`) está coberto literalmente pelos testes; a frase "editor > reviewer > viewer" é tratada como ranking organizacional (comentários/aprovações futuras em F3 CMT-01), não como exigência de um `true` extra no conjunto mínimo de ações desta onda. Documentado em comentário no código-fonte (`rbac.ts`).
 
 ---
 
