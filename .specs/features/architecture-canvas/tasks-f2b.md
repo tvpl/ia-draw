@@ -205,16 +205,19 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] Componente com `componentKey` presente na `library` resolve para o elemento certo (ícone/metadados herdados)
-- [ ] Componente com `componentKey` ausente da `library` retorna erro estruturado, não lança exceção genérica nem produz elemento parcial
-- [ ] Elementos compilados passam por uma checagem de "bem-formado" equivalente à usada pelos fixtures de `packages/test-fixtures` (mesmos campos obrigatórios presentes)
-- [ ] `pnpm -w build` seguido de `grep -rn "excalidraw" packages/diagram-ir/dist/*.js` não mostra nenhum import/require real (só pode aparecer em comentários, se houver)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Componente com `componentKey` presente na `library` resolve para o elemento certo (ícone/metadados herdados)
+- [x] Componente com `componentKey` ausente da `library` retorna erro estruturado, não lança exceção genérica nem produz elemento parcial
+- [x] Elementos compilados passam por uma checagem de "bem-formado" equivalente à usada pelos fixtures de `packages/test-fixtures` (mesmos campos obrigatórios presentes)
+- [x] `pnpm -w build` seguido de `grep -rn "excalidraw" packages/diagram-ir/dist/*.js` não mostra nenhum import/require real (só pode aparecer em comentários, se houver)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-ir): add ir-to-scene compiler with library resolution`
+
+**Status**: ✅ Complete — `compile()` in `src/compile.ts` resolves `componentKey` by `stableKey` against the real `@arch-canvas/library-content` manifest, picks grid-zones/elk-layered/swimlane by `ir.kind` (`wireframe` mapped to grid-zones, documented reasonable default), and builds rectangle+bound-text+arrow elements as hand-assembled plain data — field set verified directly against `@excalidraw/excalidraw`'s own shipped `element/types.d.ts` (read-only, never imported by value). 4 tests in `src/compile.spec.ts` (library resolution, structured error on unknown key, well-formedness, kind-to-engine routing). `pnpm -w build` then `grep -rn "excalidraw" packages/diagram-ir/dist/*.js` (and recursively across `dist/layout/`) — zero matches. `pnpm -w test:unit` green (21/21 in-package, 20/20 workspace packages).
+**Deviation**: `compile()` never actually imports `@arch-canvas/editor-adapter` (unlike `diagram-domain`'s `import type` precedent) — it declares local structural element types instead, verified field-for-field against Excalidraw's own `.d.ts`, since asserting the exact `ReturnType<typeof restoreElements>` type would overclaim a `Readonly`/restored-element guarantee this compiler doesn't provide (it never calls `restoreElements`). The unused `@arch-canvas/editor-adapter` dependency entry added speculatively in T43 was removed from `package.json` accordingly; `@arch-canvas/library-content` moved from `devDependencies` to `dependencies` since `compile()`'s public signature now needs its `LibraryItem` type at the package boundary, not just in tests. `compile()` returns `Promise<CompiledScene>` (not a bare `CompiledScene`) because the elk-layered engine it can select is itself async.
 
 ---
 

@@ -1,3 +1,15 @@
+export {
+  type ArrowElement,
+  type CompiledElement,
+  type CompiledScene,
+  type CompileErrorCode,
+  CompileError,
+  type CompileIssue,
+  type CompileOptions,
+  compile,
+  type RectangleElement,
+  type TextElement,
+} from './compile.js';
 export { layoutElkLayered } from './layout/elkLayered.js';
 export { layoutGridZones } from './layout/gridZones.js';
 export { layoutSwimlane } from './layout/swimlane.js';

@@ -313,9 +313,9 @@ importers:
 
   packages/diagram-ir:
     dependencies:
-      '@arch-canvas/editor-adapter':
+      '@arch-canvas/library-content':
         specifier: workspace:*
-        version: link:../editor-adapter
+        version: link:../library-content
       elkjs:
         specifier: ^0.9.3
         version: 0.9.3
@@ -323,9 +323,6 @@ importers:
         specifier: ^4.1.12
         version: 4.4.3
     devDependencies:
-      '@arch-canvas/library-content':
-        specifier: workspace:*
-        version: link:../library-content
       '@types/node':
         specifier: ^22.20.1
         version: 22.20.1
