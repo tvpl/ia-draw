@@ -248,7 +248,12 @@ describe('two-phase asset upload (T29, EDT-06)', () => {
       '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script><circle r="5"/></svg>',
     );
 
-    const initiated = await initiate(owner.cookies, diagramId, 'image/svg+xml', malicious.byteLength);
+    const initiated = await initiate(
+      owner.cookies,
+      diagramId,
+      'image/svg+xml',
+      malicious.byteLength,
+    );
     const { assetId, objectKey } = initiated.json();
     storage.objects.set(`${ASSET_BUCKET}/${objectKey}`, malicious);
 

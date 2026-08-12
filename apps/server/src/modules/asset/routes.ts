@@ -13,7 +13,11 @@ import {
   insertPendingAsset,
   markAssetReady,
 } from './assets.js';
-import { ALLOWED_ASSET_MIME_TYPES, MAX_ASSET_SIZE_BYTES, UPLOAD_URL_TTL_SECONDS } from './constants.js';
+import {
+  ALLOWED_ASSET_MIME_TYPES,
+  MAX_ASSET_SIZE_BYTES,
+  UPLOAD_URL_TTL_SECONDS,
+} from './constants.js';
 import { sanitizeSvg } from './sanitizeSvg.js';
 
 export interface AssetModuleDeps {

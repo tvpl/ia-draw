@@ -1,17 +1,24 @@
 export {
   COMPACT_DIAGRAM_JOB,
   type CompactionThresholds,
-  DEFAULT_COMPACTION_THRESHOLDS,
   compactDiagram,
+  DEFAULT_COMPACTION_THRESHOLDS,
   enqueueCompaction,
   registerCompactionJob,
   shouldCompact,
 } from './compaction.js';
-export { type MaterializedScene, materializeScene } from './scene.js';
-export { type SnapshotModuleDeps, registerSnapshotModule } from './routes.js';
+export { DiffTargetNotFoundError, diffDiagram, resolveRevision } from './diff.js';
 export {
-  createSnapshot,
+  buildRestoreDeltas,
+  type RestoreResult,
+  restoreSnapshot,
+  SnapshotNotFoundError,
+} from './restore.js';
+export { registerSnapshotModule, type SnapshotModuleDeps } from './routes.js';
+export { type MaterializedScene, materializeScene } from './scene.js';
+export {
   type CreateSnapshotInput,
+  createSnapshot,
   getDiagramOwnerId,
   getLatestSnapshot,
   getSnapshotById,

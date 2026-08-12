@@ -28,7 +28,10 @@ export async function materializeScene(
   const where =
     upToSequence === undefined
       ? eq(diagramOperations.diagramId, diagramId)
-      : and(eq(diagramOperations.diagramId, diagramId), lte(diagramOperations.sequence, upToSequence));
+      : and(
+          eq(diagramOperations.diagramId, diagramId),
+          lte(diagramOperations.sequence, upToSequence),
+        );
 
   const ops = await db
     .select({

@@ -1,11 +1,9 @@
-import { PgBoss, type ConstructorOptions, type WorkOptions } from 'pg-boss';
+import { type ConstructorOptions, PgBoss, type WorkOptions } from 'pg-boss';
 import type { AppConfig } from '../../core/config.js';
 
 export type JobQueue = PgBoss;
 
-export interface JobHandler<TPayload extends object> {
-  (payload: TPayload): Promise<void>;
-}
+export type JobHandler<TPayload extends object> = (payload: TPayload) => Promise<void>;
 
 /**
  * Starts pg-boss (AD-006 — jobs over PostgreSQL, no Redis) over the app's

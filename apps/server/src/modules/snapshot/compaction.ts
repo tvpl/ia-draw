@@ -43,7 +43,12 @@ export async function shouldCompact(
   const rows = await db
     .select({ elementsDeltaJson: diagramOperations.elementsDeltaJson })
     .from(diagramOperations)
-    .where(and(eq(diagramOperations.diagramId, diagramId), gt(diagramOperations.sequence, sinceSequence)))
+    .where(
+      and(
+        eq(diagramOperations.diagramId, diagramId),
+        gt(diagramOperations.sequence, sinceSequence),
+      ),
+    )
     .orderBy(asc(diagramOperations.sequence));
 
   if (rows.length >= thresholds.maxOperations) return true;

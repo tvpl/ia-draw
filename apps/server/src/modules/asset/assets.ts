@@ -28,7 +28,10 @@ export interface InsertPendingAssetInput {
   createdBy: string;
 }
 
-export async function insertPendingAsset(db: Db, input: InsertPendingAssetInput): Promise<AssetRow> {
+export async function insertPendingAsset(
+  db: Db,
+  input: InsertPendingAssetInput,
+): Promise<AssetRow> {
   const [row] = await db
     .insert(diagramAssets)
     .values({
@@ -128,7 +131,9 @@ export async function findNonReadyAssetIds(
   const rows = await db
     .select({ id: diagramAssets.id, status: diagramAssets.status })
     .from(diagramAssets)
-    .where(and(eq(diagramAssets.workspaceId, workspaceId), inArray(diagramAssets.id, wellFormedIds)));
+    .where(
+      and(eq(diagramAssets.workspaceId, workspaceId), inArray(diagramAssets.id, wellFormedIds)),
+    );
 
   const readyIds = new Set(rows.filter((row) => row.status === 'ready').map((row) => row.id));
   const nonReadyWellFormed = wellFormedIds.filter((id) => !readyIds.has(id));

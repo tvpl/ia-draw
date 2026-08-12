@@ -7,11 +7,7 @@ import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import type { JobQueue } from '../jobs/index.js';
-import {
-  type CompactionThresholds,
-  enqueueCompaction,
-  shouldCompact,
-} from '../snapshot/index.js';
+import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import { loadOperationsAfter } from './catchup.js';
 import { appendOperation } from './operations.js';

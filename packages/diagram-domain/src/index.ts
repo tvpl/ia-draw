@@ -7,3 +7,4 @@ export {
   parseOperationEnvelope,
 } from './envelope.js';
 export { type ReconcileOperationResult, reconcileOperation } from './reconcile.js';
+export { type StructuralDiffResult, structuralDiff } from './structuralDiff.js';

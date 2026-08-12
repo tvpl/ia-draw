@@ -273,9 +273,7 @@ export const diagramAssets = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [
-    index('diagram_assets_workspace_checksum_idx').on(table.workspaceId, table.checksum),
-  ],
+  (table) => [index('diagram_assets_workspace_checksum_idx').on(table.workspaceId, table.checksum)],
 );
 
 /**

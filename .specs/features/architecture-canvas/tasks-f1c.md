@@ -225,6 +225,8 @@ T36
 
 **Commit**: `feat(server): add snapshot restore as new revision and structural diff endpoint`
 
+**Status**: ✅ Complete — `packages/diagram-domain/src/structuralDiff.ts` adds `structuralDiff` (added/removed/moved/modified by element id, ignoring version/versionNonce/updated bookkeeping fields; documented precedence when an element is both moved and content-modified). `apps/server/src/modules/snapshot/restore.ts` computes restore deltas that force the target snapshot's content to LWW-win (version bumped above whatever the current scene holds) and reuses diagram-sync's own `appendOperation` unmodified — restore never edits or deletes any existing `diagram_operations`/`diagram_snapshots` row, so immutability of `published`/`pre_ai` snapshots holds structurally, not just by convention (proven with a dedicated test). `diff.ts` resolves `from`/`to` as either a revision number or a snapshot id. Routes: `POST /diagrams/{id}/snapshots/{snapshotId}:restore`, `GET /diagrams/{id}/diff?from=&to=`. Gate (last task of Batch 1): `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration` — 78 unit / 150 integration passed, lint/typecheck/build all clean (biome auto-fix applied for import order/formatting drift, folded into this commit). Real server boot verified: `node apps/server/dist/index.js` against an unreachable `DATABASE_URL` — `/health/live` 200, asset/snapshot routes 401 (not 404) confirming registerAllModules wiring is genuinely reachable, job-queue startup failure degrades gracefully without blocking HTTP boot.
+
 ---
 
 ### Phase 14 — Export completo

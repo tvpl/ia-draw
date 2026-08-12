@@ -9,11 +9,11 @@ import { randomUUID } from 'node:crypto';
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import { PGlite } from '@electric-sql/pglite';
-import { fromPglite } from 'pg-boss';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';
+import { fromPglite } from 'pg-boss';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from '../../core/config.js';
 import { buildServer } from '../../core/server.js';
 import { createLocalAccount } from '../auth/accounts.js';
@@ -56,7 +56,8 @@ function createFakeStorage(): StorageClient & { objects: Map<string, string> } {
 async function waitUntil(predicate: () => Promise<boolean>, timeoutMs: number): Promise<void> {
   const deadline = Date.now() + timeoutMs;
   while (!(await predicate())) {
-    if (Date.now() > deadline) throw new Error(`waitUntil: condition not met within ${timeoutMs}ms`);
+    if (Date.now() > deadline)
+      throw new Error(`waitUntil: condition not met within ${timeoutMs}ms`);
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
 }
@@ -181,7 +182,10 @@ describe('snapshot module — on-demand creation (T30, VER-01)', () => {
 
     // Checksum matches the exact stored bytes (not a placeholder value).
     const crypto = await import('node:crypto');
-    const expectedChecksum = `sha256:${crypto.createHash('sha256').update(stored as string).digest('hex')}`;
+    const expectedChecksum = `sha256:${crypto
+      .createHash('sha256')
+      .update(stored as string)
+      .digest('hex')}`;
     expect(snapshot.checksum).toBe(expectedChecksum);
   });
 
@@ -278,7 +282,11 @@ describe('threshold-based compaction (T30, VER-01)', () => {
     registerDiagramSyncModule(app, {
       db,
       jobs,
-      compactionThresholds: { maxOperations: 3, maxAgeMs: 10 * 60 * 1000, maxBytes: 10 * 1024 * 1024 },
+      compactionThresholds: {
+        maxOperations: 3,
+        maxAgeMs: 10 * 60 * 1000,
+        maxBytes: 10 * 1024 * 1024,
+      },
     });
     registerSnapshotModule(app, { db, storage });
     await app.ready();
