@@ -86,15 +86,17 @@ T47 -> T48
 
 **Done when**:
 
-- [ ] `validateIr` aceita um documento completo válido com nós, containers aninhados e edges de cada `mode`
-- [ ] Rejeita: edge referenciando `from`/`to` inexistente; container referenciando `children` inexistente; `kind` fora do enum
-- [ ] JSON Schema exportado é um objeto válido (testável por um validador JSON Schema genérico, ex. `ajv`, contra os mesmos casos válidos/inválidos acima)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] `validateIr` aceita um documento completo válido com nós, containers aninhados e edges de cada `mode`
+- [x] Rejeita: edge referenciando `from`/`to` inexistente; container referenciando `children` inexistente; `kind` fora do enum
+- [x] JSON Schema exportado é um objeto válido (testável por um validador JSON Schema genérico, ex. `ajv`, contra os mesmos casos válidos/inválidos acima)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(diagram-ir): add diagram-ir/v1 schema, validation and json schema export`
+
+**Status**: ✅ Complete — `packages/diagram-ir` scaffolded; `irDocumentSchema`/`validateIr`/`IrValidationError`/`IR_JSON_SCHEMA` in `src/schema.ts`, 10 tests in `src/schema.spec.ts`. JSON Schema exported via zod v4's native `z.toJSONSchema()` (verified live — no separate `zod-to-json-schema` package needed, that targets zod v3), validated against `ajv`'s 2020-12 dialect. `pnpm -w test:unit` green (20/20 packages).
 
 ---
 

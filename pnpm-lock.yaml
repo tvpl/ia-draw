@@ -311,6 +311,34 @@ importers:
         specifier: ^3.2.4
         version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(@noble/hashes@1.8.0)(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
 
+  packages/diagram-ir:
+    dependencies:
+      '@arch-canvas/editor-adapter':
+        specifier: workspace:*
+        version: link:../editor-adapter
+      elkjs:
+        specifier: ^0.9.3
+        version: 0.9.3
+      zod:
+        specifier: ^4.1.12
+        version: 4.4.3
+    devDependencies:
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../library-content
+      '@types/node':
+        specifier: ^22.20.1
+        version: 22.20.1
+      ajv:
+        specifier: ^8.20.0
+        version: 8.20.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.7(@types/node@22.20.1)(jsdom@30.0.1(@noble/hashes@1.8.0)(canvas@3.2.3))(lightningcss@1.33.0)(tsx@4.23.12)
+
   packages/editor-adapter:
     dependencies:
       '@excalidraw/excalidraw':
@@ -2492,6 +2520,9 @@ packages:
         optional: true
       sqlite3:
         optional: true
+
+  elkjs@0.9.3:
+    resolution: {integrity: sha512-f/ZeWvW/BCXbhGEf1Ujp29EASo/lk1FDnETgNKwJrsVvGZhUWCZyg3xLJjAsxfOmt8KjswHmI5EwCQcPMpOYhQ==}
 
   end-of-stream@1.4.5:
     resolution: {integrity: sha512-ooEGc6HP26xXq/N+GCGOT0JKCLDGrq2bQUZrQ7gyrJiZANJ/8YDTxTpQBXGMn+WbIQXNVpyWymm7KYVICQnyOg==}
@@ -5551,6 +5582,8 @@ snapshots:
       '@electric-sql/pglite': 0.5.4
       '@types/pg': 8.21.0
       pg: 8.23.0
+
+  elkjs@0.9.3: {}
 
   end-of-stream@1.4.5:
     dependencies:
