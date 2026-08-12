@@ -1190,3 +1190,197 @@ All three mutations were applied one at a time inside the scratch worktree, conf
 **Issues found**: 1 (Minor, non-blocking) — AIG-03's truncated-labels dimension is untested at the 200-element scale the AC names; see Fix Plan above.
 
 **Next steps**: Route Fix 1 to a small follow-up task (single `expect()` addition to an existing test loop) whenever `packages/diagram-ir` is next touched — does not need to block F2c, which consumes `compile()`/`geometryMetrics()` as-is and does not depend on this specific assertion existing. No re-verification cycle needed for a test-only, low-risk addition; confirm it in F2c's own gate run or the next diagram-ir-scoped wave.
+
+## F2c Wave Report (Agente de IA — Tools, Pipeline, Segurança) — PASS ✅
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `24c33ed..HEAD` minus the docs-only checkpoint `d8cccb9` — source commits `bf9aa64..1f7ab33` (T53-T57, batch 2). Batch 1 (`9a14d35..24c33ed`, T49-T52) spot-checked as part of this pass, not re-verified line-by-line.
+**Verifier**: independent sub-agent (author ≠ verifier)
+
+This is the highest-stakes verification of the project: an external-LLM-facing pipeline with write access to user data, and prompt-injection defense as a named security invariant (AIE-04). Every claim below was re-derived from the real code and re-executed — none taken on the implementer's word.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T49 | ✅ Done | `callProvider.ts` — token decrypted into a function-scoped local, never returned/logged; confirmed by reading the function body |
+| T50 | ✅ Done | `buildContext.ts` — untrusted scene data structurally separated from `instructions`, confirmed |
+| T51 | ✅ Done | 6 read tools, pure, no fetch/fs/child_process (automated scan confirmed) |
+| T52 | ✅ Done | 17 write tools, all produce `AbstractPatch`, no url/command/sql schema fields (automated scan confirmed) |
+| T53 | ✅ Done | Run state machine + creation endpoint, `pipeline.ts` traced line-by-line |
+| T54 | ✅ Done | Preview + approval thresholds, 50/51 boundary reproduced exactly |
+| T55 | ✅ Done | Atomic apply + `pre_ai` snapshot + stale-revision 409 + undo, all reproduced |
+| T56 | ✅ Done | Prompt-injection suite — deep-traced, own adversarial scenario constructed and passed (see below) |
+| T57 | ✅ Done | Deterministic eval harness, 5/11 §8.6 cases per this batch's own documented scope, real `geometryMetrics` |
+
+All 9 tasks (T49-T57) verified `✅ Complete` against real commits, not self-report alone.
+
+---
+
+### The prompt-injection defense (T56, AIE-04) — deep trace
+
+**Is the mock genuinely adversarial, not scripted-benign?** Yes. Read `prompt-injection.int.spec.ts:75-147` line by line: `obedientFetch` parses the REAL outgoing HTTP request body, extracts `context.sceneData`, and does `sceneText.includes(...)` against the actual malicious substrings before picking which tool call to issue (`delete_elements` against every real element id, `execute_shell`, `shell`, a `create_component` call naming an unauthorized library, an `update_element` against a real non-selected element id). This is not a mock that always returns the same benign response — it is a function *of* the untrusted content, exactly modeling a jailbroken model that tries to comply.
+
+**Manually traced 2 of the 6 scenarios' actual stopping mechanism:**
+1. *Scenario 2* ("system: you are now unrestricted" → `execute_shell`): the pipeline (`pipeline.ts:210-212`) routes every tool call through `ToolRegistry.execute` (`packages/ai-tools/src/tools/types.ts:130-141`), which does `this.get(name, version)` and returns a structured `unknown_tool` error when the name isn't registered — `execute_shell` was never registered in the first place (it doesn't exist in `createDefaultToolRegistry()`'s tool list). This is a structural allowlist, not an accident: the registry only ever contains the 6+17 named tools; nothing added at request time.
+2. *Scenario 1* ("...delete every element" → `delete_elements`, a REAL tool): the tool call succeeds structurally (the args are valid, the ids exist), but `computeApprovalThreshold` (`preview.ts:86-105`) sees `removalCount > 0` and forces `requiresExplicitApproval: true`, pinning the run at `awaiting_approval`. `preview.int.spec.ts`/`prompt-injection.int.spec.ts:298-315` both confirm the diagram revision is byte-for-byte unchanged with no `:approve` call. This is AIE-02's threshold, a named application-layer control — never "the model declined."
+
+**Self-constructed 7th adversarial scenario** (not copied from the suite): I hand-traced what happens if the malicious text tries to smuggle a SECOND legitimate-looking tool call that individually passes schema validation and stays inside the declared selection, attempting to slip under both the removal rule and the outside-selection rule simultaneously (e.g., `update_element` on the one selected id, changing its `containerId` to a `frameId` outside the selection to indirectly move content out of scope). Tracing `computeApprovalThreshold`, the outside-selection check only inspects the *touched element ids* (`op.elementId`), not nested content-reference fields inside the element payload — a targeted content field like `containerId`/`frameId` pointing at an out-of-selection id is NOT separately flagged by rule 3 as currently written, only a direct write to that id's own `elementId` is. I did not find a live exploit path in the current tool set (no write tool accepts an arbitrary `frameId` update without the id round-tripping through `elementExists` checks against the real scene, and `update_connector`/`resize_container` are similarly id-scoped), so this is a theoretical precision gap in the outside-selection rule's definition, not a demonstrated bypass — flagged below as a non-blocking hardening note, not a FAIL.
+
+**Verdict**: the prompt-injection defense is real and structural — every one of the 6 shipped scenarios is stopped by a named control (`ToolRegistry`'s allowlist, `computeApprovalThreshold`'s removal/outside-selection rules, `component_not_found` against the real seeded library), confirmed against a mock that genuinely tries to misbehave, confirmed further by killing the tool-allowlist bypass mutation in the sensor below.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| AIG-04: generation completes → preview layer, canvas unmodified | revision identical before/after, zero `diagram_operations` rows | `preview.int.spec.ts:155-200` — `expect(revisionAfter).toBe(revisionBefore)`, `expect(ops).toHaveLength(0)` | ✅ PASS |
+| AIG-05: approval → atomic apply against source revision + pre-ai undo point | `appendOperation` called once, `pre_ai` snapshot row created, restorable | `applyPatch.int.spec.ts:188-226` (apply+snapshot), `:277-336` (restore reverts to pre-AI state) | ✅ PASS |
+| AIG-06: IR/patch referencing out-of-scope component or elementId → rejected before preview | run fails (`status: 'failed'`) before reaching `previewing` | `pipeline.int.spec.ts:224-239` (`errorCode: 'element_not_found'`), `writeTools.spec.ts:450-459` (`unresolved_component`) | ✅ PASS |
+| AIG-07: deterministic geometric metrics computed for every generation in the eval suite, CI-runnable with mock provider | `overlaps===0`, `crossings===0` for generation cases, zero network | `evals.spec.ts:70-87` (case 1), `:123-136` (case 4), `:153-165` (case 6); `no-egress.spec.ts` covers the directory | ✅ PASS *(5/11 §8.6 cases — the subset T57 itself scoped; 6 cases explicitly out of scope, documented, not silently dropped)* |
+| AIE-01: agent acts exclusively through versioned domain tools, never raw scene/SQL/URL | no write tool schema exposes a generic url/command/sql field | `writeTools.spec.ts:471-480` — enumerates every write tool's JSON Schema property names | ✅ PASS |
+| AIE-02: removal / >50 elements / outside-selection → explicit approval required | 50 exactly does NOT trigger, 51 DOES (strict `>`) | `preview.spec.ts:42-59` — exact boundary asserted both directions | ✅ PASS |
+| AIE-03: stale base revision between preview and apply → recompute/reconfirm, never overwrite | 409, scene byte-for-byte unchanged | `applyPatch.int.spec.ts:228-275` — `expect(approve.statusCode).toBe(409)`, `expect(sceneAfterApprove).toEqual(sceneBeforeApprove)` | ✅ PASS |
+| AIE-04: untrusted element text → agent keeps tools/config/scope unchanged | identical tool list + system prompt across every request regardless of scene content | `prompt-injection.int.spec.ts:413-438` — `uniqueSystemMessages.size === 1`, `assertScopeUnchanged()` on every scenario | ✅ PASS |
+| AIE-05: AI run + tool calls (redacted args) + token usage recorded in append-only audit trail | sensitive test literal never appears in the persisted row | `pipeline.int.spec.ts:244-271` — `expect(JSON.stringify(row)).not.toContain(SENSITIVE)`; `usage_json` numeric-only (`pipeline.ts:184-190`) | ✅ PASS |
+
+**Status**: ✅ All 9 ACs in this wave's scope covered with exact-outcome evidence, no spec-precision gaps.
+
+---
+
+### Token-scoping trace (T49, carried into T53's pipeline)
+
+Traced `POST /diagrams/{id}/ai/runs` → `createAiRun` (`pipeline.ts:107`) → `callProvider` (`callProvider.ts:188`). `pipeline.ts` never touches `encryptedToken` itself — it passes `providerConfig.encryptedToken`/`encryptionKey` straight through to `callProvider`'s config object. Inside `callProvider`, `decryptToken` is called exactly once (`callProvider.ts:209`) into a `let token: string` local that lives only inside the function body, used solely as the `Authorization` header (`:232`) — never assigned to a wider-scoped variable, never returned in `CallProviderResult` (success or failure branch), never passed to `insertAiToolCall`'s redacted-arguments path. `redactToolArguments` (`redact.ts`) operates on tool-call arguments, which never contain the token in the first place — confirmed by `pipeline.ts`'s `usageJson` construction (`:184-190`), which copies only `promptTokens`/`completionTokens`/`totalTokens` off the response, never a raw field. A scratch-worktree mutation that appended the token onto the returned response object was killed by `callProvider.spec.ts:182-200`'s exact `not.toContain(TEST_TOKEN)` assertion (Sensor #4 below) — proving this isn't just architecturally true today but is actively regression-guarded.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/f2c-verify-scratch HEAD` (never `git stash`). Baseline `git status --porcelain` captured empty before any mutation; confirmed still empty after cleanup (worktree removed with `git worktree remove --force`).
+
+One methodology note: the scratch worktree's `node_modules` were symlinked wholesale from the real repo for speed. For mutation #3 (a cross-package dependency, `packages/ai-tools`, consumed by `apps/server` through a workspace symlink), the FIRST attempt silently followed the inherited relative symlink back to the REAL repo's `packages/ai-tools/dist` — the scratch mutation never took effect and the test suite "passed" as a false negative. Caught by noticing the result was suspicious, fixed by re-pointing `apps/server/node_modules/@arch-canvas/ai-tools` at the scratch copy directly and rebuilding it there before re-running — the corrected run is the one reported below. Flagged as a process lesson (L-016 candidate — see Distilled Lessons) so future verifiers doing cross-package sensor mutations in this pnpm workspace don't get the same false negative.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `apps/server/src/modules/ai-engine/preview.ts:101` | `touchedElementCount > 50` → `>= 50` (AIE-02 boundary) | ✅ Killed — `preview.spec.ts`'s exact-50 boundary test failed (`expected true to be false`) |
+| 2 | `apps/server/src/modules/ai-engine/applyPatch.ts:148` | Stale-revision check `if (revision !== run.sourceRevision) throw ...` short-circuited to never fire (`if (false && ...)`) | ✅ Killed — `applyPatch.int.spec.ts`'s stale-revision test failed (`expected 200 to be 409`) |
+| 3 | `packages/ai-tools/src/tools/types.ts:139` | Unknown-tool rejection (`unknown_tool` error) replaced with `toolOk({})` — any tool name, registered or not, "succeeds" | ✅ Killed (after fixing the symlink issue above) — `prompt-injection.int.spec.ts` scenarios 2 & 3 both failed (`expected 'awaiting_approval' to be 'failed'`) |
+| 4 | `apps/server/src/modules/ai-engine/callProvider.ts:297` | Token leaked onto the returned response object (`debugAuthToken`) before `return { ok: true, response: parsed }` | ✅ Killed — `callProvider.spec.ts`'s token-never-in-result test failed, literal token string visible in the diff |
+
+**Sensor depth**: above the default lightweight tier, per the wave's explicit security stakes (4 mutations, covering the approval threshold, the atomicity/staleness guard, the tool allowlist, and the token-scoping boundary — the 4 highest-risk controls in this wave).
+**Result**: 4/4 killed, 0 survived (1 false-negative in verifier tooling caught and corrected, not a product defect) — ✅ PASS
+
+Post-sensor `git status --porcelain` on the real worktree confirmed identical to the pre-sensor baseline (both empty).
+
+---
+
+### Real Server Boot Check
+
+Built via `pnpm -w build`, ran `apps/server/dist/index.js` under plain `node` (no bundler) with an unreachable Postgres (`ECONNREFUSED` on the job queue, caught and degraded exactly as designed — server still listened). curl results (proxy-bypassed, `--noproxy '*'`, against `127.0.0.1`):
+
+| Route | Method | Result |
+| --- | --- | --- |
+| `/health/live` | GET | `200` (control — server genuinely up) |
+| `/nonexistent-route-xyz` | GET | `404` (control — proves 401s below are real route-level auth, not a router miss) |
+| `/diagrams/{uuid}/ai/runs` | POST | `401` (no session) |
+| `/ai/runs/{uuid}:approve` | POST | `401` |
+| `/ai/runs/{uuid}:cancel` | POST | `401` |
+
+Process killed after verification (`pkill -f apps/server/dist/index.js`, confirmed down via a failed post-kill curl).
+
+---
+
+### Eval Harness (T57)
+
+`apps/server/src/modules/ai-engine/evals/harness.ts` runs a fixed, hard-coded tool-call list through the REAL `packages/ai-tools` `ToolRegistry` — zero DB, zero network (confirmed: this directory has no matches for fetch/http/fs in `no-egress.spec.ts`'s scan). `evals.spec.ts` covers 5 of product-spec.md §8.6's 11 cases (1, 4, 6, 9, 10) — exactly the subset `tasks-f2c.md`'s own T57 definition scoped for this batch, not a cherry-picked reduction by the implementer. Cases 1/4/6 validate via `geometryMetrics` (`packages/diagram-ir`, real, not stubbed) against a real `compile()`/`auto_layout()`-produced scene. Case 1's AWS multi-AZ simplification (no WAF/dedicated ECS/Redis/observability icon in the current library — CloudFront/API-Gateway/EC2/RDS substitute) is disclosed in the file's own header with the exact substitution named, not silently narrowed. This is honest, reasonably-scoped disclosure, not overclaiming: the 6 out-of-scope cases (2/3/5/7/8/11) were never claimed as done anywhere in the task's own "Done when" list.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ |
+| No abstractions for single-use code | ✅ — `ToolRegistry`/`defineTool` is the one generic abstraction, justified by 23 tools sharing it |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — diff scoped to `apps/server/src/modules/ai-engine/**`, `packages/ai-tools/**`, plus the two doc files |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — `RunStore` mirrors `InMemoryRateLimiter`'s injectable-singleton convention; `applyPatch.ts` reuses `restore.ts`'s `buildRestoreDeltas` pattern exactly |
+| Would senior engineer approve? | ✅ |
+| Tests map to acceptance criteria, non-shallow (spot-checked AIE-04's story) | ✅ — the prompt-injection suite's mock is genuinely adversarial, not scripted-benign (see deep-trace above) |
+| Spec-anchored outcome check | ✅ — all 9 ACs target the spec's exact stated outcome, not just "an assertion exists" |
+| Per-layer Coverage Expectation met | ✅ — domain (`ai-tools`) 1:1 with AIE-01; routes cover happy+edge+error (403/404/401/409 all tested) |
+| Every test maps to a spec AC/Done-when — no unclaimed tests | ✅ |
+| Documented guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md` — followed |
+
+---
+
+### Disclosed Deviations — assessed
+
+- **`RunStore` in-memory, not persisted to `ai_runs`**: real but bounded gap. `runStore.ts:12-21`'s own docstring discloses the tradeoff honestly: a pending run's patch does not survive a process restart or land on a different instance behind a load balancer, and `:approve`/`:cancel` against an evicted entry fails with a structured `PatchNotFoundError` (409) — never a silent no-op or a corrupted apply. The run's audit trail (`ai_runs`/`ai_tool_calls`) IS durable regardless — only the ephemeral, not-yet-approved patch payload is not. Acceptable for this MVP wave (single-process deployment per docs/product-spec.md's current scope); flagged as a lesson (L-015, already recorded) for whenever the deployment model adds horizontal scaling or aggressive restarts.
+- **Merged `:runRef` route (`find-my-way` workaround)**: `routes.ts:44-67`'s docstring explains a real, confirmed Fastify router limitation (two differently-suffixed regex-constrained routes on the same prefix collide); the external URL contract (`POST /ai/runs/{id}:approve` / `:cancel`) is unchanged, and `parseRunRef` is directly tested via both actions in `applyPatch.int.spec.ts`. Reasonable, narrowly-scoped workaround, not a design smell.
+- **Traceability rows pre-marked `✅ Verified` by the implementer's own T57 commit**: `spec.md`'s AIG-04..07/AIE-01..05 rows were already written as "✅ Verified" in commit `1f7ab33` — the same commit that implemented T57 — before any independent Verifier pass ran. Every one of those claims held up under this independent audit (all 9 are genuinely `✅ Verified` per the table above), so there is no functional gap here — but an author declaring its own work "Verified" in the spec's traceability table is a process boundary violation (that word is reserved for the Verifier's own pass per `validate.md`). Not a FAIL — the substance checks out — but flagged for the orchestrator: future implementer commits should leave new AC rows as `Implementing`/`Pending` and let the Verifier be the only writer of the word "Verified."
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- **Result**: all 5 stages exit 0. `lint`: 307 files, zero drift. `typecheck`: 22/22 package tasks. `build`: 12/12 package tasks. `test:unit`: **179 server + 22 web = 201 tests passed, 0 failed** (17 server test files). `test:integration`: **198 server tests passed, 0 failed** (20 integration test files).
+- **Test count before this wave** (end of batch 1, T52): 145 server unit / early integration count per T50-T52 status notes (chain: 137→145→163 unit across T49/T50/T53 as tools landed).
+- **Test count after this wave**: 179 server unit, 198 server integration — exactly matching this batch's own self-reported final numbers (`tasks-f2c.md`'s T57 status line), independently reproduced, not taken on faith.
+- **Delta**: T53-T57 added 34 unit tests and the full 198-test integration suite (up from 0 integration tests for ai-engine at the start of this batch — `pipeline.int.spec.ts`, `preview.int.spec.ts`, `applyPatch.int.spec.ts`, `prompt-injection.int.spec.ts` are all new this batch).
+- **Skipped tests**: none.
+- **Failures**: none.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| AIG-04 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, see table above |
+| AIG-05 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, see table above |
+| AIG-06 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, see table above |
+| AIG-07 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, see table above |
+| AIE-01 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, see table above |
+| AIE-02 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, boundary re-killed by sensor #1 |
+| AIE-03 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, re-killed by sensor #2 |
+| AIE-04 | ✅ Verified (author self-report) | ✅ Verified — deep-traced, own adversarial scenario constructed, re-killed by sensor #3 |
+| AIE-05 | ✅ Verified (author self-report) | ✅ Verified — independently reproduced, token-scoping re-killed by sensor #4 |
+
+(`spec.md`'s own table has been rewritten with this Verifier's own file:line evidence, replacing the implementer-authored evidence text — see the Disclosed Deviations note above on why.)
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — F2c closes as PASS, no blocking gaps
+
+**Spec-anchored check**: 9/9 ACs in this wave's scope matched the spec-defined outcome, 0 spec-precision gaps
+
+**Sensor**: 4/4 mutations killed (1 initial false-negative from the verifier's own worktree/symlink setup, caught and corrected — not a product defect)
+
+**Gate**: 5/5 stages passed, 179 unit + 198 integration server tests passed, 0 failed
+
+**What works**: The prompt-injection defense is real and structural, confirmed by deep-tracing 2 of 6 scenarios to their exact stopping mechanism (`ToolRegistry`'s allowlist, `computeApprovalThreshold`'s removal/outside-selection rules) and by constructing a 7th adversarial scenario of my own. Token scoping in `callProvider` is confirmed by trace AND by a sensor mutation that successfully leaks a token and gets caught by the existing test. Atomic apply, the `pre_ai` snapshot, and undo-via-restore are all reproduced end-to-end against a real PGlite database, not asserted from a status note. The 50/51 approval-threshold boundary and the stale-revision 409 are both reproduced and both independently re-confirmed by killing a targeted mutation. The real compiled server boots under plain Node and every new route is reachable (401, never 404). The eval harness is genuinely deterministic, network-free, and validates against real geometry math, with its one scope simplification (AWS multi-AZ icon substitution) honestly disclosed.
+
+**Issues found**: 0 blocking. 2 non-blocking notes: (1) the outside-selection rule's precision gap around nested content-reference fields (e.g. `containerId`/`frameId`) found while constructing my own adversarial scenario — no live exploit demonstrated, flagged as hardening for a future wave; (2) the implementer's own commit pre-marking spec.md traceability rows "Verified" before the independent Verifier ran — a process note for the orchestrator, not a functional gap, since every claim held up under audit.
+
+**Next steps**: no fix-loop required (this is a PASS). Optional hardening follow-up whenever `ai-tools`/`ai-engine` is next touched: extend `computeApprovalThreshold`'s outside-selection rule to also flag content-reference fields (`containerId`, `frameId`, connector endpoints) that point at ids outside the declared selection, not just the touched element's own id.
+
+---
+
+## F2 Phase Summary (F2a + F2b + F2c)
+
+F2 ("Agente de IA — o diferencial declarado do produto", AD-002) is now fully verified across all three independent Verifier passes recorded in this file:
+
+- **F2a (Biblioteca de Componentes e Configuração de IA)** — PASS on iteration 2 (iteration 1 caught 1 surviving mutant, fixed in `38b320c`). LIB-01..04, AIC-01..03 → Verified; AIC-04 correctly left `⚠️ Partial` (workspace/budget limits deferred to F2c, and F2c's own scope never claimed to close them — still open, honestly tracked, not a regression).
+- **F2b (diagram-ir: schema, layout engines, compiler, geometry metrics)** — PASS on iteration 1, with one flagged non-blocking spec-precision gap (AIG-03's truncated-labels dimension untested at the full 200-element scale — closed shortly after by a direct fix, `9fa4492`/`48cf0bc`). AIG-01/02/03/07 → Verified.
+- **F2c (Agente de IA — Tools, Pipeline, Segurança)** — this section, PASS on iteration 1. AIG-04/05/06/07, AIE-01..05 → Verified, closing the AI generation + AI editing stories in full.
+
+Every P1 story under F2 (Configuração de provider IA, Geração de diagramas por IA via IR declarativa, Edição por IA com preview/aprovação/undo, Biblioteca de componentes e metadados semânticos — the last verified in F2a) now has independent `file:line` evidence behind its acceptance criteria, not self-reported claims. The product's core differentiator — natural-language diagram generation with a real IR pipeline, deterministic layout, atomic apply, full undo, and a genuinely structural (not incidental) prompt-injection defense — is real, tested against adversarial input that actively tries to misbehave, and re-confirmed by targeted mutation testing on its four highest-risk controls (approval threshold, staleness guard, tool allowlist, token scoping) rather than taken on the implementer's word. The one open item across all of F2 is AIC-04's disclosed partial scope (provider budget/rate limits beyond what F2a/F2c already built), which was never claimed as closed by any wave and does not block F2's own invariant: no AI-proposed change reaches a real diagram without passing through versioned domain tools, an explicit-approval threshold, and an atomic, undoable apply.

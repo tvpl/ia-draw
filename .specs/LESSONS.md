@@ -98,6 +98,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: AIG-03 / packages/diagram-ir/src/metrics.spec.ts:300-314 (packages/diagram-ir)
 - last seen: 2026-08-12T18:45:32Z
 
+### L-015 - AI-run pending-patch state (RunStore) kept in-process/in-memory is fine for single-instance MVP but must move to persisted storage before horizontal scaling or restart-heavy deploys, since a lost entry forces the user to re-request generation (structurally safe, but a real UX/durability gap under load).
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `apps/server/src/modules/ai-engine` · harmful: 0
+- features: architecture-canvas
+- evidence: apps/server/src/modules/ai-engine/runStore.ts:12 (apps/server/src/modules/ai-engine)
+- last seen: 2026-08-12T20:35:14Z
+
+### L-016 - When sensor-mutating a pnpm-workspace package consumed cross-package via node_modules symlinks (e.g. packages/ai-tools from apps/server), a wholesale symlinked node_modules in the scratch worktree follows the relative symlink chain back to the REAL repo's dist, silently making the mutation a no-op; re-point the specific @scope/pkg symlink at the scratch copy and rebuild it there before running the affected tests.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `verification-methodology` · harmful: 0
+- features: architecture-canvas
+- evidence: packages/ai-tools/src/tools/types.ts:139 (verifier sensor mutation #3, false negative on first attempt) (verification-methodology)
+- last seen: 2026-08-12T20:38:24Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

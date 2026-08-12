@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 15,
+  "next_id": 17,
   "lessons": [
     {
       "id": "L-001",
@@ -258,6 +258,42 @@
       ],
       "created": "2026-08-12T18:45:32Z",
       "last_seen": "2026-08-12T18:45:32Z"
+    },
+    {
+      "id": "L-015",
+      "key": "spec_deviation::ai run pending patch state runstore kept in process in memory is fine for single instance mvp but must move to persisted storage before horizontal scaling or restart heavy deploys since a lost entry forces the user to re request generation structurally safe but a real ux durability gap under load",
+      "text": "AI-run pending-patch state (RunStore) kept in-process/in-memory is fine for single-instance MVP but must move to persisted storage before horizontal scaling or restart-heavy deploys, since a lost entry forces the user to re-request generation (structurally safe, but a real UX/durability gap under load).",
+      "signal": "spec_deviation",
+      "scope": "apps/server/src/modules/ai-engine",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/ai-engine/runStore.ts:12 (apps/server/src/modules/ai-engine)"
+      ],
+      "created": "2026-08-12T20:35:14Z",
+      "last_seen": "2026-08-12T20:35:14Z"
+    },
+    {
+      "id": "L-016",
+      "key": "surviving_mutant::when sensor mutating a pnpm workspace package consumed cross package via node modules symlinks e g packages ai tools from apps server a wholesale symlinked node modules in the scratch worktree follows the relative symlink chain back to the real repo s dist silently making the mutation a no op re point the specific scope pkg symlink at the scratch copy and rebuild it there before running the affected tests",
+      "text": "When sensor-mutating a pnpm-workspace package consumed cross-package via node_modules symlinks (e.g. packages/ai-tools from apps/server), a wholesale symlinked node_modules in the scratch worktree follows the relative symlink chain back to the REAL repo's dist, silently making the mutation a no-op; re-point the specific @scope/pkg symlink at the scratch copy and rebuild it there before running the affected tests.",
+      "signal": "surviving_mutant",
+      "scope": "verification-methodology",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/ai-tools/src/tools/types.ts:139 (verifier sensor mutation #3, false negative on first attempt) (verification-methodology)"
+      ],
+      "created": "2026-08-12T20:38:24Z",
+      "last_seen": "2026-08-12T20:38:24Z"
     }
   ]
 }
