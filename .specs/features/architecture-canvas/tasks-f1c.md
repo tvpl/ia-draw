@@ -166,6 +166,8 @@ T36
 
 **Commit**: `feat(server): add two-phase asset upload with checksum dedup and svg sanitization`
 
+**Status**: ✅ Complete — `apps/server/src/modules/asset/` (`assets.ts` DB access, `sanitizeSvg.ts` DOMPurify SVG profile, `assertAssetsReady.ts` the EDT-06 check, `routes.ts` `assets:initiate`/`assets/{assetId}:complete`). Excalidraw's own `fileId` field on `type: 'image'` elements is bound directly to `diagram_assets.id` (no extra indirection table) — documented in `assertAssetsReady.ts`. Surgical addition to `apps/server/src/modules/diagram-sync/routes.ts`'s `operations:batch` (T22): calls `assertDeltaAssetsReady` before persisting, throwing 409 for any pending/nonexistent referenced asset — new tests added to the existing `operations-batch.int.spec.ts` (never persisted, `rows` stay empty). Wired into `registerAllModules` (`apps/server/src/core/registerModules.ts`, now builds a real `StorageClient` from config, injectable for tests); `registerModules.int.spec.ts` extended to prove the route is reachable (401 without a session, not 404). `pnpm -w test:unit && pnpm -w test:integration`: 71 unit / 136 integration passed, all green.
+
 ---
 
 ### Phase 13 — Snapshots, restore e diff

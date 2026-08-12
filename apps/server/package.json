@@ -26,6 +26,7 @@
     "canvas": "^3.2.3",
     "drizzle-orm": "^0.45.2",
     "fastify": "^5.11.3",
+    "isomorphic-dompurify": "^3.22.0",
     "jsdom": "^30.0.1",
     "pg": "^8.23.0",
     "pg-boss": "^12.27.0",

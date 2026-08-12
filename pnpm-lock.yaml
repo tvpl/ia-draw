@@ -62,6 +62,9 @@ importers:
       fastify:
         specifier: ^5.11.3
         version: 5.11.3
+      isomorphic-dompurify:
+        specifier: ^3.22.0
+        version: 3.22.0(canvas@3.2.3)
       jsdom:
         specifier: ^30.0.1
         version: 30.0.1(canvas@3.2.3)
@@ -2576,6 +2579,10 @@ packages:
 
   isexe@2.0.0:
     resolution: {integrity: sha512-RHxMLp9lnKHGHRng9QFhRCMbYAcVpn69smSGcq3f36xjgVVWThj4qqLbTLlq7Ssj8B+fIQ1EuCEGI2lKsyQeIw==}
+
+  isomorphic-dompurify@3.22.0:
+    resolution: {integrity: sha512-cz/BkSODnQir4IV2quqbuEHhAGz4MAYGvhoemsxuwMpY/oZbRHlNjPLPyIQ0fdULiwDPUE+OHPwWb6XTEiNk1A==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0}
 
   jotai-scope@0.7.2:
     resolution: {integrity: sha512-Gwed97f3dDObrO43++2lRcgOqw4O2sdr4JCjP/7eHK1oPACDJ7xKHGScpJX9XaflU+KBHXF+VhwECnzcaQiShg==}
@@ -5578,6 +5585,14 @@ snapshots:
   is-potential-custom-element-name@1.0.1: {}
 
   isexe@2.0.0: {}
+
+  isomorphic-dompurify@3.22.0(canvas@3.2.3):
+    dependencies:
+      dompurify: 3.4.13
+      jsdom: 30.0.1(canvas@3.2.3)
+    transitivePeerDependencies:
+      - '@noble/hashes'
+      - canvas
 
   jotai-scope@0.7.2(jotai@2.11.0(@types/react@19.2.18)(react@19.2.8))(react@19.2.8):
     dependencies:

@@ -401,7 +401,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | EDT-03 | P1: Edição server-first | F1 | ✅ Verified |
 | EDT-04 | P1: Edição server-first | F1 | ✅ Verified |
 | EDT-05 | P1: Edição server-first | F1 | ✅ Verified |
-| EDT-06 | P1: Edição server-first | F1 | Pending |
+| EDT-06 | P1: Edição server-first | F1 | ✅ Verified |
 | EDT-07 | P1: Edição server-first | F1 | ✅ Verified |
 | REC-01 | P1: Recuperação após crash | F1 | ✅ Verified |
 | REC-02 | P1: Recuperação após crash | F1 | ✅ Verified |

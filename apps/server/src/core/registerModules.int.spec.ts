@@ -93,6 +93,18 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(bootstrap.json()).toMatchObject({ scene: [], revision: 0 });
   });
 
+  it('reaches the asset module route through the same wiring path (T29) — 401 without a session, never 404', async () => {
+    // No session cookie: requireSession's preHandler rejects before the route body (and
+    // therefore before any real storage call) ever runs — proves the route is registered
+    // and reachable, not merely that storage happens to be unreachable in this sandbox.
+    const response = await app.inject({
+      method: 'POST',
+      url: '/diagrams/some-diagram-id/assets:initiate',
+      payload: { mimeType: 'image/png', sizeBytes: 100 },
+    });
+    expect(response.statusCode).toBe(401);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 

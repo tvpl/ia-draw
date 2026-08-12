@@ -36,6 +36,13 @@
       "when": 1786512410825,
       "tag": "0004_slimy_ben_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786520776881,
+      "tag": "0005_ancient_rogue",
+      "breakpoints": true
     }
   ]
 }

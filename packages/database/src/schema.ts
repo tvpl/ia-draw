@@ -237,6 +237,47 @@ export const diagramSnapshots = pgTable(
   (table) => [index('diagram_snapshots_diagram_revision_idx').on(table.diagramId, table.revision)],
 );
 
+export const diagramAssetStatus = pgEnum('diagram_asset_status', ['pending', 'ready']);
+
+/**
+ * Uploaded binary assets referenced by canvas elements (EDT-06). Two-phase
+ * upload: `assets:initiate` inserts a `pending` row with a signed-URL
+ * `objectKey`; `assets:complete` confirms the object landed (`headObject`),
+ * computes `checksum`, and flips the row to `ready`. `operations:batch`
+ * (T22) rejects any delta referencing an asset that is not `ready` — an
+ * image element is never ACKed with a broken reference.
+ *
+ * Dedup is scoped per `workspaceId` (design.md "asset module": "dedup por
+ * checksum no tenant") — a second upload with the same SHA-256 in the same
+ * workspace repoints its `objectKey` to the first `ready` asset's object
+ * instead of keeping a second physical copy referenced.
+ */
+export const diagramAssets = pgTable(
+  'diagram_assets',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id),
+    diagramId: uuid('diagram_id')
+      .notNull()
+      .references(() => diagrams.id),
+    status: diagramAssetStatus('status').notNull().default('pending'),
+    mimeType: text('mime_type').notNull(),
+    sizeBytes: integer('size_bytes'),
+    objectKey: text('object_key').notNull(),
+    checksum: text('checksum'),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    index('diagram_assets_workspace_checksum_idx').on(table.workspaceId, table.checksum),
+  ],
+);
+
 /**
  * Single-use WebSocket handshake tickets (AUTH-02, design.md Tech Decisions).
  * `consumeWsTicket` marks `used_at` via one atomic

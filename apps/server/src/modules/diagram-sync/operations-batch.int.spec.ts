@@ -13,6 +13,7 @@ import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from '../../core/config.js';
 import { buildServer } from '../../core/server.js';
+import { insertPendingAsset, markAssetReady } from '../asset/index.js';
 import { createLocalAccount } from '../auth/accounts.js';
 import { SESSION_COOKIE_NAME } from '../auth/cookie.js';
 import type { Db } from '../auth/db.js';
@@ -414,5 +415,103 @@ describe('POST /diagrams/:id/operations:batch (T22, EDT-03/04, REC-03/05)', () =
     const { scene } = await loadDiagramScene(db, diagramId);
     expect(scene).toHaveLength(1);
     expect(scene[0]).toMatchObject({ id: 'shared-el', versionNonce: 100 });
+  });
+
+  function imageEnvelope(
+    actorId: string,
+    clientMutationId: string,
+    elementId: string,
+    fileId: string,
+  ) {
+    return {
+      clientMutationId,
+      baseRevision: 0,
+      actorId,
+      deltas: [
+        {
+          elementId,
+          kind: 'upsert' as const,
+          element: { id: elementId, type: 'image', fileId, version: 1, versionNonce: 1 },
+          version: 1,
+          versionNonce: 1,
+        },
+      ],
+    };
+  }
+
+  describe('image elements referencing assets (T29, EDT-06)', () => {
+    it('a delta referencing a PENDING asset is rejected (409), never persisted', async () => {
+      const owner = await seedUserWithSession('batch-asset-pending');
+      const { workspaceId, diagramId } = await seedDiagramAs(owner.cookies, 'asset-pending');
+      const assetId = randomUUID();
+      await insertPendingAsset(db, {
+        id: assetId,
+        workspaceId,
+        diagramId,
+        mimeType: 'image/png',
+        sizeBytes: 100,
+        objectKey: `diagrams/${diagramId}/assets/${assetId}`,
+        createdBy: owner.user.id,
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/diagrams/${diagramId}/operations:batch`,
+        cookies: owner.cookies,
+        payload: imageEnvelope(owner.user.id, randomUUID(), 'img-el', assetId),
+      });
+
+      expect(response.statusCode).toBe(409);
+      const rows = await opRows(diagramId);
+      expect(rows).toHaveLength(0);
+    });
+
+    it('a delta referencing a NONEXISTENT asset id is rejected (409), never persisted', async () => {
+      const owner = await seedUserWithSession('batch-asset-missing');
+      const { diagramId } = await seedDiagramAs(owner.cookies, 'asset-missing');
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/diagrams/${diagramId}/operations:batch`,
+        cookies: owner.cookies,
+        payload: imageEnvelope(owner.user.id, randomUUID(), 'img-el', randomUUID()),
+      });
+
+      expect(response.statusCode).toBe(409);
+      const rows = await opRows(diagramId);
+      expect(rows).toHaveLength(0);
+    });
+
+    it('a delta referencing a READY asset is accepted and persisted normally', async () => {
+      const owner = await seedUserWithSession('batch-asset-ready');
+      const { workspaceId, diagramId } = await seedDiagramAs(owner.cookies, 'asset-ready');
+      const assetId = randomUUID();
+      const objectKey = `diagrams/${diagramId}/assets/${assetId}`;
+      await insertPendingAsset(db, {
+        id: assetId,
+        workspaceId,
+        diagramId,
+        mimeType: 'image/png',
+        sizeBytes: 100,
+        objectKey,
+        createdBy: owner.user.id,
+      });
+      await markAssetReady(db, assetId, {
+        checksum: 'sha256:deadbeef',
+        sizeBytes: 100,
+        objectKey,
+      });
+
+      const response = await app.inject({
+        method: 'POST',
+        url: `/diagrams/${diagramId}/operations:batch`,
+        cookies: owner.cookies,
+        payload: imageEnvelope(owner.user.id, randomUUID(), 'img-el', assetId),
+      });
+
+      expect(response.statusCode).toBe(200);
+      const rows = await opRows(diagramId);
+      expect(rows).toHaveLength(1);
+    });
   });
 });

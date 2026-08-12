@@ -2,6 +2,7 @@ import { can } from '@arch-canvas/auth';
 import { parseOperationEnvelope } from '@arch-canvas/diagram-domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -80,6 +81,11 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       // OperationEnvelopeError (carries .statusCode) on violation, which core's
       // generic error handler renders as problem+json — same as notFound()/forbidden().
       const envelope = parseOperationEnvelope(request.body);
+
+      // EDT-06: an image element is never ACKed with a broken asset reference —
+      // throws AssetNotReadyError (409, problem+json) before anything is persisted
+      // when a delta's image element references a pending/nonexistent asset.
+      await assertDeltaAssetsReady(db, workspaceId, envelope.deltas);
 
       // actorId is always the authenticated session's user, never trusted from the
       // request body, mirroring the workspace module's "never accept scope/identity
