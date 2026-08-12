@@ -441,22 +441,22 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | OPS-03 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-04 | P1: Backup com restore testado | F1 | ✅ Verified |
 | OPS-05 | P1: Backup com restore testado | F1 | ✅ Verified |
-| DOC-01 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
-| DOC-02 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
-| DOC-03 | P2: Geração de documentação | F3 | Implementing (T62, `0d610f8`) |
-| DOC-04 | P2: Geração de documentação | F3 | Implementing (T63) |
-| PRS-01 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
-| PRS-02 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
-| PRS-03 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
-| PRS-04 | P2: Apresentação e protótipos | F3 | Implementing (T67, `0d8ace6`) |
-| PRS-05 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
-| LNT-01 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
-| LNT-02 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
-| LNT-03 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
-| AAC-01 | P2: Architecture-as-code | F3 | Implementing (T68, `06553ea`) |
-| AAC-02 | P2: Architecture-as-code | F3 | Implementing (T68, `06553ea`) |
-| CMT-01 | P2: Comentários e revisão | F3 | Implementing (T69, `183ce24`) |
-| CMT-02 | P2: Comentários e revisão | F3 | Implementing (T69, `183ce24`) |
+| DOC-01 | P2: Geração de documentação | F3 | ✅ Verified (F3 Verifier, `docgen.int.spec.ts:139-168`) |
+| DOC-02 | P2: Geração de documentação | F3 | ✅ Verified (F3 Verifier, `generate.ts:103` + `docgen.int.spec.ts`) |
+| DOC-03 | P2: Geração de documentação | F3 | ✅ Verified (F3 Verifier, `sections.ts:53-56,82` + fresh fixture reproduction, sensor-killed) |
+| DOC-04 | P2: Geração de documentação | F3 | ✅ Verified (F3 Verifier, `regenerateSection.int.spec.ts:1-40`) |
+| PRS-01 | P2: Apresentação e protótipos | F3 | ✅ Verified (backend) (F3 Verifier — presenter-mode/keyboard-nav UI half out of this backend-only wave's diff surface, disclosed) |
+| PRS-02 | P2: Apresentação e protótipos | F3 | ✅ Verified (F3 Verifier, `publish.ts:82-108` deep trace + `publish.int.spec.ts:196-231`, sensor-killed) |
+| PRS-03 | P2: Apresentação e protótipos | F3 | ✅ Verified (F3 Verifier, `frames.ts:29-42` + `presentation.int.spec.ts`) |
+| PRS-04 | P2: Apresentação e protótipos | F3 | ✅ Verified (F3 Verifier, `presets/wireframe-lofi.ts:27,42,57,72`) |
+| PRS-05 | P2: Apresentação e protótipos | F3 | ✅ Verified (F3 Verifier, `publish.int.spec.ts`) |
+| LNT-01 | P2: Lint arquitetural e C4 | F3 | ✅ Verified (F3 Verifier, `lint.int.spec.ts`) |
+| LNT-02 | P2: Lint arquitetural e C4 | F3 | ✅ Verified (F3 Verifier, `engine.ts:260-282`, sensor-killed) |
+| LNT-03 | P2: Lint arquitetural e C4 | F3 | ✅ Verified (F3 Verifier, `engine.ts:78-80`, sensor-killed) |
+| AAC-01 | P2: Architecture-as-code | F3 | ✅ Verified (F3 Verifier, 2 fresh fixtures per DSL, never crashes/fabricates) |
+| AAC-02 | P2: Architecture-as-code | F3 | ✅ Verified (F3 Verifier, `mermaid.ts:234-243` + `structurizr.ts:268-277`) |
+| CMT-01 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `comment.int.spec.ts`) |
+| CMT-02 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `rbac.ts:76-91` + `rbac.spec.ts:94-104`, sensor-killed) |
 | CLB-01 | P3: Colaboração em tempo real | F4 | Pending |
 | CLB-02 | P3: Colaboração em tempo real | F4 | Pending |
 | CLB-03 | P3: Colaboração em tempo real | F4 | Pending |

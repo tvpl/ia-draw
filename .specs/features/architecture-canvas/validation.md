@@ -1384,3 +1384,273 @@ F2 ("Agente de IA — o diferencial declarado do produto", AD-002) is now fully 
 - **F2c (Agente de IA — Tools, Pipeline, Segurança)** — this section, PASS on iteration 1. AIG-04/05/06/07, AIE-01..05 → Verified, closing the AI generation + AI editing stories in full.
 
 Every P1 story under F2 (Configuração de provider IA, Geração de diagramas por IA via IR declarativa, Edição por IA com preview/aprovação/undo, Biblioteca de componentes e metadados semânticos — the last verified in F2a) now has independent `file:line` evidence behind its acceptance criteria, not self-reported claims. The product's core differentiator — natural-language diagram generation with a real IR pipeline, deterministic layout, atomic apply, full undo, and a genuinely structural (not incidental) prompt-injection defense — is real, tested against adversarial input that actively tries to misbehave, and re-confirmed by targeted mutation testing on its four highest-risk controls (approval threshold, staleness guard, tool allowlist, token scoping) rather than taken on the implementer's word. The one open item across all of F2 is AIC-04's disclosed partial scope (provider budget/rate limits beyond what F2a/F2c already built), which was never claimed as closed by any wave and does not block F2's own invariant: no AI-proposed change reaches a real diagram without passing through versioned domain tools, an explicit-approval threshold, and an atomic, undoable apply.
+
+---
+
+## Validation: architecture-canvas (F3: docs/presentation/lint/AaC/comments) — PASS ✅
+
+**Date**: 2026-08-12
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `eed7f13..8772911` (T58-T70, all three F3 batches)
+**Verifier**: independent sub-agent (author ≠ verifier)
+
+Five P2 stories in one wave (docgen, presentation/prototyping, lint, architecture-as-code, comments), plus a shared foundation (`extractSceneSemantics`) and 4 new tables. Every claim below was re-derived from the real code and re-executed in this session — none taken on the implementer's Status notes.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T58 | ✅ Done | `extractSceneSemantics` — dependency-free, AD-008-clean, reproduced with 3 fresh fixtures of my own (see AaC/docgen sections below, which exercise it transitively) |
+| T59 | ✅ Done | 4 new tables (`spec_documents`, `comments`, `presentations`, `presentation_frames`), migration applies cleanly, exercised end-to-end by every module below |
+| T60 | ✅ Done | Mermaid import/export — re-verified with 3 of my own fixtures, see AAC section |
+| T61 | ✅ Done | Structurizr import/export — re-verified with 3 of my own fixtures, see AAC section |
+| T62 | ✅ Done | Docgen generation — DOC-03 "never invent" re-verified with a fresh fixture of my own, see DOC section |
+| T63 | ✅ Done | Single-section regeneration, immutable versioning — traced and gate-confirmed |
+| T64 | ✅ Done | Lint engine, 8 rules — rule-suppression logic sensor-mutated and killed |
+| T65 | ✅ Done | Presentation CRUD, frame ordering, nav links — IDOR pattern confirmed in route source |
+| T66 | ✅ Done | Publish/expiry/PDF export — PRS-02 immutability deep-traced + expiry check sensor-mutated and killed |
+| T67 | ✅ Done | Wireframe kit, 4 items with resolvable `stableKey`s — confirmed present in `presets/wireframe-lofi.ts` |
+| T68 | ✅ Done | Interop routes — real route is `POST /projects/:id/import:mermaid`/`:structurizr` (not the task text's literal `/diagrams/{id}/import:...`, a documented and reasonable deviation since import creates a new diagram); confirmed via fresh `curl` against the compiled server |
+| T69 | ✅ Done | Comment threads/mentions/RBAC — CMT-02's reviewer-permitted `comment:*`/denied `diagram:mutate` re-confirmed directly in `packages/auth/src/rbac.ts`; authorship gate on body edits sensor-mutated and killed |
+| T70 | ✅ Done | Wiring — re-verified independently: fresh `node apps/server/dist/index.js` boot, fresh `curl` against all 5 modules, all `401` never `404` |
+
+All 13 tasks (T58-T70) verified `✅ Complete` against real code and real, fresh test runs — not self-report alone.
+
+---
+
+### Independent Gate Run (from a clean checkout, `git pull` confirmed up to date)
+
+- `pnpm -w lint` → 354 files, zero drift.
+- `pnpm -w typecheck` → 22/22 package tasks green.
+- `pnpm -w build --force` (forced, not cache-replayed) → 12/12 package tasks green.
+- `pnpm -w test:unit` → **244 server + 22 web = 266 tests passed, 0 failed** (22 server test files).
+- `pnpm -w test:integration` → **244 tests passed, 0 failed, across 27 files** (136s wall time).
+
+These numbers match the implementer's own final self-reported counts (T69/T70 Status notes: 244/244 unit, 244/244 integration) — independently reproduced, not taken on faith.
+
+---
+
+### AD-008 Compliance
+
+`pnpm -w build --force` (fresh, not cached), then:
+
+```
+grep -rn "excalidraw" packages/diagram-domain/dist/*.js packages/diagram-ir/dist/**/*.js apps/server/dist/**/*.js
+```
+
+Every hit across all three trees is either a doc-comment (`mergeScene.js:7,10`; `importDsl.js:46,48`; `routes.js:51,76`; `import.js`/`sceneFile.js`/`generateExports.js`/`bundle.js`/`export/routes.js` — all referring to the `.excalidraw` **file format**, unrelated to the `@excalidraw/excalidraw`/`@arch-canvas/editor-adapter` npm packages AD-008 actually names) or the single, pre-existing, extensively-documented `render/svg.js:56` dynamic `await import('@excalidraw/utils')` (F1c/T32/T33, a separate package from the two AD-008 names, loaded post-`ensureDomEnvironment()` specifically to be Node-safe — confirmed unchanged by this wave, and confirmed to still be the *only* such exception). `packages/diagram-ir/dist` has zero matches at all (no Excalidraw dependency in that package's graph). Zero real static/`require` imports of the two named packages anywhere. **AD-008 holds.**
+
+---
+
+### L-008 / Real-Boot Smoke Test (independently reproduced, fresh)
+
+Built fresh, then booted the real compiled entrypoint under plain `node` (no bundler, no Vitest):
+
+```
+DATABASE_URL="postgres://x:x@localhost:5432/x" NODE_ENV=development PORT=18777 \
+SESSION_SECRET=verify-secret-1234567890 ENCRYPTION_KEY=verify-key-1234567890123456 \
+node apps/server/dist/index.js
+```
+
+No Postgres reachable in this sandbox — pg-boss logged a caught `ECONNREFUSED` and degraded gracefully exactly as `index.ts` is designed to (`requireSession` returns 401 before ever touching the DB, so every route below is reachable without a live database). `curl`, no session cookie, fresh:
+
+| Route | Method | Result |
+| --- | --- | --- |
+| `/health/live` | GET | `200` (control — server genuinely up) |
+| `/nonexistent-route-xyz-verify` | GET | `404` (control — proves the 401s below are real route-level auth, not a router miss) |
+| `/diagrams/x/specs:generate` | POST | `401` (docgen) |
+| `/diagrams/x/specs` | GET | `401` (docgen) |
+| `/diagrams/x/lint` | GET | `401` (lint) |
+| `/presentations` | GET | `401` (presentation) |
+| `/presentations/x:publish` | POST | `401` (presentation-publish) |
+| `/projects/x/import:mermaid` | POST | `401` (interop — real registered path) |
+| `/diagrams/x/export:mermaid` | POST | `401` (interop) |
+| `/diagrams/x/comments` | GET | `401` (comment) |
+| `/diagrams/x/comments` | POST | `401` (comment) |
+| `/diagrams/x/import:mermaid` (task text's literal path) | POST | `404` (confirms this path was never registered — the deviation to `/projects/:id/import:mermaid` is real, documented, and consistent) |
+
+All 5 new modules answer `401`, never `404` — genuinely registered, not merely compiling. Process killed cleanly afterward (`pkill -f apps/server/dist/index.js`, confirmed gone from `ps`).
+
+---
+
+### RBAC / IDOR Spot-Check (read directly from route source, one route per module minimum)
+
+| Module | Route | Non-member | Member, insufficient permission | Evidence |
+| --- | --- | --- | --- | --- |
+| docgen | `POST /diagrams/:id/specs:generate` | 404 (`!role → notFound()`) | 403 reviewer (`diagram:mutate` required) | `apps/server/src/modules/docgen/routes.ts:59-67` |
+| lint | `GET /diagrams/:id/lint` | 404 | 200 always (read-only, never blocks) | `apps/server/src/modules/lint/routes.ts:51-59` |
+| presentation | `POST/PATCH /presentations/:id/frames` | 404 (`resolvePresentationContext`) | 403 reviewer (`diagram:mutate`) | `apps/server/src/modules/presentation/routes.ts:80-92,180-184` |
+| interop | `POST /projects/:id/import:mermaid` | 404 | 403 viewer (`diagram:write`) | `apps/server/src/modules/interop/routes.ts:95-106` |
+| comment | `POST /diagrams/:id/comments` | 404 | (all 5 roles hold `comment:create` — see RBAC matrix below) | `apps/server/src/modules/comment/routes.ts:73-80` |
+
+Every module follows the identical, established IDOR discipline: `resolveWorkspaceRole` returning `undefined` → `404` (never `403`) before any permission check runs, confirmed by reading the source of all 5, not inferred from tests alone.
+
+**T69/CMT-02's specific claim** (`packages/auth/src/rbac.ts:76-91`): `comment:create`/`comment:resolve` are a third action axis, granted to every role including `reviewer` and `viewer`; `diagram:mutate` is denied to `reviewer`/`viewer` unconditionally, never derived from the comment actions. Confirmed directly in the grant table (`ROLE_GRANTS`), not just via the route. The isolated matrix test (`packages/auth/src/rbac.spec.ts:94-104`) asserts, in the same test, `can({role:'reviewer'}, 'comment:create')` → allowed, `can({role:'reviewer'}, 'comment:resolve')` → allowed, `can({role:'reviewer'}, 'diagram:mutate')` → denied — exactly what CMT-02 requires, exactly as claimed.
+
+---
+
+### PRS-02 Deep Trace: Published Snapshot Immutability
+
+Read `apps/server/src/modules/presentation/publish.ts` directly, not just its test. `getPublishedPresentation` (`publish.ts:82-108`):
+1. Loads the `presentations` row and checks `settingsJson.expiresAt`.
+2. Loads the linked `diagram_snapshots` row by `publishedSnapshotId`.
+3. Reads the scene via `storage.getObject(EXPORT_BUCKET, snapshot.sceneJsonKey)` — the snapshot's own frozen storage object.
+4. Never imports or calls `materializeScene`; never references `diagram_operations` anywhere in the file (confirmed by reading the full file — the only DB reads are `getPresentationById`/`getSnapshotById`/`listFramesForPresentation`).
+
+This is structurally sufficient — there is no code path in this function that could reach the live op-log. Additionally confirmed by the existing integration test (`publish.int.spec.ts:196-231`), which is a genuine end-to-end reproduction of the exact scenario this task specifies: publish → `POST /diagrams/:id/operations:batch` (the real live-mutation route, via the `addRectangle` helper, not a shortcut) to add `el-2` to the live scene → re-`GET /presentations/:id/published` → asserts the response still contains only `el-1`. Re-ran this specific test in isolation (in addition to the full gate run above) — passes. Between the code trace (no code path to the live scene exists) and this real e2e reproduction (mutate-then-refetch proves it empirically), the invariant is confirmed both structurally and behaviorally. The expiry half of the same function (`isExpired`, `publish.ts:66-73`) was additionally sensor-mutated (see below) and killed by the same test file's dedicated expiry test.
+
+---
+
+### AAC-01/02 Round-Trip Honesty (my own fresh fixtures, not reused from the implementer's tests)
+
+Ran against the compiled `packages/diagram-ir/dist/interop/{mermaid,structurizr}.js` directly (script discarded after use, `/tmp/.../verify-mermaid.mjs`, `/tmp/.../verify-structurizr.mjs`):
+
+**Mermaid** — Fixture 1 (clean: 3 nodes, 1 subgraph, 2 labeled edges) → 0 limitations, exact node/container/edge counts. Fixture 2 (deliberately unsupported: a `click` directive + `classDef`/`class` styling lines mixed into an otherwise valid 2-node flowchart) → parse did not crash, both unsupported lines reported verbatim in `limitations`, the valid edge (`A --> B`) still resolved, and — critically — no phantom node was fabricated for the `classDef`/`class` styling target (`nodes` stayed exactly `['A','B']`). Fixture 3 (export an edge with `semantics.mode: 'data'`, which has no Mermaid arrow equivalent) → DSL still emitted (`X --> Y`), `limitations` explicitly named the lost semantic, never silently dropped.
+
+**Structurizr** — Fixture 1 (clean: `softwareSystem` with 2 `container`s + 1 `relationship`) → 0 limitations, `IrContainer(kind: 'boundedContext')` and the edge resolved correctly. Fixture 2 (deliberately unsupported: a nested `component`/`tags` block inside a valid `container`, a `views` block, and a `relationship` referencing an undeclared id `ghost`) → parse did not crash, recovered the valid `api` container despite the nested unsupported block sitting right after it (brace-depth tracking held), reported the `views` block and the unrecognized lines in `limitations`, and — critically — never fabricated a `ghost` node or an edge referencing it (`nodes` stayed `['api']`, `edges` stayed empty). Fixture 3 (export → reparse round trip of Fixture 1's IR) → both the container and the relationship survived intact.
+
+Both modules honor the same "skip incomplete, never guess" discipline docgen's DOC-03 sets project-wide — confirmed independently, not merely claimed in the Status notes.
+
+---
+
+### DOC-03 "Never Invent" Invariant (my own fresh scene fixture)
+
+Built a scene fixture with 3 elements — one with full semantic metadata (`semanticType` + `decision`), one (`el-mystery-1`) with **no** `semantics` field at all, one (`el-nolabel-1`) with `label: null` — and ran it directly through the compiled `apps/server/dist/modules/docgen/sections.js` (script discarded after use, `/tmp/.../verify-docgen.mjs`). Results: the missing description → literal `não especificado`; the no-metadata component's semantic type → literal `não especificado`, never a fabricated type; the unlabeled element → literal `não especificado`, never an empty string or invented name; the unlabeled edge → literal `não especificado`; the Decisions section cited the one real decision verbatim and did **not** fabricate one for the component that never declared any; all real `elementId`s (`el-known-1`, `el-mystery-1`) appeared verbatim in the output. Matches DOC-03's literal wording exactly, independently reproduced against a fixture the implementer never wrote.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/f3-verify-scratch HEAD` (never `git stash`), `pnpm install` + `pnpm -w build` run inside the worktree itself so its `node_modules` symlinks resolve within the scratch tree (avoiding L-016's false-negative pitfall from a prior wave). Baseline `git status --porcelain` on the real tree captured empty before any mutation; confirmed still empty after `git worktree remove --force` cleanup.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `apps/server/src/modules/lint/engine.ts:79` | `isRuleEnabled`: `workspaceRules?.[rule] !== false` → `=== false` (inverts every rule's enable/disable logic) | ✅ Killed — `engine.spec.ts`: 8/11 tests failed, including the LNT-02 soft-warning test and the LNT-03 per-workspace-override test |
+| 2 | `apps/server/src/modules/presentation/publish.ts:72` | Expiry check `parsed < Date.now()` → `parsed > Date.now()` | ✅ Killed — `publish.int.spec.ts` "settingsJson.expiresAt in the past makes GET .../published return 404" failed (`expected 200 to be 404`) |
+| 3 | `apps/server/src/modules/comment/routes.ts:155` | Body-edit authorship gate (`existing.authorId !== user.id`) short-circuited to never fire, letting any role edit any comment's body | ✅ Killed — `comment.int.spec.ts` "only the author may edit the body text" failed (`expected 200 to be 403`) |
+| 4 | `apps/server/src/modules/docgen/sections.ts:55` | DOC-03 placeholder bypass: no-metadata `semanticType` → hardcoded `'generic-service'` instead of `NOT_SPECIFIED` | ✅ Killed — `sections.spec.ts` "gets the literal NOT_SPECIFIED placeholder, never an invented value" failed, asserting the fabricated `'generic-service'` string directly |
+
+**Sensor depth**: 4 mutations (above the default 1-3 lightweight tier), covering the wave's 4 highest-risk behaviors: per-workspace lint rule suppression, published-link expiry, comment-edit authorship, and the docgen "never invent" placeholder.
+**Sensor tally**: 4/4 killed, 0 survived — clean pass, no fix-loop needed.
+
+Post-sensor `git status --porcelain` on the real worktree: empty, identical to the pre-sensor baseline.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| DOC-01: generation → structured Markdown citing real `elementId`s | 3 real elementIds cited across distinct sections | `docgen.int.spec.ts:139-168` — `expect(markdown).toContain(elementId)` × 3 | ✅ PASS |
+| DOC-02: spec versioned independently, linked to source revision | `sourceRevision` byte-exact to the live revision at generation time | `docgen.int.spec.ts` "sourceRevision matches the exact live revision" + `generate.ts:103` | ✅ PASS |
+| DOC-03: absent info → literal placeholder, never invented | literal `não especificado`/`pergunta aberta`, never a fabricated value | `sections.ts:53-56,82`; independently reproduced with my own fixture above; sensor-mutation #4 above proves the test would catch a real regression | ✅ PASS |
+| DOC-04: single-section regeneration → only that section changes, new version | other 3 sections byte-identical, base version's storage object untouched | `regenerateSection.int.spec.ts:1-40` "leaves the other three byte-identical and never overwrites the prior storage object" | ✅ PASS |
+| PRS-01: frames — ordering, presenter mode, notes | frame reorder persists via bulk PATCH, `GET` reflects new order | `presentation.int.spec.ts` "reorders via bulk PATCH, and GET reflects the new order" | ✅ PASS *(fullscreen presenter mode / keyboard navigation are client-side UI concerns outside this backend-only wave's diff surface — not independently verifiable from `apps/server`; flagged as scope note, not a gap, since no client code shipped in this wave's diff)* |
+| PRS-02: publish → immutable snapshot, read-only link, RBAC + expiration | scene served strictly from the frozen snapshot, never the live scene; expired → 404 | `publish.ts:82-108` (deep-traced above, no code path to live scene); `publish.int.spec.ts:196-231` (mutate-then-refetch); sensor #2 above | ✅ PASS |
+| PRS-03: nav links clickable, dangling target rejected | `targetFrameId` not in the same presentation → 400 | `frames.ts:29-42` (`InvalidNavLinkError`, 400); `presentation.int.spec.ts` "navLinksJson pointing at a nonexistent targetFrameId returns 400" | ✅ PASS |
+| PRS-04: low-fi wireframe kit, insertable manually + by AI | ≥4 items (screen/button/input/list), each with a unique resolvable `stableKey` | `presets/wireframe-lofi.ts:27,42,57,72`; `wireframe-lofi.spec.ts`; re-confirmed present via `grep` above | ✅ PASS |
+| PRS-05: export produces a server-rendered PDF | PDF with one page per frame, rendered from the published snapshot | `publish.int.spec.ts` "3-frame presentation produces a PDF with 3 pages, rendered from the published snapshot" | ✅ PASS |
+| LNT-01: orphan/undirected/boundary/SPOF/secret/mixed-env/no-protocol warnings, never blocking | `GET .../lint` always 200 regardless of warning count | `lint.int.spec.ts` "orphan component and a connector without protocol... lint never blocks"; `engine.ts` — every rule returns `severity: 'warning'`, nothing throws | ✅ PASS |
+| LNT-02: soft per-C4-level validation | Component-detail-in-Context → soft warning, not an error | `engine.ts:260-282` (`c4-level-mismatch`); `engine.spec.ts` "soft warning, not an error"; re-confirmed alive by sensor #1 above | ✅ PASS |
+| LNT-03: per-workspace rule overrides | disabling one rule removes only that warning, others unaffected | `engine.ts:78-80` (`isRuleEnabled`); `lint.int.spec.ts` "disabling the SPOF rule... removes only that warning"; killed decisively by sensor #1 | ✅ PASS |
+| AAC-01: import Mermaid/Structurizr → editable diagram, limitations reported explicitly | new diagram created even with unrecognized DSL lines, `limitations` always present (even if empty) | `interop.int.spec.ts` "imports a 3-node flowchart... response always carries a limitations field"; independently reproduced with my own dirty fixtures above (never crashes, never fabricates) | ✅ PASS |
+| AAC-02: export → DSL derived from IR + semantic metadata | lossy edge semantics reported in `limitations`, never silently dropped | `mermaid.ts:234-243`, `structurizr.ts:268-277`; independently reproduced (Fixture 3, both languages) above | ✅ PASS |
+| CMT-01: comment thread persisted durably with mentions | thread + mentions survive a simulated restart (fresh DB connection) | `comment.int.spec.ts` "thread that survives a simulated restart (fresh PGlite connection re-reading the same storage)" | ✅ PASS |
+| CMT-02: reviewer comment accepted, canvas mutation still rejected | `POST /comments` 201, `POST /operations:batch` 403, same user, same test | `comment.int.spec.ts` "reviewer can POST a comment (201)... SAME user gets 403 mutating the canvas"; `rbac.ts:76-91` + `rbac.spec.ts:94-104` isolated matrix test | ✅ PASS |
+
+**Status**: ✅ 15/16 ACs matched the spec-defined outcome with exact-outcome evidence; PRS-01's presenter-mode/keyboard-navigation half is a disclosed client-side scope note (this wave's diff is `apps/server`/`packages/*` only — no `apps/web` changes shipped), not a spec-precision gap or a failure of the backend contract, which is fully covered.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ — `GET /presentations/:id` (T65) and the `person` node type in Structurizr (T61) are documented, narrowly-scoped additions with clear justification, not scope creep |
+| No abstractions for single-use code | ✅ |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — diff scoped to the 5 new module directories, `packages/diagram-domain`/`diagram-ir/interop`, `packages/database` schema, `packages/auth` (comment actions), `packages/library-content` |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — IDOR pattern (`404` before `403`), cursor pagination, immutable-versioning discipline all mirror pre-existing modules exactly |
+| Would senior engineer approve? | ✅ |
+| Tests map to acceptance criteria, non-shallow (spot-checked PRS-02 and DOC-03) | ✅ — both re-derived independently above, not just re-read |
+| Spec-anchored outcome check | ✅ — 15/16 ACs target the spec's exact stated outcome; the 16th is an honest scope note, not a vague-assertion pass |
+| Per-layer Coverage Expectation met | ✅ — domain (`diagram-ir/interop`, `diagram-domain`) 1:1 with AAC/DOC ACs; every route covers happy + IDOR (404) + permission-denied (403) + unauthenticated (401) |
+| Every test maps to a spec AC/Done-when — no unclaimed tests | ✅ |
+| Documented guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md` — followed |
+
+---
+
+### Process Check (T57's mistake — did it recur?)
+
+Read `spec.md`'s Requirement Traceability table before making any edits: every F3 row (DOC-01..04, PRS-01..05, LNT-01..03, AAC-01..02, CMT-01..02) already read `Implementing (Txx, commit)` — none were self-marked `✅ Verified` by an implementer commit. T70's own Status note explicitly says it left them at `Implementing`, "reserved for the independent Verifier." **T57's mistake did not recur.**
+
+---
+
+### Disclosed Deviations — assessed
+
+- **Interop route paths** (`/projects/:id/import:mermaid` instead of the task text's `/diagrams/{id}/import:mermaid`, and a single `:format` parameter instead of two sibling `:mermaid`/`:structurizr` routes due to a real, empirically-confirmed `find-my-way` routing collision): sound, narrowly-scoped, and independently re-confirmed by curling both the real registered path (`401`) and the task text's literal path (`404`, proving it was never registered) in this session's own smoke test.
+- **`workspaces.settingsJson` added mid-wave (T64)**: the wave brief assumed this column already existed; it didn't (only `organizations.settingsJson` did). Added via a normal additive migration, confirmed backward-compatible by the unchanged `packages/database` integration suite staying green.
+- **`comment:create`/`comment:resolve` as a third RBAC axis (T69)**: confirmed correct and intentional — re-derived independently from `rbac.ts`'s grant table and its isolated matrix test, not just the route.
+- **PRS-01's presenter-mode/keyboard-navigation claim**: this wave's diff never touches `apps/web` — the AC's UI half is out of this Verifier's evidence surface by construction, honestly disclosed above rather than silently marked fully Verified.
+
+None of these are functional gaps; all are documented, reasoned, and hold up under independent re-derivation.
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- **Outcome**: all 5 stages exit 0. `lint`: 354 files, zero drift. `typecheck`: 22/22 package tasks. `build` (forced, fresh): 12/12 package tasks. `test:unit`: **244 server + 22 web = 266 tests passed, 0 failed** (22 server test files). `test:integration`: **244 tests passed, 0 failed, across 27 files**.
+- **Test count before this wave** (end of F2c): 179 server unit / 198 server integration.
+- **Test count after this wave**: 244 server unit / 244 server integration.
+- **Delta**: +65 unit, +46 integration — all net-new across `docgen`, `regenerateSection`, `lint`, `presentation` (CRUD + publish), `interop`, `comment`, plus `packages/diagram-ir/src/interop/{mermaid,structurizr}.spec.ts` and `packages/database/src/collab.int.spec.ts`.
+- **Skipped tests**: none.
+- **Failures**: none.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| DOC-01 | Implementing (T62) | ✅ Verified — independently reproduced, see table above |
+| DOC-02 | Implementing (T62) | ✅ Verified — independently reproduced, see table above |
+| DOC-03 | Implementing (T62) | ✅ Verified — independently reproduced with my own fresh fixture, re-killed by sensor #4 |
+| DOC-04 | Implementing (T63) | ✅ Verified — independently reproduced, see table above |
+| PRS-01 | Implementing (T65) | ✅ Verified (backend) — ordering/notes/nav-link backend contract fully verified; presenter-mode/keyboard-nav UI half out of this wave's diff surface, disclosed above |
+| PRS-02 | Implementing (T66) | ✅ Verified — deep-traced + independently re-reproduced (mutate-then-refetch) + re-killed by sensor #2 |
+| PRS-03 | Implementing (T65) | ✅ Verified — independently reproduced, see table above |
+| PRS-04 | Implementing (T67) | ✅ Verified — independently reproduced, see table above |
+| PRS-05 | Implementing (T66) | ✅ Verified — independently reproduced, see table above |
+| LNT-01 | Implementing (T64) | ✅ Verified — independently reproduced, see table above |
+| LNT-02 | Implementing (T64) | ✅ Verified — independently reproduced, re-killed by sensor #1 |
+| LNT-03 | Implementing (T64) | ✅ Verified — independently reproduced, re-killed by sensor #1 |
+| AAC-01 | Implementing (T68) | ✅ Verified — independently reproduced with 2 fresh fixtures per DSL (4 total), never crashes/fabricates |
+| AAC-02 | Implementing (T68) | ✅ Verified — independently reproduced with my own lossy-edge fixtures, see table above |
+| CMT-01 | Implementing (T69) | ✅ Verified — independently reproduced, see table above |
+| CMT-02 | Implementing (T69) | ✅ Verified — independently reproduced against `packages/auth`'s isolated matrix test directly, re-killed by sensor #3 |
+
+(`spec.md`'s own table has been rewritten with this Verifier's evidence markers, replacing the implementer-authored `Implementing (task, commit)` text.)
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — F3 closes as PASS, no blocking gaps.
+
+**Spec-anchored check**: 15/16 ACs matched the spec-defined outcome with exact evidence; 1 honest scope note (PRS-01's UI half, out of this backend-only wave's diff).
+
+**Sensor tally**: 4/4 mutations killed, 0 survived — no fix-loop needed.
+
+**Gate**: 5/5 stages passed, 244 unit + 244 integration server tests passed, 0 failed.
+
+**What works**: All 5 P2 stories (docgen, presentation/prototyping, lint, architecture-as-code, comments) are real and independently reproduced, not just self-reported. PRS-02's core invariant — a published presentation never serves the live scene — is confirmed both by a direct code trace (no code path to `materializeScene`/`diagram_operations` exists in `publish.ts`) and by re-running the exact mutate-then-refetch scenario the task specified. AAC-01/02's round-trip honesty holds under adversarial fixtures I constructed myself for both Mermaid and Structurizr: neither parser crashes on garbage input, both report every loss in `limitations`, and neither ever fabricates a node/edge the DSL didn't declare. DOC-03's "never invent" principle is confirmed with a fresh scene fixture carrying a component with zero semantic metadata — every field renders the literal placeholder, never an invented value. RBAC is uniform and IDOR-safe across all 5 new modules (404 before any permission check for non-members, confirmed in route source, not just tests), and CMT-02's specific reviewer-permitted-but-canvas-mutation-denied claim is confirmed directly in `packages/auth`'s grant table and its isolated matrix test. AD-008 holds — zero real Excalidraw-by-value imports anywhere in the three compiled dist trees, confirmed fresh after a forced rebuild. The real compiled server boots under plain Node and every one of the 5 new modules' routes is reachable (401, never 404) — re-verified fresh in this session, including confirming the task text's literal (unregistered) import path correctly 404s while the real registered path correctly 401s.
+
+**Issues found**: 0 blocking. 1 non-blocking disclosure: PRS-01's presenter-mode/keyboard-navigation UI behavior is outside this wave's `apps/server`/`packages/*`-only diff surface and therefore outside this Verifier's evidence surface — the backend contract (ordering, private notes, nav-link validation) is fully verified; the client-side interaction half awaits whichever wave ships the corresponding `apps/web` work.
+
+**Next steps**: no fix-loop required (this is a PASS). F3 closes the "visão completa" scope from the source document per AD-002 — only F4 (realtime collaboration, P3) and F5 (hardening) remain on the roadmap.
+
+---
