@@ -123,6 +123,8 @@ T9 -> T11
 
 **Commit**: `feat(contracts): add shared error, id, pagination and ws envelope schemas`
 
+**Status**: ✅ Complete — 17 testes unit (4 arquivos), gate quick + lint + typecheck + build verdes
+
 ---
 
 ### T3: Criar apps/server core (Fastify, config Zod, health, logs JSON)
