@@ -246,15 +246,17 @@ T36
 
 **Done when**:
 
-- [ ] Os 4 formatos são gerados para uma cena de teste sem lançar erro
-- [ ] PDF gerado é um arquivo PDF válido (assinatura `%PDF-` no início dos bytes) contendo conteúdo renderizado (não uma página em branco)
-- [ ] `.excalidraw` exportado é reimportável (round-trip via `parseScene`)
-- [ ] Gate check passes: `pnpm -w test:unit`
+- [x] Os 4 formatos são gerados para uma cena de teste sem lançar erro
+- [x] PDF gerado é um arquivo PDF válido (assinatura `%PDF-` no início dos bytes) contendo conteúdo renderizado (não uma página em branco)
+- [x] `.excalidraw` exportado é reimportável (round-trip via `parseScene`)
+- [x] Gate check passes: `pnpm -w test:unit`
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(server): add full excalidraw/svg/png/pdf export route`
+
+**Status**: ✅ Complete — `apps/server/src/modules/export/` (`generateExports.ts` orchestrates all 4 formats; `sceneFile.ts` `.excalidraw` serialize/parse; `pdf.ts` SVG→PDF via `pdfkit`+`svg-to-pdfkit`; `routes.ts` `POST /diagrams/{id}/exports`, storing each generated format to `EXPORT_BUCKET` (T27) and returning signed download URLs + SHA-256 checksums — not wired into `registerAllModules` yet, deliberately deferred to T33, which extends this same module with bundle/import/bulk routes and does the wiring in one place). PDF library choice followed the Knowledge Verification Chain: verified `pdfkit`'s stream-based API and `svg-to-pdfkit`'s real signature (`SVGtoPDF(doc, svg, x, y, options)`, read from `@types/svg-to-pdfkit`) by reproducing both directly against the installed packages before writing any code, confirming a real `%PDF-`-signed buffer with actual content-stream drawing operators (`BT`/`Tj`), not an assumed API. `.excalidraw` round-trips through a locally re-implemented `serializeScene`/`parseScene` (same envelope editor-adapter's own functions use), not editor-adapter's own runtime export — SPEC_DEVIATION documented in full in `sceneFile.ts`'s header comment: importing anything from `@arch-canvas/editor-adapter` at runtime (even just for these two pure JSON functions) transitively loads `<EditorSurface/>` and crashes plain Node with `ERR_MODULE_NOT_FOUND: roughjs/bin/rough` (a real missing-`.js`-extension gap in `@excalidraw/excalidraw`'s compiled ESM output, reproduced directly, not assumed); editor-adapter's own `package.json#exports` has no subpath around its `index.ts`, and this batch's task boundary keeps `packages/editor-adapter` out of scope. Promoting the T10 render spike to a real production path surfaced and fixed a second, more serious latent bug in that spike, in the same reused files (`render/dom-environment.ts`, `render/svg.ts`): its static top-level `import ... from '@excalidraw/utils'` evaluated that package's module body — which reads `window`/`devicePixelRatio` off the global scope — *before* `ensureDomEnvironment()` (called inside the function body) ever ran, so a real `node dist/index.js` boot crashed with `ReferenceError: window is not defined`; this was invisible to `pnpm -w test:unit` because Vitest's own `environment: 'jsdom'` pre-installs `window` before any test file loads. Fixed by making the `@excalidraw/utils` import a top-level *dynamic* `await import(...)` placed after a module-scope `ensureDomEnvironment()` call — dynamic imports evaluate at their call site, not hoisted, so ordering is now correct, and the one-time load cost still lands at module-load time (not inside a request/test's timeout window). `devicePixelRatio` was also missing from `dom-environment.ts`'s manual global shim (`ReferenceError: devicePixelRatio is not defined`, thrown from inside `exportToSvg`'s font pipeline) — added, with jsdom's own `window.devicePixelRatio` reused. Both fixes were verified with real `node -e` reproductions against the compiled `dist/` output (not just `pnpm -w test:unit`, which cannot detect either bug), rendering all 5 `@arch-canvas/test-fixtures` scenes (text/arrowWithBindings/image/frame/group) through the real production code path end to end — SVG → PNG → PDF, all valid, all non-blank. `pnpm -w test:unit`: 97 passed in `apps/server` (was 78 before this task; +19 from the export module's 3 spec files), 0 failed, workspace-wide `pnpm -w test:unit` green (202 total across all packages).
 
 ---
 

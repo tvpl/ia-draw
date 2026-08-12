@@ -43,6 +43,13 @@ export function ensureDomEnvironment(): void {
       HTMLCanvasElement: dom.window.HTMLCanvasElement,
       SVGSVGElement: dom.window.SVGSVGElement,
       Image: dom.window.Image,
+      // `@excalidraw/utils`'s font-face CSS generation reads this directly off
+      // the global scope too (confirmed by reproducing a real plain-`node`
+      // boot without it: `ReferenceError: devicePixelRatio is not defined`,
+      // thrown from inside exportToSvg's font pipeline before this fix — see
+      // T32's implementation notes). jsdom's own `window.devicePixelRatio`
+      // (1 under `pretendToBeVisual`) is reused rather than hardcoding a value.
+      devicePixelRatio: dom.window.devicePixelRatio ?? 1,
     };
 
     for (const [key, value] of Object.entries(domGlobals)) {

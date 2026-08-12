@@ -432,7 +432,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | LIB-02 | P1: Biblioteca e semântica | F2 | Pending |
 | LIB-03 | P1: Biblioteca e semântica | F2 | Pending |
 | LIB-04 | P1: Biblioteca e semântica | F2 | Pending |
-| EXP-01 | P1: Export e salvamento local | F1 | Implementing |
+| EXP-01 | P1: Export e salvamento local | F1 | ✅ Verified |
 | EXP-02 | P1: Export e salvamento local | F1 | Pending |
 | EXP-03 | P1: Export e salvamento local | F1 | Pending |
 | EXP-04 | P1: Export e salvamento local | F1 | Pending |
