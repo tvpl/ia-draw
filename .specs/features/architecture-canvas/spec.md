@@ -448,15 +448,15 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | PRS-01 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
 | PRS-02 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
 | PRS-03 | P2: Apresentação e protótipos | F3 | Implementing (T65) |
-| PRS-04 | P2: Apresentação e protótipos | F3 | Pending |
+| PRS-04 | P2: Apresentação e protótipos | F3 | Implementing (T67, `0d8ace6`) |
 | PRS-05 | P2: Apresentação e protótipos | F3 | Implementing (T66) |
 | LNT-01 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
 | LNT-02 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
 | LNT-03 | P2: Lint arquitetural e C4 | F3 | Implementing (T64) |
-| AAC-01 | P2: Architecture-as-code | F3 | Pending |
-| AAC-02 | P2: Architecture-as-code | F3 | Pending |
-| CMT-01 | P2: Comentários e revisão | F3 | Pending |
-| CMT-02 | P2: Comentários e revisão | F3 | Pending |
+| AAC-01 | P2: Architecture-as-code | F3 | Implementing (T68, `06553ea`) |
+| AAC-02 | P2: Architecture-as-code | F3 | Implementing (T68, `06553ea`) |
+| CMT-01 | P2: Comentários e revisão | F3 | Implementing (T69, `183ce24`) |
+| CMT-02 | P2: Comentários e revisão | F3 | Implementing (T69, `183ce24`) |
 | CLB-01 | P3: Colaboração em tempo real | F4 | Pending |
 | CLB-02 | P3: Colaboração em tempo real | F4 | Pending |
 | CLB-03 | P3: Colaboração em tempo real | F4 | Pending |

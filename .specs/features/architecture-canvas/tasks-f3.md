@@ -471,6 +471,21 @@ T69 -> T70
 **Gate**: build
 
 **Commit**: `chore(server): wire F3 modules (docgen/lint/presentation/interop/comment) into production entrypoint`
+**Status**: ✅ Complete — `apps/server/src/core/registerModules.ts` registers all 5 new F3 modules (`registerDocgenModule`, `registerLintModule`, `registerPresentationModule`, `registerPresentationPublishModule`, `registerInteropModule`, `registerCommentModule` — 6 register calls across 5 module directories, `interop` and `comment` being the ones this task's dependency chain (T68/T69) still needed at merge time) — each was ALREADY wired in the same commit that created it (L-008, verified: `git log -p` shows every `register*Module` call landed in its own task's own commit, never deferred to this one), so T70's own diff to this file is empty; this task's job was to VERIFY that discipline held for the whole wave, not to add wiring. Verification performed: (1) `pnpm -w build` (12 packages green); (2) real boot — `DATABASE_URL="postgres://x:x@localhost:5432/x" NODE_ENV=development PORT=18420 SESSION_SECRET=test-secret ENCRYPTION_KEY=test-key node apps/server/dist/index.js`, no Postgres actually reachable in this sandbox (confirmed via `pg_isready` — no response) — server booted and listened anyway (pg-boss job queue logged a caught `ECONNREFUSED` and degraded gracefully, exactly as `index.ts`'s try/catch is designed to; `requireSession` returns 401 for a missing session cookie before ever touching the DB, so every route below is provably reachable without a live Postgres); (3) `curl` against the live process, one route per new module, no session cookie:
+```
+GET  /health/live                        → 200  (control: server is actually up)
+GET  /nonexistent-route-xyz              → 404  (control: proves 401 below is real auth, not a router miss)
+POST /diagrams/x/specs:generate          → 401  (docgen)
+GET  /diagrams/x/specs                   → 401  (docgen)
+GET  /diagrams/x/lint                    → 401  (lint)
+GET  /presentations                      → 401  (presentation)
+POST /presentations/x:publish            → 401  (presentation-publish)
+POST /projects/x/import:mermaid          → 401  (interop)
+POST /diagrams/x/export:mermaid          → 401  (interop)
+GET  /diagrams/x/comments                → 401  (comment)
+POST /diagrams/x/comments                → 401  (comment)
+```
+All 5 F3 modules answer 401, never 404 — genuinely registered, not merely compiling. Server killed cleanly afterward (`kill -TERM`, confirmed via the process's own logged `"shutdown signal received, draining connections"` line, process gone from `ps` within 2s). (4) `spec.md`'s Requirement Traceability table: DOC-01..04/PRS-01..05/LNT-01..03 were already "Implementing" from T62-T66; this task flips the remaining 5 — PRS-04 (T67, `0d8ace6`), AAC-01/AAC-02 (T68, `06553ea`), CMT-01/CMT-02 (T69, `183ce24`) — from "Pending" to "Implementing (task, commit)", leaving every DOC/PRS/LNT/AAC/CMT row "Implementing" and none "Verified" (reserved for the independent Verifier, per instruction). (5) `grep -rn "excalidraw" apps/server/dist/**/*.js` (whole tree, not just this wave's own module directories): every match is either a doc-comment (`.excalidraw` the FILE FORMAT, mentioned in `export/import.ts`/`export/sceneFile.ts`/`export/routes.ts`/`interop/importDsl.ts`/`interop/routes.ts`) or `render/svg.js`'s single, pre-existing, extensively-documented dynamic `await import('@excalidraw/utils')` (F1c/T32/T33, AD-005 — a SEPARATE npm package from `@excalidraw/excalidraw`/`@arch-canvas/editor-adapter`, the two packages AD-008 actually names; loaded dynamically, after `ensureDomEnvironment()`, specifically so it's safe under plain Node — predates this entire wave, not touched by T58-T69). Zero real static/`require` imports of `@excalidraw/excalidraw` or `@arch-canvas/editor-adapter` anywhere in `apps/server/dist`. **Full `Gate: build` run** (this task's own declared gate, run fresh as T70's own verification, not merely inherited from T69's identical-code run moments earlier): `pnpm -w lint` (354 files, clean), `pnpm -w typecheck` (22/22 packages), `pnpm -w build` (12/12), `pnpm -w test:unit` (server 244 + workspace-wide), `pnpm -w test:integration` (server 244/244 across 27 files, including `registerModules.int.spec.ts`) — all green. **Deviation**: none.
 
 ---
 
