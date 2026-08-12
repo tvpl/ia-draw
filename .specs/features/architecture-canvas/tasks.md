@@ -94,6 +94,8 @@ T9 -> T11
 
 **Commit**: `chore(repo): scaffold pnpm monorepo with turborepo, strict ts and biome`
 
+**Status**: ✅ Complete — gate build verde em workspace vazio (lint/typecheck/build/test:unit)
+
 ---
 
 ### T2: Criar packages/shared-contracts (erros problem+json, IDs, envelopes)
