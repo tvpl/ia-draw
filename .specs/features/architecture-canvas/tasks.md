@@ -172,14 +172,16 @@ T9 -> T11
 
 **Done when**:
 
-- [ ] `pnpm --filter web build` gera bundle estático
-- [ ] Troca de idioma pt-BR/en funciona; strings do shell vêm de catálogo
-- [ ] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
+- [x] `pnpm --filter web build` gera bundle estático
+- [x] Troca de idioma pt-BR/en funciona; strings do shell vêm de catálogo
+- [x] Gate check passes: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit`
 
 **Tests**: none
 **Gate**: build
 
 **Commit**: `feat(web): scaffold vite react shell with pt-br/en i18n`
+
+**Status**: ✅ Complete — `pnpm --filter web build` gera bundle estático; gate build (lint/typecheck/build/test:unit) verde
 
 ---
 
