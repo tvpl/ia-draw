@@ -1942,3 +1942,324 @@ None of these are functional gaps; all are documented, reasoned, and hold up und
 **Next steps**: no fix-loop required (this is a PASS). F4 closes the entire architecture-canvas roadmap except F5 (hardening: OIDC, performance, accessibility, disaster recovery, observability, pilot) — the last remaining wave.
 
 ---
+## Validation: architecture-canvas (F5: hardening — security/OIDC/DR/observability/performance/accessibility) — PASS ✅
+
+**Date**: 2026-08-13
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `9517cdb..06fcdda` (T82-T96, all four F5 batches) plus this Verifier's own 3 gap-closing commits (`7f71a3a`, `3612db6`, `c0c663b`)
+**Verifier**: independent sub-agent (author ≠ verifier)
+
+**This is the LAST wave of the entire architecture-canvas roadmap.** Six new P1 stories (security hardening, production OIDC auth, disaster recovery, observability, documented performance, shell accessibility) close out all 92 requirements. Every claim below was re-derived from the real code and re-executed in this session — none taken on the implementer's Status notes. Given the closing-wave stakes, this pass went deeper than the standard rigor: 6 discrimination-sensor mutations (2 above the usual per-wave count), 2 of which genuinely survived on first attempt and required a real test-coverage fix (not a product-code bug) before the wave could close clean.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T82 | ✅ Done | `@fastify/helmet`/`@fastify/cors` registered in `core/server.ts`; CSP/X-Content-Type-Options/X-Frame-Options confirmed on a real running server via `curl -I`, HSTS conditional-on-`https:` confirmed by code read + `core/server.spec.ts` |
+| T83 | ✅ Done | `InMemoryRateLimiter` relocated to `core/rateLimit.ts`, `onRoute`-hook default (300/60s) confirmed structurally sound (avoids the documented `onRequest`-ordering pitfall); AI-run (20/60s) and export (30/60s) limits confirmed stricter than default by direct code read — **and found genuinely undertested** (see Discrimination Sensor #2/#2b) |
+| T84 | ✅ Done | Confirmed by direct code read that `loadConfig` (F0, `config.ts:65-74`) already fails fast; `config.spec.ts`'s dev/test-never-throws cases read and confirmed present |
+| T85 | ✅ Done | All 8 named audit actions confirmed at real `file:line` sites (5 new + 3 pre-existing), re-derived independently, not copied from the implementer's own table |
+| T86 | ✅ Done | 14-entry manifest read in full; 6 entries spot-checked by opening the cited test and confirming the assertion genuinely proves the named scenario (task required ≥4) |
+| T87/T88 | ✅ Done | `resolveOidcRole` read line-by-line — exclusively reads the configured group claim against an explicit allowlist, never a fallback; real in-process `oidc-provider` PKCE flow re-run (5/5 incl. my own new adversarial case); **found a genuine coverage gap in the wiring layer, fixed** (see Discrimination Sensor #1) |
+| T89 | ✅ Done | `incremental.ts` read in full; chain-checksum verification and empty-chain/out-of-order rejection confirmed structurally and by re-running `incremental.int.spec.ts` (against 2 genuinely separate real Postgres 16 instances) |
+| T90 | ✅ Done | `restoreTest.ts` read in full (extra scrutiny per the concurrent-editing note); `assertIsolatedRestoreTarget` confirmed to run first, before any I/O; `recordOutcome`'s metrics-counter wiring confirmed correct |
+| T91 | ✅ Done | 9 documented metric series confirmed registered in `metrics.ts`; `/metrics` returned valid, non-empty Prometheus text on a real running server after real activity |
+| T92 | ✅ Done | Every span attribute in `pipeline.ts`'s AI boundaries confirmed to be an id/count/model-name, never prompt/scene/token; re-ran `tracing.int.spec.ts`'s substring-search test; constructed my own leak mutation, confirmed caught |
+| T93 | ✅ Done | All 7 `alerts.yml` rules cross-checked against `metrics.ts`'s real registered series names; `alertRules.spec.ts` re-run |
+| T94 | ✅ Done | `bootstrap.perf.int.spec.ts` read in full — real wall-clock `GET`/`POST` calls against real PGlite, honest sandbox-proxy disclosure present and accurate |
+| T95 | ✅ Done | `shell.a11y.spec.tsx` read in full; the deliberately-broken `<img>`-with-no-`alt` fixture re-run in isolation, confirmed it genuinely fails both the severity-filtered check and jest-axe's own matcher; coverage disclosure cross-checked against a real `apps/web/src` directory listing |
+| T96 | ✅ Done | `registerModules.ts`/`config.ts` wiring read and confirmed complete; real-boot smoke test independently reproduced from scratch (see below); `docker compose config` re-run for both new profiles |
+
+All 15 tasks (T82-T96) verified `✅ Complete` against real code and real, fresh test/boot runs — not self-report alone.
+
+---
+
+### Independent Gate Run (from a clean checkout, `git pull` confirmed up to date, turbo cache cleared for a genuinely fresh run)
+
+- `pnpm -w lint` → clean, zero drift.
+- `pnpm -w typecheck` → 23/23 package tasks green.
+- `pnpm -w build` → 12/12 package tasks green.
+- `pnpm -w test:unit` → **360 server + 28 web = 388 tests passed, 0 failed** (32 server test files).
+- `pnpm -w test:integration` → **331 server + 36 database + 8 backup = 375 tests passed, 0 failed, across 46+7+2 files** (server suite alone: 46 files, ~183s wall time).
+
+These numbers match the implementer's own final self-reported counts (T96's Status note: 360/360 server unit, 328/328 server integration — the +3 integration tests above are this Verifier's own added `oidc.int.spec.ts`/`aiRunRateLimit.int.spec.ts`/`exportRateLimit.int.spec.ts` cases, see Discrimination Sensor below) — independently reproduced from a cold cache, not taken on faith. A first attempt at forcing a fresh run via a malformed `--force` flag failed with a harmless argument-parsing error (`tsc`'s `--force` flag misuse); corrected by clearing `.turbo/` directories directly and re-running — documented here because a failed command should never be silently dropped from the record.
+
+**Zero leftover `redis-server` processes**, zero lingering `vitest`/`node .../dist/index.js` processes after every run in this session; `pg_lsclusters` shows only `main` online (pre-existing), `backuptest`/`restoretest` down (pre-existing, T89/T90's own idempotent provisioning) — confirmed directly, not assumed.
+
+---
+
+### AD-008 Compliance
+
+Fresh build, then:
+
+```
+grep -rln "excalidraw" apps/server/dist/**/*.js
+```
+
+9 files matched — the identical set every prior wave already allowlisted: `export/{bundle,generateExports,import,routes,sceneFile}.js`, `interop/{importDsl,routes}.js`, `render/{dom-environment,svg}.js`. Every hit is a doc-comment, the `.excalidraw` **file-format** string (e.g. `excalidrawJson` variable names, `scene.excalidraw` zip entry names), or the single pre-existing, extensively-documented `render/svg.js` dynamic `await import('@excalidraw/utils')` (F1c/AD-005, a different package from the two AD-008 names) — confirmed by reading every line each hit appears on, not just counting hits. **Zero new hits.** AD-008 holds.
+
+---
+
+### THE Central OIDC Claim — `resolveOidcRole` Structural Read + Adversarial Re-Test
+
+Read `apps/server/src/modules/auth/oidc.ts:85-101` line by line. `resolveOidcRole(groupClaimValue, groupRoleMap)`:
+
+1. Returns `null` immediately if `groupClaimValue` isn't an array — no fallback to any other shape.
+2. Iterates only over `groupClaimValue`'s own string entries, looking each one up in `groupRoleMap` — an explicit allowlist, never a default-permissive match.
+3. Never reads any other parameter, closure variable, or ambient claim — no `role`, `admin`, `is_admin`, or any other field is referenced anywhere in the function body.
+4. When multiple groups match, picks the HIGHEST-privilege mapped role (`ROLES.indexOf` comparison) — never anything beyond what a matched group's own map entry grants.
+5. Returns `null` — never an invented fallback — when nothing matches.
+
+`oidc.spec.ts` (7 unit tests) independently confirms the pure-function boundary, including the exact adversarial case ("an extra suggestive group NOT present in the map never elevates the result"). Re-ran `oidc.int.spec.ts` — the real, protocol-conformant, in-process `oidc-provider@9.11.3` flow — directly: **the existing adversarial account (`viewer-with-adversarial-claims`, real ID token carrying `groups: ['readonly-team','workspace_admin','org_admin']` PLUS top-level `role: 'workspace_admin'`/`admin: true`) resolves to exactly `viewer`, never `workspace_admin`/`org_admin`** — confirmed genuinely still passing.
+
+**Not fully convinced by the existing coverage alone** (per the task's own instruction to construct an additional scenario if in doubt) — every existing adversarial account has at least one group that DOES match `OIDC_GROUP_ROLE_MAP`, so `resolveOidcRole` never actually returns `null` in any pre-existing integration scenario. That gap is real: see Discrimination Sensor #1 below, where a call-site fallback mutation survived the full suite until I added a new account with *zero* mapped groups. This is now closed (commit `7f71a3a`) — 5/5 `oidc.int.spec.ts` tests green, including the new one.
+
+---
+
+### Rate Limiting Closes AIC-04 — Verified, With a Real-Default Coverage Gap Found
+
+F2a's own disclosure (`spec.md` AIC-04, `validation.md`'s F2a section): "per-user AND per-workspace rate limits AND token budgets on AI runs" was left `⚠️ Partial` — the reusable `InMemoryRateLimiter` primitive existed (F2a) but was wired only onto the admin `:test` endpoint, with **no rate limit anywhere on the AI-run route itself** (which didn't exist until F2c).
+
+`apps/server/src/core/rateLimit.ts` (relocated, confirmed `git mv`-clean, logic byte-identical) backs `ai-engine/routes.ts`'s `DEFAULT_AI_RUN_RATE_LIMIT = { limit: 20, windowMs: 60_000 }` on `POST /diagrams/:id/ai/runs`, strictly tighter than `core/server.ts`'s `DEFAULT_RATE_LIMIT_OPTIONS = { limit: 300, windowMs: 60_000 }` global default, and `export/routes.ts`'s `DEFAULT_EXPORT_RATE_LIMIT = { limit: 30, windowMs: 60_000 }` shared across `/exports`+`/bundle` — both confirmed by direct code read.
+
+**This genuinely closes the AI-run-rate-limiting part of AIC-04.** It does **not** close the per-workspace dimension or token-budget enforcement named in AIC-04's original text — no code anywhere in this diff tracks a per-workspace counter or a token/cost budget ceiling; only the per-user (`userId ?? ip`) dimension is enforced. AIC-04's `spec.md` row is updated below to reflect this partial-but-genuinely-improved state, not a full closure.
+
+**Discrimination-sensor finding**: re-ran `aiRunRateLimit.int.spec.ts` — both existing tests inject their own `InMemoryRateLimiter` (`{ limit: 2, windowMs: 60_000 }`), so **neither exercises the actual shipped `DEFAULT_AI_RUN_RATE_LIMIT` constant**. Widening that constant to 300 (matching the global default, silently re-opening AIC-04's gap) survived the full suite untouched on first attempt. Same finding, same fix, for `export/routes.ts`'s `DEFAULT_EXPORT_RATE_LIMIT` (export is explicitly named in SEC-02's AC text alongside AI-generation). Both closed with new tests that omit the injection and fire real requests against the real default (commits `3612db6`, `c0c663b`) — see Discrimination Sensor #2 below.
+
+---
+
+### Audit-Event Completeness (SEC-04) — All 8 Named Actions, File:Line Confirmed
+
+| AC action | File:line | Confirmed by |
+| --- | --- | --- |
+| Login (success) | `apps/server/src/modules/auth/routes.ts:119` (`auth.login.succeeded`) | read directly |
+| Login (failure) | `apps/server/src/modules/auth/routes.ts:97` (`auth.login.failed`) | read directly |
+| Admin access | `apps/server/src/modules/ai-provider/routes.ts` (`ai_provider_config.created/updated/tested`, every route gated by `assertProviderAdmin`) | read directly, pre-existing F2a |
+| Permission change | `apps/server/src/modules/workspace/routes.ts` (`workspace.member.updated/.added/.removed`) | read directly, pre-existing F1a |
+| Restore | `apps/server/src/modules/snapshot/restore.ts:107` (`diagram.snapshot.restored`) | read directly |
+| Publish | `apps/server/src/modules/presentation/publish.ts:47` (`presentation.published`) | read directly |
+| Export | `apps/server/src/modules/export/routes.ts:171`/`:209` (`diagram.export.generated`/`.bundle_generated`) | read directly |
+| AI provider config | same as Admin access row above | read directly |
+| AI patch approval | `apps/server/src/modules/ai-engine/applyPatch.ts:182` (`ai_run.patch.approved`) | read directly |
+
+All 5 "new" T85 call sites and all 3 pre-existing ones independently re-derived from source, not copied from the implementer's own table. `ipHash` on both login outcomes reuses `tokens.ts`'s existing `hashToken` (sha256) — confirmed the raw IP is never persisted in cleartext.
+
+---
+
+### Threat-Model Manifest (SEC-05) — 6 Entries Spot-Checked (task required ≥4)
+
+`threatModel.spec.ts`'s 14-entry manifest read in full. Opened and independently confirmed 6 covering tests actually prove the named scenario (not just a plausible filename):
+
+| Scenario | Covering test opened | Confirmed |
+| --- | --- | --- |
+| SVG malicioso | `asset/asset.int.spec.ts:244` | `it('a malicious SVG with a <script> tag is sanitized before the asset becomes ready')` — genuine |
+| share link roubado | `share/share.int.spec.ts:232` | leaked-token-to-real-`workspace_admin` scenario, response still capped to link role — genuine |
+| zip bomb | `core/server.spec.ts:33-45` | 10 MB `bodyLimit` → 413, asserted directly — genuine |
+| ticket WS reutilizado | `ws-gateway/wsGateway.int.spec.ts:235` | second connection with the same ticket rejected — genuine |
+| escalada de papel | `workspace/rbac-matrix.int.spec.ts:309` | downgrade takes effect on the very next request, same session, no reconnect — genuine |
+| **consumo abusivo de IA** | `ai-engine/aiRunRateLimit.int.spec.ts:134-178` | 429 at N=3 with an injected limit=2, keyed per-user — genuine, and the specific "T83 closes AIC-04" connective claim holds (verified above) |
+
+All 14 `coveringTest` paths confirmed to exist via the manifest's own `fs.existsSync` unit test (re-run, 16/16 green). No entry pointed at a plausible-sounding-but-wrong file among the 6 spot-checked.
+
+---
+
+### Disaster Recovery — Incremental Chain + Restore-Test Job (Extra Scrutiny Per the Concurrent-Editing Note)
+
+`infra/backup/src/incremental.ts` and `apps/server/src/modules/backup/restoreTest.ts` read in full, line by line, given the disclosed unusual concurrent-editing history around this exact code.
+
+**`restoreIncrementalChain`** (`incremental.ts:296-370`): verifies `chain[0]` is genuinely a full backup (rejects an incremental as `chain[0]`); for every subsequent incremental, computes `expectedBaseChecksum = manifestChecksum(previousManifest)` and throws `IncrementalChainError` — applying nothing from that entry onward — the instant `manifest.baseManifestChecksum` doesn't match. Re-ran `incremental.int.spec.ts` (against 2 genuinely separate real Postgres 16 server processes, not 2 databases on one server) directly: 4/4 green, including the out-of-order-chain rejection case. **Not fully convinced by the existing test alone** — constructed my own mutation (skip the checksum comparison entirely) in an isolated worktree; the existing "broken/out-of-order chain is refused" test caught it immediately (promise resolved instead of rejecting). See Discrimination Sensor #4.
+
+**`assertIsolatedRestoreTarget`** (`restoreTest.ts:97-107`): the very first statement of `runRestoreTest` (`restoreTest.ts:220`) — throws before any verify/restore/audit-write touches anything, comparing trimmed exact strings. Confirmed by code read (not just the test name) that no code path in `runRestoreTest` can reach `verifyBackup`/`restoreBackup`/`recordAuditEvent` before this guard runs. Re-ran `restoreTest.spec.ts` (11/11) and `restoreTest.int.spec.ts` (5/5, against 2 genuinely separate real Postgres 16 instances) directly. My own bypass mutation (`if (false && ...)`) was killed immediately by `restoreTest.spec.ts`'s 2 dedicated guard tests. See Discrimination Sensor #3.
+
+**T90's `recordOutcome` → T93's metrics wiring** (the specific concurrent-editing risk area named in the task): `recordOutcome` (`restoreTest.ts:192-206`) calls `recordAuditEvent` unconditionally, then `input.metrics?.recordRestoreTestFailure()` only on the `'backup.restore_test.failed'` action — read directly, confirmed to match `metrics.ts`'s `arch_canvas_restore_test_failures_total` Counter exactly, and confirmed `alerts.yml`'s `BackupRestoreTestFailing` rule references that exact series name. No sign of a defect from the disclosed concurrent-editing incident — the wiring is clean and structurally sound.
+
+**Genuine spec-precision gap found (not a code defect)**: `spec.md`'s DR-01 AC1 literally reads "the system SHALL capture **WAL-based** incremental backups" — but `incremental.ts`'s own module doc comment explicitly and honestly discloses this is row-level/logical incremental, NOT WAL archiving, citing the *source* document's looser "incremental/WAL **quando disponível**" (when available) phrasing and AD-003's single-monolith constraint (no dedicated WAL-shipping sidecar exists in this architecture). This is a reasonable, disclosed engineering decision — but the spec's own AC text is stricter than what was built, and stricter than what the source document actually requires. Flagged as a spec-precision gap below, not a blocking defect; DR-01 is marked Verified with this note rather than silently promoted as if the AC's literal wording were satisfied.
+
+**Second gap found**: DR-01's AC also says "per the configured retention policy" — no retention-policy mechanism (automated deletion of aged backups) exists anywhere in this codebase, in this wave or any prior one. `backup:create` writes an operator-chosen path with no expiry/cleanup logic. This is a genuine, undisclosed scope gap, not something F5's tasks claimed to close — flagged explicitly below rather than silently accepted.
+
+---
+
+### Metrics/Tracing Payload Redaction (OBS-01/02)
+
+`metrics.ts`: 9 documented series confirmed registered (`arch_canvas_http_request_duration_seconds`, `_http_errors_total`, `_mutation_ack_duration_seconds`, `_job_queue_depth`, `_snapshot_compaction_duration_seconds`, `_ai_run_duration_seconds`/`_tokens_total`/`_estimated_cost_usd_total`, `_export_duration_seconds`, plus T93's 4 additions: `_dependency_up`, `_snapshot_compaction_failures_total`, `_restore_test_failures_total`, `_auth_failures_total`) — grepped every label/attribute assignment site; none carry prompt text, scene content, or a token/secret value, only ids/counts/model-names.
+
+`tracing.ts`/`pipeline.ts`: every span attribute across `ai.run`/`ai.build_context`/`ai.call_provider`/`ai.apply_patch` read directly — `diagram.id`, `workspace.id`, `ai.model`, `ai.tool_call_count`, never `params.userRequest`/scene content/the provider token. Re-ran `ai-engine/tracing.int.spec.ts` directly (3/3 green) — its substring-search test greps the entire serialized span array for a distinctive scene-label marker, a distinctive prompt marker, the provider token, and the encryption key; all four absent. Constructed my own leak mutation (added `'ai.debug_prompt': params.userRequest` to the `ai.call_provider` span) — the substring-search test caught it immediately in both the success-path and failure-path tests. See Discrimination Sensor #5.
+
+`alerts.yml`'s 7 rules cross-checked directly against `metrics.ts`'s real registered series names (`arch_canvas_mutation_ack_duration_seconds_bucket`, `arch_canvas_http_errors_total`/`_http_request_duration_seconds_count`, `arch_canvas_job_queue_depth`, `arch_canvas_snapshot_compaction_failures_total`, `arch_canvas_dependency_up`, `arch_canvas_restore_test_failures_total`, `arch_canvas_auth_failures_total`) — every `expr` references a series that genuinely exists. Re-ran `alertRules.spec.ts` (5/5 green).
+
+---
+
+### Performance Benchmark Honesty (PERF-01)
+
+`bootstrap.perf.int.spec.ts` read in full: real `GET`/`POST` `app.inject` calls against a real PGlite database (not stubbed timing), 7 samples per scene size (1k/5k/10k), p95 computed from real elapsed-time measurements. Bootstrap p95 asserted `<3000ms` at 1k/5k (source doc's literal target); ACK p95 asserted `<1000ms` at all three sizes; 10k logged only, no invented threshold. Ran standalone: measured numbers logged in the format `[PERF-01 T94] elements=<n> bootstrap p95=<ms> ...` — this session's run showed comfortable headroom at every size (orders of magnitude under target, as expected for an idealized single-process PGlite proxy). The file's header disclosure ("this is a PROXY... NOT a substitute for genuine production-infrastructure load testing") is present, accurate, and honestly worded — not a rubber-stamped caveat.
+
+---
+
+### Accessibility Check Honesty (A11Y-01)
+
+`shell.a11y.spec.tsx` read in full. The deliberately-broken `ComponentWithMissingAltText` fixture (`<img>` with no `alt`) is asserted to produce a `serious`/`critical` violation with `id === 'image-alt'` AND to make jest-axe's own `toHaveNoViolations` matcher throw — both re-confirmed genuinely true by reading the assertions directly (not just trusting the test name); this ran green in the fresh gate above. Coverage disclosure cross-checked against a real `find apps/web/src -name "*.tsx"` directory listing: exactly `App.tsx` (routing only, reasonably excluded from "UI components"), `main.tsx` (bootstrap entrypoint, reasonably excluded), `AppShell.tsx`, `LanguageSwitcher.tsx`, `DiagramEditorPage.tsx` — matching the file's own claim of "exactly four UI files, three scanned" exactly. The full editor canvas, AI dock, presentation mode, and comments UI genuinely have no React component anywhere in this codebase yet — confirmed by the same listing, not assumed from the file's own claim.
+
+---
+
+### Real-Boot Smoke Test — Reproduced Fresh, Never Trusted From the Implementer's Claimed `curl` Output
+
+Applied the real migration (`node --input-type=module -e "import('./packages/database/dist/migrate.js')..."`, the exact invocation `infra/compose/migrate.Dockerfile` uses) against this sandbox's real, pre-existing `arch_canvas` Postgres 16 database. Booted `node apps/server/dist/index.js` for real, `NODE_ENV=production`, with freshly-generated, non-default `SESSION_SECRET`/`ENCRYPTION_KEY`/`S3_SECRET_KEY` (never the literal `dev-insecure-secret-change-me` default), `PORT=3901`:
+
+| Check | Result |
+| --- | --- |
+| `curl -I /health/live` | `200`, `Content-Security-Policy`/`X-Content-Type-Options: nosniff`/`X-Frame-Options: SAMEORIGIN` all present (T82) |
+| `GET /metrics` | valid Prometheus text-exposition format, `content-type: text/plain; version=0.0.4`, non-empty series including a real observed `http_request_duration_seconds` sample from the `curl` calls above (T91) |
+| `GET /auth/oidc/login` (no `OIDC_ISSUER_URL` set) | `503`, `{"title":"OIDC is not configured on this server",...}` — never a crash, never a bare 404 (T87) |
+| `SIGTERM` | server logged `"shutdown signal received, draining connections"` and the process exited cleanly — confirmed via `kill -0` returning failure afterward (FND-01's existing AC) |
+
+Server killed, no lingering process confirmed via `pgrep`. `docker compose -f compose.yaml config` (base, `--profile observability`, `--profile oidc-dev`, both together) all exited 0 with every bind-mounted config path resolving to a real on-disk file — re-run directly, not trusted from T96's own claim.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add .../mutwt HEAD --detach` (never `git stash`); `node_modules` symlinked from the real tree into the worktree (not reinstalled — mutations are all within already-built-and-tested packages, no cross-package rebuild needed, confirmed by a sanity-check `vitest run` before mutating). Baseline `git status --porcelain` on the real tree captured empty before any mutation; confirmed still empty after `git worktree remove --force` cleanup.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `apps/server/src/modules/auth/routes.ts` (OIDC callback, call site) | Fell back to the ID token's top-level `role` claim whenever `resolveOidcRole` returned `null` | ❌ **Survived on first attempt** — every existing adversarial test account has a group that DOES match the role map, so `resolveOidcRole` never actually returns `null` in any prior integration scenario. **Fixed**: added a new account (`attacker-no-mapped-groups`, zero mapped groups, only top-level `role`/`admin` claims) and a new test asserting zero workspace-membership rows are ever created. Re-applied the mutation — now ✅ killed (commit `7f71a3a`). |
+| 2 | `apps/server/src/modules/ai-engine/routes.ts:44` | Widened `DEFAULT_AI_RUN_RATE_LIMIT` from `{limit:20}` to `{limit:300}`, matching the global default | ❌ **Survived on first attempt** — both existing tests inject their own limiter, never exercising the real constant. **Fixed**: added a test with no override, firing 21 real requests against the real default. Re-applied the mutation — now ✅ killed (commit `3612db6`). |
+| 2b | `apps/server/src/modules/export/routes.ts:50` (same class, found during triage of #2) | Widened `DEFAULT_EXPORT_RATE_LIMIT` from `{limit:30}` to `{limit:300}` | Same root cause as #2, confirmed before fixing. **Fixed**: same pattern, 31 real requests against the real default (commit `c0c663b`). |
+| 3 | `apps/server/src/modules/backup/restoreTest.ts:101` | `assertIsolatedRestoreTarget`'s equality check short-circuited to always pass (`if (false && ...)`) | ✅ Killed — `restoreTest.spec.ts`'s 2 dedicated guard tests both failed (`expected [Function] to throw an error`) |
+| 4 | `infra/backup/src/incremental.ts:336` | `restoreIncrementalChain`'s chain-link checksum comparison short-circuited to always pass | ✅ Killed — `incremental.int.spec.ts`'s "broken/out-of-order chain is refused" test failed (`promise resolved "undefined" instead of rejecting`) |
+| 5 | `apps/server/src/modules/ai-engine/pipeline.ts` (`ai.call_provider` span) | Added `'ai.debug_prompt': params.userRequest` as a span attribute | ✅ Killed — both of `tracing.int.spec.ts`'s redaction assertions failed, the raw prompt marker visible directly in the failure diff |
+| 6 | `apps/server/src/security/threatModel.spec.ts:79` | Pointed the "SVG malicioso" entry's `coveringTest` at a nonexistent filename | ✅ Killed — the manifest's own `fs.existsSync` companion test failed immediately |
+
+**Sensor depth**: 6 mutations (above the standard tier, matching the closing-wave stakes), covering the 6 highest-risk behaviors named in the task: OIDC role-ceiling enforcement, AI-run/export rate-limit strictness, restore-test production isolation, incremental-backup chain integrity, span payload redaction, and threat-model manifest file-existence discipline.
+
+**Sensor tally**: 6/6 ultimately killed. **2 (#1 and #2/#2b, same root-cause class) survived on first attempt** — both were genuine test-coverage gaps in the implementers' own test suites (every existing test for these two behaviors injected a custom limiter/scenario that never exercised the real production default/edge case), not product-code defects. Both fixed within this session (3 fix-iterations used, at the stated bound), confirmed to kill the mutation afterward, and confirmed not to regress anything else (fresh full gate re-run below, still 100% green). Post-sensor `git status --porcelain` on the real worktree: empty, identical to the pre-sensor baseline. `git worktree list` confirms only the main worktree remains.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| SEC-01: security headers + CORS allowlist | CSP/X-Content-Type-Options/X-Frame-Options always present, HSTS when `https:`, CORS restricted to an explicit allowlist | `core/server.ts` (helmet/cors registration) + `core/server.spec.ts` (5 tests, re-run) + real-boot `curl -I` (this session) | ✅ PASS |
+| SEC-02: rate limiting, stricter on AI/export | 429 past the limit; AI-run/export routes strictly tighter than default | `core/rateLimit.ts`, `ai-engine/routes.ts:44`, `export/routes.ts:50` — real-default gap found and closed this session | ✅ PASS (after fix) |
+| SEC-03: production fail-fast on insecure secret | production boot with a known-insecure default secret refuses to start | `config.ts:65-74` (pre-existing, F0), `config.spec.ts` (14 tests incl. the 4 T84-added dev/test-never-throws cases) | ✅ PASS |
+| SEC-04: complete audit-event coverage | all 8 named actions produce an audit row with actor/action/resource/outcome | 8/8 confirmed at real `file:line` sites, table above | ✅ PASS |
+| SEC-05: threat-model regression manifest | 1 test per §9.4 scenario, cross-referenced, no orphaned/wrong reference | 14/14 entries present, 6/14 spot-checked genuine (task required ≥4), existence-check re-run | ✅ PASS |
+| OIDC-01: OIDC-with-PKCE as alternative to local auth | local auth unaffected when OIDC absent; PKCE flow works when configured | `auth/routes.ts` 503-when-unconfigured (real-boot confirmed) + `oidc.int.spec.ts` (5/5, real `oidc-provider`) | ✅ PASS |
+| OIDC-02: group→role mapping, never above ceiling | mapped role capped by explicit map, no fallback to any other claim | `resolveOidcRole` structural read + adversarial re-test + **the new zero-group-match test this session added** (commit `7f71a3a`) | ✅ PASS |
+| OIDC-03: refresh rotatable/revocable, no client-readable token | `/auth/refresh` works identically for OIDC-originated sessions; no ID/access/refresh token in any client-readable location | `cookie.ts` (`httpOnly: true` on every cookie, confirmed by grep), `oidc.int.spec.ts`'s refresh test (re-run) | ✅ PASS |
+| DR-01: incremental backup chained to full baseline | full+incremental restores exact state; incremental without base refuses; chain-checksum integrity enforced | `incremental.ts` read in full + `incremental.int.spec.ts` re-run (4/4, 2 real Postgres instances) + my own checksum-bypass mutation killed | ✅ PASS **— with 2 disclosed spec-precision gaps** (AC text says "WAL-based", built is row-level/logical, honestly disclosed in code; no retention-policy mechanism exists anywhere) |
+| DR-02: automated recurring restore test, alerts on divergence | isolated target, never production; divergence never silently passes | `assertIsolatedRestoreTarget` read + bypass-mutation killed; `restoreTest.int.spec.ts` re-run (5/5, 2 real Postgres instances); metrics/audit wiring confirmed | ✅ PASS |
+| OBS-01: `/metrics` covers REST/WS/jobs/snapshot/AI/export | all documented series present, real-boot non-zero after activity | 9 series confirmed registered + real-boot `/metrics` output (this session) | ✅ PASS |
+| OBS-02: OTel traces, never leaking payload content | spans at REST/WS/DB/storage/AI boundaries, no prompt/scene/token in any attribute | every AI-boundary span attribute read directly + substring-search test re-run + my own leak mutation killed | ✅ PASS |
+| OBS-03: alerting thresholds as versioned config | 7 rules matching documented SLOs, referencing real metrics | 7/7 rules cross-checked against real `metrics.ts` series names + `alertRules.spec.ts` re-run | ✅ PASS |
+| PERF-01: documented performance benchmark, disclosed proxy | bootstrap/ACK p95 within target at 1k/5k/10k, honest sandbox-proxy disclosure | `bootstrap.perf.int.spec.ts` read in full, real wall-clock measurements against real PGlite, disclosure present and accurate | ✅ PASS |
+| A11Y-01: automated a11y check on existing shell, honest coverage disclosure | axe-core scan of every existing component, real gate (not a no-op), accurate "not yet built" disclosure | `shell.a11y.spec.tsx` read in full, broken-fixture gate re-confirmed genuine, coverage disclosure cross-checked against a real directory listing | ✅ PASS |
+
+**Status**: 15/15 F5 ACs covered with exact-outcome evidence. 1 AC (DR-01) carries 2 disclosed, non-blocking spec-precision gaps (see below) rather than a clean unconditional pass — flagged explicitly, not silently smoothed over.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ — this Verifier's own additions are test-only (no product code changed) |
+| No abstractions for single-use code | ✅ |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — F5's diff is scoped to `core/{server,rateLimit,config,metrics,tracing}.ts`, `auth/{routes,oidc}.ts`, `snapshot/restore.ts`, `presentation/publish.ts`, `export/routes.ts`, `ai-engine/{routes,applyPatch,pipeline}.ts`, `security/threatModel.spec.ts`, `infra/backup/src/incremental.ts`, `apps/server/src/modules/backup/restoreTest.ts`, `infra/observability/alerts.yml`, `apps/web/src/a11y/shell.a11y.spec.tsx`, `diagram-sync/bootstrap.perf.int.spec.ts`, `registerModules.ts`/`compose.yaml` wiring |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — optional `deps.metrics`/`deps.tracing`/`deps.jobs` degrade, `onRoute`-hook injection reasoned and documented, `AuditEventInput` convention followed exactly |
+| Would senior engineer approve? | ✅ |
+| Tests map to acceptance criteria, non-shallow | ✅ (after this session's 3 fixes closed 2 real gaps) |
+| Spec-anchored outcome check | ✅ — 15/15 ACs targeted, 1 flagged with disclosed spec-precision gaps rather than silently passed |
+| Per-layer Coverage Expectation met | ✅ |
+| Every test maps to a spec AC/Done-when — no unclaimed tests | ✅ |
+| Documented guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md` — followed |
+
+---
+
+### Process Check (T57's mistake — did it recur?)
+
+Read `spec.md`'s Requirement Traceability table before making any edits: all 15 F5 rows (SEC-01..05, OIDC-01..03, DR-01..02, OBS-01..03, PERF-01, A11Y-01) read `Implementing (Txx, ...)` — none were self-marked `✅ Verified` by an implementer commit. T96's own Status note explicitly left them at `Implementing`, matching every prior wave's discipline exactly. **T57's mistake did not recur** (fifth wave in a row confirmed clean, after F2c/F3/F4).
+
+---
+
+### T90/T92/T93 Concurrent-Editing Incident — Spot-Checked
+
+Per STATE.md's disclosed unusual incident (one batch's sub-agent process resuming across multiple turn boundaries during long background test runs, requiring orchestrator intervention several times), gave `backup/restoreTest.ts`'s `recordOutcome` signature, `metrics.ts`'s T93-added counters, and `auth/routes.ts`'s `metrics` threading extra scrutiny (per the task's explicit instruction). Read all three directly: `recordOutcome`'s signature (`Pick<RunRestoreTestInput, 'db' | 'metrics'>`, `action`, `metadata`) is clean and consistent with every call site; `metrics.ts`'s 4 T93-added counters (`snapshotCompactionFailuresTotal`, `restoreTestFailuresTotal`, `authFailuresTotal`, `dependencyUp`) are each wired at exactly one real source (`compaction.ts`'s catch block, `restoreTest.ts`'s `recordOutcome`, `auth/routes.ts`'s both login-failure paths, `server.ts`'s `/health/ready` dependency checks); `auth/routes.ts`'s `metrics` param threads through cleanly with no duplicate/conflicting wiring found. **No defect traced to the disclosed incident** — every step was independently re-gated as claimed, and this session's full fresh gate run (388 unit + 375 integration, 100% green) is consistent with that.
+
+---
+
+### Disclosed Deviations — Assessed
+
+- **T82's `onRoute`-hook instead of a literal `onRequest` hook**: assessed directly — the documented reasoning (Fastify's hook-ordering rules would defeat "key = userId" for a literal `onRequest` hook) is structurally correct; confirmed by reading Fastify's own hook-execution order and the actual `authContext` population timing in `middleware.ts`.
+- **T85's `resourceId`-random-uuid for failed logins**: a genuine schema constraint (`audit_events.resource_id` NOT NULL), not a design shortcut — confirmed by reading `packages/database/src/schema.ts`.
+- **T87's `OIDC_DEFAULT_WORKSPACE_ID`/UserInfo-endpoint-merge additions**: both reasonable, narrowly-scoped, and in T88's case caught a REAL functional gap (`conformIdTokenClaims: true` omitting non-essential claims from the ID token) that a mocked protocol would never have surfaced — exactly the value real-engine-discipline (AD-007-style) is supposed to deliver.
+- **T89's row-level-not-WAL incremental design**: assessed above as a spec-precision gap, not a code defect — reasonable given AD-003, honestly disclosed in the code itself.
+- **T90's injected `getLatestBackupPath`/row-count-not-manifest design**: both genuine, disclosed consequences of this codebase having no backup catalog and no row-count field on `BackupManifest` — confirmed by reading `create.cli.ts` and `manifest.ts` directly.
+- **T92's manual spans over `@opentelemetry/sdk-node` auto-instrumentation**: the stated reasoning (auto-instrumenting `pg` would capture SQL params, replicating the exact leak class OBS-02 exists to prevent) is sound and consistent with `REDACT_PATHS`' own discipline.
+- **T96's `oidc-dev` dual bootstrap-admin env vars**: a disclosed, reasonable hedge given no Docker daemon exists in this sandbox to confirm the exact expected variable name.
+
+None of these are functional gaps beyond the 2 already flagged (DR-01's spec-wording/retention-policy notes); all are documented, reasoned, and hold up under independent re-derivation.
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- **Outcome**: all 5 stages exit 0, run fresh from a cleared turbo cache. `lint`: clean. `typecheck`: 23/23 package tasks. `build`: 12/12 package tasks. `test:unit`: **360 server + 28 web = 388 tests passed, 0 failed** (32 server test files). `test:integration`: **331 server + 36 database + 8 backup = 375 tests passed, 0 failed**.
+- **Test count before this wave** (end of F4): 276 server unit / 294 server integration.
+- **Test count after this wave** (including this Verifier's 3 gap-closing tests): 360 server unit / 331 server integration.
+- **Delta**: +84 unit, +37 integration, net-new across `core/{rateLimit,metrics,tracing,alertRules}`, `security/threatModel`, `auth/oidc`, `backup/restoreTest`, `infra/backup/incremental`, `diagram-sync/bootstrap.perf`, `ai-engine/{aiRunRateLimit,tracing}`, `export/exportRateLimit`, `apps/web/a11y`.
+- **Skipped tests**: none.
+- **Failures**: none, after this session's 3 fix commits.
+- **Process/cluster hygiene**: zero leftover `redis-server`/`vitest`/`node .../dist/index.js` processes after every run this session; `pg_lsclusters` shows only `main` online.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| SEC-01 | Implementing (T82) | ✅ Verified — headers/CORS confirmed by code read, unit tests, and a real-boot `curl -I` |
+| SEC-02 | Implementing (T83) | ✅ Verified — AI-run/export limits confirmed stricter than default; a genuine coverage gap in both routes' tests found and closed this session |
+| SEC-03 | Implementing (T84) | ✅ Verified — fail-fast confirmed pre-existing (F0) and now fully test-covered |
+| SEC-04 | Implementing (T85) | ✅ Verified — all 8 named actions confirmed at real file:line sites |
+| SEC-05 | Implementing (T86) | ✅ Verified — 14-entry manifest confirmed complete; 6/14 entries spot-checked genuine |
+| OIDC-01 | Implementing (T87/T88) | ✅ Verified — 503-when-unconfigured confirmed live; local auth unaffected; real PKCE flow re-run |
+| OIDC-02 | Implementing (T87/T88) | ✅ Verified — `resolveOidcRole` structurally confirmed exclusive/allowlist-only; a genuine wiring-layer coverage gap found and closed this session |
+| OIDC-03 | Implementing (T87/T88) | ✅ Verified — httpOnly-only cookies confirmed by grep; refresh-sharing re-run |
+| DR-01 | Implementing (T89) | ✅ Verified (row-level/logical incremental, disclosed) — chain-checksum integrity confirmed structurally and by a killed sensor mutation; **2 disclosed gaps**: AC text says "WAL-based" but the built (and reasonably justified) mechanism is row-level, and no retention-policy/backup-expiry mechanism exists anywhere in this codebase |
+| DR-02 | Implementing (T90/T96) | ✅ Verified — isolation guard confirmed to run first, before any I/O; killed by a bypass mutation; divergence-never-silent confirmed by 2 independent checks (checksum + row-count) |
+| OBS-01 | Implementing (T91) | ✅ Verified — 9 documented series confirmed registered; real-boot `/metrics` output confirmed non-empty after activity |
+| OBS-02 | Implementing (T92) | ✅ Verified — every AI-boundary span attribute confirmed id/count/model-only; a genuine leak mutation caught by the existing substring-search test |
+| OBS-03 | Implementing (T93) | ✅ Verified — all 7 rules cross-checked against real metric names |
+| PERF-01 | Implementing (T94) | ✅ Verified — real wall-clock measurements against real PGlite confirmed; honest proxy disclosure present |
+| A11Y-01 | Implementing (T95) | ✅ Verified — broken-fixture gate confirmed genuinely discriminating; coverage disclosure cross-checked against a real directory listing |
+
+**AIC-04** (F2a, previously `⚠️ Partial`): the AI-run-rate-limiting dimension of this gap is now genuinely closed by SEC-02/T83 (confirmed above) — remains `⚠️ Partial` overall, since the per-workspace dimension and token-budget enforcement named in the original AC text are still not implemented anywhere in this codebase. Row updated below with this precise, non-overclaiming note.
+
+(`spec.md`'s own table has been rewritten with this Verifier's evidence markers, replacing the implementer-authored `Implementing (task, commit)` text.)
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — F5 closes as PASS, with 2 explicitly disclosed non-blocking gaps in DR-01 (spec-wording precision + missing retention-policy mechanism) rather than a silently-smoothed clean pass.
+
+**Spec-anchored check**: 15/15 F5 ACs matched their spec-defined outcome with exact evidence; 1 AC (DR-01) carries 2 disclosed spec-precision/scope gaps, both real and both worth a human decision (loosen the AC wording, or build WAL/retention later) rather than something this Verifier could or should silently paper over.
+
+**Sensor tally**: 6/6 mutations ultimately killed. 2 survived on first attempt (OIDC role-ceiling wiring, AI-run/export rate-limit real-default coverage) — both were genuine test-coverage gaps in the implementers' own suites, fixed within this session (3 fix-iterations used, at the stated bound), re-confirmed killed, and re-confirmed not to regress anything else.
+
+**Gate**: 5/5 stages passed on a genuinely fresh (cache-cleared) run — 388 unit + 375 integration tests, 0 failed, matching the implementer's own claimed counts almost exactly (the small deltas are this Verifier's own 3 added tests).
+
+**What works**: `resolveOidcRole` is structurally the only place a role is ever derived from an OIDC ID token, reads exclusively the configured group claim against an explicit allowlist, and never falls back to any other claim — confirmed by code read, by re-running the existing real-`oidc-provider` adversarial test, and by a newly-constructed adversarial scenario (zero mapped groups) that the pre-existing suite had never covered. The AI-run and export routes carry their own, stricter-than-default rate limits that genuinely close the AI-run-rate-limiting part of AIC-04's F2a-disclosed gap — confirmed structurally and by tests that (after this session's fix) exercise the real shipped constants, not just an arbitrary injected stand-in. All 8 SEC-04-named audit actions have real, confirmed call sites. The 14-entry threat-model manifest is honest — 6 spot-checked entries all genuinely prove what they claim, including the "abusive AI consumption → T83's rate limit" cross-wave connective claim. The incremental-backup chain refuses to apply anything when a checksum link doesn't hold, and the restore-test job's production-isolation guard runs before any I/O — both confirmed by code read and by mutations that the existing tests killed. No metric label or span attribute anywhere carries prompt/scene/token content — confirmed by code read, by re-running the substring-search test, and by a constructed leak mutation that test caught immediately. The performance benchmark measures real wall-clock time against a real (PGlite) database with an honest, accurate proxy disclosure. The accessibility check's gate is real (a deliberately-broken fixture genuinely fails it) and its coverage disclosure matches what actually exists in `apps/web/src` today. The real compiled server was booted fresh in this session with genuinely non-default production secrets, showed all documented security headers, a valid non-empty `/metrics` output, a correct 503 (never a crash) for unconfigured OIDC, and a clean `SIGTERM` drain-and-exit.
+
+**Issues found**: 0 blocking. 2 real test-coverage gaps found by the discrimination sensor and fixed within this session (not counted as "issues" against the final PASS, since they are now closed and re-verified). 2 disclosed, non-blocking DR-01 gaps (spec-wording precision on "WAL-based"; no retention-policy/backup-expiry mechanism anywhere in this codebase) — both real, both worth a human decision, neither invented nor silently accepted.
+
+**Next steps**: no further fix-loop required (this is a PASS). **F5 closes the entire architecture-canvas roadmap** — all 92 requirements are now at Verified or the two long-standing, correctly-scoped disclosed partials (AIC-04's per-workspace/budget dimension, DR-01's WAL-wording/retention-policy notes). The one deliberate exception, never a coding deliverable, is pilot rollout with real teams — an organizational activity explicitly out of scope per the roadmap table.
+
+---
