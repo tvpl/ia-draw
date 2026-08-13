@@ -1,0 +1,18 @@
+# infra/observability/grafana-datasources.yml — provisions Prometheus as Grafana's
+# default datasource for the `observability` compose profile (docs/product-spec.md §12,
+# T96), using Grafana's own documented provisioning file format (`apiVersion: 1`,
+# `datasources[]`) so this loads automatically with zero manual "Add data source" click.
+#
+# DISCLOSURE (T96): this sandbox has no Docker daemon — validated only via
+# `docker compose -f infra/compose/compose.yaml --profile observability config`; never
+# actually loaded by a running Grafana in this environment.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: true

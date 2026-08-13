@@ -54,6 +54,8 @@
 
 import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { readdir, stat } from 'node:fs/promises';
+import { join } from 'node:path';
 import {
   type BackupObjectStore,
   BackupVerificationError,
@@ -321,6 +323,44 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
     checksumMismatches: [],
     rowCountMismatches: [],
   };
+}
+
+/**
+ * T96 — a real, filesystem-based `getLatestBackupPath` resolver: lists `dir` (a real
+ * `readdir`, never a bespoke catalog), keeps only `*.zip` entries (the backup archive
+ * format `create.ts`/`incremental.ts` both write), `stat`s each for its real mtime, and
+ * returns the most recently modified one. This is ONE reasonable interpretation of the
+ * module doc comment's own "Scope note on 'latest backup'" (this codebase genuinely has
+ * no backup catalog/registry) — an operator whose backup automation drops timestamped
+ * archives into one directory gets a correct, real answer with zero extra bookkeeping.
+ * Throws a clear, operator-facing error when the directory is empty or missing, rather
+ * than silently resolving to nothing and having `runRestoreTest` fail confusingly later.
+ */
+export async function getLatestBackupPathFromDirReal(dir: string): Promise<string> {
+  let entries: string[];
+  try {
+    entries = await readdir(dir);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`restoreTest: could not list backup directory "${dir}": ${reason}`);
+  }
+
+  const zipEntries = entries.filter((entry) => entry.endsWith('.zip'));
+  if (zipEntries.length === 0) {
+    throw new Error(`restoreTest: no *.zip backup archives found in "${dir}"`);
+  }
+
+  const withMtimes = await Promise.all(
+    zipEntries.map(async (entry) => {
+      const fullPath = join(dir, entry);
+      const stats = await stat(fullPath);
+      return { fullPath, mtimeMs: stats.mtimeMs };
+    }),
+  );
+
+  withMtimes.sort((a, b) => b.mtimeMs - a.mtimeMs);
+  // biome-ignore lint/style/noNonNullAssertion: withMtimes is non-empty by construction (zipEntries.length > 0 above)
+  return withMtimes[0]!.fullPath;
 }
 
 export interface RestoreTestJobOptions {

@@ -33,6 +33,35 @@ Named volumes: `postgres-data`, `minio-data`, `backups` (the last is mounted
 into `server` at `/backups`, reserved for the F1 backup job — nothing writes
 to it yet).
 
+## Optional profiles (docs/product-spec.md §12, T96)
+
+Neither profile starts by default — `docker compose up` never touches them.
+
+| Profile | Services | Purpose |
+| --- | --- | --- |
+| `observability` | `prometheus`, `grafana`, `otel-collector` | Prometheus scrapes T91's `GET /metrics` and evaluates T93's `infra/observability/alerts.yml`; Grafana ships with Prometheus pre-provisioned as its datasource (`infra/observability/grafana-datasources.yml`); the OTel Collector receives OTLP traces on 4317 (gRPC) / 4318 (HTTP), config at `infra/observability/otel-collector-config.yml`. |
+| `oidc-dev` | `keycloak` | A real local OIDC Identity Provider for exercising T87's OIDC login against a genuine external IdP (distinct from T88's in-process `oidc-provider`, which exists only for the automated test suite). Provisions the container only — an operator still creates a realm/client and points `OIDC_ISSUER_URL`/`OIDC_CLIENT_ID`/`OIDC_CLIENT_SECRET` at it manually (see `compose.yaml`'s `keycloak` service comment). |
+
+```bash
+docker compose --profile observability up
+docker compose --profile oidc-dev up
+# both together:
+docker compose --profile observability --profile oidc-dev up
+```
+
+**Disclosure (T96, same discipline as the rest of this file):** this sandbox
+has no Docker daemon, so neither profile was actually booted here. What WAS
+verified in this environment: `docker compose --profile observability config`
+and `docker compose --profile oidc-dev config` (and both together) all
+resolve cleanly — zero errors/warnings, every bind-mounted config file
+(`infra/observability/{prometheus,otel-collector-config,
+grafana-datasources}.yml`) resolves to a real file that exists on disk, and
+each profile's services are correctly absent from the base (no-profile)
+`config` output. Also carried forward from T92's own disclosed gap:
+`apps/server`'s OpenTelemetry tracing currently defaults to an in-memory
+exporter — nothing sends real spans to `otel-collector` yet even once this
+profile is genuinely booted with Docker.
+
 ## Environment
 
 `.env.example` documents every variable with a clearly insecure development

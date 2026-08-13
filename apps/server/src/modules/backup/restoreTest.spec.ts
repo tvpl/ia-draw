@@ -1,5 +1,12 @@
-import { describe, expect, it } from 'vitest';
-import { assertIsolatedRestoreTarget, parseCopyRowCounts } from './restoreTest.js';
+import { mkdtemp, rm, utimes, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import {
+  assertIsolatedRestoreTarget,
+  getLatestBackupPathFromDirReal,
+  parseCopyRowCounts,
+} from './restoreTest.js';
 
 describe('assertIsolatedRestoreTarget (DR-02, T90) — hard fail-fast against production', () => {
   it('throws when the target equals the production database URL exactly', () => {
@@ -78,5 +85,50 @@ describe('parseCopyRowCounts (DR-02, T90) — independent row-count baseline fro
 
   it('returns an empty object for a dump with no COPY blocks (e.g. INSERT-only or DDL-only)', () => {
     expect(parseCopyRowCounts('CREATE TABLE t (id serial primary key);\n')).toEqual({});
+  });
+});
+
+describe('getLatestBackupPathFromDirReal (DR-02, T96) — real filesystem, never a fake backup catalog', () => {
+  let dir: string;
+
+  beforeEach(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'arch-canvas-restore-test-'));
+  });
+
+  afterEach(async () => {
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('picks the most recently modified *.zip entry, ignoring non-zip files', async () => {
+    const older = join(dir, 'backup-2026-08-01.zip');
+    const newer = join(dir, 'backup-2026-08-12.zip');
+    const ignored = join(dir, 'README.txt');
+    await writeFile(older, 'older');
+    await writeFile(newer, 'newer');
+    await writeFile(ignored, 'not a backup');
+
+    // Real mtimes, set explicitly (rather than relying on creation-order timing, which
+    // can be sub-millisecond-unstable on some filesystems) so the "most recent" claim is
+    // unambiguous.
+    const now = Date.now();
+    await utimes(older, new Date(now - 60_000), new Date(now - 60_000));
+    await utimes(newer, new Date(now), new Date(now));
+
+    const result = await getLatestBackupPathFromDirReal(dir);
+    expect(result).toBe(newer);
+  });
+
+  it('throws a clear error when the directory has no *.zip archives', async () => {
+    await writeFile(join(dir, 'not-a-backup.txt'), 'irrelevant');
+
+    await expect(getLatestBackupPathFromDirReal(dir)).rejects.toThrow(
+      /no \*\.zip backup archives found/,
+    );
+  });
+
+  it('throws a clear error when the directory does not exist', async () => {
+    await expect(getLatestBackupPathFromDirReal(join(dir, 'does-not-exist'))).rejects.toThrow(
+      /could not list backup directory/,
+    );
   });
 });

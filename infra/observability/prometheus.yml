@@ -1,0 +1,25 @@
+# infra/observability/prometheus.yml — Prometheus scrape + rule config for the
+# `observability` compose profile (docs/product-spec.md §12, T96). Scrapes T91's real
+# `GET /metrics` endpoint on the `server` service and loads T93's `alerts.yml` as its
+# rule file, so a real `docker compose --profile observability up` runs a real Prometheus
+# actually evaluating those 7 alert rules against live series.
+#
+# DISCLOSURE (T96, same honesty-over-theater discipline as every other F5 task): this
+# sandbox has no Docker daemon (infra/compose/README.md's own "What's verified here vs.
+# what isn't") — this file was validated by `docker compose -f infra/compose/compose.yaml
+# --profile observability config` (YAML parses, env interpolates, volume mounts resolve)
+# only. It was never actually loaded by a running Prometheus process, and no real scrape
+# against `/metrics` or real alert evaluation happened in this environment.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  - job_name: arch-canvas-server
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["server:3000"]

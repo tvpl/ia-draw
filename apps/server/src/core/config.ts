@@ -77,6 +77,22 @@ const envSchema = z.object({
    * deployment.
    */
   OIDC_DEFAULT_WORKSPACE_ID: z.string().min(1).optional(),
+  /**
+   * DR-02 (T90/T96) — all optional. The server boots and works fully with none of these
+   * set; the recurring `backup-restore-test` job (`modules/backup/restoreTest.ts`)
+   * registers only when BOTH `RESTORE_TEST_TARGET_DATABASE_URL` and
+   * `RESTORE_TEST_BACKUP_DIR` are present (same "trio/pair together means configured"
+   * convention as OIDC above) AND a job queue is available (`deps.jobs`).
+   * `RESTORE_TEST_TARGET_DATABASE_URL` MUST be a distinct, isolated scratch database —
+   * `assertIsolatedRestoreTarget` hard-fails at run time if it ever equals
+   * `DATABASE_URL`, so accidentally pointing this at production never silently restores
+   * over live data.
+   */
+  RESTORE_TEST_TARGET_DATABASE_URL: z.string().min(1).optional(),
+  /** Directory a real deployment's backup automation drops timestamped `*.zip` archives into — see `getLatestBackupPathFromDirReal`'s own doc comment for why this resolver shape was chosen (this codebase has no backup catalog/registry). */
+  RESTORE_TEST_BACKUP_DIR: z.string().min(1).optional(),
+  /** Overrides `DEFAULT_RESTORE_TEST_CRON` (daily 03:00) when set. */
+  RESTORE_TEST_CRON: z.string().min(1).optional(),
 });
 
 const ROLE_VALUES = ROLES as readonly [Role, ...Role[]];
@@ -151,6 +167,17 @@ export interface AppConfig {
     /** Computed from `publicUrl` — never independently configurable (one less thing to misconfigure). */
     redirectUri: string;
   };
+  /**
+   * DR-02 (T90/T96) — present only when both `RESTORE_TEST_TARGET_DATABASE_URL` and
+   * `RESTORE_TEST_BACKUP_DIR` are set; `undefined` means the recurring restore-test job
+   * is not registered (a legitimate degrade — the server boots and works fully without
+   * it, same as every other optional job in this codebase).
+   */
+  restoreTest?: {
+    targetDatabaseUrl: string;
+    backupDir: string;
+    cron?: string;
+  };
 }
 
 /**
@@ -197,6 +224,14 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
             groupRoleMap: parseOidcGroupRoleMap(parsed.OIDC_GROUP_ROLE_MAP),
             defaultWorkspaceId: parsed.OIDC_DEFAULT_WORKSPACE_ID,
             redirectUri: `${parsed.PUBLIC_URL.replace(/\/$/, '')}/auth/oidc/callback`,
+          }
+        : undefined,
+    restoreTest:
+      parsed.RESTORE_TEST_TARGET_DATABASE_URL && parsed.RESTORE_TEST_BACKUP_DIR
+        ? {
+            targetDatabaseUrl: parsed.RESTORE_TEST_TARGET_DATABASE_URL,
+            backupDir: parsed.RESTORE_TEST_BACKUP_DIR,
+            cron: parsed.RESTORE_TEST_CRON,
           }
         : undefined,
   };

@@ -1,0 +1,34 @@
+# infra/observability/otel-collector-config.yml — minimal, real OTel Collector pipeline
+# for the `observability` compose profile (docs/product-spec.md §12, T96). Receives OTLP
+# over both gRPC (4317) and HTTP (4318) — the two documented, standard OTLP transports —
+# and exports every received span to the collector's own `debug` exporter (stdout logs),
+# a genuinely functional minimal pipeline, not an empty stub.
+#
+# DISCLOSURE 1 (T96): this sandbox has no Docker daemon — validated only via
+# `docker compose -f infra/compose/compose.yaml --profile observability config`; never
+# actually pulled/booted/exercised with a real span in this environment.
+#
+# DISCLOSURE 2 (carried forward from T92's own Status note, apps/server/src/core/tracing.ts):
+# apps/server's OpenTelemetry tracing currently defaults to an in-memory span exporter —
+# no real OTLP exporter is wired to send spans to THIS collector yet. Wiring a real
+# `@opentelemetry/exporter-trace-otlp-http` exporter (pointed at
+# `http://otel-collector:4318/v1/traces`) is documented future work, not part of this wave
+# — this collector is provisioned and ready to receive, but nothing sends to it today.
+
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  debug:
+    verbosity: normal
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      exporters: [debug]

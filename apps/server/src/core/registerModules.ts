@@ -1,9 +1,18 @@
+import {
+  createS3Client as createBackupS3Client,
+  createS3ObjectStore as createBackupS3ObjectStore,
+} from '@arch-canvas/backup';
 import type { FastifyInstance } from 'fastify';
 import { registerAiEngineModule } from '../modules/ai-engine/routes.js';
 import { registerAiProviderModule } from '../modules/ai-provider/routes.js';
 import { registerAssetModule } from '../modules/asset/routes.js';
 import type { Db } from '../modules/auth/db.js';
 import { registerAuthModule } from '../modules/auth/routes.js';
+import {
+  getLatestBackupPathFromDirReal,
+  RESTORE_TEST_JOB,
+  registerRestoreTestJob,
+} from '../modules/backup/restoreTest.js';
 import { registerCommentModule } from '../modules/comment/routes.js';
 import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
 import { registerDocgenModule } from '../modules/docgen/routes.js';
@@ -154,16 +163,40 @@ export async function registerAllModules(
     await registerBulkBundleJob(deps.jobs, db, storage);
     await registerWebhookDeliveryJob(deps.jobs, db, config.encryptionKey);
 
+    // DR-02 (T90/T96): the recurring restore-test job, following the exact
+    // `if (deps.jobs) await registerRestoreTestJob(...)` shape T90's own
+    // Status note documented (T79/T80 webhook-module precedent) — with the
+    // ADDITIONAL, necessary condition that `config.restoreTest` is actually
+    // present (both `RESTORE_TEST_TARGET_DATABASE_URL` and
+    // `RESTORE_TEST_BACKUP_DIR` set), since `registerRestoreTestJob` requires
+    // an isolated target database and a way to locate the latest backup —
+    // neither of which this codebase can invent a safe default for (a
+    // missing/misconfigured target must never silently fall back to
+    // production). Same "trio together means configured" convention as
+    // `config.oidc` above.
+    if (config.restoreTest) {
+      await registerRestoreTestJob(deps.jobs, db, {
+        targetDatabaseUrl: config.restoreTest.targetDatabaseUrl,
+        productionDatabaseUrl: config.databaseUrl,
+        objectStore: createBackupS3ObjectStore(createBackupS3Client(config.s3)),
+        getLatestBackupPath: () =>
+          // biome-ignore lint/style/noNonNullAssertion: config.restoreTest is narrowed non-undefined by the enclosing `if` above
+          getLatestBackupPathFromDirReal(config.restoreTest!.backupDir),
+        cron: config.restoreTest.cron,
+        metrics,
+      });
+    }
+
     // OBS-01 (T91): wires the live job-queue-depth gauge's sampler onto
-    // every queue THIS wave registers a worker for. T90's
-    // `backup-restore-test` job is deliberately NOT registered here yet
-    // (its own registration is T96's job, same precedent T79/T80's webhook
-    // module already established) — its queue name is added to this list
-    // by T96 alongside its `registerRestoreTestJob` call.
+    // every queue THIS wave registers a worker for — RESTORE_TEST_JOB is
+    // always included in the list (harmless: `setJobQueueDepthSource`
+    // degrades gracefully when a named queue was never `defineJob`'d,
+    // e.g. `config.restoreTest` unset — see its own doc comment).
     metrics.setJobQueueDepthSource(deps.jobs, [
       COMPACT_DIAGRAM_JOB,
       BULK_WORKSPACE_BUNDLE_JOB,
       WEBHOOK_DELIVERY_JOB,
+      RESTORE_TEST_JOB,
     ]);
   }
 }

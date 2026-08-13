@@ -556,27 +556,27 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | CLB-04 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — zero `Db`/drizzle imports confirmed by grep in `presence.ts`/`redisPresence.ts`; post-restart mutation success confirmed) |
 | EXT-01 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — `isRoleWithinCeiling` sensor-mutation-killed, leaked-token-to-real-admin scenario re-confirmed structurally (`routes.ts:210`) and by `share.int.spec.ts:232-277`, uniform-404 IDOR confirmed) |
 | EXT-02 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — HMAC signs exact sent bytes, sensor-killed on divergence; secret-rotation invalidation confirmed at crypto level; backoff/dead-letter traced + sensor-killed; all 5 event sites confirmed wired, 2 spot-checked in depth) |
-| SEC-01 | P1: Hardening de segurança | F5 | Pending |
-| SEC-02 | P1: Hardening de segurança | F5 | Pending |
-| SEC-03 | P1: Hardening de segurança | F5 | Pending |
-| SEC-04 | P1: Hardening de segurança | F5 | Pending |
-| SEC-05 | P1: Hardening de segurança | F5 | Pending |
-| OIDC-01 | P1: Autenticação de produção via OIDC | F5 | Pending |
-| OIDC-02 | P1: Autenticação de produção via OIDC | F5 | Pending |
-| OIDC-03 | P1: Autenticação de produção via OIDC | F5 | Pending |
-| DR-01 | P1: Disaster recovery reforçado | F5 | Pending |
-| DR-02 | P1: Disaster recovery reforçado | F5 | Pending |
-| OBS-01 | P1: Observabilidade completa | F5 | Pending |
-| OBS-02 | P1: Observabilidade completa | F5 | Pending |
-| OBS-03 | P1: Observabilidade completa | F5 | Pending |
-| PERF-01 | P1: Desempenho sob carga documentada | F5 | Pending |
-| A11Y-01 | P1: Acessibilidade do shell | F5 | Pending |
+| SEC-01 | P1: Hardening de segurança | F5 | Implementing (T82 `feat(core): add security headers...`) |
+| SEC-02 | P1: Hardening de segurança | F5 | Implementing (T83 `feat(core): generalize rate limiting...`) |
+| SEC-03 | P1: Hardening de segurança | F5 | Implementing (T84 `test(core): close SEC-03 coverage...`) |
+| SEC-04 | P1: Hardening de segurança | F5 | Implementing (T85 `feat(core): complete audit-event coverage...`) |
+| SEC-05 | P1: Hardening de segurança | F5 | Implementing (T86 `test(security): add threat-model regression manifest...`) |
+| OIDC-01 | P1: Autenticação de produção via OIDC | F5 | Implementing (T87/T88 `feat(auth): add OIDC-with-PKCE login...`) |
+| OIDC-02 | P1: Autenticação de produção via OIDC | F5 | Implementing (T87/T88 `feat(auth): add OIDC-with-PKCE login...`) |
+| OIDC-03 | P1: Autenticação de produção via OIDC | F5 | Implementing (T87/T88 `feat(auth): add OIDC-with-PKCE login...`) |
+| DR-01 | P1: Disaster recovery reforçado | F5 | Implementing (T89 `feat(backup): add row-level incremental backup...`) |
+| DR-02 | P1: Disaster recovery reforçado | F5 | Implementing (T90/T96 `feat(backup): add recurring automated restore-test job...` + `chore(server): wire F5 modules...`) |
+| OBS-01 | P1: Observabilidade completa | F5 | Implementing (T91 `feat(core): add Prometheus /metrics endpoint...`) |
+| OBS-02 | P1: Observabilidade completa | F5 | Implementing (T92 `feat(core): add OpenTelemetry tracing...`) |
+| OBS-03 | P1: Observabilidade completa | F5 | Implementing (T93 `feat(observability): add versioned Prometheus alerting rules...`) |
+| PERF-01 | P1: Desempenho sob carga documentada | F5 | Implementing (T94 `test(diagram-sync): add 1k/5k/10k-element performance benchmark...`) |
+| A11Y-01 | P1: Acessibilidade do shell | F5 | Implementing (T95 `test(web): add automated axe-core accessibility checks...`) |
 
 **ID format:** `[CATEGORY]-[NUMBER]` — o número corresponde ao critério de aceite de mesma posição na história.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 92 total. 77 (F0–F4) ✅ Verified ou ⚠️ Partial-disclosed — ver linhas acima; único parcial é AIC-04 (limites de workspace/budget deferidos, disclosure explícito). 15 novos (F5: SEC-01..05, OIDC-01..03, DR-01..02, OBS-01..03, PERF-01, A11Y-01) Pending — onda F5 ainda não autorada/executada.
+**Coverage:** 92 total. 77 (F0–F4) ✅ Verified ou ⚠️ Partial-disclosed — ver linhas acima; único parcial é AIC-04 (limites de workspace/budget deferidos, disclosure explícito). 15 novos (F5: SEC-01..05, OIDC-01..03, DR-01..02, OBS-01..03, PERF-01, A11Y-01) → **Implementing** (T96, `chore(server): wire F5 modules into production entrypoint, add observability/oidc-dev compose profiles`) — code-complete and gate-green, but deliberately NOT "Verified": that promotion is reserved for an independent Verifier pass over this wave, same discipline every prior wave (F0–F4) followed. This closes the entire architecture-canvas roadmap's IMPLEMENTATION (F0 through F5, all 92 requirements now at Implementing or Verified) — only the F5 Verifier pass remains before the roadmap is fully closed end-to-end.
 
 ---
 
