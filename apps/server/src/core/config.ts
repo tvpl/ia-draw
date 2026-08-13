@@ -35,7 +35,23 @@ const envSchema = z.object({
    * instances behind a load balancer.
    */
   REDIS_URL: z.string().min(1).optional(),
+  /**
+   * SEC-01: comma-separated allowlist of origins permitted to make
+   * cross-site requests (`@fastify/cors`'s `origin` option, `core/server.ts`).
+   * Empty by default — no cross-site origin is permitted until an operator
+   * deliberately opts one in; same-origin requests are never affected by
+   * CORS either way (browsers only send the `Origin` header cross-site).
+   */
+  CORS_ALLOWED_ORIGINS: z.string().default(''),
 });
+
+/** Splits a CSV env value into trimmed, non-empty origins. `''` (the default) yields `[]`. */
+function parseCorsAllowedOrigins(raw: string): string[] {
+  return raw
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter((origin) => origin.length > 0);
+}
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -52,6 +68,8 @@ export interface AppConfig {
   };
   /** Optional — see the env schema's own doc comment on `REDIS_URL` above. */
   redisUrl?: string;
+  /** SEC-01 — see the env schema's own doc comment on `CORS_ALLOWED_ORIGINS` above. Always an array, empty by default. */
+  corsAllowedOrigins: string[];
 }
 
 /**
@@ -87,5 +105,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       region: parsed.S3_REGION,
     },
     redisUrl: parsed.REDIS_URL,
+    corsAllowedOrigins: parseCorsAllowedOrigins(parsed.CORS_ALLOWED_ORIGINS),
   };
 }

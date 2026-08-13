@@ -1,4 +1,6 @@
 import { PROBLEM_CONTENT_TYPE, problem } from '@arch-canvas/shared-contracts';
+import fastifyCors from '@fastify/cors';
+import fastifyHelmet from '@fastify/helmet';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { AppConfig } from './config.js';
@@ -42,6 +44,33 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     logger: buildLoggerOptions(config, options.loggerOverrides),
     requestIdLogLabel: REQUEST_ID_LOG_LABEL,
     bodyLimit: MAX_REQUEST_BODY_BYTES,
+  });
+
+  // SEC-01: security response headers (CSP, X-Content-Type-Options,
+  // X-Frame-Options, and HSTS when reachable over https) on every response.
+  // `apps/server` never itself serves HTML/inline scripts to a browser (it's
+  // a REST+WS JSON API), so the default CSP directives (`default-src 'self'`
+  // and friends, no `unsafe-inline` anywhere) are already restrictive without
+  // needing route-specific loosening — confirmed by this file's own
+  // integration coverage exercising the existing REST/WS routes under it.
+  app.register(fastifyHelmet, {
+    // HSTS only makes sense — and is only opted into — when the server is
+    // actually reachable over https (config.publicUrl's scheme); forcing it
+    // over plain http (local dev) would be actively misleading.
+    hsts: config.publicUrl.startsWith('https:')
+      ? { maxAge: 15_552_000, includeSubDomains: true }
+      : false,
+  });
+
+  // SEC-01: explicit origin allowlist — empty by default, so no cross-site
+  // origin is permitted until an operator opts one in via
+  // `CORS_ALLOWED_ORIGINS`. Passing the (possibly empty) array directly as
+  // `origin` means a request from an origin outside the allowlist never gets
+  // a matching `Access-Control-Allow-Origin` back, without disabling the
+  // plugin outright (so `credentials`/`methods` stay configurable per the
+  // documented API if a future task needs them).
+  app.register(fastifyCors, {
+    origin: config.corsAllowedOrigins,
   });
 
   app.get('/health/live', async () => ({ status: 'ok' as const }));

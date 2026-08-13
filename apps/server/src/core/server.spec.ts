@@ -120,6 +120,55 @@ describe('buildServer (spec §11 / FND-05)', () => {
   });
 });
 
+describe('security headers and CORS (SEC-01, T82)', () => {
+  it('carries CSP, X-Content-Type-Options, and X-Frame-Options on every response', async () => {
+    const app = buildServer(testConfig());
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
+    expect(response.headers['content-security-policy']).toBeDefined();
+    expect(response.headers['x-content-type-options']).toBe('nosniff');
+    expect(response.headers['x-frame-options']).toBeDefined();
+    await app.close();
+  });
+
+  it('omits Strict-Transport-Security when publicUrl is http (dev default)', async () => {
+    const app = buildServer(loadConfig({ NODE_ENV: 'test', PUBLIC_URL: 'http://localhost:3000' }));
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
+    expect(response.headers['strict-transport-security']).toBeUndefined();
+    await app.close();
+  });
+
+  it('adds Strict-Transport-Security when publicUrl is https', async () => {
+    const app = buildServer(loadConfig({ NODE_ENV: 'test', PUBLIC_URL: 'https://app.example.com' }));
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
+    expect(response.headers['strict-transport-security']).toContain('max-age=');
+    await app.close();
+  });
+
+  it('never reflects a cross-site origin outside the (default empty) allowlist', async () => {
+    const app = buildServer(testConfig());
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health/live',
+      headers: { origin: 'https://not-allowed.example.com' },
+    });
+    expect(response.headers['access-control-allow-origin']).toBeUndefined();
+    await app.close();
+  });
+
+  it('reflects an origin explicitly present in CORS_ALLOWED_ORIGINS', async () => {
+    const app = buildServer(
+      loadConfig({ NODE_ENV: 'test', CORS_ALLOWED_ORIGINS: 'https://allowed.example.com' }),
+    );
+    const response = await app.inject({
+      method: 'GET',
+      url: '/health/live',
+      headers: { origin: 'https://allowed.example.com' },
+    });
+    expect(response.headers['access-control-allow-origin']).toBe('https://allowed.example.com');
+    await app.close();
+  });
+});
+
 describe('registerGracefulShutdown (spec §11 / FND-05)', () => {
   it('closes the Fastify instance (drains connections) when SIGTERM fires, before signalling exit', async () => {
     const app = buildServer(testConfig());
