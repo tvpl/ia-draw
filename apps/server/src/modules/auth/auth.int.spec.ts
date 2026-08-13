@@ -373,3 +373,53 @@ describe('auth module — login audit coverage (SEC-04, T85)', () => {
     expect(successRows[0]?.metadataJson).toMatchObject({ outcome: 'success' });
   });
 });
+
+describe('auth module — OIDC routes without OIDC configured (T87, OIDC-01)', () => {
+  let client: PGlite;
+  let db: PgliteDatabase<typeof schema>;
+  let app: FastifyInstance;
+
+  beforeAll(async () => {
+    client = new PGlite();
+    db = drizzle(client, { schema });
+    await runMigrations(db, { migrationsFolder: MIGRATIONS_FOLDER });
+
+    // Deliberately NO OIDC_ISSUER_URL/CLIENT_ID/CLIENT_SECRET — this is the
+    // "OIDC not configured" boot path every deployment starts from.
+    const config = loadConfig({ NODE_ENV: 'test' });
+    app = buildServer(config);
+    await registerAuthModule(app, { db, config });
+    await app.ready();
+  });
+
+  afterAll(async () => {
+    await app.close();
+    await client.close();
+  });
+
+  it('GET /auth/oidc/login responds 503 (never crashes boot, never a bare 404) when OIDC is unconfigured', async () => {
+    const response = await app.inject({ method: 'GET', url: '/auth/oidc/login' });
+    expect(response.statusCode).toBe(503);
+  });
+
+  it('GET /auth/oidc/callback also responds 503 when OIDC is unconfigured', async () => {
+    const response = await app.inject({ method: 'GET', url: '/auth/oidc/callback?code=x&state=y' });
+    expect(response.statusCode).toBe(503);
+  });
+
+  it('local email/password login keeps working normally on a server with no OIDC configured', async () => {
+    await createLocalAccount(db, {
+      email: 'no-oidc@example.com',
+      displayName: 'No OIDC',
+      password: 'local-auth-still-works',
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'no-oidc@example.com', password: 'local-auth-still-works' },
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.cookies.find((c) => c.name === SESSION_COOKIE_NAME)).toBeDefined();
+  });
+});

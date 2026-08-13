@@ -3,16 +3,26 @@ import { can } from '@arch-canvas/auth';
 import { recordAuditEvent } from '@arch-canvas/database';
 import fastifyCookie from '@fastify/cookie';
 import type { FastifyInstance } from 'fastify';
+import * as client from 'openid-client';
 import { z } from 'zod';
 import type { AppConfig } from '../../core/config.js';
 import { verifyLocalPassword } from './accounts.js';
 import {
+  clearedOidcPkceCookieOptions,
   clearedSessionCookieOptions,
+  OIDC_PKCE_COOKIE_NAME,
+  oidcPkceCookieOptions,
   SESSION_COOKIE_NAME,
   sessionCookieOptions,
 } from './cookie.js';
 import type { Db } from './db.js';
 import { requireSession } from './middleware.js';
+import {
+  getOidcClientConfiguration,
+  resolveOidcRole,
+  resolveOrCreateOidcUser,
+  syncOidcWorkspaceRole,
+} from './oidc.js';
 import { createSession, revokeSession, rotateSession } from './session.js';
 import { hashToken } from './tokens.js';
 import './types.js';
@@ -41,6 +51,21 @@ function notFound(): never {
 }
 
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
+
+/** Shape persisted in the short-lived `oidc_pkce` cookie between `/login` and `/callback` (T87). */
+interface OidcPkceState {
+  codeVerifier: string;
+  state: string;
+  nonce: string;
+}
+
+function oidcNotConfigured(): never {
+  throw Object.assign(new Error('OIDC is not configured on this server'), { statusCode: 503 });
+}
+
+function badOidcCallback(message: string): never {
+  throw Object.assign(new Error(message), { statusCode: 400 });
+}
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
 export async function registerAuthModule(
@@ -137,5 +162,119 @@ export async function registerAuthModule(
 
     const issued = await issueWsTicket(db, user.id, params.id);
     return { ticket: issued.ticket, expiresAt: issued.expiresAt.toISOString() };
+  });
+
+  // T87 (OIDC-01/02/03): Authorization Code + PKCE flow against a
+  // configurable OIDC provider. Both routes respond 503 (not a boot
+  // failure, not a route-not-found 404) when OIDC isn't configured — local
+  // email/password auth above is entirely unaffected either way.
+  app.get('/auth/oidc/login', async (_request, reply) => {
+    if (!config.oidc) oidcNotConfigured();
+    const oidcConfig = await getOidcClientConfiguration(config.oidc);
+
+    const codeVerifier = client.randomPKCECodeVerifier();
+    const codeChallenge = await client.calculatePKCECodeChallenge(codeVerifier);
+    const state = client.randomState();
+    const nonce = client.randomNonce();
+
+    const authorizationUrl = client.buildAuthorizationUrl(oidcConfig, {
+      redirect_uri: config.oidc.redirectUri,
+      scope: 'openid profile email',
+      code_challenge: codeChallenge,
+      code_challenge_method: 'S256',
+      state,
+      nonce,
+    });
+
+    const pkceState: OidcPkceState = { codeVerifier, state, nonce };
+    reply.setCookie(
+      OIDC_PKCE_COOKIE_NAME,
+      JSON.stringify(pkceState),
+      oidcPkceCookieOptions(config),
+    );
+    reply.redirect(authorizationUrl.toString());
+  });
+
+  app.get('/auth/oidc/callback', async (request, reply) => {
+    if (!config.oidc) oidcNotConfigured();
+    const oidcConfigForCallback = config.oidc;
+
+    const rawPkceState = request.cookies[OIDC_PKCE_COOKIE_NAME];
+    reply.clearCookie(OIDC_PKCE_COOKIE_NAME, clearedOidcPkceCookieOptions(config));
+    if (!rawPkceState) {
+      badOidcCallback('Missing or expired OIDC login state — please retry /auth/oidc/login');
+    }
+
+    let pkceState: OidcPkceState;
+    try {
+      pkceState = JSON.parse(rawPkceState) as OidcPkceState;
+    } catch {
+      badOidcCallback('Malformed OIDC login state');
+    }
+
+    const ipHash = hashToken(request.ip);
+
+    try {
+      const oidcConfig = await getOidcClientConfiguration(oidcConfigForCallback);
+      // openid-client reads `code`/`state`/`iss` off this URL's query string
+      // — publicUrl (never the Host header) is the base, consistent with
+      // every other absolute-URL construction in this codebase.
+      const currentUrl = new URL(request.url, config.publicUrl);
+
+      const tokenSet = await client.authorizationCodeGrant(oidcConfig, currentUrl, {
+        pkceCodeVerifier: pkceState.codeVerifier,
+        expectedState: pkceState.state,
+        expectedNonce: pkceState.nonce,
+      });
+
+      const claims = tokenSet.claims();
+      if (!claims) badOidcCallback('OIDC provider did not return an ID token');
+
+      const email = typeof claims.email === 'string' ? claims.email : undefined;
+      const displayName = typeof claims.name === 'string' ? claims.name : undefined;
+      const groupClaimValue = claims[oidcConfigForCallback.groupClaim];
+      const role = resolveOidcRole(groupClaimValue, oidcConfigForCallback.groupRoleMap);
+
+      const user = await resolveOrCreateOidcUser(db, {
+        issuerUrl: oidcConfigForCallback.issuerUrl,
+        subject: claims.sub,
+        email,
+        displayName,
+      });
+
+      if (role && oidcConfigForCallback.defaultWorkspaceId) {
+        await syncOidcWorkspaceRole(db, oidcConfigForCallback.defaultWorkspaceId, user.id, role);
+      }
+
+      // Same session mechanism as local login (F1a, session.ts) — never a
+      // parallel scheme. No ID/access/refresh token from the IdP is ever
+      // set as a cookie or otherwise exposed to the client.
+      const issued = await createSession(db, user.id);
+      reply.setCookie(SESSION_COOKIE_NAME, issued.token, sessionCookieOptions(config));
+
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'auth.oidc_login.succeeded',
+        resourceType: 'user',
+        resourceId: user.id,
+        ipHash,
+        metadataJson: { outcome: 'success', mappedRole: role },
+      });
+
+      reply.redirect(config.publicUrl);
+      return;
+    } catch (error) {
+      await recordAuditEvent(db, {
+        action: 'auth.oidc_login.failed',
+        resourceType: 'user',
+        resourceId: randomUUID(),
+        ipHash,
+        metadataJson: {
+          outcome: 'failure',
+          reason: error instanceof Error ? error.message : 'unknown_error',
+        },
+      });
+      throw error;
+    }
   });
 }

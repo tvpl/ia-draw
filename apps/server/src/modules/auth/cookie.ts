@@ -34,3 +34,37 @@ export function clearedSessionCookieOptions(config: AppConfig): CookieSerializeO
     maxAge: 0,
   };
 }
+
+/** T87 (OIDC-01) — carries the PKCE `code_verifier`/`state`/`nonce` from `/auth/oidc/login` to `/auth/oidc/callback`. */
+export const OIDC_PKCE_COOKIE_NAME = 'oidc_pkce';
+
+/**
+ * `SameSite=Lax` (not `Strict`) is required here specifically: the browser
+ * arrives at `/auth/oidc/callback` via a top-level GET navigation
+ * cross-site (redirected FROM the IdP's origin), and `Lax` is the
+ * narrowest setting that still attaches the cookie on that navigation —
+ * `Strict` would silently drop it and break every OIDC login. Short-lived
+ * (5 min — generous for a real user completing an IdP login screen, but
+ * never long enough to matter if abandoned) and scoped to `/auth/oidc` only
+ * (never sent on unrelated requests).
+ */
+export function oidcPkceCookieOptions(config: AppConfig): CookieSerializeOptions {
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isHttpsPublicUrl(config.publicUrl),
+    path: '/auth/oidc',
+    maxAge: 300,
+  };
+}
+
+/** Options for the Set-Cookie that clears the PKCE cookie once the callback has consumed it. */
+export function clearedOidcPkceCookieOptions(config: AppConfig): CookieSerializeOptions {
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: isHttpsPublicUrl(config.publicUrl),
+    path: '/auth/oidc',
+    maxAge: 0,
+  };
+}
