@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
+import type { Tracing } from '../../core/tracing.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -35,6 +36,8 @@ export interface AiEngineModuleDeps {
   aiRunRateLimiter?: InMemoryRateLimiter;
   /** OBS-01 (T91) — forwarded to `pipeline.ts`'s `CreateAiRunDeps.metrics`. Optional, same degrade as every other observability seam here. */
   metrics?: MetricsRegistry;
+  /** OBS-02 (T92) — forwarded to `pipeline.ts`'s `CreateAiRunDeps.tracing`. Optional, same degrade as every other observability seam here. */
+  tracing?: Tracing;
 }
 
 /** Stricter than `core/server.ts`'s default (300/60s) — an AI run is materially more expensive (provider call, patch computation) than an ordinary REST request. */
@@ -91,7 +94,7 @@ function parseRunRef(runRef: string): { runId: string; action: 'approve' | 'canc
  * cancels without applying anything (T55).
  */
 export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModuleDeps): void {
-  const { db, encryptionKey, storage, fetchImpl, onTransition, metrics } = deps;
+  const { db, encryptionKey, storage, fetchImpl, onTransition, metrics, tracing } = deps;
   const runStore = deps.runStore ?? new RunStore();
   const pipelineDeps: CreateAiRunDeps = {
     db,
@@ -100,6 +103,7 @@ export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModul
     runStore,
     onTransition,
     metrics,
+    tracing,
   };
   const aiRunRateLimiter =
     deps.aiRunRateLimiter ?? new InMemoryRateLimiter(DEFAULT_AI_RUN_RATE_LIMIT);

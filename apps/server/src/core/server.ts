@@ -1,6 +1,7 @@
 import { PROBLEM_CONTENT_TYPE, problem } from '@arch-canvas/shared-contracts';
 import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
+import { SpanStatusCode } from '@opentelemetry/api';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 // Type-only augmentation (`declare module 'fastify' { interface FastifyRequest { authContext } }`)
@@ -13,6 +14,7 @@ import type { AppConfig } from './config.js';
 import { buildLoggerOptions, type LoggerOverrides, REQUEST_ID_LOG_LABEL } from './logging.js';
 import { createMetricsRegistry, type MetricsRegistry } from './metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from './rateLimit.js';
+import { createTracing, type Tracing } from './tracing.js';
 
 export type DependencyStatus = 'up' | 'down';
 
@@ -47,6 +49,16 @@ export interface BuildServerOptions {
    * `registerAllModules` so every module observes into one shared registry.
    */
   metrics?: MetricsRegistry;
+  /**
+   * Injectable tracing (OBS-02, T92) — defaults to a fresh `Tracing`
+   * backed by `InMemorySpanExporter` (spans are always created, never sent
+   * over a real network unless a caller injects a real exporter; see
+   * `core/tracing.ts`'s own doc comment). Tests inject their own
+   * `createTracing({ exporter: new InMemorySpanExporter() })` and read
+   * `app.tracing.exporter.getFinishedSpans()` to assert on real emitted
+   * spans, mirroring `loggerOverrides`'s capture-not-console pattern.
+   */
+  tracing?: Tracing;
 }
 
 /**
@@ -66,6 +78,7 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
   const defaultRateLimiter =
     options.defaultRateLimiter ?? new InMemoryRateLimiter(DEFAULT_RATE_LIMIT_OPTIONS);
   const metrics = options.metrics ?? createMetricsRegistry();
+  const tracing = options.tracing ?? createTracing();
 
   const app = Fastify({
     // Fastify's default logger is pino, which emits structured JSON logs.
@@ -90,6 +103,34 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     const route = request.routeOptions.url ?? request.url;
     const durationSeconds = reply.elapsedTime / 1000;
     metrics.observeHttpRequest(request.method, route, reply.statusCode, durationSeconds);
+  });
+
+  // OBS-02 (T92): one `http.request` span per REST request, decorated on
+  // `app` (`app.tracing`) so `registerAllModules` can read the SAME
+  // provider/tracer back rather than each module constructing its own
+  // (fragmenting traces across providers, same rationale as `app.metrics`).
+  // Attributes are limited to method/route/status_code — never a request
+  // body/header/query value (see `tracing.ts`'s own doc comment on why).
+  // `onRequest` starts the span (before any route-level preHandler/RBAC
+  // logic runs, so it wraps the ENTIRE request lifecycle) and decorates it
+  // onto `request.otelSpan` so a route handler that wants a DB/domain child
+  // span (e.g. `diagram-sync`'s `operations:batch`) can parent under it;
+  // `onResponse` sets the final status_code attribute and ends it.
+  app.decorate('tracing', tracing);
+  app.addHook('onRequest', async (request) => {
+    request.otelSpan = tracing.tracer.startSpan('http.request', {
+      attributes: { 'http.method': request.method },
+    });
+  });
+  app.addHook('onResponse', async (request, reply) => {
+    const span = request.otelSpan;
+    if (!span) return;
+    const route = request.routeOptions.url ?? request.url;
+    span.setAttributes({ 'http.route': route, 'http.status_code': reply.statusCode });
+    if (reply.statusCode >= 500) {
+      span.setStatus({ code: SpanStatusCode.ERROR });
+    }
+    span.end();
   });
 
   // SEC-01: security response headers (CSP, X-Content-Type-Options,
@@ -250,6 +291,10 @@ export function registerGracefulShutdown(
   const handler = async (): Promise<void> => {
     app.log.info({ signal }, 'shutdown signal received, draining connections');
     await app.close();
+    // OBS-02: flushes/stops the tracer provider so no span is silently
+    // dropped mid-export on shutdown — cheap even with the default
+    // in-memory exporter, real flushing matters once a real one is wired.
+    await app.tracing.shutdown();
     onShutdownComplete?.();
   };
 

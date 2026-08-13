@@ -5,6 +5,7 @@ import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
+import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -38,6 +39,8 @@ export interface ExportModuleDeps {
   exportRateLimiter?: InMemoryRateLimiter;
   /** OBS-01 (T91) — observes `POST /diagrams/:id/exports`'s generation duration, one observation per format. Optional, same degrade as every other observability seam here. */
   metrics?: MetricsRegistry;
+  /** OBS-02 (T92) — emits an `export.generate` span (the storage boundary — wraps `generateExports` + every `storage.putObject` call below), child of the request's own `http.request` span. Optional, same degrade as every other observability seam here. */
+  tracing?: Tracing;
 }
 
 /** Download URL TTL for a generated export/bundle (seconds) — long enough for a client to fetch right after the response, short enough not to leak a durable public link. */
@@ -91,7 +94,7 @@ function bundleObjectKey(diagramId: string, bundleId: string): string {
 
 /** Registers the export module's routes: single-diagram export (EXP-01), `.zip` bundle (EXP-02), `.excalidraw` import preview/confirm (EXP-03), and bulk workspace export (EXP-04). */
 export function registerExportModule(app: FastifyInstance, deps: ExportModuleDeps): void {
-  const { db, storage, jobs, metrics } = deps;
+  const { db, storage, jobs, metrics, tracing } = deps;
   const exportRateLimiter =
     deps.exportRateLimiter ?? new InMemoryRateLimiter(DEFAULT_EXPORT_RATE_LIMIT);
   const exportRateLimited = createRateLimitPreHandler(
@@ -121,28 +124,47 @@ export function registerExportModule(app: FastifyInstance, deps: ExportModuleDep
       // (`excalidraw`/`svg`/`png`/`pdf`) — there is no cheap way to time
       // each format independently without restructuring that function, so
       // this observes the WHOLE call's duration once, labeled `'bundle'`
-      // (documented scope decision, not a per-format breakdown).
+      // (documented scope decision, not a per-format breakdown). OBS-02
+      // (T92): the same call, plus every `storage.putObject` below, is
+      // wrapped in ONE `export.generate` span (the storage boundary),
+      // child of this request's `http.request` span.
       const exportStartedAt = process.hrtime.bigint();
-      const formats = await generateExports(scene);
-      metrics?.observeExport('bundle', Number(process.hrtime.bigint() - exportStartedAt) / 1e9);
       const exportId = randomUUID();
-
       const results: Record<
         ExportFormatName,
         { url: string; checksum: string; sizeBytes: number; contentType: string }
-      > = {} as never;
+      > = await withOptionalSpan(
+        tracing?.tracer,
+        'export.generate',
+        { 'diagram.id': diagramId, 'export.id': exportId },
+        async () => {
+          const formats = await generateExports(scene);
+          const generated: Record<
+            ExportFormatName,
+            { url: string; checksum: string; sizeBytes: number; contentType: string }
+          > = {} as never;
 
-      for (const formatName of Object.keys(FORMAT_METADATA) as ExportFormatName[]) {
-        const bytes = formats[formatName];
-        const checksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
-        const objectKey = exportObjectKey(diagramId, exportId, formatName);
-        const { contentType } = FORMAT_METADATA[formatName];
+          for (const formatName of Object.keys(FORMAT_METADATA) as ExportFormatName[]) {
+            const bytes = formats[formatName];
+            const checksum = `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+            const objectKey = exportObjectKey(diagramId, exportId, formatName);
+            const { contentType } = FORMAT_METADATA[formatName];
 
-        await storage.putObject(EXPORT_BUCKET, objectKey, bytes, contentType);
-        const url = await storage.getSignedUrl(EXPORT_BUCKET, objectKey, EXPORT_URL_TTL_SECONDS);
+            await storage.putObject(EXPORT_BUCKET, objectKey, bytes, contentType);
+            const url = await storage.getSignedUrl(
+              EXPORT_BUCKET,
+              objectKey,
+              EXPORT_URL_TTL_SECONDS,
+            );
 
-        results[formatName] = { url, checksum, sizeBytes: bytes.byteLength, contentType };
-      }
+            generated[formatName] = { url, checksum, sizeBytes: bytes.byteLength, contentType };
+          }
+
+          return generated;
+        },
+        request.otelSpan,
+      );
+      metrics?.observeExport('bundle', Number(process.hrtime.bigint() - exportStartedAt) / 1e9);
 
       // SEC-04: exactly one audit row per export generation call, following
       // the same `AuditEventInput` convention every other call site uses.

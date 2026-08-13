@@ -31,6 +31,43 @@ import { RedisPresenceBroadcaster } from '../modules/ws-gateway/redisPresence.js
 import { registerWsGatewayModule } from '../modules/ws-gateway/routes.js';
 import type { AppConfig } from './config.js';
 import './metrics.js';
+import { type Tracing, withSpan } from './tracing.js';
+
+/**
+ * OBS-02 (T92) — the storage boundary named in the task's own "limites
+ * documentados (REST, WS, banco, storage, chamada de provedor de IA)".
+ * Wraps every `StorageClient` method (real S3/MinIO calls AND any
+ * test-injected `deps.storage` double, harmlessly — a span around a fake
+ * call is still just a span) in a span named `storage.<operation>`.
+ * Attributes are limited to the bucket name (a fixed config value, never
+ * user input) — deliberately NEVER the object `key` (a caller-influenced
+ * string, e.g. an asset filename), matching this task's "ids/counts only,
+ * never content" discipline everywhere else in this wave.
+ */
+function wrapStorageWithTracing(client: StorageClient, tracing: Tracing): StorageClient {
+  return {
+    putSignedUrl: (bucket, key, contentType, ttlSeconds) =>
+      withSpan(tracing.tracer, 'storage.put_signed_url', { 'storage.bucket': bucket }, () =>
+        client.putSignedUrl(bucket, key, contentType, ttlSeconds),
+      ),
+    getSignedUrl: (bucket, key, ttlSeconds) =>
+      withSpan(tracing.tracer, 'storage.get_signed_url', { 'storage.bucket': bucket }, () =>
+        client.getSignedUrl(bucket, key, ttlSeconds),
+      ),
+    headObject: (bucket, key) =>
+      withSpan(tracing.tracer, 'storage.head_object', { 'storage.bucket': bucket }, () =>
+        client.headObject(bucket, key),
+      ),
+    putObject: (bucket, key, body, contentType) =>
+      withSpan(tracing.tracer, 'storage.put_object', { 'storage.bucket': bucket }, () =>
+        client.putObject(bucket, key, body, contentType),
+      ),
+    getObject: (bucket, key) =>
+      withSpan(tracing.tracer, 'storage.get_object', { 'storage.bucket': bucket }, () =>
+        client.getObject(bucket, key),
+      ),
+  };
+}
 
 export interface ModuleDependencies {
   /** Injectable so tests can supply a pre-built client (mocked send) instead of a real S3Client. */
@@ -53,13 +90,23 @@ export async function registerAllModules(
   config: AppConfig,
   deps: ModuleDependencies = {},
 ): Promise<void> {
-  const storage = deps.storage ?? createStorageClient(createS3Client(config));
   // OBS-01 (T91): `buildServer` always decorates `app.metrics` (a fresh
   // `MetricsRegistry` by default) before this function runs — every call
   // site in this codebase calls `buildServer` first. Read back here (never
   // constructed anew) so every module below observes into the SAME
   // registry `GET /metrics` serves.
   const metrics = app.metrics;
+  // OBS-02 (T92): same reasoning as `metrics` above — `buildServer` always
+  // decorates `app.tracing` (a fresh `Tracing` by default), read back here
+  // so every module below emits spans into the SAME `BasicTracerProvider`
+  // (fragmenting across multiple providers would break trace chaining —
+  // e.g. `ai.run`'s children would never share a `traceId` with a REST
+  // request's `http.request` span if `ai-engine` built its own provider).
+  const tracing = app.tracing;
+  const storage = wrapStorageWithTracing(
+    deps.storage ?? createStorageClient(createS3Client(config)),
+    tracing,
+  );
 
   // AD-009/T81: RedisPresenceBroadcaster when config.redisUrl is set,
   // InMemoryPresenceBroadcaster (single-process, zero external I/O)
@@ -79,14 +126,20 @@ export async function registerAllModules(
   // reasoning, awaited before the routes below.
   await registerAuthModule(app, { db, config });
   registerWorkspaceModule(app, { db, jobs: deps.jobs });
-  registerDiagramSyncModule(app, { db, jobs: deps.jobs, metrics });
+  registerDiagramSyncModule(app, { db, jobs: deps.jobs, metrics, tracing });
   registerAssetModule(app, { db, storage });
   registerSnapshotModule(app, { db, storage });
   registerExportModule(app, { db, storage, jobs: deps.jobs, metrics });
   registerInteropModule(app, { db, storage, jobs: deps.jobs });
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
-  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage, metrics });
+  registerAiEngineModule(app, {
+    db,
+    encryptionKey: config.encryptionKey,
+    storage,
+    metrics,
+    tracing,
+  });
   registerDocgenModule(app, { db, storage, jobs: deps.jobs });
   registerLintModule(app, { db });
   registerPresentationModule(app, { db });
@@ -94,7 +147,7 @@ export async function registerAllModules(
   registerCommentModule(app, { db, jobs: deps.jobs });
   registerShareModule(app, { db });
   registerWebhookModule(app, { db, encryptionKey: config.encryptionKey });
-  await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence, metrics });
+  await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence, metrics, tracing });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage, metrics);

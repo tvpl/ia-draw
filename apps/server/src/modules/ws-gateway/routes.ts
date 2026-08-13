@@ -13,6 +13,7 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { WebSocket } from 'ws';
 import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
+import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
 import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { consumeWsTicket } from '../auth/ws-ticket.js';
@@ -37,6 +38,8 @@ export interface WsGatewayModuleDeps {
   presence?: PresenceBroadcaster;
   /** OBS-01 (T91) — observes the `mutation` case's ACK latency into the SAME histogram diagram-sync's `operations:batch` route observes into (labeled `transport: 'ws'` here). Optional, same degrade as every other observability seam in this codebase. */
   metrics?: MetricsRegistry;
+  /** OBS-02 (T92) — emits a `db.append_operation` span for the `mutation` case. Standalone (no parent) — unlike REST, the WS upgrade's own `http.request` span (`core/server.ts`) ends when the upgrade response completes, before any `mutation` message is ever received, so there is no still-open request-scoped span to parent under. Optional, same degrade as every other observability seam here. */
+  tracing?: Tracing;
 }
 
 /** RFC 6455 reserves 4000-4999 for private/application use. */
@@ -103,7 +106,7 @@ export async function registerWsGatewayModule(
   app: FastifyInstance,
   deps: WsGatewayModuleDeps,
 ): Promise<void> {
-  const { db, jobs, compactionThresholds, metrics } = deps;
+  const { db, jobs, compactionThresholds, metrics, tracing } = deps;
   const presence = deps.presence ?? new NullPresenceBroadcaster();
 
   await app.register(websocketPlugin, {
@@ -264,9 +267,17 @@ export async function registerWsGatewayModule(
             // zero LWW/validation logic duplicated here. OBS-01 (T91):
             // ACK latency for this WS transport — the counterpart
             // observation in diagram-sync's `operations:batch` route uses
-            // the exact same histogram with `transport: 'rest'`.
+            // the exact same histogram with `transport: 'rest'`. OBS-02
+            // (T92): a standalone `db.append_operation` span (see
+            // `WsGatewayModuleDeps.tracing`'s own doc comment for why it
+            // has no parent, unlike REST's).
             const ackStartedAt = process.hrtime.bigint();
-            const result = await appendOperation(db, diagramId, actorId, envelope);
+            const result = await withOptionalSpan(
+              tracing?.tracer,
+              'db.append_operation',
+              { 'diagram.id': diagramId, 'operation.delta_count': envelope.deltas.length },
+              () => appendOperation(db, diagramId, actorId, envelope),
+            );
             metrics?.observeMutationAck('ws', Number(process.hrtime.bigint() - ackStartedAt) / 1e9);
             const ack = result.acks[0];
             if (ack) {

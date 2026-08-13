@@ -1,11 +1,14 @@
 import { EventEmitter } from 'node:events';
 import { problemDetailsSchema } from '@arch-canvas/shared-contracts';
+import { SpanStatusCode } from '@opentelemetry/api';
+import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
 import { createMetricsRegistry } from './metrics.js';
 import { InMemoryRateLimiter } from './rateLimit.js';
 import { buildServer, registerGracefulShutdown } from './server.js';
+import { createTracing } from './tracing.js';
 
 function testConfig() {
   return loadConfig({ NODE_ENV: 'test' });
@@ -287,6 +290,77 @@ describe('GET /metrics (OBS-01, T91)', () => {
     const metrics = createMetricsRegistry();
     const app = buildServer(testConfig(), { metrics });
     expect(app.metrics).toBe(metrics);
+    await app.close();
+  });
+});
+
+describe('OpenTelemetry tracing (OBS-02, T92)', () => {
+  it('a real REST request emits a corresponding http.request span, capturable via an injected in-memory exporter', async () => {
+    const exporter = new InMemorySpanExporter();
+    const tracing = createTracing({ exporter });
+    const app = buildServer(testConfig(), { tracing });
+
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
+    expect(response.statusCode).toBe(200);
+    await app.close();
+    await tracing.provider.forceFlush();
+
+    const spans = exporter.getFinishedSpans();
+    const requestSpan = spans.find((span) => span.name === 'http.request');
+    expect(requestSpan).toBeDefined();
+    expect(requestSpan?.attributes).toMatchObject({
+      'http.method': 'GET',
+      'http.route': '/health/live',
+      'http.status_code': 200,
+    });
+  });
+
+  it('never sets ERROR status on a healthy (2xx) response', async () => {
+    const exporter = new InMemorySpanExporter();
+    const tracing = createTracing({ exporter });
+    const app = buildServer(testConfig(), { tracing });
+
+    await app.inject({ method: 'GET', url: '/health/live' });
+    await app.close();
+    await tracing.provider.forceFlush();
+
+    const requestSpan = exporter.getFinishedSpans().find((span) => span.name === 'http.request');
+    expect(requestSpan?.status.code).not.toBe(SpanStatusCode.ERROR);
+  });
+
+  it('sets ERROR status on the span for a real 5xx response', async () => {
+    const exporter = new InMemorySpanExporter();
+    const tracing = createTracing({ exporter });
+    const app = buildServer(testConfig(), { tracing });
+    app.get('/__tracing-5xx-test', async () => {
+      throw Object.assign(new Error('deliberate failure'), { statusCode: 500 });
+    });
+
+    const response = await app.inject({ method: 'GET', url: '/__tracing-5xx-test' });
+    expect(response.statusCode).toBe(500);
+    await app.close();
+    await tracing.provider.forceFlush();
+
+    const requestSpan = exporter.getFinishedSpans().find((span) => span.name === 'http.request');
+    expect(requestSpan?.attributes['http.status_code']).toBe(500);
+    expect(requestSpan?.status.code).toBe(SpanStatusCode.ERROR);
+  });
+
+  it('an injected tracing registry (BuildServerOptions.tracing) is the SAME instance decorated onto app.tracing', async () => {
+    const tracing = createTracing({ exporter: new InMemorySpanExporter() });
+    const app = buildServer(testConfig(), { tracing });
+    expect(app.tracing).toBe(tracing);
+    await app.close();
+  });
+
+  it('with no tracing override (the default), the server boots and serves requests exactly as before — tracing is disabled-by-default in the sense that no real exporter/network overhead exists', async () => {
+    const app = buildServer(testConfig());
+    // app.tracing always exists (buildServer decorates a default `Tracing`),
+    // but its default exporter is an InMemorySpanExporter (see
+    // tracing.spec.ts) — never a real OTLP/network client, so "tracing
+    // config ausente" never adds real exporter overhead to a normal boot.
+    const response = await app.inject({ method: 'GET', url: '/health/live' });
+    expect(response.statusCode).toBe(200);
     await app.close();
   });
 });

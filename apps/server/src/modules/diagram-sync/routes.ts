@@ -2,11 +2,12 @@ import { can } from '@arch-canvas/auth';
 import { parseOperationEnvelope } from '@arch-canvas/diagram-domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { MetricsRegistry } from '../../core/metrics.js';
+import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
 import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
-import type { MetricsRegistry } from '../../core/metrics.js';
 import type { JobQueue } from '../jobs/index.js';
 import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
 import { enqueueWebhookEvent } from '../webhook/deliver.js';
@@ -22,6 +23,8 @@ export interface DiagramSyncModuleDeps {
   compactionThresholds?: CompactionThresholds;
   /** OBS-01 (T91) — observes `operations:batch`'s ACK latency into the SAME histogram ws-gateway's `mutation` handler observes into (labeled `transport: 'rest'` here), per F4's "WS is just a second transport" invariant. Optional — omitted means this transport's ACK latency simply isn't observed (e.g. a test that doesn't wire a registry). */
   metrics?: MetricsRegistry;
+  /** OBS-02 (T92) — emits a `db.append_operation` span, child of the request's own `http.request` span (`request.otelSpan`, set by `core/server.ts`'s `onRequest` hook). Optional, same degrade as every other observability seam here. */
+  tracing?: Tracing;
 }
 
 function notFound(): never {
@@ -37,7 +40,7 @@ const catchupQuerySchema = z.object({ afterSequence: z.coerce.number().int().non
 
 /** Registers the diagram-sync module's routes — the server-first persistence core (T21). */
 export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyncModuleDeps): void {
-  const { db, jobs, compactionThresholds, metrics } = deps;
+  const { db, jobs, compactionThresholds, metrics, tracing } = deps;
 
   app.get('/diagrams/:id/bootstrap', { preHandler: requireSession(db) }, async (request) => {
     const { id } = diagramIdParamsSchema.parse(request.params);
@@ -101,9 +104,18 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       // fields from the caller" convention (see project-diagram-routes.ts).
       // OBS-01 (T91): ACK latency for this REST transport — the counterpart
       // observation in ws-gateway's `mutation` handler uses the exact same
-      // histogram with `transport: 'ws'`.
+      // histogram with `transport: 'ws'`. OBS-02 (T92): a `db.append_operation`
+      // span, child of this request's own `http.request` span
+      // (`request.otelSpan`) — the DB boundary. Attributes are ids/counts
+      // only, never delta content.
       const ackStartedAt = process.hrtime.bigint();
-      const result = await appendOperation(db, diagramId, user.id, envelope);
+      const result = await withOptionalSpan(
+        tracing?.tracer,
+        'db.append_operation',
+        { 'diagram.id': diagramId, 'operation.delta_count': envelope.deltas.length },
+        () => appendOperation(db, diagramId, user.id, envelope),
+        request.otelSpan,
+      );
       metrics?.observeMutationAck('rest', Number(process.hrtime.bigint() - ackStartedAt) / 1e9);
 
       // VER-01: checked at the end of every successful batch (cheap — a handful of
