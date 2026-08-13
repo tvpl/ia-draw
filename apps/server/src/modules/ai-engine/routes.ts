@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -22,7 +23,19 @@ export interface AiEngineModuleDeps {
   runStore?: RunStore;
   /** Test-only observability seam (see pipeline.ts's `CreateAiRunDeps.onTransition`). */
   onTransition?: (runId: string, status: AiRunStatus) => void;
+  /**
+   * Injectable, separately-configured rate limiter for `POST
+   * /diagrams/:id/ai/runs` (SEC-02, T83) — deliberately stricter than
+   * `core/server.ts`'s default per-authenticated-route limit, closing the
+   * gap AIC-04 (F2a) disclosed as partial ("limites de workspace/budget
+   * deferidos"). Defaults to a fresh in-memory limiter, same convention as
+   * `ai-provider`'s `testConnectionRateLimiter`.
+   */
+  aiRunRateLimiter?: InMemoryRateLimiter;
 }
+
+/** Stricter than `core/server.ts`'s default (300/60s) — an AI run is materially more expensive (provider call, patch computation) than an ordinary REST request. */
+const DEFAULT_AI_RUN_RATE_LIMIT = { limit: 20, windowMs: 60_000 };
 
 function notFound(): never {
   throw Object.assign(new Error('Not Found'), { statusCode: 404 });
@@ -78,6 +91,12 @@ export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModul
   const { db, encryptionKey, storage, fetchImpl, onTransition } = deps;
   const runStore = deps.runStore ?? new RunStore();
   const pipelineDeps: CreateAiRunDeps = { db, encryptionKey, fetchImpl, runStore, onTransition };
+  const aiRunRateLimiter =
+    deps.aiRunRateLimiter ?? new InMemoryRateLimiter(DEFAULT_AI_RUN_RATE_LIMIT);
+  const aiRunRateLimited = createRateLimitPreHandler(
+    aiRunRateLimiter,
+    (request) => request.authContext?.user?.id ?? request.ip,
+  );
 
   /** RBAC shared by `:approve`/`:cancel`: resolves the run's diagram -> workspace -> role, same IDOR (404-not-403) and diagram:mutate convention every other mutating route in this codebase uses. */
   async function requireRunMutateAccess(runId: string, userId: string) {
@@ -96,53 +115,57 @@ export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModul
     return run;
   }
 
-  app.post('/diagrams/:id/ai/runs', { preHandler: requireSession(db) }, async (request, reply) => {
-    const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
-    const user = request.authContext?.user;
-    if (!user) forbidden();
+  app.post(
+    '/diagrams/:id/ai/runs',
+    { preHandler: [requireSession(db), aiRunRateLimited] },
+    async (request, reply) => {
+      const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
 
-    const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
-    if (!workspaceId) notFound();
+      const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
+      if (!workspaceId) notFound();
 
-    const role = await resolveWorkspaceRole(db, workspaceId, user.id);
-    if (!role) notFound();
+      const role = await resolveWorkspaceRole(db, workspaceId, user.id);
+      if (!role) notFound();
 
-    // Creating an AI run proposes canvas mutations — the same permission
-    // boundary as operations:batch (AUTH-03: reviewer/viewer never mutate).
-    const decision = can({ role }, 'diagram:mutate', { workspaceId });
-    if (!decision.allowed) forbidden();
+      // Creating an AI run proposes canvas mutations — the same permission
+      // boundary as operations:batch (AUTH-03: reviewer/viewer never mutate).
+      const decision = can({ role }, 'diagram:mutate', { workspaceId });
+      if (!decision.allowed) forbidden();
 
-    const body = createRunBodySchema.parse(request.body);
+      const body = createRunBodySchema.parse(request.body);
 
-    const result = await createAiRun(pipelineDeps, {
-      diagramId,
-      workspaceId,
-      userId: user.id,
-      userRequest: body.userRequest,
-      language: body.language,
-      diagramKind: body.diagramKind,
-      selection: body.selection,
-    });
+      const result = await createAiRun(pipelineDeps, {
+        diagramId,
+        workspaceId,
+        userId: user.id,
+        userRequest: body.userRequest,
+        language: body.language,
+        diagramKind: body.diagramKind,
+        selection: body.selection,
+      });
 
-    reply.code(201);
+      reply.code(201);
 
-    // T54: a run that reached `previewing` continues, in the same request, to
-    // the preview + approval-threshold step (previewing -> awaiting_approval)
-    // — design.md's pipeline has no separate endpoint for this. A run T53
-    // already failed (no RunStore entry) is returned unchanged.
-    const withPreview = await attachPreview(db, runStore, result.run);
-    if (withPreview) {
-      return {
-        run: withPreview.run,
-        patch: result.patch,
-        preview: withPreview.preview,
-        requiresExplicitApproval: withPreview.requiresExplicitApproval,
-        toolCallCount: result.toolCallCount,
-      };
-    }
+      // T54: a run that reached `previewing` continues, in the same request, to
+      // the preview + approval-threshold step (previewing -> awaiting_approval)
+      // — design.md's pipeline has no separate endpoint for this. A run T53
+      // already failed (no RunStore entry) is returned unchanged.
+      const withPreview = await attachPreview(db, runStore, result.run);
+      if (withPreview) {
+        return {
+          run: withPreview.run,
+          patch: result.patch,
+          preview: withPreview.preview,
+          requiresExplicitApproval: withPreview.requiresExplicitApproval,
+          toolCallCount: result.toolCallCount,
+        };
+      }
 
-    return { run: result.run, patch: result.patch, toolCallCount: result.toolCallCount };
-  });
+      return { run: result.run, patch: result.patch, toolCallCount: result.toolCallCount };
+    },
+  );
 
   app.post('/ai/runs/:runRef', { preHandler: requireSession(db) }, async (request) => {
     const { runRef } = runRefParamsSchema.parse(request.params);

@@ -1,11 +1,14 @@
 import type { FastifyReply, FastifyRequest } from 'fastify';
 
 /**
- * Reusable per-process rate-limit middleware (design.md AIC-04: "rate limits
- * ... por usuário e por workspace"). A simple fixed-window in-memory counter
- * — the real `ai/runs` orchestration (F2c) is out of scope here; this task
- * only delivers the limiter itself, testable in isolation and pluggable
- * onto any route via `key`.
+ * Reusable per-process rate-limit middleware. Originally added in F2a
+ * (`ai-provider/rateLimit.ts`, design.md AIC-04: "rate limits ... por
+ * usuário e por workspace") scoped to the AI-provider "test connection"
+ * route; relocated here unchanged (SEC-02, T83) now that it backs a default
+ * limit on every authenticated route plus stricter, separately-configured
+ * limits on the AI-run and export routes — genuinely generic, not
+ * AI-specific. A simple fixed-window in-memory counter, testable in
+ * isolation and pluggable onto any route via `key`.
  */
 export interface RateLimiterOptions {
   /** Max requests allowed per window, per key. */

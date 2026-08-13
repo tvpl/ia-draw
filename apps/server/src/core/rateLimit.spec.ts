@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import { InMemoryRateLimiter } from './rateLimit.js';
 
-describe('InMemoryRateLimiter (T42, AIC-04)', () => {
+// Relocated from apps/server/src/modules/ai-provider/rateLimit.spec.ts (T42/AIC-04)
+// to apps/server/src/core/rateLimit.spec.ts (T83/SEC-02) — same tests, unmodified,
+// now exercising the generalized location of the class they always tested.
+describe('InMemoryRateLimiter (T42/AIC-04, relocated T83/SEC-02)', () => {
   it('allows calls up to the configured limit within a window', () => {
     const limiter = new InMemoryRateLimiter({ limit: 3, windowMs: 60_000 });
     expect(limiter.check('user-1').allowed).toBe(true);

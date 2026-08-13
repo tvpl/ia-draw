@@ -3,6 +3,7 @@ import { problemDetailsSchema } from '@arch-canvas/shared-contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
+import { InMemoryRateLimiter } from './rateLimit.js';
 import { buildServer, registerGracefulShutdown } from './server.js';
 
 function testConfig() {
@@ -138,7 +139,9 @@ describe('security headers and CORS (SEC-01, T82)', () => {
   });
 
   it('adds Strict-Transport-Security when publicUrl is https', async () => {
-    const app = buildServer(loadConfig({ NODE_ENV: 'test', PUBLIC_URL: 'https://app.example.com' }));
+    const app = buildServer(
+      loadConfig({ NODE_ENV: 'test', PUBLIC_URL: 'https://app.example.com' }),
+    );
     const response = await app.inject({ method: 'GET', url: '/health/live' });
     expect(response.headers['strict-transport-security']).toContain('max-age=');
     await app.close();
@@ -165,6 +168,86 @@ describe('security headers and CORS (SEC-01, T82)', () => {
       headers: { origin: 'https://allowed.example.com' },
     });
     expect(response.headers['access-control-allow-origin']).toBe('https://allowed.example.com');
+    await app.close();
+  });
+});
+
+/**
+ * A minimal stand-in for `auth/middleware.ts`'s `requireSession` — same
+ * function NAME (`requireSessionPreHandler`), which is exactly what
+ * `core/server.ts`'s `onRoute` hook matches on to decide a route is
+ * "authenticated" and append the default rate-limit check after it. Avoids
+ * pulling in a real `Db`/session just to prove the wiring.
+ */
+function fakeRequireSession(
+  userId: string | ((request: { headers: Record<string, unknown> }) => string),
+) {
+  return async function requireSessionPreHandler(request: {
+    authContext?: { user: { id: string }; sessionId: string };
+    headers: Record<string, unknown>;
+  }): Promise<void> {
+    const resolvedId = typeof userId === 'function' ? userId(request) : userId;
+    request.authContext = { user: { id: resolvedId } as never, sessionId: 'test-session' };
+  };
+}
+
+describe('default rate limiting for authenticated routes (SEC-02, T83)', () => {
+  it('returns 429 once the injected default limiter is exceeded, keyed by userId', async () => {
+    const limiter = new InMemoryRateLimiter({ limit: 2, windowMs: 60_000 });
+    const app = buildServer(testConfig(), { defaultRateLimiter: limiter });
+    app.get('/__protected-route-test', { preHandler: fakeRequireSession('user-1') }, async () => ({
+      ok: true,
+    }));
+
+    const first = await app.inject({ method: 'GET', url: '/__protected-route-test' });
+    const second = await app.inject({ method: 'GET', url: '/__protected-route-test' });
+    const third = await app.inject({ method: 'GET', url: '/__protected-route-test' });
+
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(200);
+    expect(third.statusCode).toBe(429);
+    await app.close();
+  });
+
+  it('never rate-limits a route with no requireSession preHandler (e.g. /health/live)', async () => {
+    const limiter = new InMemoryRateLimiter({ limit: 1, windowMs: 60_000 });
+    const app = buildServer(testConfig(), { defaultRateLimiter: limiter });
+
+    for (let i = 0; i < 5; i += 1) {
+      const response = await app.inject({ method: 'GET', url: '/health/live' });
+      expect(response.statusCode).toBe(200);
+    }
+    await app.close();
+  });
+
+  it('tracks distinct users independently — one user exhausting the limit never blocks another', async () => {
+    const limiter = new InMemoryRateLimiter({ limit: 1, windowMs: 60_000 });
+    const app = buildServer(testConfig(), { defaultRateLimiter: limiter });
+    app.get(
+      '/__protected-route-test',
+      { preHandler: fakeRequireSession((request) => String(request.headers['x-test-user'])) },
+      async () => ({ ok: true }),
+    );
+
+    const userA1 = await app.inject({
+      method: 'GET',
+      url: '/__protected-route-test',
+      headers: { 'x-test-user': 'user-a' },
+    });
+    const userA2 = await app.inject({
+      method: 'GET',
+      url: '/__protected-route-test',
+      headers: { 'x-test-user': 'user-a' },
+    });
+    const userB1 = await app.inject({
+      method: 'GET',
+      url: '/__protected-route-test',
+      headers: { 'x-test-user': 'user-b' },
+    });
+
+    expect(userA1.statusCode).toBe(200);
+    expect(userA2.statusCode).toBe(429);
+    expect(userB1.statusCode).toBe(200);
     await app.close();
   });
 });

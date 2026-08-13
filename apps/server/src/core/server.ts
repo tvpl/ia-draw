@@ -3,8 +3,15 @@ import fastifyCors from '@fastify/cors';
 import fastifyHelmet from '@fastify/helmet';
 import Fastify, { type FastifyError, type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
+// Type-only augmentation (`declare module 'fastify' { interface FastifyRequest { authContext } }`)
+// — same side-effect-only import every route module already uses to type
+// `request.authContext`; erased at compile time, no runtime coupling from
+// `core` into `modules/auth`. Needed here because SEC-02's default rate
+// limit keys off `request.authContext?.user?.id` (see below).
+import '../modules/auth/types.js';
 import type { AppConfig } from './config.js';
 import { buildLoggerOptions, type LoggerOverrides, REQUEST_ID_LOG_LABEL } from './logging.js';
+import { createRateLimitPreHandler, InMemoryRateLimiter } from './rateLimit.js';
 
 export type DependencyStatus = 'up' | 'down';
 
@@ -24,6 +31,12 @@ export interface BuildServerOptions {
   dependencyChecks?: DependencyCheck[];
   /** Injectable pino destination (OPS-05) — `logging.spec.ts` uses this to capture and assert on real log output instead of writing to the console. */
   loggerOverrides?: LoggerOverrides;
+  /**
+   * Injectable default rate limiter (SEC-02, T83) — defaults to a generous
+   * production limit. Tests that need to observe a 429 without issuing
+   * hundreds of requests inject a tiny limiter here instead.
+   */
+  defaultRateLimiter?: InMemoryRateLimiter;
 }
 
 /**
@@ -35,8 +48,13 @@ export interface BuildServerOptions {
  */
 const MAX_REQUEST_BODY_BYTES = 10 * 1024 * 1024;
 
+/** Default per-key limit for any authenticated route with no route-specific stricter limit (SEC-02). Generous enough not to trip on ordinary usage or on this codebase's own test suites, which reuse one session across many requests within a single test/file. */
+const DEFAULT_RATE_LIMIT_OPTIONS = { limit: 300, windowMs: 60_000 };
+
 export function buildServer(config: AppConfig, options: BuildServerOptions = {}): FastifyInstance {
   const dependencyChecks = options.dependencyChecks ?? [];
+  const defaultRateLimiter =
+    options.defaultRateLimiter ?? new InMemoryRateLimiter(DEFAULT_RATE_LIMIT_OPTIONS);
 
   const app = Fastify({
     // Fastify's default logger is pino, which emits structured JSON logs.
@@ -71,6 +89,53 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
   // documented API if a future task needs them).
   app.register(fastifyCors, {
     origin: config.corsAllowedOrigins,
+  });
+
+  // SEC-02: a default rate limit on every authenticated route (key =
+  // userId, falling back to ip) — reuses the same `InMemoryRateLimiter`
+  // stricter, route-specific limits on `POST /diagrams/:id/ai/runs`
+  // (ai-engine/routes.ts) and the export routes (export/routes.ts) layer
+  // on top of, per SEC-02/AIC-04's disclosed-partial gap now closed.
+  //
+  // Structural note: a global `onRequest`/`preHandler` hook added here
+  // would run BEFORE any route's own `preHandler` array (Fastify's
+  // documented hook order: globally-registered hooks in a phase run before
+  // a route's own same-phase handlers), so at that point `requireSession`'s
+  // preHandler hasn't run yet and `request.authContext` is never set —
+  // only `request.ip` would ever be available, defeating "key = userId".
+  // Instead this uses Fastify's `onRoute` hook (fires once per route at
+  // registration time, not per request) to detect routes whose own
+  // `preHandler` chain already includes `requireSession`'s preHandler
+  // (matched by its stable function name — `middleware.ts`'s
+  // `requireSessionPreHandler`), and appends the rate-limit check
+  // immediately after it in that same chain, so it runs once
+  // `authContext` is populated. This automatically covers every current
+  // and future route registered with `requireSession`, with zero
+  // additional per-route wiring (L-008), which a plain global hook
+  // structurally could not do.
+  const defaultRateLimitPreHandler = createRateLimitPreHandler(
+    defaultRateLimiter,
+    (request) => request.authContext?.user?.id ?? request.ip,
+  );
+  app.addHook('onRoute', (routeOptions) => {
+    const existingRaw = routeOptions.preHandler;
+    const existing: unknown[] =
+      existingRaw === undefined ? [] : Array.isArray(existingRaw) ? existingRaw : [existingRaw];
+    const isAuthenticated = existing.some(
+      (handler) => typeof handler === 'function' && handler.name === 'requireSessionPreHandler',
+    );
+    if (isAuthenticated) {
+      // Fastify's own `preHandler` type is a union of many compatible hook
+      // signatures (sync/async, arity variants) that doesn't unify cleanly
+      // through a generic array — this narrow, documented escape hatch
+      // avoids `any` while still appending a genuinely compatible handler
+      // (`defaultRateLimitPreHandler` matches `preHandlerHookHandler`'s
+      // shape exactly, as every other `preHandler` in this codebase does).
+      (routeOptions as { preHandler?: unknown }).preHandler = [
+        ...existing,
+        defaultRateLimitPreHandler,
+      ];
+    }
   });
 
   app.get('/health/live', async () => ({ status: 'ok' as const }));

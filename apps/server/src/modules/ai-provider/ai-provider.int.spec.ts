@@ -9,13 +9,13 @@ import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { loadConfig } from '../../core/config.js';
+import { InMemoryRateLimiter } from '../../core/rateLimit.js';
 import { buildServer } from '../../core/server.js';
 import { createLocalAccount } from '../auth/accounts.js';
 import { SESSION_COOKIE_NAME } from '../auth/cookie.js';
 import { registerAuthModule } from '../auth/routes.js';
 import { createSession } from '../auth/session.js';
 import { registerWorkspaceModule } from '../workspace/index.js';
-import { InMemoryRateLimiter } from './rateLimit.js';
 import { registerAiProviderModule } from './routes.js';
 
 const TEST_TOKEN = 'sk-this-is-the-secret-provider-token-xyz789';

@@ -3,6 +3,7 @@ import { recordAuditEvent, workspaceMembers } from '@arch-canvas/database';
 import { and, eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -14,7 +15,6 @@ import {
   listProviderConfigs,
   updateProviderConfig,
 } from './providerConfigs.js';
-import { createRateLimitPreHandler, InMemoryRateLimiter } from './rateLimit.js';
 import { testProviderConnection } from './testConnection.js';
 
 export interface AiProviderModuleDeps {
