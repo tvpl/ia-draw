@@ -457,10 +457,10 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AAC-02 | P2: Architecture-as-code | F3 | ✅ Verified (F3 Verifier, `mermaid.ts:234-243` + `structurizr.ts:268-277`) |
 | CMT-01 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `comment.int.spec.ts`) |
 | CMT-02 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `rbac.ts:76-91` + `rbac.spec.ts:94-104`, sensor-killed) |
-| CLB-01 | P3: Colaboração em tempo real | F4 | Pending |
-| CLB-02 | P3: Colaboração em tempo real | F4 | Pending |
-| CLB-03 | P3: Colaboração em tempo real | F4 | Pending |
-| CLB-04 | P3: Colaboração em tempo real | F4 | Pending |
+| CLB-01 | P3: Colaboração em tempo real | F4 | Implementing (T73 handshake/mutation relay + T74 PresenceBroadcaster + T75 real cross-instance Redis proof) |
+| CLB-02 | P3: Colaboração em tempo real | F4 | Implementing (T73 sync_request/sync_state + T76 reconnection convergence proof) |
+| CLB-03 | P3: Colaboração em tempo real | F4 | Implementing (T77 node-restart durability proof, zero content loss from Postgres alone) |
+| CLB-04 | P3: Colaboração em tempo real | F4 | Implementing (T74/T75/T77 — presence never persisted, structurally confirmed by grep + node-restart proof that its loss never risks durable content) |
 | EXT-01 | P3: Compartilhamento e webhooks | F4 | Pending |
 | EXT-02 | P3: Compartilhamento e webhooks | F4 | Pending |
 

@@ -20,7 +20,11 @@ import { loadDiagramScene } from '../diagram-sync/scene.js';
 import type { JobQueue } from '../jobs/index.js';
 import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
-import { NullPresenceBroadcaster, type PresenceBroadcaster, type PresenceEvent } from './presence.js';
+import {
+  NullPresenceBroadcaster,
+  type PresenceBroadcaster,
+  type PresenceEvent,
+} from './presence.js';
 import './types.js';
 
 export interface WsGatewayModuleDeps {

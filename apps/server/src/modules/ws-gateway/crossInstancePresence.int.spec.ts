@@ -177,7 +177,7 @@ describe('ws-gateway: cross-instance presence propagation over real Redis (T75, 
     }
   });
 
-  async function seedUserWithSession(app: FastifyInstance, prefix: string) {
+  async function seedUserWithSession(prefix: string) {
     const user = await createLocalAccount(db, {
       email: `${prefix}-${Date.now()}-${Math.random()}@example.com`,
       displayName: prefix,
@@ -231,7 +231,9 @@ describe('ws-gateway: cross-instance presence propagation over real Redis (T75, 
   }
 
   function connect(base: string, diagramId: string, ticket: string): WebSocket {
-    const socket = new WebSocket(`${base}/ws/diagrams/${diagramId}?ticket=${encodeURIComponent(ticket)}`);
+    const socket = new WebSocket(
+      `${base}/ws/diagrams/${diagramId}?ticket=${encodeURIComponent(ticket)}`,
+    );
     openSockets.push(socket);
     return socket;
   }
@@ -258,9 +260,9 @@ describe('ws-gateway: cross-instance presence propagation over real Redis (T75, 
   }
 
   it('presence published by a client on instance A reaches a client on instance B (real Redis, 2 processes)', async () => {
-    const owner = await seedUserWithSession(appA, 'xinst-owner');
+    const owner = await seedUserWithSession('xinst-owner');
     const { workspaceId, diagramId } = await seedDiagram(owner, 'positive');
-    const peer = await seedUserWithSession(appA, 'xinst-peer');
+    const peer = await seedUserWithSession('xinst-peer');
     await db
       .insert(schema.workspaceMembers)
       .values({ workspaceId, userId: peer.user.id, role: 'viewer' });
@@ -307,12 +309,14 @@ describe('ws-gateway: cross-instance presence propagation over real Redis (T75, 
   }, 20_000);
 
   it('presence published on a DIFFERENT diagramId never leaks across instances', async () => {
-    const ownerX = await seedUserWithSession(appA, 'xinst-leak-owner-x');
+    const ownerX = await seedUserWithSession('xinst-leak-owner-x');
     const { workspaceId: wsX, diagramId: diagramX } = await seedDiagram(ownerX, 'leak-x');
-    const peerX = await seedUserWithSession(appA, 'xinst-leak-peer-x');
-    await db.insert(schema.workspaceMembers).values({ workspaceId: wsX, userId: peerX.user.id, role: 'viewer' });
+    const peerX = await seedUserWithSession('xinst-leak-peer-x');
+    await db
+      .insert(schema.workspaceMembers)
+      .values({ workspaceId: wsX, userId: peerX.user.id, role: 'viewer' });
 
-    const ownerY = await seedUserWithSession(appA, 'xinst-leak-owner-y');
+    const ownerY = await seedUserWithSession('xinst-leak-owner-y');
     const { diagramId: diagramY } = await seedDiagram(ownerY, 'leak-y');
 
     const ticketX = await issueTicket(appA, ownerX.cookies, diagramX);
