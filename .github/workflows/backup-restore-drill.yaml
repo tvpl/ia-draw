@@ -1,0 +1,153 @@
+name: Scheduled backup restore drill
+
+# T35 (OPS-04): "run a scheduled automated restore test in an isolated environment
+# that fails loudly when restore is broken." A GitHub Actions scheduled workflow was
+# chosen over a pg-boss scheduled job (the alternative the task text allows) because
+# this is the mechanism that can actually run given this authoring sandbox has no
+# Docker daemon (AD-007) — GitHub Actions runners do, and this repo's own CI
+# (.github/workflows/ci.yaml) already proves real Postgres + Docker builds work there.
+# A pg-boss job would only ever exercise backup:create/backup:restore against the
+# SAME live production database process it runs inside, never a genuinely separate
+# target — the isolation this drill needs is much more natural to express as a fresh
+# CI job with its own service containers.
+#
+# Isolation (OPS-04 "isolated environment / separate test schema-database"): the
+# restore target is a second, empty database created on the SAME postgres service
+# (arch_canvas_restore_target, alongside the seeded arch_canvas source db) — this is
+# the "banco de teste separado" the task text explicitly allows, not a claim of a
+# fully separate stack.
+on:
+  schedule:
+    # Daily at 03:00 UTC.
+    - cron: '0 3 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: backup-restore-drill
+  cancel-in-progress: false
+
+jobs:
+  restore-drill:
+    name: backup:create -> backup:restore against an isolated target
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16.14-alpine3.24
+        env:
+          POSTGRES_USER: arch_canvas
+          POSTGRES_PASSWORD: ci-postgres-password
+          POSTGRES_DB: arch_canvas
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arch_canvas -d arch_canvas"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      # bitnami/minio (not the plain minio/minio image infra/compose/compose.yaml
+      # uses for local dev) because GitHub Actions' `services:` schema has no
+      # `command:` field to pass MinIO's required `server /data` argument — Bitnami's
+      # image starts the server automatically from env vars alone, no command
+      # override needed, which is exactly what a `services:` container can run.
+      minio:
+        image: bitnami/minio:latest
+        env:
+          MINIO_ROOT_USER: arch-canvas-dev
+          MINIO_ROOT_PASSWORD: dev-insecure-secret-change-me
+          MINIO_DEFAULT_BUCKETS: assets,exports,backups
+        ports:
+          - 9000:9000
+        options: >-
+          --health-cmd "curl -f http://localhost:9000/minio/health/live"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgres://arch_canvas:ci-postgres-password@localhost:5432/arch_canvas
+      RESTORE_TARGET_DATABASE_URL: postgres://arch_canvas:ci-postgres-password@localhost:5432/arch_canvas_restore_target
+      S3_ENDPOINT: http://localhost:9000
+      S3_ACCESS_KEY: arch-canvas-dev
+      S3_SECRET_KEY: dev-insecure-secret-change-me
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build database + backup packages
+        run: pnpm --filter @arch-canvas/database --filter @arch-canvas/backup build
+
+      - name: Apply migrations and seed representative data (source db)
+        run: |
+          node --input-type=module -e "
+            import('./packages/database/dist/migrate.js')
+              .then(({ migrate }) => migrate(process.env.DATABASE_URL))
+              .catch((error) => { console.error(error); process.exit(1); });
+          "
+          PGPASSWORD=ci-postgres-password psql -h localhost -U arch_canvas -d arch_canvas -c "
+            INSERT INTO organizations (name, slug) VALUES ('Restore Drill Org', 'restore-drill-org');
+          "
+
+      - name: Create the isolated, empty restore-target database
+        run: |
+          PGPASSWORD=ci-postgres-password createdb -h localhost -U arch_canvas arch_canvas_restore_target
+
+      - name: Seed an object into the assets bucket (via mc)
+        run: |
+          curl -sL https://dl.min.io/client/mc/release/linux-amd64/mc -o /usr/local/bin/mc
+          chmod +x /usr/local/bin/mc
+          mc alias set drill http://localhost:9000 arch-canvas-dev dev-insecure-secret-change-me
+          echo "drill-asset-bytes" > /tmp/drill-asset.txt
+          mc cp /tmp/drill-asset.txt drill/assets/drill-asset.txt
+
+      - name: backup:create
+        run: node infra/backup/dist/cli/create.cli.js /tmp/drill-backup.zip
+
+      - name: backup:verify (must pass on a fresh backup)
+        run: node infra/backup/dist/cli/verify.cli.js /tmp/drill-backup.zip
+
+      - name: backup:restore against the isolated, empty target
+        run: DATABASE_URL="$RESTORE_TARGET_DATABASE_URL" node infra/backup/dist/cli/restore.cli.js /tmp/drill-backup.zip
+
+      - name: Verify the restored data landed in the isolated target (fails loud otherwise)
+        run: |
+          COUNT=$(PGPASSWORD=ci-postgres-password psql -h localhost -U arch_canvas -d arch_canvas_restore_target -tAc "SELECT count(*) FROM organizations WHERE slug = 'restore-drill-org';")
+          if [ "$COUNT" != "1" ]; then
+            echo "::error::Restore drill FAILED — expected 1 seeded organization in the restored target, found $COUNT"
+            exit 1
+          fi
+          echo "Restore drill OK — seeded data present in the isolated target database."
+
+      - name: Negative check — a corrupted backup must fail loudly, never restore silently (OPS-04 Done-when)
+        run: |
+          # Rebuild the archive with dump.sql's content tampered but manifest.json's
+          # recorded checksum untouched — same corruption shape as
+          # infra/backup/src/create.int.spec.ts's tamper test.
+          python3 - <<'PY'
+          import zipfile
+          src = zipfile.ZipFile('/tmp/drill-backup.zip')
+          with zipfile.ZipFile('/tmp/drill-backup-corrupt.zip', 'w') as dst:
+              for name in src.namelist():
+                  data = src.read(name)
+                  if name == 'dump.sql':
+                      data += b'-- tampered by restore drill negative check'
+                  dst.writestr(name, data)
+          PY
+          PGPASSWORD=ci-postgres-password createdb -h localhost -U arch_canvas arch_canvas_restore_negative_check
+          set +e
+          PGPASSWORD=ci-postgres-password DATABASE_URL="postgres://arch_canvas:ci-postgres-password@localhost:5432/arch_canvas_restore_negative_check" \
+            node infra/backup/dist/cli/restore.cli.js /tmp/drill-backup-corrupt.zip
+          STATUS=$?
+          set -e
+          if [ "$STATUS" -eq 0 ]; then
+            echo "::error::Negative check FAILED — backup:restore exited 0 on a corrupted archive, should have failed loudly"
+            exit 1
+          fi
+          echo "Negative check OK — backup:restore correctly exited non-zero ($STATUS) on a corrupted archive."
+
+      - name: Report failure clearly
+        if: failure()
+        run: echo "::error::Scheduled backup restore drill FAILED — see the failed step above for details. This is OPS-04's loud-failure requirement; a silent failure here would be the bug."

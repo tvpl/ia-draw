@@ -1,0 +1,247 @@
+name: arch-canvas
+
+# Local self-hosted stack (docs/product-spec.md §12). Single public entrypoint
+# via `proxy`; everything else stays on the internal compose network.
+#
+# Usage (from this directory, infra/compose/):
+#   cp .env.example .env
+#   docker compose up --build
+#
+# NOTE: apps/server's health/ready check is stubbed in this wave (F0) — it
+# does not yet ping real PostgreSQL/MinIO (see apps/server/src/core, T3).
+# That wiring lands with F1's persistence work; until then /health/ready
+# reports ok independent of these services' actual state.
+
+services:
+  proxy:
+    image: caddy:2.11.4-alpine
+    depends_on:
+      server:
+        condition: service_healthy
+      web:
+        condition: service_healthy
+    ports:
+      - "${PUBLIC_PORT:-8080}:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost/"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  server:
+    build:
+      context: ../..
+      dockerfile: infra/compose/server.Dockerfile
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: "3000"
+      SESSION_SECRET: ${SESSION_SECRET:-dev-insecure-secret-change-me}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY:-dev-insecure-secret-change-me}
+      DATABASE_URL: postgres://${POSTGRES_USER:-arch_canvas}:${POSTGRES_PASSWORD:-dev-insecure-secret-change-me}@postgres:5432/${POSTGRES_DB:-arch_canvas}
+      # Optional (AD-006/AD-009, F4/T81) — only backs ws-gateway's cross-instance
+      # presence/cursor fan-out (RedisPresenceBroadcaster). The server boots and
+      # works fully without it (InMemoryPresenceBroadcaster, single-process); it
+      # is never a source of durable content (CLB-04), so its absence or a
+      # restart of this service never risks data loss, only presence reach.
+      REDIS_URL: redis://redis:6379
+      S3_ENDPOINT: http://minio:9000
+      S3_ACCESS_KEY: ${MINIO_ROOT_USER:-arch-canvas-dev}
+      S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-dev-insecure-secret-change-me}
+    volumes:
+      # Reserved for the F1 backup job (OPS-01..05); nothing writes here yet.
+      - backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+      # Not health-gated (unlike postgres/minio above) — redis is optional/
+      # degradable (see the REDIS_URL comment above), so the server only
+      # needs it to have STARTED, never to be confirmed healthy first.
+      redis:
+        condition: service_started
+
+  web:
+    build:
+      context: ../..
+      dockerfile: infra/compose/web.Dockerfile
+
+  postgres:
+    image: postgres:16.14-alpine3.24
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-arch_canvas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-insecure-secret-change-me}
+      POSTGRES_DB: ${POSTGRES_DB:-arch_canvas}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arch_canvas} -d ${POSTGRES_DB:-arch_canvas}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # Optional/degradable (AD-006/AD-009, F4/T81) — only used by ws-gateway's
+  # cross-instance presence/cursor pub-sub. No volume/persistence configured
+  # on purpose: presence is never meant to survive a restart of Redis itself
+  # (or of `apps/server`) — CLB-04 already guarantees durable canvas content
+  # never depends on it, so a plain in-memory instance is enough.
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+  minio:
+    image: minio/minio:RELEASE.2025-09-07T16-13-09Z
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-arch-canvas-dev}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dev-insecure-secret-change-me}
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # One-shot: idempotently creates the required buckets, then exits.
+  minio-init:
+    image: minio/mc:RELEASE.2025-08-13T08-35-41Z
+    depends_on:
+      minio:
+        condition: service_healthy
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-arch-canvas-dev}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-dev-insecure-secret-change-me}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        mc alias set local http://minio:9000 "$$MINIO_ROOT_USER" "$$MINIO_ROOT_PASSWORD" &&
+        mc mb --ignore-existing local/assets &&
+        mc mb --ignore-existing local/exports &&
+        mc mb --ignore-existing local/backups
+
+  # One-shot: applies pending migrations, then exits.
+  migrate:
+    build:
+      context: ../..
+      dockerfile: infra/compose/migrate.Dockerfile
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-arch_canvas}:${POSTGRES_PASSWORD:-dev-insecure-secret-change-me}@postgres:5432/${POSTGRES_DB:-arch_canvas}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # Optional profile: observability (docs/product-spec.md §12, T96 — OBS-01..03).
+  # Prometheus scrapes T91's real `/metrics` and evaluates T93's `alerts.yml`;
+  # Grafana ships with Prometheus pre-provisioned as its default datasource;
+  # the OTel Collector receives OTLP traces on 4317 (gRPC) / 4318 (HTTP).
+  #
+  # DISCLOSURE (T96, same honesty-over-theater discipline as every other F5
+  # task): this sandbox has no Docker daemon (this directory's own README's
+  # "What's verified here vs. what isn't") — these 3 services and their
+  # config files (infra/observability/{prometheus,otel-collector-config,
+  # grafana-datasources}.yml) were validated only via `docker compose
+  # --profile observability config` (full YAML parse + variable
+  # interpolation + volume-mount resolution, run for real in this sandbox —
+  # see infra/compose/README.md for the exact command and result). None of
+  # the 3 images were pulled, no container booted, no real scrape or alert
+  # evaluation happened here. Also carried forward from T92's own disclosed
+  # gap: apps/server's tracing currently defaults to an in-memory exporter —
+  # nothing sends real spans to `otel-collector` yet (see that config file's
+  # own header comment).
+  #
+  #   docker compose --profile observability up
+  # ---------------------------------------------------------------------------
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    profiles: ["observability"]
+    volumes:
+      - ../observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    depends_on:
+      server:
+        condition: service_healthy
+
+  grafana:
+    image: grafana/grafana:12.3.0
+    profiles: ["observability"]
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-dev-insecure-secret-change-me}
+    volumes:
+      - ../observability/grafana-datasources.yml:/etc/grafana/provisioning/datasources/datasources.yml:ro
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_PORT:-3001}:3000"
+    depends_on:
+      - prometheus
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.119.0
+    profiles: ["observability"]
+    volumes:
+      - ../observability/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+
+  # ---------------------------------------------------------------------------
+  # Optional profile: oidc-dev (docs/product-spec.md §12, T96 — OIDC-01..03).
+  # A real, local OIDC Identity Provider (Keycloak, the documented option) for
+  # exercising apps/server's OIDC login (T87) against a genuine external IdP
+  # in local dev — distinct from T88's in-process `oidc-provider` test-only
+  # IdP, which exists purely for the automated integration test suite.
+  #
+  # DISCLOSURE (T96): never booted in this sandbox (no Docker daemon) —
+  # validated only via `docker compose --profile oidc-dev config`. Both the
+  # legacy (`KEYCLOAK_ADMIN`/`KEYCLOAK_ADMIN_PASSWORD`) and current
+  # (`KC_BOOTSTRAP_ADMIN_USERNAME`/`KC_BOOTSTRAP_ADMIN_PASSWORD`) bootstrap-
+  # admin env var names are set together, deliberately, because this sandbox
+  # cannot pull the image to confirm which one the resolved `latest`-family
+  # tag actually expects — an operator running this for real should check the
+  # pulled image's own release notes.
+  #
+  # This profile provisions the IdP CONTAINER only, not a pre-baked realm:
+  # after `docker compose --profile oidc-dev up`, an operator still needs to
+  # log into http://localhost:${KEYCLOAK_PORT:-8081}, create a realm +
+  # confidential client, then point apps/server's OIDC_ISSUER_URL/
+  # OIDC_CLIENT_ID/OIDC_CLIENT_SECRET (core/config.ts, T87) at that realm's
+  # discovery URL and client credentials — e.g. OIDC_ISSUER_URL=http://
+  # keycloak:8080/realms/<realm-name> from inside the compose network.
+  #
+  #   docker compose --profile oidc-dev up
+  # ---------------------------------------------------------------------------
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0
+    profiles: ["oidc-dev"]
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-dev-insecure-secret-change-me}
+      KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN_USER:-admin}
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-dev-insecure-secret-change-me}
+    ports:
+      - "${KEYCLOAK_PORT:-8081}:8080"
+
+volumes:
+  postgres-data:
+  minio-data:
+  backups:
+  prometheus-data:
+  grafana-data:

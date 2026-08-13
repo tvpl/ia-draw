@@ -1,0 +1,83 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1786503602874,
+      "tag": "0000_true_sharon_carter",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1786509070630,
+      "tag": "0001_neat_the_enforcers",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1786509243992,
+      "tag": "0002_mighty_arclight",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1786509723033,
+      "tag": "0003_omniscient_demogoblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1786512410825,
+      "tag": "0004_slimy_ben_parker",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1786520776881,
+      "tag": "0005_ancient_rogue",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1786528329364,
+      "tag": "0006_harsh_green_goblin",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1786529157777,
+      "tag": "0007_dashing_mister_fear",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1786568112889,
+      "tag": "0008_colorful_bruce_banner",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1786570370746,
+      "tag": "0009_tiny_changeling",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1786575312829,
+      "tag": "0010_tough_baron_zemo",
+      "breakpoints": true
+    }
+  ]
+}

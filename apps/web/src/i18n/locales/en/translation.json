@@ -1,0 +1,18 @@
+{
+  "app": {
+    "title": "Architecture Canvas"
+  },
+  "languageSwitcher": {
+    "label": "Language"
+  },
+  "diagram": {
+    "loading": "Loading…"
+  },
+  "saveStatus": {
+    "saved": "Saved",
+    "saving": "Saving…",
+    "offline": "Offline — {{count}} pending changes",
+    "conflict": "Conflict",
+    "readOnly": "Read only"
+  }
+}

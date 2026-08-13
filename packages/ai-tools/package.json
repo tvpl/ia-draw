@@ -1,0 +1,31 @@
+{
+  "name": "@arch-canvas/ai-tools",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc --noEmit",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "@arch-canvas/diagram-ir": "workspace:*",
+    "@arch-canvas/editor-adapter": "workspace:*",
+    "@arch-canvas/library-content": "workspace:*",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@arch-canvas/test-fixtures": "workspace:*",
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
+  }
+}

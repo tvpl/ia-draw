@@ -1,0 +1,299 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 17,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "surviving_mutant::when a change detection condition combines multiple fields with or test each field changing alone not just all fields changing together or the or and boundary is untested",
+      "text": "When a change-detection condition combines multiple fields with OR, test each field changing alone, not just all fields changing together, or the OR/AND boundary is untested.",
+      "signal": "surviving_mutant",
+      "scope": "domain-logic",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/editor-adapter/src/computeDiff.ts:50 (domain-logic)"
+      ],
+      "created": "2026-08-12T04:07:09Z",
+      "last_seen": "2026-08-12T04:07:09Z"
+    },
+    {
+      "id": "L-002",
+      "key": "ac_gap::don t leave a network egress isolation acceptance criterion evidenced only by the current absence of outbound calls add an explicit automated check before any feature that could add an external call lands",
+      "text": "Don't leave a network/egress-isolation acceptance criterion evidenced only by the current absence of outbound calls — add an explicit automated check before any feature that could add an external call lands.",
+      "signal": "ac_gap",
+      "scope": "infra",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FND-02 (infra)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T04:07:17Z"
+    },
+    {
+      "id": "L-003",
+      "key": "ac_gap::a benchmark or spike task must not be traced as covering an ac that requires a server side flow the spike itself doesn t build keep the requirement s status at implementing until the real flow exists",
+      "text": "A benchmark or spike task must not be traced as covering an AC that requires a server-side flow the spike itself doesn't build; keep the requirement's status at Implementing until the real flow exists.",
+      "signal": "ac_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EDT-01 (traceability)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T04:07:17Z"
+    },
+    {
+      "id": "L-004",
+      "key": "ac_gap::when an ac bundles multiple subsystems or formats into one requirement verify and trace each subsystem format independently rather than advancing the whole ac s status on partial coverage",
+      "text": "When an AC bundles multiple subsystems or formats into one requirement, verify and trace each subsystem/format independently rather than advancing the whole AC's status on partial coverage.",
+      "signal": "ac_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "FND-05 (traceability)",
+        "EXP-01 (traceability)",
+        "AIC-04 (traceability)"
+      ],
+      "created": "2026-08-12T04:07:17Z",
+      "last_seen": "2026-08-12T17:55:26Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::a static source scan test import call site pattern matching proves the absence of code level egress calls in this repo not runtime network enforcement don t mark a network egress isolation ac verified on a static guardrail alone it needs real runtime enforcement firewall network policy egress proxy or an explicit re scope in spec md",
+      "text": "A static source-scan test (import/call-site pattern matching) proves the absence of code-level egress calls in this repo, not runtime network enforcement — don't mark a network/egress-isolation AC Verified on a static guardrail alone; it needs real runtime enforcement (firewall, network policy, egress proxy) or an explicit re-scope in spec.md.",
+      "signal": "spec_precision_gap",
+      "scope": "infra",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/core/no-egress.spec.ts (infra) (infra)"
+      ],
+      "created": "2026-08-12T04:20:39Z",
+      "last_seen": "2026-08-12T04:20:39Z"
+    },
+    {
+      "id": "L-006",
+      "key": "spec_precision_gap::when a spec ac requires enforcement on both rest and websocket operations but only the rest surface exists in the current wave keep the requirement at implementing and flag the websocket half as an explicit spec precision gap instead of marking the ac fully verified",
+      "text": "When a spec AC requires enforcement on both REST and WebSocket operations but only the REST surface exists in the current wave, keep the requirement at Implementing and flag the WebSocket half as an explicit spec-precision gap instead of marking the AC fully Verified.",
+      "signal": "spec_precision_gap",
+      "scope": "backend-auth",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AUTH-02 (spec.md:87), AUTH-05 (spec.md:90) (backend-auth)"
+      ],
+      "created": "2026-08-12T05:13:26Z",
+      "last_seen": "2026-08-12T05:13:26Z"
+    },
+    {
+      "id": "L-007",
+      "key": "ac_gap::a task that only builds an ac s supporting infrastructure e g an audit table and insert helper does not satisfy an ac whose literal text describes an end to end behavior reject record keep the ac at implementing until the actual enforcement route exists and is tested",
+      "text": "A task that only builds an AC's supporting infrastructure (e.g. an audit table and insert helper) does not satisfy an AC whose literal text describes an end-to-end behavior (reject + record); keep the AC at Implementing until the actual enforcement route exists and is tested.",
+      "signal": "ac_gap",
+      "scope": "backend-auth",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AUTH-03 (spec.md:88) (backend-auth)"
+      ],
+      "created": "2026-08-12T05:13:32Z",
+      "last_seen": "2026-08-12T05:13:32Z"
+    },
+    {
+      "id": "L-008",
+      "key": "gate_fail::a module s routes being reachable through per test hand registration is not evidence the production entrypoint wires them boot the real compiled entrypoint under plain node not only vitest s bundler mediated resolution at least once per feature wave that adds a new server module and curl a route from each newly added module",
+      "text": "A module's routes being reachable through per-test hand-registration is not evidence the production entrypoint wires them — boot the real compiled entrypoint under plain node (not only Vitest's bundler-mediated resolution) at least once per feature wave that adds a new server module, and curl a route from each newly-added module.",
+      "signal": "gate_fail",
+      "scope": "server-wiring",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/index.ts (pre-fix, commits e8b7bf6~1 through a8d8927) (server-wiring)"
+      ],
+      "created": "2026-08-12T07:17:54Z",
+      "last_seen": "2026-08-12T07:17:54Z"
+    },
+    {
+      "id": "L-009",
+      "key": "spec_precision_gap::when a spec s independent test narrative states a specific count but the formal ac only requires a qualitative guarantee e g every confirmed change a reduced count e2e test is acceptable only if the in file comment argues the mechanism is count invariant flag the divergence explicitly in the validation report rather than silently matching the narrative number or silently reducing it",
+      "text": "When a spec's Independent Test narrative states a specific count but the formal AC only requires a qualitative guarantee (e.g. 'every confirmed change'), a reduced-count E2E test is acceptable only if the in-file comment argues the mechanism is count-invariant — flag the divergence explicitly in the validation report rather than silently matching the narrative number or silently reducing it.",
+      "signal": "spec_precision_gap",
+      "scope": "e2e-scoping",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "REC-01 (spec.md Independent Test narrative vs. formal AC text) (e2e-scoping)"
+      ],
+      "created": "2026-08-12T07:18:00Z",
+      "last_seen": "2026-08-12T07:18:00Z"
+    },
+    {
+      "id": "L-010",
+      "key": "spec_deviation::when a server side domain package must avoid a workspace dependency s runtime footprint e g a browser oriented rendering library pulled in transitively keep only import type from that dependency and reimplement the minimal logic locally then verify zero runtime coupling by grepping the compiled dist output for import require statements not just by reading source level import type annotations",
+      "text": "When a server-side domain package must avoid a workspace dependency's runtime footprint (e.g. a browser-oriented rendering library pulled in transitively), keep only import type from that dependency and reimplement the minimal logic locally, then verify zero runtime coupling by grepping the compiled dist output for import/require statements, not just by reading source-level import type annotations.",
+      "signal": "spec_deviation",
+      "scope": "package-boundaries",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/diagram-domain/src/mergeScene.ts:1-29 (SPEC_DEVIATION docstring) (package-boundaries)"
+      ],
+      "created": "2026-08-12T07:18:07Z",
+      "last_seen": "2026-08-12T07:18:07Z"
+    },
+    {
+      "id": "L-011",
+      "key": "ac_gap::when implementing file import bundle unpacking zip tar etc always enforce a decompressed size or compression ratio cap before writing extracted content even when no task explicitly names zip bomb check spec md edge cases for storage expansion attacks whenever a task adds an unzip decompress code path",
+      "text": "When implementing file import/bundle unpacking (zip, tar, etc.), always enforce a decompressed-size or compression-ratio cap before writing extracted content, even when no task explicitly names 'zip bomb' — check spec.md Edge Cases for storage-expansion attacks whenever a task adds an unzip/decompress code path.",
+      "signal": "ac_gap",
+      "scope": "apps/server/src/modules/export",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases (zip bomb) - apps/server/src/modules/export/import.ts, bundle.ts (apps/server/src/modules/export)"
+      ],
+      "created": "2026-08-12T09:37:18Z",
+      "last_seen": "2026-08-12T09:37:18Z"
+    },
+    {
+      "id": "L-012",
+      "key": "spec_precision_gap::when a spec s acceptance criterion lists mutually possible categories e g added removed moved modified without defining precedence for an item that qualifies for more than one document the chosen precedence rule in the implementation and flag it explicitly as a spec precision gap in the validation report rather than resolving it silently",
+      "text": "When a spec's acceptance criterion lists mutually-possible categories (e.g. 'added/removed/moved/modified') without defining precedence for an item that qualifies for more than one, document the chosen precedence rule in the implementation and flag it explicitly as a spec-precision gap in the validation report rather than resolving it silently.",
+      "signal": "spec_precision_gap",
+      "scope": "packages/diagram-domain",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md VER-04 - packages/diagram-domain/src/structuralDiff.ts:30-38 (packages/diagram-domain)"
+      ],
+      "created": "2026-08-12T09:37:18Z",
+      "last_seen": "2026-08-12T09:37:18Z"
+    },
+    {
+      "id": "L-013",
+      "key": "surviving_mutant::for a secret never in response guarantee assert the response object lacks the secret bearing field entirely not tohaveproperty not just that it lacks the raw plaintext as a substring a ciphertext field can leak undetected past a substring only check",
+      "text": "For a 'secret never in response' guarantee, assert the response object lacks the secret-bearing field entirely (not.toHaveProperty), not just that it lacks the raw plaintext as a substring — a ciphertext field can leak undetected past a substring-only check.",
+      "signal": "surviving_mutant",
+      "scope": "security",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/ai-provider/providerConfigs.ts:26-35 (security)"
+      ],
+      "created": "2026-08-12T17:55:26Z",
+      "last_seen": "2026-08-12T17:55:26Z"
+    },
+    {
+      "id": "L-014",
+      "key": "spec_precision_gap::when an ac states a property at scale e g zero x and zero y up to n elements the property based sweep must assert every named dimension inside the same loop not just the dimensions the task s own done when happened to list a task s done when can narrow an ac s literal wording without anyone noticing",
+      "text": "When an AC states a property at scale (e.g. 'zero X and zero Y up to N elements'), the property-based sweep must assert every named dimension inside the same loop, not just the dimensions the task's own Done-when happened to list — a task's Done-when can narrow an AC's literal wording without anyone noticing.",
+      "signal": "spec_precision_gap",
+      "scope": "packages/diagram-ir",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AIG-03 / packages/diagram-ir/src/metrics.spec.ts:300-314 (packages/diagram-ir)"
+      ],
+      "created": "2026-08-12T18:45:32Z",
+      "last_seen": "2026-08-12T18:45:32Z"
+    },
+    {
+      "id": "L-015",
+      "key": "spec_deviation::ai run pending patch state runstore kept in process in memory is fine for single instance mvp but must move to persisted storage before horizontal scaling or restart heavy deploys since a lost entry forces the user to re request generation structurally safe but a real ux durability gap under load",
+      "text": "AI-run pending-patch state (RunStore) kept in-process/in-memory is fine for single-instance MVP but must move to persisted storage before horizontal scaling or restart-heavy deploys, since a lost entry forces the user to re-request generation (structurally safe, but a real UX/durability gap under load).",
+      "signal": "spec_deviation",
+      "scope": "apps/server/src/modules/ai-engine",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/ai-engine/runStore.ts:12 (apps/server/src/modules/ai-engine)"
+      ],
+      "created": "2026-08-12T20:35:14Z",
+      "last_seen": "2026-08-12T20:35:14Z"
+    },
+    {
+      "id": "L-016",
+      "key": "surviving_mutant::when sensor mutating a pnpm workspace package consumed cross package via node modules symlinks e g packages ai tools from apps server a wholesale symlinked node modules in the scratch worktree follows the relative symlink chain back to the real repo s dist silently making the mutation a no op re point the specific scope pkg symlink at the scratch copy and rebuild it there before running the affected tests",
+      "text": "When sensor-mutating a pnpm-workspace package consumed cross-package via node_modules symlinks (e.g. packages/ai-tools from apps/server), a wholesale symlinked node_modules in the scratch worktree follows the relative symlink chain back to the REAL repo's dist, silently making the mutation a no-op; re-point the specific @scope/pkg symlink at the scratch copy and rebuild it there before running the affected tests.",
+      "signal": "surviving_mutant",
+      "scope": "verification-methodology",
+      "status": "candidate",
+      "features": [
+        "architecture-canvas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "packages/ai-tools/src/tools/types.ts:139 (verifier sensor mutation #3, false negative on first attempt) (verification-methodology)"
+      ],
+      "created": "2026-08-12T20:38:24Z",
+      "last_seen": "2026-08-12T20:38:24Z"
+    }
+  ]
+}
