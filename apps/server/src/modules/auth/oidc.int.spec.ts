@@ -65,6 +65,24 @@ const TEST_ACCOUNTS: Record<
     role: 'workspace_admin',
     admin: true,
   },
+  // Verifier-added (F5 independent verification, discrimination-sensor
+  // mutation "a"): carries ZERO groups that match OIDC_GROUP_ROLE_MAP at
+  // all, only top-level `role`/`admin` claims. A wiring-level fallback at
+  // the /auth/oidc/callback call site (e.g. `resolveOidcRole(...) ??
+  // mergedClaims.role`) would grant `workspace_admin` here even though
+  // `resolveOidcRole` itself correctly returns null — the pre-existing
+  // 'viewer-with-adversarial-claims' account always has a REAL matching
+  // group ('readonly-team'), so `resolveOidcRole` never returns null for
+  // it and a call-site-level fallback bug would go completely unnoticed by
+  // every test that existed before this one. This account is what makes
+  // that specific class of regression observable.
+  'attacker-no-mapped-groups': {
+    email: 'attacker-no-mapped-groups@example.test',
+    name: 'Attacker No Mapped Groups',
+    groups: ['some-unrelated-group', 'another-unmapped-group'],
+    role: 'workspace_admin',
+    admin: true,
+  },
   // Distinct subject from 'editor-account' — used only by the
   // no-default-workspace test, so its zero-membership assertion is never
   // contaminated by a membership row a DIFFERENT test already granted the
@@ -364,6 +382,36 @@ describe('OIDC login — real in-process OpenID Provider, full PKCE protocol (T8
     expect(membership?.role).toBe('viewer');
     expect(membership?.role).not.toBe('workspace_admin');
     expect(membership?.role).not.toBe('org_admin');
+
+    await app.close();
+  });
+
+  it('Verifier-added: zero mapped groups + top-level role/admin claims -> login succeeds but NO workspace membership is ever created (never a call-site fallback to the top-level claim)', async () => {
+    const app = await buildAppWithOidc(workspaceId);
+
+    const result = await driveOidcLogin(app, 'attacker-no-mapped-groups');
+    expect(result.statusCode).toBe(302);
+    expect(result.sessionToken).toBeDefined();
+
+    const me = await app.inject({
+      method: 'GET',
+      url: '/me',
+      cookies: { [SESSION_COOKIE_NAME]: result.sessionToken as string },
+    });
+    expect(me.statusCode).toBe(200);
+    expect(me.json().user.email).toBe('attacker-no-mapped-groups@example.test');
+
+    // The account's real ID token carries `role: 'workspace_admin'` and
+    // `admin: true` — a call-site fallback reading either would grant a
+    // role here even though none of its groups are mapped. The correct
+    // behavior is zero membership rows: resolveOidcRole returned null and
+    // syncOidcWorkspaceRole must never have been called with an invented
+    // role.
+    const memberships = await db
+      .select()
+      .from(schema.workspaceMembers)
+      .where(eq(schema.workspaceMembers.userId, me.json().user.id));
+    expect(memberships).toHaveLength(0);
 
     await app.close();
   });
