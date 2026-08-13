@@ -3,6 +3,7 @@
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import { PGlite } from '@electric-sql/pglite';
+import { and, eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';
@@ -236,5 +237,139 @@ describe('auth module — login/logout/refresh/me (AUTH-01)', () => {
     });
     expect(meAfterLogout.statusCode).toBe(401);
     await app.close();
+  });
+});
+
+describe('auth module — login audit coverage (SEC-04, T85)', () => {
+  let client: PGlite;
+  let db: PgliteDatabase<typeof schema>;
+  let app: FastifyInstance;
+
+  beforeAll(async () => {
+    client = new PGlite();
+    db = drizzle(client, { schema });
+    await runMigrations(db, { migrationsFolder: MIGRATIONS_FOLDER });
+
+    const config = loadConfig({ NODE_ENV: 'test' });
+    app = buildServer(config);
+    await registerAuthModule(app, { db, config });
+    await app.ready();
+  });
+
+  afterAll(async () => {
+    await app.close();
+    await client.close();
+  });
+
+  it('a successful login records exactly one audit_events row, actor=the logged-in user', async () => {
+    const user = await createLocalAccount(db, {
+      email: 'audit-success@example.com',
+      displayName: 'Audit Success',
+      password: 'audit-success-password',
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'audit-success@example.com', password: 'audit-success-password' },
+    });
+    expect(response.statusCode).toBe(200);
+
+    const rows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(
+        and(
+          eq(schema.auditEvents.action, 'auth.login.succeeded'),
+          eq(schema.auditEvents.actorId, user.id),
+        ),
+      );
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      action: 'auth.login.succeeded',
+      actorId: user.id,
+      resourceType: 'user',
+      resourceId: user.id,
+    });
+    expect(rows[0]?.ipHash).toBeTruthy();
+  });
+
+  it('a failed login (wrong password) records a distinct-outcome audit_events row, no actorId', async () => {
+    await createLocalAccount(db, {
+      email: 'audit-failure@example.com',
+      displayName: 'Audit Failure',
+      password: 'the-real-password',
+    });
+
+    const response = await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'audit-failure@example.com', password: 'not-the-real-password' },
+    });
+    expect(response.statusCode).toBe(401);
+
+    // `resource_id` is a NOT NULL uuid column with no real user to reference
+    // for a failed login (see routes.ts's comment) — the attempted email
+    // lives in `metadataJson` instead, so this filters on `action` and
+    // matches the attempted email via metadata in JS.
+    const rows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(eq(schema.auditEvents.action, 'auth.login.failed'));
+    const matching = rows.filter(
+      (row) =>
+        (row.metadataJson as { attemptedEmail?: string })?.attemptedEmail ===
+        'audit-failure@example.com',
+    );
+    expect(matching).toHaveLength(1);
+    expect(matching[0]).toMatchObject({
+      action: 'auth.login.failed',
+      actorId: null,
+      resourceType: 'user',
+    });
+    expect(matching[0]?.metadataJson).toMatchObject({ outcome: 'failure' });
+  });
+
+  it('success and failure for the SAME account produce two audit rows with distinct actions/outcomes', async () => {
+    const user = await createLocalAccount(db, {
+      email: 'audit-both@example.com',
+      displayName: 'Audit Both',
+      password: 'audit-both-password',
+    });
+
+    await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'audit-both@example.com', password: 'wrong-password' },
+    });
+    await app.inject({
+      method: 'POST',
+      url: '/auth/login',
+      payload: { email: 'audit-both@example.com', password: 'audit-both-password' },
+    });
+
+    const allFailureRows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(eq(schema.auditEvents.action, 'auth.login.failed'));
+    const failureRows = allFailureRows.filter(
+      (row) =>
+        (row.metadataJson as { attemptedEmail?: string })?.attemptedEmail ===
+        'audit-both@example.com',
+    );
+    const successRows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(
+        and(
+          eq(schema.auditEvents.action, 'auth.login.succeeded'),
+          eq(schema.auditEvents.actorId, user.id),
+        ),
+      );
+
+    expect(failureRows).toHaveLength(1);
+    expect(failureRows[0]?.metadataJson).toMatchObject({ outcome: 'failure' });
+    expect(successRows).toHaveLength(1);
+    expect(successRows[0]?.metadataJson).toMatchObject({ outcome: 'success' });
   });
 });

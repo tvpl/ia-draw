@@ -1,3 +1,4 @@
+import { recordAuditEvent } from '@arch-canvas/database';
 import type { Db } from '../auth/db.js';
 import { createSnapshot, getSnapshotById } from '../snapshot/snapshots.js';
 import { EXPORT_BUCKET, type StorageClient } from '../storage/index.js';
@@ -39,6 +40,18 @@ export async function publishPresentation(
 
   const presentation = await setPublishedSnapshot(db, input.presentationId, snapshot.id);
   if (!presentation) throw new Error('publishPresentation: presentation vanished mid-publish');
+
+  // SEC-04: exactly one audit row per publish, following the same
+  // `AuditEventInput` convention every other call site uses (see
+  // workspace/routes.ts).
+  await recordAuditEvent(db, {
+    actorId: input.actorId,
+    action: 'presentation.published',
+    resourceType: 'presentation',
+    resourceId: input.presentationId,
+    metadataJson: { diagramId: input.diagramId, publishedSnapshotId: snapshot.id },
+  });
+
   return presentation;
 }
 

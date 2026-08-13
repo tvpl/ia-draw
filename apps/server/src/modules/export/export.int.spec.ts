@@ -8,6 +8,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import { PGlite } from '@electric-sql/pglite';
+import { eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';
@@ -198,6 +199,20 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
       expect(objectFromUrl(storage, body.formats.pdf.url).subarray(0, 5).toString('latin1')).toBe(
         '%PDF-',
       );
+
+      // SEC-04: exactly one audit_events row for this export generation.
+      const auditRows = await db
+        .select()
+        .from(schema.auditEvents)
+        .where(eq(schema.auditEvents.action, 'diagram.export.generated'));
+      const matching = auditRows.filter((row) => row.resourceId === diagramId);
+      expect(matching).toHaveLength(1);
+      expect(matching[0]).toMatchObject({
+        actorId: owner.user.id,
+        action: 'diagram.export.generated',
+        resourceType: 'diagram',
+        resourceId: diagramId,
+      });
     });
 
     it('requires an authenticated session (401, not 404 — proves the route is reachable)', async () => {
@@ -284,6 +299,20 @@ describe('export module routes (T32/T33 — EXP-01..04)', () => {
       expect(sceneBytes?.toString('utf8')).toContain('"img-1"');
       const unzippedAsset = await zip.file(`assets/${assetId}.png`)?.async('nodebuffer');
       expect(unzippedAsset).toEqual(assetBytes);
+
+      // SEC-04: exactly one audit_events row for this bundle generation.
+      const auditRows = await db
+        .select()
+        .from(schema.auditEvents)
+        .where(eq(schema.auditEvents.action, 'diagram.export.bundle_generated'));
+      const matching = auditRows.filter((row) => row.resourceId === diagramId);
+      expect(matching).toHaveLength(1);
+      expect(matching[0]).toMatchObject({
+        actorId: owner.user.id,
+        action: 'diagram.export.bundle_generated',
+        resourceType: 'diagram',
+        resourceId: diagramId,
+      });
     });
   });
 

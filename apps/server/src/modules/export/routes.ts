@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
+import { recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
@@ -133,6 +134,16 @@ export function registerExportModule(app: FastifyInstance, deps: ExportModuleDep
         results[formatName] = { url, checksum, sizeBytes: bytes.byteLength, contentType };
       }
 
+      // SEC-04: exactly one audit row per export generation call, following
+      // the same `AuditEventInput` convention every other call site uses.
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'diagram.export.generated',
+        resourceType: 'diagram',
+        resourceId: diagramId,
+        metadataJson: { exportId, revision, formats: Object.keys(results) },
+      });
+
       return { exportId, revision, formats: results };
     },
   );
@@ -160,6 +171,16 @@ export function registerExportModule(app: FastifyInstance, deps: ExportModuleDep
 
       await storage.putObject(EXPORT_BUCKET, objectKey, buffer, 'application/zip');
       const url = await storage.getSignedUrl(EXPORT_BUCKET, objectKey, EXPORT_URL_TTL_SECONDS);
+
+      // SEC-04: exactly one audit row per bundle generation call, following
+      // the same `AuditEventInput` convention every other call site uses.
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'diagram.export.bundle_generated',
+        resourceType: 'diagram',
+        resourceId: diagramId,
+        metadataJson: { bundleId, sizeBytes: buffer.byteLength },
+      });
 
       return { bundleId, url, sizeBytes: buffer.byteLength, manifest };
     },

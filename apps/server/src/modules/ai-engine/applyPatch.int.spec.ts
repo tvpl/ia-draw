@@ -223,6 +223,21 @@ describe('ai-engine atomic apply + pre-ai snapshot + undo (T55, AIG-05/AIE-03)',
       );
     expect(snapshots).toHaveLength(1);
     expect(snapshots[0]?.immutable).toBe(true);
+
+    // SEC-04: exactly one audit_events row for this AI patch approval.
+    const auditRows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(eq(schema.auditEvents.action, 'ai_run.patch.approved'));
+    const matching = auditRows.filter((row) => row.resourceId === diagramId);
+    expect(matching).toHaveLength(1);
+    expect(matching[0]).toMatchObject({
+      actorId: owner.user.id,
+      action: 'ai_run.patch.approved',
+      resourceType: 'diagram',
+      resourceId: diagramId,
+    });
+    expect(matching[0]?.metadataJson).toMatchObject({ aiRunId: created.run.id });
   });
 
   it('approving a run whose sourceRevision went stale returns 409 and never applies the patch', async () => {

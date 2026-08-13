@@ -1,3 +1,4 @@
+import { recordAuditEvent } from '@arch-canvas/database';
 import type { ElementDelta, SceneElement } from '@arch-canvas/editor-adapter';
 import type { Db } from '../auth/db.js';
 import { appendOperation, type BatchResult } from '../diagram-sync/operations.js';
@@ -98,6 +99,17 @@ export async function restoreSnapshot(
     baseRevision: currentRevision,
     actorId,
     deltas,
+  });
+
+  // SEC-04: exactly one audit row per restore operation, following the same
+  // `AuditEventInput` convention every other call site uses (see
+  // workspace/routes.ts).
+  await recordAuditEvent(db, {
+    actorId,
+    action: 'diagram.snapshot.restored',
+    resourceType: 'diagram',
+    resourceId: diagramId,
+    metadataJson: { snapshotId, resultingRevision: batch.currentRevision },
   });
 
   return { batch, restoredFromSnapshotId: snapshotId };

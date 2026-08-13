@@ -1,4 +1,6 @@
+import { randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
+import { recordAuditEvent } from '@arch-canvas/database';
 import fastifyCookie from '@fastify/cookie';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -12,6 +14,7 @@ import {
 import type { Db } from './db.js';
 import { requireSession } from './middleware.js';
 import { createSession, revokeSession, rotateSession } from './session.js';
+import { hashToken } from './tokens.js';
 import './types.js';
 import { issueWsTicket, resolveDiagramMembership } from './ws-ticket.js';
 
@@ -54,11 +57,45 @@ export async function registerAuthModule(
       throw Object.assign(new Error('Invalid login payload'), { statusCode: 400 });
     }
 
+    // SEC-04: audits both outcomes (success AND failure) with distinct
+    // `action`/`outcome` metadata, per `recordAuditEvent`'s established
+    // convention (workspace/routes.ts). `ipHash` (never the raw IP) reuses
+    // `hashToken` (sha256, tokens.ts) — the same "never store the raw
+    // identifying value" discipline already applied to session/ticket
+    // tokens, applied here to the requester's IP.
+    const ipHash = hashToken(request.ip);
     const user = await verifyLocalPassword(db, parsed.data.email, parsed.data.password);
-    if (!user) invalidCredentials();
+    if (!user) {
+      await recordAuditEvent(db, {
+        action: 'auth.login.failed',
+        resourceType: 'user',
+        // No `actorId` — the credentials never resolved to a real user, so
+        // there is no user id to attribute this to. `audit_events.resource_id`
+        // is a NOT NULL uuid column with no real user to reference here (the
+        // email may not even belong to an account — verifyLocalPassword
+        // deliberately never reveals which, AUTH-01), so this uses a fresh
+        // random id as a non-referencing placeholder and records WHICH
+        // account was targeted (the attempted email, never the password) in
+        // `metadataJson` instead.
+        resourceId: randomUUID(),
+        ipHash,
+        metadataJson: { outcome: 'failure', attemptedEmail: parsed.data.email },
+      });
+      invalidCredentials();
+    }
 
     const issued = await createSession(db, user.id);
     reply.setCookie(SESSION_COOKIE_NAME, issued.token, sessionCookieOptions(config));
+
+    await recordAuditEvent(db, {
+      actorId: user.id,
+      action: 'auth.login.succeeded',
+      resourceType: 'user',
+      resourceId: user.id,
+      ipHash,
+      metadataJson: { outcome: 'success' },
+    });
+
     return { user };
   });
 

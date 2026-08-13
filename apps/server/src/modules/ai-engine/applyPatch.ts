@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { AbstractPatch, PatchOperation } from '@arch-canvas/ai-tools';
+import { recordAuditEvent } from '@arch-canvas/database';
 import type { ElementDelta, SceneElement } from '@arch-canvas/editor-adapter';
 import type { Db } from '../auth/db.js';
 import { appendOperation, type BatchResult } from '../diagram-sync/operations.js';
@@ -175,6 +176,20 @@ export async function approveAiRun(
 
   const applied = await updateAiRunStatus(db, run.id, 'applied');
   runStore.delete(run.id);
+
+  // SEC-04: exactly one audit row per AI patch approval, following the same
+  // `AuditEventInput` convention every other call site uses.
+  await recordAuditEvent(db, {
+    actorId,
+    action: 'ai_run.patch.approved',
+    resourceType: 'diagram',
+    resourceId: run.diagramId,
+    metadataJson: {
+      aiRunId: run.id,
+      preAiSnapshotId: snapshot.id,
+      revision: batch.currentRevision,
+    },
+  });
 
   return { run: applied, snapshot, batch };
 }

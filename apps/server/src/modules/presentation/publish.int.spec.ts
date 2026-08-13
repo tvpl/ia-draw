@@ -191,6 +191,24 @@ describe('presentation module — publish, read-only link, PDF export (T66, PRS-
       .where(eq(schema.diagramSnapshots.id, presentation.publishedSnapshotId));
     expect(snapshot?.kind).toBe('published');
     expect(snapshot?.immutable).toBe(true);
+
+    // SEC-04: exactly one audit_events row for this publish.
+    const auditRows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(eq(schema.auditEvents.action, 'presentation.published'));
+    const matching = auditRows.filter((row) => row.resourceId === presentationId);
+    expect(matching).toHaveLength(1);
+    expect(matching[0]).toMatchObject({
+      actorId: owner.user.id,
+      action: 'presentation.published',
+      resourceType: 'presentation',
+      resourceId: presentationId,
+    });
+    expect(matching[0]?.metadataJson).toMatchObject({
+      diagramId,
+      publishedSnapshotId: presentation.publishedSnapshotId,
+    });
   });
 
   it('GET .../published keeps serving the SNAPSHOT scene after a later live edit, never the live scene', async () => {

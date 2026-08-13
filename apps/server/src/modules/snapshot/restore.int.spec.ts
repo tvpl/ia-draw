@@ -217,6 +217,21 @@ describe('snapshot restore + structural diff (T31, VER-02/03/04)', () => {
     expect(liveIds).toEqual(['el-1']);
     const el2 = scene.find((el) => el.id === 'el-2');
     expect(el2?.isDeleted).toBe(true);
+
+    // SEC-04: exactly one audit_events row for this restore operation.
+    const auditRows = await db
+      .select()
+      .from(schema.auditEvents)
+      .where(eq(schema.auditEvents.action, 'diagram.snapshot.restored'));
+    const matching = auditRows.filter((row) => row.resourceId === diagramId);
+    expect(matching).toHaveLength(1);
+    expect(matching[0]).toMatchObject({
+      actorId: owner.user.id,
+      action: 'diagram.snapshot.restored',
+      resourceType: 'diagram',
+      resourceId: diagramId,
+    });
+    expect(matching[0]?.metadataJson).toMatchObject({ snapshotId: snapshotAId });
   });
 
   it("restoring OVER a published snapshot never modifies that snapshot's own bytes (checksum/sceneJsonKey unchanged)", async () => {
