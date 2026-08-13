@@ -1654,3 +1654,291 @@ None of these are functional gaps; all are documented, reasoned, and hold up und
 **Next steps**: no fix-loop required (this is a PASS). F3 closes the "visão completa" scope from the source document per AD-002 — only F4 (realtime collaboration, P3) and F5 (hardening) remain on the roadmap.
 
 ---
+
+## Validation: architecture-canvas (F4: realtime collaboration + external sharing) — PASS ✅
+
+**Date**: 2026-08-13
+**Spec**: `.specs/features/architecture-canvas/spec.md`
+**Diff range**: `e2daacd..29501aa` (T71-T81, all three F4 batches)
+**Verifier**: independent sub-agent (author ≠ verifier)
+
+Two P3 stories in one wave (realtime collaboration via a brand-new WebSocket transport, external sharing via capped-role links + signed webhooks), the project's first genuinely new transport (WS) and first genuinely new external runtime dependency (Redis, opt-in). Every claim below was re-derived from the real code and re-executed in this session — none taken on the implementer's Status notes.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T71 | ✅ Done | 3 new tables (`share_links`, `webhook_endpoints`, `webhook_deliveries`), migration applies cleanly, unique index/FK constraints structurally confirmed in `schema.ts` and exercised by `packages/database/src/share-webhook.int.spec.ts` (7/7 green in this session's gate run) |
+| T72 | ✅ Done | Per-message WS payload schemas + size-gated `parseWsMessage`; exhaustive type coverage confirmed by reading `ws-messages.ts` |
+| T73 | ✅ Done | `ws-gateway/routes.ts` read line-by-line — `mutation` delegates to the exact same `appendOperation` REST uses, zero duplicated LWW/validation logic (see deep trace below) |
+| T74 | ✅ Done | `InMemoryPresenceBroadcaster`/`RedisPresenceBroadcaster` — zero `Db`/drizzle imports in either file, confirmed by my own `grep` |
+| T75 | ✅ Done | Cross-instance Redis proof re-run by me directly (2/2 green) against a genuinely spawned `redis-server`, confirmed 2 real `FastifyInstance`s + 2 real `RedisPresenceBroadcaster` objects, not 2 connections to shared state |
+| T76 | ✅ Done | Reconnection convergence test read in full — "always full state" decision is a valid, sufficient satisfaction of CLB-02's literal AC text (assessed independently below, not just trusted) |
+| T77 | ✅ Done | Node-restart durability test read in full — genuinely discards the old `FastifyInstance`/`InMemoryPresenceBroadcaster`, reuses the same PGlite `db`, zero Redis anywhere in the file |
+| T78 | ✅ Done | `share/` module read directly — `isRoleWithinCeiling` and the leaked-token-to-real-admin scenario both re-confirmed structurally and by test; mutation-sensor killed a bypass |
+| T79 | ✅ Done | Webhook CRUD, admin-only gate, one-shot secret reveal, rotation invalidation confirmed at the crypto-primitive level by the existing test |
+| T80 | ✅ Done | `deliver.ts` read directly — HMAC signs the exact bytes sent as the body, backoff/dead-letter transition traced and mutation-sensor-killed twice (signature divergence, unbounded retry) |
+| T81 | ✅ Done | `registerModules.ts` wiring confirmed (`config.redisUrl`-driven broadcaster selection); real-boot smoke test re-run independently in this session, both without and with real Redis |
+
+All 11 tasks (T71-T81) verified `✅ Complete` against real code and real, fresh test/boot runs — not self-report alone.
+
+---
+
+### Independent Gate Run (from a clean checkout, `git pull` confirmed up to date)
+
+- `pnpm -w lint` → 384 files, zero drift.
+- `pnpm -w typecheck` → 22/22 package tasks green.
+- `pnpm -w build` → 12/12 package tasks green.
+- `pnpm -w test:unit` → **276 server + 22 web = 298 tests passed, 0 failed** (26 server test files).
+- `pnpm -w test:integration` → **294 tests passed, 0 failed, across 37 files** (103s wall time).
+
+These numbers match the implementer's own final self-reported counts (T81's Status note: 276/276 unit, 294/294 integration server) — independently reproduced, not taken on faith.
+
+**Zero leftover `redis-server` processes** after this full gate run (`ps aux | grep redis-server` → empty) — no resource leak in the test suite's Redis lifecycle handling, confirmed directly, not assumed.
+
+---
+
+### AD-008 Compliance
+
+Fresh build, then:
+
+```
+find apps/server/dist -name "*.js" | xargs grep -ln "excalidraw"
+```
+
+9 files matched, identical to the set every prior wave already allowlisted: `interop/importDsl.js`, `interop/routes.js`, `export/import.js`, `export/sceneFile.js`, `export/generateExports.js`, `export/bundle.js`, `export/routes.js`, `render/svg.js`, `render/dom-environment.js`. Every hit is a doc-comment or the `.excalidraw` **file-format** string (e.g. `excalidrawJson` variable names, `scene.excalidraw` zip entry names), or the single, pre-existing, extensively-documented `render/svg.js` dynamic `await import('@excalidraw/utils')` (F1c/AD-005, a different package from the two AD-008 names). **Zero new hits** in `apps/server/dist/modules/ws-gateway`, `apps/server/dist/modules/share`, or `apps/server/dist/modules/webhook` — confirmed with a targeted `find`/`grep` restricted to those three directories, which returned nothing. **AD-008 holds.**
+
+---
+
+### THE Central Architectural Invariant (T73) — Structural Deep Trace
+
+Read `apps/server/src/modules/ws-gateway/routes.ts` line by line (not the tests). The `mutation` case (`routes.ts:212-292`):
+
+1. Re-resolves `resolveDiagramWorkspaceId`/`resolveWorkspaceRole`/`can(role, 'diagram:mutate', …)` fresh (`routes.ts:216-219`) — no caching.
+2. Parses the wire payload through `parseOperationEnvelope` (`@arch-canvas/diagram-domain`, `routes.ts:231-241`) — the SAME envelope parser REST uses, imported, never reimplemented.
+3. Calls `assertDeltaAssetsReady` (`routes.ts:251`) — the same asset-readiness gate REST's `operations:batch` calls (EDT-06).
+4. Delegates the actual write to `appendOperation(db, diagramId, actorId, envelope)` (`routes.ts:262`) — confirmed by grep to be the identical function `apps/server/src/modules/diagram-sync/routes.ts:99` calls for REST's `operations:batch` (`import { appendOperation } from '../diagram-sync/operations.js'` in both files; `diagram-sync/operations.ts:123` is the single definition).
+5. `mutation_ack`/`mutation_rejected` responses and `presence.publish(...)` broadcasting happen strictly AFTER step 4 — never before, never in place of it.
+
+**No parallel/duplicated LWW or validation logic exists anywhere in `ws-gateway`** — `grep -n "reconcile\|lastWriterWins\|LWW" apps/server/src/modules/ws-gateway/*.ts` returns nothing outside doc-comments referencing the invariant itself. This is the single most important structural claim of the wave, and it holds exactly as documented. No top-severity finding here.
+
+---
+
+### AUTH-05 Mid-Session Downgrade — Read + My Own Sensor-Mutation Confirmation
+
+`routes.ts`'s `sync_request` (`:190-210`) and `mutation` (`:216-219`) cases both call `resolveDiagramWorkspaceId`/`resolveWorkspaceRole` fresh, inline, on every single message — there is no connection-scoped variable anywhere in the handler that could cache a role across messages (confirmed by reading the full closure body, `routes.ts:118-325`). `wsGateway.int.spec.ts:375-423` constructs exactly the scenario item 4 of this task specified: connect as `editor`, one mutation succeeds and is acked, downgrade the same user's `workspace_members.role` to `viewer` on the SAME open connection (no reconnect), send a second mutation, assert `mutation_rejected` and that only the first mutation's row exists in `diagram_operations`. Re-ran this test directly — passes. Additionally, as part of the discrimination sensor (below), I constructed my OWN mutant that caches the role at connection time instead of re-resolving it — this exact test failed immediately (`expected 'mutation_ack' to be 'mutation_rejected'`), independently proving the test is discriminating for this behavior, not merely present.
+
+---
+
+### CLB-04: Presence Never Touches Postgres
+
+```
+grep -rn "drizzle\|import.*Db\b" apps/server/src/modules/ws-gateway/presence.ts apps/server/src/modules/ws-gateway/redisPresence.ts
+```
+
+Two hits, both inside doc-comments describing the guarantee itself (`presence.ts:5`, `redisPresence.ts:5`) — **zero real imports** of `Db`/drizzle in either file. `InMemoryPresenceBroadcaster` is a bare `node:events` `EventEmitter`; `RedisPresenceBroadcaster` only ever calls `ioredis`'s `publish`/`subscribe`/`unsubscribe`/`quit`. Structurally confirmed, exactly as claimed.
+
+---
+
+### T75 Cross-Instance Redis Proof — Re-Run Myself, Not Just Re-Read
+
+Ran `crossInstancePresence.int.spec.ts` directly in isolation: `pnpm --filter @arch-canvas/server exec vitest run -c vitest.integration.config.ts src/modules/ws-gateway/crossInstancePresence.int.spec.ts` → **2/2 green**, against a `redis-server` process this test itself spawns (confirmed by watching the process appear and disappear around the run). Read the test file in full: it constructs `appA`/`appB` as two genuinely separate `FastifyInstance`s (two independent `buildServer(config)` + `registerWsGatewayModule` calls, two independently-bound TCP ports), each with its OWN `RedisPresenceBroadcaster` instance (`presenceA`/`presenceB`, `crossInstancePresence.int.spec.ts:128,139`) — not two `WebSocket` connections sharing one broadcaster. Both point at the SAME spawned Redis (`redisUrl`, shared string only). A real `ws` client connects to instance A, another to instance B; client A's `presence` message travels through `RedisPresenceBroadcaster.publish` → real Redis `PUBLISH` → instance B's separate `RedisPresenceBroadcaster.subscribe` → `routes.ts`'s per-connection relay (`handlePresenceEvent`, `routes.ts:151-161`) → client B's real WebSocket. A second test confirms the negative case (a presence event on a different `diagramId` never leaks across instances), with a control publish first confirming the watcher's subscription is genuinely live (ruling out a false-negative from a broken subscription). Zero lingering `redis-server` processes after this isolated run, confirmed directly.
+
+---
+
+### T77 Node-Restart Durability — Read + Re-Run
+
+`nodeRestartDurability.int.spec.ts` never imports or constructs a `RedisPresenceBroadcaster`, never reads/sets anything resembling `REDIS_URL` (confirmed by reading the full file — only `InMemoryPresenceBroadcaster` appears). The "old" `FastifyInstance` persists two mutations, is then `app.close()`d and its reference dropped (`:233-236`) — genuinely discarded, not reused. A brand-new `FastifyInstance` (`bootInstance`, `:70-86`) with its own fresh `InMemoryPresenceBroadcaster` is built against the SAME PGlite `db` handle. The reconnecting client's `sync_request` returns both pre-restart elements with the correct revision (CLB-03), and a further mutation on the new instance succeeds and persists as a third row (CLB-04 — presence loss never turns the node read-only). Included in this session's `test:integration` gate run — green.
+
+---
+
+### T76 Reconnection Convergence — AC Assessment
+
+CLB-02's literal text: "WHEN two users edit different elements concurrently THEN the system SHALL converge both sessions to the same scene after reconnection." `loadDiagramScene` (F1b, reused unchanged) rebuilds the scene by folding the ENTIRE `diagram_operations` log on every call — there is no code path by which two clients reading at the same revision could observe two different "full" scenes, since both reads fold the identical, monotonically-appended table. This makes "always answer `sync_request` with full state" a structurally sufficient — not merely convenient — satisfaction of the AC: convergence is a property of `loadDiagramScene` itself, not of any per-connection state `ws-gateway` would need to track. `reconnectConvergence.int.spec.ts` (read in full, `:189-287`) goes further than the AC strictly requires: it reconnects client A a THIRD time after B has already reconnected and diffs A's and B's scenes for full deep equality (`:281-286`), not just element-id-set equality — genuine two-sided convergence, not "B eventually caught up". No edge case implied by the AC text (ordering, count, timing of reconnects) is left unhandled by this design. **Assessment: the always-full-state choice is adequate; no gap.**
+
+---
+
+### EXT-01 Share Links — Role Ceiling + IDOR
+
+`isRoleWithinCeiling(actorRole, grantedRole)` (`shareLinks.ts:39-41`) compares `ROLES.indexOf(grantedRole) >= ROLES.indexOf(actorRole)` against `packages/auth/src/rbac.ts:112-118`'s `ROLES` ordering (`['org_admin', 'workspace_admin', 'editor', 'reviewer', 'viewer']`, index 0 = most privileged) — an `editor` (index 2) requesting `workspace_admin` (index 1) fails `1 >= 2`, correctly rejected. `share.int.spec.ts:90` exercises exactly this. `GET /share/:token` (`routes.ts:190-216`) folds nonexistent-hash, revoked, and expired into the identical `notFound()` (404) with no distinguishing signal — `share.int.spec.ts` "expired, revoked, or nonexistent token all return 404 identically" confirms this directly. The specific adversarial scenario (a leaked token used by a REAL, higher-privileged `workspace_admin` of the same workspace) is both structurally guaranteed (`routes.ts:210` computes `canEdit`/serves content using `link.role` exclusively — the route never resolves a requester identity at all, so there is no higher role to fall back to even by accident) and empirically tested (`share.int.spec.ts:232-277`: a `viewer`-role link, a real `workspace_admin` inserted into the same workspace after the link was created, `GET /share/:token` still returns `role: 'viewer'` and only the one element the link's scope covers). My own discrimination-sensor mutation (bypass `isRoleWithinCeiling` to always return `true`) was killed by both the unit test and the integration test (see Sensor section).
+
+---
+
+### EXT-02 Webhooks — Signing, Rotation, Retry/Dead-Letter
+
+`signWebhookPayload` (`deliver.ts:23-26`) is Node's native `crypto.createHmac('sha256', secret).update(serializedPayload).digest('hex')`. `deliverWebhookDelivery` (`deliver.ts:154-168`) computes `serializedPayload = JSON.stringify(delivery.payloadJson)` ONCE and both signs it AND sends it as the literal `body` of the outbound `fetch` — no re-serialization gap is possible (confirmed by reading the two adjacent statements, `:154` and `:167`, using the exact same `serializedPayload` binding). `deliver.int.spec.ts`'s "a successful delivery... signature verifiable" test captures the actual sent body via a mocked `fetch` and re-derives the signature from it, rather than asserting against a value computed independently — genuinely proves signature-matches-sent-bytes, not just "a header exists". Secret rotation: `rotateWebhookSecret` (`webhooks.ts:111-122`) replaces `secretEncrypted` outright (no grace period, documented simplification), and `deliverWebhookDelivery` always decrypts the endpoint's CURRENT `secretEncrypted` at delivery time (`deliver.ts:155`) — so any signature computed with a since-rotated-away secret is structurally guaranteed to no longer validate. `webhook.int.spec.ts:167-196` confirms this at the crypto-primitive level: computes `createHmac` with the OLD secret and the NEW secret over the same fixed payload and asserts they differ. Backoff (`BACKOFF_SCHEDULE_MS`, `deliver.ts:39-45`) and `MAX_DELIVERY_ATTEMPTS = 5` (`:47`) gate the dead-letter transition at `deliver.ts:192-204`: `attempts >= MAX_DELIVERY_ATTEMPTS` → `dead_letter`, `nextRetryAt: null`, no further scheduling. Retries are scheduled via pg-boss's own `startAfter` (`:221-223`, `enqueue(jobs, WEBHOOK_DELIVERY_JOB, { deliveryId }, { startAfter: nextRetryAt })`) — re-sending the SAME job rather than a bespoke poller. This is a legitimate implementation of the retry contract, not a silent-drop shortcut: `(status, next_retry_at)` remains a valid index for observability, and every failed attempt that hasn't exhausted its budget unconditionally re-enqueues when `jobs` is supplied (confirmed by reading the `if (jobs)` branch — there is no code path where a schedulable failure silently stops retrying). `deliver.int.spec.ts` "a failed delivery... walks all 5 attempts with strictly-growing `nextRetryAt` gaps then dead-letters" is a genuine end-to-end reproduction, not a unit-level shortcut.
+
+---
+
+### EXT-02 Event-Wiring Completeness — 2 of 5 Sites Spot-Checked Directly
+
+`grep -rn "enqueueWebhookEvent"` confirms all 5 documented event sites import and call it: `workspace/project-diagram-routes.ts` (`diagram.created`), `diagram-sync/routes.ts` (`diagram.updated`), `presentation/publishRoutes.ts` (`diagram.published`), `docgen/routes.ts` (`spec.generated`), `comment/routes.ts` (`comment.mentioned`). Read two directly in full: `diagram-sync/routes.ts:109-122` fires `diagram.updated` exactly once per successful `operations:batch` call (never per-delta, a documented and reasonable granularity decision matching "the client's own save unit"); `presentation/publishRoutes.ts` fires `diagram.published` once per successful `:publish`. `listEnabledWebhookEndpointsForEvent` (`webhooks.ts:146-158`) filters on BOTH `enabled = true` (SQL `WHERE`) AND `eventsJson.includes(eventType)` (application-level) before `enqueueWebhookEvent` ever inserts a row — a disabled endpoint or one not subscribed gets literally zero delivery rows, not just zero deliveries attempted. `eventWiring.int.spec.ts` (full `app.inject` end-to-end, never calling `enqueueWebhookEvent` directly) confirms all 5 sites each insert exactly one row for a fully-subscribed enabled endpoint, zero for a wrong-event-type endpoint, and zero for a disabled endpoint — included in this session's green `test:integration` run.
+
+---
+
+### L-008 / Real-Boot Smoke Test — Reproduced Fresh, Both Redis Paths
+
+Started the sandbox's real Postgres 16 (`service postgresql start`), ran the real compiled migration (`node packages/database/dist/migrate.js`) against it — all 25 tables present including `share_links`/`webhook_endpoints`/`webhook_deliveries`. Built fresh (`pnpm -w build`), then:
+
+**Path 1 — no Redis, `REDIS_URL` unset:**
+
+```
+DATABASE_URL=... NODE_ENV=development PORT=18999 SESSION_SECRET=... ENCRYPTION_KEY=... \
+node apps/server/dist/index.js
+```
+
+Booted clean, logged real listening addresses. `curl`, no session cookie:
+
+| Route | Method | Result |
+| --- | --- | --- |
+| `/health/live` | GET | `200` (control) |
+| `/nonexistent-route-xyz` | GET | `404` (control) |
+| `/diagrams/x/share-links` | POST | `401` |
+| `/workspaces/x/webhooks` | GET | `401` |
+| `/workspaces/x/webhooks` | POST | `401` |
+| `/share/bogus-token` | GET | `404` (correct — this module's ONE deliberately-public route) |
+| `/ws/diagrams/x?ticket=bogus` | GET (WS upgrade) | `401`, plain `application/problem+json` body, never a WS frame |
+
+Seeded a real user/workspace/project/diagram via direct calls into the COMPILED `dist/modules/{auth/accounts,workspace/{workspaces,projects,diagrams}}.js` against the same real Postgres; `POST /auth/login` (real HTTP, real Argon2id verify) → real session cookie; `POST /diagrams/:id/ws-ticket` (real HTTP, real session) → a real single-use ticket; opened `ws://127.0.0.1:.../ws/diagrams/:id?ticket=<real ticket>` with Node's `ws` and received a real `hello` frame as the FIRST message, `payload.userId`/`payload.diagramId` matching the seeded fixtures exactly:
+
+```
+{"protocolVersion":1,"diagramId":"75cccb6b-...","type":"hello","payload":{"userId":"abc32272-...","diagramId":"75cccb6b-..."}}
+```
+
+**Path 2 — real Redis, `REDIS_URL` set:**
+
+Spawned a real `redis-server` on a scratch port, confirmed `PONG` via `redis-cli`, then repeated the ENTIRE sequence with `REDIS_URL=redis://127.0.0.1:<port>` set on a second server process on a different port — booted clean (confirming `registerModules.ts`'s `config.redisUrl`-driven `RedisPresenceBroadcaster` selection path also boots without error), seeded a fresh user/diagram, real login, real ticket, real WS connection, real `hello` received identically:
+
+```
+{"protocolVersion":1,"diagramId":"92de2782-...","type":"hello","payload":{"userId":"0cf7c176-...","diagramId":"92de2782-..."}}
+```
+
+REST routes re-confirmed `401` on this Redis-backed instance too. Both server processes and the ad hoc `redis-server` were killed afterward; `ps aux | grep redis-server` and `ps aux | grep "apps/server/dist"` both empty. Working tree confirmed clean (`git status --porcelain` empty) — the one-off seed/WS scripts were deleted, never committed.
+
+---
+
+### Discrimination Sensor
+
+Isolated `git worktree add /tmp/.../f4-verify-scratch HEAD` (never `git stash`); `pnpm install` + `pnpm -w build` run inside the worktree itself so its `node_modules` symlinks resolve within the scratch tree (L-016's known pitfall, avoided the same way F3's Verifier did). Baseline `git status --porcelain` on the real tree captured empty before any mutation; confirmed still empty after `git worktree remove --force` cleanup.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `apps/server/src/modules/ws-gateway/routes.ts` (mutation handler) | Replaced fresh `resolveWorkspaceRole` on every `mutation` with a role cached once at connection time | ✅ Killed — `wsGateway.int.spec.ts` "a mid-session role downgrade rejects the very next mutation without a reconnect (AUTH-05)" failed (`expected 'mutation_ack' to be 'mutation_rejected'`) |
+| 2 | `apps/server/src/modules/share/shareLinks.ts:39-41` | `isRoleWithinCeiling` always returns `true`, bypassing the role ceiling | ✅ Killed — `shareLinks.spec.ts` (2 boundary tests) AND `share.int.spec.ts` "an editor creating a share link with role: workspace_admin is rejected" both failed |
+| 3 | `apps/server/src/modules/webhook/deliver.ts:156` | Signed a re-serialized payload (`` `${serializedPayload} ` ``) diverging from the exact bytes sent as the request body | ✅ Killed — `deliver.int.spec.ts` "a successful delivery... signature verifiable against the correct secret" failed, asserting the mismatched digest directly |
+| 4 | `apps/server/src/modules/webhook/deliver.ts:192` | `attempts >= MAX_DELIVERY_ATTEMPTS` short-circuited to `false`, making retries unbounded | ✅ Killed — `deliver.int.spec.ts` "a failed delivery... dead-letters after exhausting attempts" failed (`expected 'failed' to be 'dead_letter'`) |
+| 5 | `apps/server/src/modules/ws-gateway/presence.ts` (`InMemoryPresenceBroadcaster`) | Broadcast on a single shared channel (`'__all__'`) instead of scoping by `diagramId`, leaking presence across diagrams | ✅ Killed — `presenceBroadcaster.int.spec.ts` "a subscriber of a DIFFERENT diagramId B never receives what was published on A" failed (received 1, expected 0) |
+
+**Sensor depth**: 5 mutations (above the default 1-3 lightweight tier, matching this wave's higher-stakes tier — first WS transport, first opt-in external dependency), covering the wave's 5 highest-risk behaviors: per-message RBAC re-resolution, share-link role ceiling, webhook signature-payload integrity, webhook dead-letter termination, and presence diagram-scoping isolation.
+**Sensor tally**: 5/5 killed, 0 survived — clean pass, no fix-loop needed.
+
+Post-sensor `git status --porcelain` on the real worktree: empty, identical to the pre-sensor baseline. `git worktree list` confirms only the main worktree remains.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| CLB-01: propagate cursors/selection/presence in real time, never persisted | subscriber of the same `diagramId` receives another connection's `presence` event, across TWO real processes over real Redis; never in Postgres | `routes.ts:151-161` (relay) + `crossInstancePresence.int.spec.ts` (re-run 2/2 green, this session); `presence.ts`/`redisPresence.ts` zero `Db`/drizzle imports (grep, this session) | ✅ PASS |
+| CLB-02: concurrent edits on different elements converge after reconnection | both reconnecting clients' `sync_state` scenes are byte-for-byte identical, containing every committed mutation, regardless of reconnect order/count | `reconnectConvergence.int.spec.ts:270-286` (3-way reconnect, full deep-equality diff, not just id-set); AC assessment above confirms "always full state" is structurally sufficient | ✅ PASS |
+| CLB-03: node restart rebuilds from Postgres without depending on Redis | fresh instance, zero Redis config, `sync_request` returns both pre-restart elements + correct revision | `nodeRestartDurability.int.spec.ts:178-287`, re-run in this session's gate | ✅ PASS |
+| CLB-04: presence loss never affects durable content | mutations on the fresh node succeed and persist even though zero prior presence state survived | `nodeRestartDurability.int.spec.ts:263-286` (post-restart mutation ack + persisted row count) | ✅ PASS |
+| EXT-01: share link stores only the token hash, enforces expiration and a max role | `token` never re-appears in any response/persisted row after creation; `role` never exceeds the creating actor's own effective role; expired/revoked/nonexistent all 404 identically; a link's role ceiling holds even for a real higher-privileged member | `shareLinks.ts:39-41` (ceiling); `routes.ts:190-216` (uniform 404, link-role-only serving); `share.int.spec.ts:90,232-277` (ceiling rejection + leaked-token-to-real-admin, re-read + sensor-killed) | ✅ PASS |
+| EXT-02: webhooks signed with rotatable HMAC secrets, exponential backoff + dead-letter | signature computed over the exact sent bytes; rotation invalidates old-secret signatures; backoff schedule grows; exhausted attempts → `dead_letter`, no further scheduling | `deliver.ts:23-26,154-168,192-223`; `webhook.int.spec.ts:167-196` (rotation, crypto-level); `deliver.int.spec.ts` (backoff+dead-letter, sensor-killed twice) | ✅ PASS |
+
+**Status**: ✅ 6/6 ACs covered with exact-outcome evidence, no spec-precision gaps flagged.
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ — T75's `presence.subscribe` relay addition to `routes.ts` (T73 had only ever called `.publish`) is a necessary, in-scope fix, not scope creep — without it T75's own AC is unsatisfiable by construction, documented clearly in the task's own Status note and confirmed by reading the code |
+| No abstractions for single-use code | ✅ |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — diff scoped to the 3 new module directories (`ws-gateway`, `share`, `webhook`), `packages/database` schema, `packages/shared-contracts/src/ws-messages.ts`, `registerModules.ts`/`config.ts`/`compose.yaml` wiring, and the 4 pre-existing modules threading an optional `jobs?` dep for webhook event-wiring |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — optional `deps.jobs` degrade, IDOR-uniform-404 discipline, one-shot-reveal-then-hash-only-at-rest all mirror pre-existing modules exactly |
+| Would senior engineer approve? | ✅ |
+| Tests map to acceptance criteria, non-shallow (spot-checked EXT-01's leaked-token scenario and EXT-02's rotation) | ✅ — both re-derived independently above, not just re-read |
+| Spec-anchored outcome check | ✅ — all 6 ACs target the spec's exact stated outcome |
+| Per-layer Coverage Expectation met | ✅ — `ws-gateway`/`share`/`webhook` each have unit (pure logic) + integration (real WS/PGlite/Redis) coverage; every route covers happy + IDOR (404) + permission-denied (403) + unauthenticated (401) |
+| Every test maps to a spec AC/Done-when — no unclaimed tests | ✅ |
+| Documented guidelines followed | `.claude/skills/tlc-spec-driven/references/coding-principles.md` — followed |
+
+---
+
+### Process Check (T57's mistake — did it recur?)
+
+Read `spec.md`'s Requirement Traceability table before making any edits: every F4 row (CLB-01..04, EXT-01, EXT-02) already read `Implementing (Txx, ...)` — none were self-marked `✅ Verified` by an implementer commit. T81's own Status note explicitly left them at `Implementing`. **T57's mistake did not recur** (third wave in a row confirmed clean, after F3).
+
+---
+
+### T73 Mid-Wave Incident Spot-Check (environment restart recovery)
+
+T73's Status note claims the batch was independently recovered and re-verified after a genuine environment restart killed the sub-agent mid-task (code/tests already on disk, uncommitted). Spot-checked: the note states `pnpm install` (relink) then a direct re-run of `wsGateway.int.spec.ts` → 11/11 green, "confirmed by direct re-run, not trusted from a stale transcript." This is consistent with STATE.md's Handoff note about the same incident and with the commit history (`9b7828e feat(ws-gateway): add WebSocket handshake, sync, and mutation relay...` is a single, complete, well-formed commit — no signs of a half-finished recovery). `wsGateway.int.spec.ts` passed cleanly in this session's own independent gate run (11/11, part of the 294 server integration total). No discrepancy found.
+
+---
+
+### Disclosed Deviations — assessed
+
+- **T75's `presence.subscribe()` relay addition to `routes.ts`**: necessary, in-scope, correctly documented — without it, no code path could forward a broadcast presence event back out over any socket, making T75's own cross-instance AC unsatisfiable. Confirmed by reading `routes.ts` before and reasoning about what T73 alone would have supported.
+- **T75's two `redisPresence.ts` robustness fixes** (`'error'` listeners, `.catch` on fire-and-forget subscribe/unsubscribe): defensive, do not change `RedisPresenceBroadcaster`'s public contract, confirmed by re-running T74's own contract test unaffected (6/6, part of this session's gate).
+- **T76's "always full state" decision over an incremental `afterSequence` path**: assessed independently above (not just trusted) — structurally sufficient, not a shortcut.
+- **T79's `encryptionKey` deps addition** (`WebhookModuleDeps` needing the envelope-encryption master key beyond the task text's literal `{ db }` signature): mirrors `AiProviderModuleDeps`'s identical pre-existing requirement (F2a) — confirmed by reading `ai-provider/routes.ts`, a real, consistent precedent, not an invented shape.
+- **T80's `startAfter`-based retry** (pg-boss re-enqueue) instead of a bespoke polling worker the task text's "Where" line speculatively anticipated: assessed directly above (EXT-02 section) — a legitimate implementation of the same retry contract, not a shortcut that drops failed deliveries; the `(status, next_retry_at)` index remains valid for observability.
+- **T81's `deps.jobs` threading through `WorkspaceModuleDeps`/`DocgenModuleDeps`/`PresentationPublishModuleDeps`/`CommentModuleDeps`**: necessary plumbing for T80's event-wiring to reach a real job queue in production, anticipated by those tasks' own Status notes, not scope creep introduced late.
+
+None of these are functional gaps; all are documented, reasoned, and hold up under independent re-derivation.
+
+---
+
+### Gate Check
+
+- **Gate command**: `pnpm -w lint && pnpm -w typecheck && pnpm -w build && pnpm -w test:unit && pnpm -w test:integration`
+- **Outcome**: all 5 stages exit 0. `lint`: 384 files, zero drift. `typecheck`: 22/22 package tasks. `build`: 12/12 package tasks. `test:unit`: **276 server + 22 web = 298 tests passed, 0 failed** (26 server test files). `test:integration`: **294 tests passed, 0 failed, across 37 files**.
+- **Test count before this wave** (end of F3): 244 server unit / 244 server integration.
+- **Test count after this wave**: 276 server unit / 294 server integration.
+- **Delta**: +32 unit, +50 integration — net-new across `packages/database` (share/webhook schema), `packages/shared-contracts` (WS payload schemas), `ws-gateway` (handshake/presence/cross-instance/reconnect/restart), `share`, `webhook` (CRUD/delivery/event-wiring).
+- **Skipped tests**: none.
+- **Failures**: none.
+- **Redis process leak check**: `ps aux | grep redis-server` → empty after the full gate run, after the isolated `crossInstancePresence.int.spec.ts` re-run, and after both manual smoke-test boots — no leak anywhere in this session.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous Status | New Status |
+| --- | --- | --- |
+| CLB-01 | Implementing (T73/T74/T75) | ✅ Verified — cross-instance Redis proof re-run independently (2/2), presence-never-persisted confirmed by grep, diagram-scoping sensor-killed |
+| CLB-02 | Implementing (T73/T76) | ✅ Verified — reconnection convergence test re-read + AC-adequacy independently assessed (always-full-state is structurally sufficient) |
+| CLB-03 | Implementing (T77) | ✅ Verified — node-restart durability test re-read, zero Redis confirmed, reproduced in gate run |
+| CLB-04 | Implementing (T74/T75/T77) | ✅ Verified — zero `Db`/drizzle imports confirmed by grep; post-restart mutation success confirmed |
+| EXT-01 | Implementing (T78) | ✅ Verified — role-ceiling sensor-killed, leaked-token-to-real-admin scenario re-confirmed structurally + by test, uniform-404 IDOR confirmed |
+| EXT-02 | Implementing (T79/T80) | ✅ Verified — HMAC signs exact sent bytes (sensor-killed on divergence), rotation invalidation confirmed at crypto level, backoff/dead-letter traced + sensor-killed, all 5 event sites spot-checked (2 in depth) |
+
+(`spec.md`'s own table has been rewritten with this Verifier's evidence markers, replacing the implementer-authored `Implementing (task, commit)` text.)
+
+---
+
+### Summary
+
+**Outcome**: ✅ Ready — F4 closes as PASS, no blocking gaps.
+
+**Spec-anchored check**: 6/6 ACs matched the spec-defined outcome with exact evidence; 0 spec-precision gaps.
+
+**Sensor tally**: 5/5 mutations killed, 0 survived — no fix-loop needed.
+
+**Gate**: 5/5 stages passed, 276 unit + 294 integration server tests passed, 0 failed. Zero `redis-server` process leaks confirmed across every run this session performed.
+
+**What works**: The wave's central architectural invariant — WS is a second transport for the exact same `appendOperation`/RBAC/validation path REST already uses — holds exactly as mandated, confirmed by a line-by-line read of `routes.ts`, not just tests. AUTH-05's mid-session role downgrade is genuinely enforced per-message (fresh `resolveWorkspaceRole` on every `mutation`/`sync_request`, never cached), confirmed both by reading the code and by a discrimination-sensor mutation that the existing test caught immediately. CLB-04's guarantee (presence never touches Postgres) is structurally confirmed by grep, not merely asserted. The cross-instance Redis proof (T75) was re-run directly in this session against a genuinely spawned `redis-server`, with two real, independent `FastifyInstance`s and `RedisPresenceBroadcaster` objects — not a shared-state illusion. The node-restart durability proof (T77) genuinely discards all in-memory state (including the old broadcaster) and rebuilds purely from the shared Postgres. Share links' role ceiling and IDOR-safety hold even against the specific adversarial scenario called out in the task spec (a leaked token used by a real, higher-privileged workspace member) — verified both structurally (the route never resolves a requester identity to inherit from) and by test. Webhook HMAC signing signs the exact bytes sent as the request body (no re-serialization gap), secret rotation invalidates old signatures at the crypto-primitive level, and the backoff/dead-letter transition is bounded and correct (`MAX_DELIVERY_ATTEMPTS`, no unbounded retry) — both confirmed by reading the code and by discrimination-sensor mutations that were caught. All 5 documented webhook event types are wired at their real REST call sites, filtered correctly by both `enabled` and event-subscription. The real compiled server was booted twice in this session — once with `REDIS_URL` unset, once with a real spawned Redis and `REDIS_URL` set — and in both cases produced a real `hello` frame over a real WebSocket connection authenticated by a real login → real ticket flow, the first such WS surface this project has ever validated under real boot conditions.
+
+**Issues found**: 0 blocking, 0 non-blocking. Every disclosed implementer deviation was independently assessed and found sound (see Disclosed Deviations above).
+
+**Next steps**: no fix-loop required (this is a PASS). F4 closes the entire architecture-canvas roadmap except F5 (hardening: OIDC, performance, accessibility, disaster recovery, observability, pilot) — the last remaining wave.
+
+---

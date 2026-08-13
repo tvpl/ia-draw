@@ -457,12 +457,12 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | AAC-02 | P2: Architecture-as-code | F3 | ✅ Verified (F3 Verifier, `mermaid.ts:234-243` + `structurizr.ts:268-277`) |
 | CMT-01 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `comment.int.spec.ts`) |
 | CMT-02 | P2: Comentários e revisão | F3 | ✅ Verified (F3 Verifier, `rbac.ts:76-91` + `rbac.spec.ts:94-104`, sensor-killed) |
-| CLB-01 | P3: Colaboração em tempo real | F4 | Implementing (T73 handshake/mutation relay + T74 PresenceBroadcaster + T75 real cross-instance Redis proof) |
-| CLB-02 | P3: Colaboração em tempo real | F4 | Implementing (T73 sync_request/sync_state + T76 reconnection convergence proof) |
-| CLB-03 | P3: Colaboração em tempo real | F4 | Implementing (T77 node-restart durability proof, zero content loss from Postgres alone) |
-| CLB-04 | P3: Colaboração em tempo real | F4 | Implementing (T74/T75/T77 — presence never persisted, structurally confirmed by grep + node-restart proof that its loss never risks durable content) |
-| EXT-01 | P3: Compartilhamento e webhooks | F4 | Implementing (T78 — capped-role expiring share links, IDOR-safe uniform 404, one-shot token reveal, verified against a real workspace_admin token leak) |
-| EXT-02 | P3: Compartilhamento e webhooks | F4 | Implementing (T79 admin-only CRUD with rotatable HMAC secrets, one-shot secret reveal + T80 signed delivery pipeline — HMAC-SHA256, exponential backoff, dead-letter — wired at all 5 documented event sites) |
+| CLB-01 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — cross-instance Redis proof re-run independently, 2/2 green, against a genuinely spawned `redis-server`; `presence.ts`/`redisPresence.ts` zero `Db`/drizzle imports confirmed by grep) |
+| CLB-02 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — `reconnectConvergence.int.spec.ts:270-286` deep-equality convergence, "always full state" independently assessed as structurally sufficient for the AC) |
+| CLB-03 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — `nodeRestartDurability.int.spec.ts:178-287` re-read, zero Redis confirmed, reproduced green in this session's gate) |
+| CLB-04 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — zero `Db`/drizzle imports confirmed by grep in `presence.ts`/`redisPresence.ts`; post-restart mutation success confirmed) |
+| EXT-01 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — `isRoleWithinCeiling` sensor-mutation-killed, leaked-token-to-real-admin scenario re-confirmed structurally (`routes.ts:210`) and by `share.int.spec.ts:232-277`, uniform-404 IDOR confirmed) |
+| EXT-02 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — HMAC signs exact sent bytes, sensor-killed on divergence; secret-rotation invalidation confirmed at crypto level; backoff/dead-letter traced + sensor-killed; all 5 event sites confirmed wired, 2 spot-checked in depth) |
 
 **ID format:** `[CATEGORY]-[NUMBER]` — o número corresponde ao critério de aceite de mesma posição na história.
 
