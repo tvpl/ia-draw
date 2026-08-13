@@ -461,7 +461,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | CLB-02 | P3: Colaboração em tempo real | F4 | Implementing (T73 sync_request/sync_state + T76 reconnection convergence proof) |
 | CLB-03 | P3: Colaboração em tempo real | F4 | Implementing (T77 node-restart durability proof, zero content loss from Postgres alone) |
 | CLB-04 | P3: Colaboração em tempo real | F4 | Implementing (T74/T75/T77 — presence never persisted, structurally confirmed by grep + node-restart proof that its loss never risks durable content) |
-| EXT-01 | P3: Compartilhamento e webhooks | F4 | Pending |
+| EXT-01 | P3: Compartilhamento e webhooks | F4 | Implementing (T78 — capped-role expiring share links, IDOR-safe uniform 404, one-shot token reveal, verified against a real workspace_admin token leak) |
 | EXT-02 | P3: Compartilhamento e webhooks | F4 | Pending |
 
 **ID format:** `[CATEGORY]-[NUMBER]` — o número corresponde ao critério de aceite de mesma posição na história.
