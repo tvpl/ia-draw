@@ -20,7 +20,7 @@ import { loadDiagramScene } from '../diagram-sync/scene.js';
 import type { JobQueue } from '../jobs/index.js';
 import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
-import { NullPresenceBroadcaster, type PresenceBroadcaster } from './presence.js';
+import { NullPresenceBroadcaster, type PresenceBroadcaster, type PresenceEvent } from './presence.js';
 import './types.js';
 
 export interface WsGatewayModuleDeps {
@@ -127,6 +127,37 @@ export async function registerWsGatewayModule(
       const { diagramId, userId: actorId } = claim;
 
       send(socket, diagramId, 'hello', { userId: actorId, diagramId });
+
+      // RFC 6455 readyState 1 == OPEN — checked as a plain number rather than
+      // pulling in a value import of `ws`'s `WebSocket` class (this module only
+      // needs the type) just for its `OPEN` constant.
+      const WS_READY_STATE_OPEN = 1;
+
+      // Relays another connection's `presence` broadcast (T73/T74's
+      // `presence.publish`, possibly arriving from a DIFFERENT `apps/server`
+      // process over Redis — T75) back out to THIS socket as an ordinary
+      // `presence` wire message, so every other client watching the same
+      // `diagramId` sees cursor/selection/status updates live. Never echoes
+      // the sender's own event back to itself. `mutation_broadcast` events
+      // are intentionally NOT relayed over the wire here — no CLB-01/02 AC in
+      // this wave requires live mutation fan-out (reconnect + `sync_request`,
+      // T76, is the documented convergence path), and inventing a new wire
+      // message type for it would mean touching T72's schema, out of scope
+      // for this task.
+      const handlePresenceEvent = (event: PresenceEvent): void => {
+        if (event.type !== 'presence_update') return;
+        if (event.senderId === actorId) return;
+        if (socket.readyState !== WS_READY_STATE_OPEN) return;
+        send(socket, diagramId, 'presence', {
+          cursor: event.cursor,
+          selection: event.selection,
+          status: event.status,
+        });
+      };
+      const unsubscribePresence = presence.subscribe(diagramId, handlePresenceEvent);
+      socket.on('close', () => {
+        unsubscribePresence();
+      });
 
       // Message handler is attached synchronously here (before any async
       // work below runs) per @fastify/websocket's own guidance, so no

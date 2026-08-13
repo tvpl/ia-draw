@@ -58,6 +58,16 @@ export class RedisPresenceBroadcaster implements PresenceBroadcaster {
     this.subscriber = new Redis(redisUrl, options);
     this.localEmitter.setMaxListeners(0);
 
+    // ioredis emits 'error' for every connection hiccup (including ones
+    // that occur mid-reconnect after `close()`/`quit()` was already called,
+    // e.g. in a test that tears down its `redis-server` process right
+    // after). An `EventEmitter` with zero 'error' listeners throws on the
+    // next emission — that would crash the whole Node process for a
+    // transient network blip, which presence (best-effort, AD-009) should
+    // never do. Logged, never rethrown.
+    this.publisher.on('error', () => {});
+    this.subscriber.on('error', () => {});
+
     this.subscriber.on('message', (channel: string, raw: string) => {
       const diagramId = diagramIdFromChannel(channel);
       if (!diagramId) return; // Not one of ours — ignore rather than throw.
@@ -91,7 +101,10 @@ export class RedisPresenceBroadcaster implements PresenceBroadcaster {
       // know the subscription has actually landed server-side (e.g. a test
       // publishing immediately after subscribing) must poll/retry, exactly
       // like any other eventually-consistent network subscription.
-      void this.subscriber.subscribe(channel);
+      // `.catch` swallows a rejection from a connection that closes/quits
+      // before this command lands server-side (e.g. teardown racing a
+      // just-issued subscribe) — best-effort, never an unhandled rejection.
+      this.subscriber.subscribe(channel).catch(() => {});
     }
 
     return () => {
@@ -101,7 +114,7 @@ export class RedisPresenceBroadcaster implements PresenceBroadcaster {
         this.subscribedChannels.has(channel)
       ) {
         this.subscribedChannels.delete(channel);
-        void this.subscriber.unsubscribe(channel);
+        this.subscriber.unsubscribe(channel).catch(() => {});
       }
     };
   }
