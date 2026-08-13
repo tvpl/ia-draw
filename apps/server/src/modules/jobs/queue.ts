@@ -1,4 +1,4 @@
-import { type ConstructorOptions, PgBoss, type WorkOptions } from 'pg-boss';
+import { type ConstructorOptions, PgBoss, type SendOptions, type WorkOptions } from 'pg-boss';
 import type { AppConfig } from '../../core/config.js';
 
 export type JobQueue = PgBoss;
@@ -47,11 +47,19 @@ export async function defineJob<TPayload extends object>(
   });
 }
 
-/** Enqueues `payload` onto `name`'s queue, returning the created job id (or `null` if deduped/throttled). */
+/**
+ * Enqueues `payload` onto `name`'s queue, returning the created job id (or
+ * `null` if deduped/throttled). `options` is pg-boss's own `SendOptions` —
+ * `startAfter` (a `Date`/ISO string/seconds delay) is how the webhook
+ * delivery pipeline (T80) schedules a retry at `nextRetryAt` by re-sending
+ * the SAME job rather than building a separate polling worker (AD-006:
+ * jobs stay on pg-boss over Postgres, no bespoke scheduler).
+ */
 export async function enqueue<TPayload extends object>(
   boss: JobQueue,
   name: string,
   payload: TPayload,
+  options?: SendOptions,
 ): Promise<string | null> {
-  return boss.send(name, payload);
+  return options ? boss.send(name, payload, options) : boss.send(name, payload);
 }

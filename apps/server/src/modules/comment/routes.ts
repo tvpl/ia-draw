@@ -4,6 +4,8 @@ import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
+import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import {
   listWorkspaceMembers,
   resolveDiagramWorkspaceId,
@@ -14,6 +16,8 @@ import { resolveMentions } from './mentions.js';
 
 export interface CommentModuleDeps {
   db: Db;
+  /** Threaded to T80's `comment.mentioned` webhook wiring below — same optional degrade as every other job consumer. */
+  jobs?: JobQueue;
 }
 
 function notFound(): never {
@@ -63,7 +67,7 @@ const patchBodySchema = z
  * comment" from "may edit ANYONE's comment".
  */
 export function registerCommentModule(app: FastifyInstance, deps: CommentModuleDeps): void {
-  const { db } = deps;
+  const { db, jobs } = deps;
 
   app.post('/diagrams/:id/comments', { preHandler: requireSession(db) }, async (request, reply) => {
     const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
@@ -99,6 +103,20 @@ export function registerCommentModule(app: FastifyInstance, deps: CommentModuleD
       frameId: body.frameId ?? null,
       parentId: body.parentId ?? null,
     });
+
+    // EXT-02 (T80): one `comment.mentioned` webhook event per comment that
+    // resolves at least one mention — all mentioned userIds bundled into a
+    // single event rather than firing one event per mentioned user, since
+    // they were all mentioned by the same comment at the same instant.
+    if (mentions.length > 0) {
+      await enqueueWebhookEvent(db, jobs, workspaceId, 'comment.mentioned', {
+        diagramId,
+        workspaceId,
+        commentId: comment.id,
+        mentions,
+        actorId: user.id,
+      });
+    }
 
     reply.code(201);
     return { comment, mentions };

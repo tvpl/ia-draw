@@ -8,6 +8,7 @@ import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import type { JobQueue } from '../jobs/index.js';
 import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
+import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import { loadOperationsAfter } from './catchup.js';
 import { appendOperation } from './operations.js';
@@ -104,6 +105,21 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       if (jobs && (await shouldCompact(db, diagramId, compactionThresholds))) {
         await enqueueCompaction(jobs, diagramId);
       }
+
+      // EXT-02 (T80): ONE `diagram.updated` webhook event per successful
+      // `operations:batch` call — never per individual delta inside it.
+      // `operations:batch` is already the batching unit the client itself
+      // chose (potentially many deltas per call); firing per-delta here
+      // would multiply webhook volume by scene-edit granularity instead of
+      // by "the client saved". Documented choice (T80's task text
+      // explicitly asks for this decision to be recorded).
+      await enqueueWebhookEvent(db, jobs, workspaceId, 'diagram.updated', {
+        diagramId,
+        workspaceId,
+        revision: result.currentRevision,
+        actorId: user.id,
+        acks: result.acks,
+      });
 
       reply.code(200);
       return result;

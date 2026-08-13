@@ -5,6 +5,8 @@ import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
+import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import {
   createDiagram,
   deleteDiagram,
@@ -25,6 +27,8 @@ import { resolveWorkspaceRole } from './rbac.js';
 
 export interface ProjectDiagramModuleDeps {
   db: Db;
+  /** Same optional job-queue degrade already established everywhere else in this codebase (compaction/bulkBundle, F1c) — omitted keeps `diagram.created` webhook delivery rows `pending` (still inserted, T80's `enqueueWebhookEvent`) rather than actually enqueuing delivery jobs. */
+  jobs?: JobQueue;
 }
 
 function notFound(): never {
@@ -76,7 +80,7 @@ export function registerProjectAndDiagramRoutes(
   app: FastifyInstance,
   deps: ProjectDiagramModuleDeps,
 ): void {
-  const { db } = deps;
+  const { db, jobs } = deps;
 
   // ---- projects -----------------------------------------------------
 
@@ -220,6 +224,20 @@ export function registerProjectAndDiagramRoutes(
       action: 'diagram.created',
       resourceType: 'diagram',
       resourceId: diagram.id,
+    });
+
+    // EXT-02 (T80): one webhook event per successfully created diagram —
+    // fired to every enabled endpoint in this workspace subscribed to
+    // `diagram.created`. Never blocks/fails the response on a delivery
+    // problem (`enqueueWebhookEvent` only ever inserts rows/enqueues jobs,
+    // both of which degrade independently of this request's own outcome).
+    await enqueueWebhookEvent(db, jobs, workspaceId, 'diagram.created', {
+      diagramId: diagram.id,
+      projectId: diagram.projectId,
+      workspaceId,
+      title: diagram.title,
+      actorId: user.id,
+      createdAt: diagram.createdAt,
     });
 
     reply.code(201);

@@ -4,7 +4,9 @@ import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
 import type { StorageClient } from '../storage/index.js';
+import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import { exportPresentationPdf } from './exportPdf.js';
 import { getPresentationDiagramId } from './presentations.js';
@@ -13,6 +15,8 @@ import { getPublishedPresentation, publishPresentation } from './publish.js';
 export interface PresentationPublishModuleDeps {
   db: Db;
   storage: StorageClient;
+  /** Threaded to T80's `diagram.published` webhook wiring below — same optional degrade as every other job consumer. */
+  jobs?: JobQueue;
 }
 
 function notFound(): never {
@@ -36,7 +40,7 @@ export function registerPresentationPublishModule(
   app: FastifyInstance,
   deps: PresentationPublishModuleDeps,
 ): void {
-  const { db, storage } = deps;
+  const { db, storage, jobs } = deps;
 
   app.post(
     '/presentations/:id(^[^:]+):publish',
@@ -63,6 +67,16 @@ export function registerPresentationPublishModule(
         diagramId,
         actorId: user.id,
       });
+
+      // EXT-02 (T80): one `diagram.published` webhook event per successful publish.
+      await enqueueWebhookEvent(db, jobs, workspaceId, 'diagram.published', {
+        presentationId,
+        diagramId,
+        workspaceId,
+        publishedSnapshotId: presentation.publishedSnapshotId,
+        actorId: user.id,
+      });
+
       return { presentation };
     },
   );

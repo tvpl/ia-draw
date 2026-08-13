@@ -4,7 +4,9 @@ import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
 import type { StorageClient } from '../storage/index.js';
+import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import {
   getDiagramById,
   resolveDiagramWorkspaceId,
@@ -16,6 +18,8 @@ import { isSectionName, regenerateSpecSection } from './regenerateSection.js';
 export interface DocgenModuleDeps {
   db: Db;
   storage: StorageClient;
+  /** Threaded to T80's `spec.generated` webhook wiring below — same optional degrade as every other job consumer. */
+  jobs?: JobQueue;
 }
 
 function notFound(): never {
@@ -47,7 +51,7 @@ const regenerateBodySchema = z.object({ section: z.string().min(1) });
  * plus single-section regeneration (T63, DOC-04, `regenerateSection.ts`).
  */
 export function registerDocgenModule(app: FastifyInstance, deps: DocgenModuleDeps): void {
-  const { db, storage } = deps;
+  const { db, storage, jobs } = deps;
 
   app.post(
     '/diagrams/:id/specs:generate',
@@ -76,6 +80,15 @@ export function registerDocgenModule(app: FastifyInstance, deps: DocgenModuleDep
         diagramTitle: diagram.title,
         diagramDescription: diagram.description,
         generatedBy: user.id,
+      });
+
+      // EXT-02 (T80): one `spec.generated` webhook event per generated spec document.
+      await enqueueWebhookEvent(db, jobs, workspaceId, 'spec.generated', {
+        diagramId,
+        workspaceId,
+        specId: spec.id,
+        version: spec.version,
+        actorId: user.id,
       });
 
       reply.code(201);

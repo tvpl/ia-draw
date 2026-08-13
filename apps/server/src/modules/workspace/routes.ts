@@ -5,6 +5,7 @@ import { z } from 'zod';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { JobQueue } from '../jobs/index.js';
 import {
   addWorkspaceMember,
   listWorkspaceMembers,
@@ -23,6 +24,8 @@ import {
 
 export interface WorkspaceModuleDeps {
   db: Db;
+  /** Threaded straight through to `registerProjectAndDiagramRoutes` (T80's `diagram.created` webhook wiring) — same optional degrade as everywhere else. */
+  jobs?: JobQueue;
 }
 
 const ROLE_VALUES = ['org_admin', 'workspace_admin', 'editor', 'reviewer', 'viewer'] as const;
@@ -68,8 +71,8 @@ async function requireMembership(db: Db, workspaceId: string, userId: string): P
  * metadata CRUD (T17), all RBAC-gated and audit-logged.
  */
 export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceModuleDeps): void {
-  const { db } = deps;
-  registerProjectAndDiagramRoutes(app, { db });
+  const { db, jobs } = deps;
+  registerProjectAndDiagramRoutes(app, { db, jobs });
 
   app.get('/workspaces', { preHandler: requireSession(db) }, async (request) => {
     const user = request.authContext?.user;
