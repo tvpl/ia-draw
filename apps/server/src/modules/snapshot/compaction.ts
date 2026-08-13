@@ -79,6 +79,10 @@ export async function compactDiagram(
 
   try {
     await createSnapshot(db, storage, { diagramId, kind: 'auto', createdBy: ownerId });
+  } catch (error) {
+    // T93 (OBS-03): "snapshot falhando" — the alert-rule-referenced counter.
+    metrics?.recordSnapshotCompactionFailure();
+    throw error;
   } finally {
     // OBS-01 (T91): observed even on a thrown error — a slow/failing
     // compaction is exactly the kind of outlier this histogram exists to

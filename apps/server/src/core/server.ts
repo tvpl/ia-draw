@@ -214,8 +214,15 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
       dependencyChecks.map(async (dep): Promise<DependencyCheckResult> => {
         try {
           const ok = await dep.check();
+          // T93 (OBS-03): "storage indisponível" — the SAME check result
+          // this route already computes also drives `arch_canvas_dependency_up`,
+          // so a `storage`-named `DependencyCheck` (wired at the production
+          // call site, e.g. `index.ts`) makes that alert rule fire on real
+          // data with zero new health-check machinery.
+          metrics.observeDependencyCheck(dep.name, ok);
           return { name: dep.name, status: ok ? 'up' : 'down' };
         } catch {
+          metrics.observeDependencyCheck(dep.name, false);
           return { name: dep.name, status: 'down' };
         }
       }),

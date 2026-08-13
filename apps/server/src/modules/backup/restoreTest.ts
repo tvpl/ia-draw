@@ -63,6 +63,7 @@ import {
 import { recordAuditEvent } from '@arch-canvas/database';
 import JSZip from 'jszip';
 import { Pool } from 'pg';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import type { Db } from '../auth/db.js';
 import { defineJob, type JobQueue } from '../jobs/index.js';
 
@@ -174,19 +175,32 @@ export interface RunRestoreTestInput {
   restore?: (databaseUrl: string, sql: string) => void | Promise<void>;
   /** Defaults to `countTableRowsReal`. Overridable — see its own doc comment. */
   countTableRows?: (targetDatabaseUrl: string, tables: string[]) => Promise<Record<string, number>>;
+  /**
+   * Optional (T93, OBS-03) — when supplied, a divergence also increments
+   * `arch_canvas_restore_test_failures_total` (`MetricsRegistry`, T91/T93)
+   * so `infra/observability/alerts.yml`'s "invalid backup/restore" rule has
+   * a real `/metrics` series to fire on, alongside the audit event this
+   * function already wrote (F5/T90). Omitted entirely = the audit trail
+   * (the only signal T90 originally shipped) still works unchanged — same
+   * optional-degrade shape as every other `deps.metrics`/`deps.jobs` seam.
+   */
+  metrics?: MetricsRegistry;
 }
 
 async function recordOutcome(
-  db: Db,
+  input: Pick<RunRestoreTestInput, 'db' | 'metrics'>,
   action: 'backup.restore_test.succeeded' | 'backup.restore_test.failed',
   metadata: Record<string, unknown>,
 ): Promise<void> {
-  await recordAuditEvent(db, {
+  await recordAuditEvent(input.db, {
     action,
     resourceType: 'backup',
     resourceId: randomUUID(),
     metadataJson: metadata,
   });
+  if (action === 'backup.restore_test.failed') {
+    input.metrics?.recordRestoreTestFailure();
+  }
 }
 
 /**
@@ -209,7 +223,7 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
     verification = await verifyBackup(input.backupPath);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    await recordOutcome(input.db, 'backup.restore_test.failed', {
+    await recordOutcome(input, 'backup.restore_test.failed', {
       backupPath: input.backupPath,
       reason,
       severity: 'high',
@@ -224,7 +238,7 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
   }
 
   if (!verification.valid) {
-    await recordOutcome(input.db, 'backup.restore_test.failed', {
+    await recordOutcome(input, 'backup.restore_test.failed', {
       backupPath: input.backupPath,
       reason: 'checksum verification failed — backup archive does not match its own manifest',
       checksumMismatches: verification.mismatches,
@@ -257,7 +271,7 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
     const reason = error instanceof Error ? error.message : String(error);
     const checksumMismatches =
       error instanceof BackupVerificationError ? [...error.mismatches] : [];
-    await recordOutcome(input.db, 'backup.restore_test.failed', {
+    await recordOutcome(input, 'backup.restore_test.failed', {
       backupPath: input.backupPath,
       reason,
       checksumMismatches,
@@ -280,7 +294,7 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
   }
 
   if (rowCountMismatches.length > 0) {
-    await recordOutcome(input.db, 'backup.restore_test.failed', {
+    await recordOutcome(input, 'backup.restore_test.failed', {
       backupPath: input.backupPath,
       reason: 'row counts diverge from the backup dump content after restore',
       rowCountMismatches,
@@ -295,7 +309,7 @@ export async function runRestoreTest(input: RunRestoreTestInput): Promise<Restor
     };
   }
 
-  await recordOutcome(input.db, 'backup.restore_test.succeeded', {
+  await recordOutcome(input, 'backup.restore_test.succeeded', {
     backupPath: input.backupPath,
     tablesChecked: Object.keys(expectedCounts).length,
     severity: 'info',
@@ -319,6 +333,8 @@ export interface RestoreTestJobOptions {
   cron?: string;
   restore?: RunRestoreTestInput['restore'];
   countTableRows?: RunRestoreTestInput['countTableRows'];
+  /** T93 (OBS-03) — forwarded to `runRestoreTest`'s `RunRestoreTestInput.metrics`. */
+  metrics?: MetricsRegistry;
 }
 
 /**
@@ -346,6 +362,7 @@ export async function registerRestoreTestJob(
       productionDatabaseUrl: options.productionDatabaseUrl,
       restore: options.restore,
       countTableRows: options.countTableRows,
+      metrics: options.metrics,
     });
   });
 

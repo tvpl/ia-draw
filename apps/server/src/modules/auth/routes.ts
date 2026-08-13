@@ -6,6 +6,7 @@ import type { FastifyInstance } from 'fastify';
 import * as client from 'openid-client';
 import { z } from 'zod';
 import type { AppConfig } from '../../core/config.js';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import { verifyLocalPassword } from './accounts.js';
 import {
   clearedOidcPkceCookieOptions,
@@ -31,6 +32,8 @@ import { issueWsTicket, resolveDiagramMembership } from './ws-ticket.js';
 export interface AuthModuleDeps {
   db: Db;
   config: AppConfig;
+  /** Optional (T93, OBS-03: "aumento de auth failures") — every failed login (local or OIDC) increments `arch_canvas_auth_failures_total`. Omitted = auth still works unchanged, same optional-degrade shape as every other `deps.metrics` seam. */
+  metrics?: MetricsRegistry;
 }
 
 const loginBodySchema = z.object({
@@ -72,7 +75,7 @@ export async function registerAuthModule(
   app: FastifyInstance,
   deps: AuthModuleDeps,
 ): Promise<void> {
-  const { db, config } = deps;
+  const { db, config, metrics } = deps;
 
   await app.register(fastifyCookie);
 
@@ -106,6 +109,7 @@ export async function registerAuthModule(
         ipHash,
         metadataJson: { outcome: 'failure', attemptedEmail: parsed.data.email },
       });
+      metrics?.recordAuthFailure();
       invalidCredentials();
     }
 
@@ -301,6 +305,7 @@ export async function registerAuthModule(
           reason: error instanceof Error ? error.message : 'unknown_error',
         },
       });
+      metrics?.recordAuthFailure();
       throw error;
     }
   });

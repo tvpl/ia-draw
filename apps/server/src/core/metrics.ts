@@ -33,6 +33,18 @@
  * query for real pricing), so an exact cost figure is not obtainable here.
  * This mirrors AIC-04/PRS-01's own "disclosed, not silently approximated
  * as exact" precedent.
+ *
+ * ── T93 additions (alerting-as-config, OBS-03) ────────────────────────────
+ * `dependencyUp`/`snapshotCompactionFailuresTotal`/`restoreTestFailuresTotal`/
+ * `authFailuresTotal` were added alongside `infra/observability/alerts.yml`
+ * — every one of docs/product-spec.md §11's 7 documented alert thresholds
+ * must reference a metric this registry ACTUALLY exposes (T93's own
+ * cross-check test enforces this against the real registry), and 3 of the
+ * 7 (failing snapshot, storage unavailable, invalid backup/restore) had no
+ * corresponding series before T93 — these close that gap. `dependencyUp`
+ * specifically reuses `core/server.ts`'s EXISTING `DependencyCheck`/
+ * `dependencyChecks` mechanism (already powering `GET /health/ready`)
+ * rather than inventing a second, parallel health-check system.
  */
 
 import type { Registry as PromRegistry } from 'prom-client';
@@ -85,6 +97,15 @@ export class MetricsRegistry {
 
   /** Export generation duration, per format (`export/routes.ts`'s `POST /diagrams/:id/exports`). */
   readonly exportDuration: Histogram<'format'>;
+
+  /** 1 if the named dependency check (`core/server.ts`'s `DependencyCheck`, e.g. `name: 'postgres'`/`'storage'`) last passed, 0 otherwise — set from the SAME check results `GET /health/ready` already computes (T93, OBS-03: "storage indisponível"). */
+  readonly dependencyUp: Gauge<'name'>;
+  /** Count of `snapshot/compaction.ts`'s `compactDiagram` throwing (T93, OBS-03: "snapshot falhando"). */
+  readonly snapshotCompactionFailuresTotal: Counter;
+  /** Count of `backup/restoreTest.ts`'s `runRestoreTest` (T90) detecting ANY divergence — checksum mismatch, restore error, or row-count mismatch (T93, OBS-03: "backup/restore inválido"). */
+  readonly restoreTestFailuresTotal: Counter;
+  /** Count of failed local-auth login attempts (`auth/routes.ts`'s `POST /auth/login`, SEC-04's existing audit-event call site) — T93, OBS-03: "aumento de auth failures". */
+  readonly authFailuresTotal: Counter;
 
   #jobsSource: JobQueueDepthSource | undefined;
 
@@ -171,6 +192,31 @@ export class MetricsRegistry {
       labelNames: ['format'] as const,
       registers: [this.registry],
     });
+
+    this.dependencyUp = new Gauge({
+      name: `${METRIC_PREFIX}dependency_up`,
+      help: '1 if the named dependency check (see GET /health/ready) last passed, 0 otherwise.',
+      labelNames: ['name'] as const,
+      registers: [this.registry],
+    });
+
+    this.snapshotCompactionFailuresTotal = new Counter({
+      name: `${METRIC_PREFIX}snapshot_compaction_failures_total`,
+      help: 'Count of compactDiagram (snapshot/compaction.ts) throwing instead of completing.',
+      registers: [this.registry],
+    });
+
+    this.restoreTestFailuresTotal = new Counter({
+      name: `${METRIC_PREFIX}restore_test_failures_total`,
+      help: 'Count of the recurring restore-test job (T90) detecting a checksum, restore, or row-count divergence.',
+      registers: [this.registry],
+    });
+
+    this.authFailuresTotal = new Counter({
+      name: `${METRIC_PREFIX}auth_failures_total`,
+      help: 'Count of failed local-auth login attempts.',
+      registers: [this.registry],
+    });
   }
 
   /** Wires the live pg-boss queue-depth sampler on (called once at boot when `deps.jobs` is configured — see `registerModules.ts`). */
@@ -226,6 +272,26 @@ export class MetricsRegistry {
   /** Records one export-generation call's duration, by format. */
   observeExport(format: string, durationSeconds: number): void {
     this.exportDuration.observe({ format }, durationSeconds);
+  }
+
+  /** Records one dependency check's outcome (`GET /health/ready`'s own per-check result) — `name` matches `DependencyCheck.name` (e.g. `'postgres'`, `'storage'`). */
+  observeDependencyCheck(name: string, up: boolean): void {
+    this.dependencyUp.set({ name }, up ? 1 : 0);
+  }
+
+  /** Records one `compactDiagram` failure (T93, OBS-03: "snapshot falhando"). */
+  recordSnapshotCompactionFailure(): void {
+    this.snapshotCompactionFailuresTotal.inc();
+  }
+
+  /** Records one restore-test divergence (T93, OBS-03: "backup/restore inválido"). */
+  recordRestoreTestFailure(): void {
+    this.restoreTestFailuresTotal.inc();
+  }
+
+  /** Records one failed local-auth login attempt (T93, OBS-03: "aumento de auth failures"). */
+  recordAuthFailure(): void {
+    this.authFailuresTotal.inc();
   }
 }
 

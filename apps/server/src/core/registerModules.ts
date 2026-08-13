@@ -124,7 +124,7 @@ export async function registerAllModules(
   // avvio boot graph to settle. registerWsGatewayModule is likewise async
   // (it awaits app.register(@fastify/websocket) internally, T73) — same
   // reasoning, awaited before the routes below.
-  await registerAuthModule(app, { db, config });
+  await registerAuthModule(app, { db, config, metrics });
   registerWorkspaceModule(app, { db, jobs: deps.jobs });
   registerDiagramSyncModule(app, { db, jobs: deps.jobs, metrics, tracing });
   registerAssetModule(app, { db, storage });
