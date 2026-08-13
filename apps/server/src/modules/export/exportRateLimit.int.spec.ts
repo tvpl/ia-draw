@@ -143,6 +143,42 @@ describe('export routes rate limiting (SEC-02, T83)', () => {
     }
   });
 
+  it('Verifier-added: the REAL, non-injected production default (30/60s) trips well before the 300/60s global default would — no exportRateLimiter override', async () => {
+    const owner = await seedUserWithSession('export-rl-real-default');
+    const { diagramId } = await seedDiagramAs(owner.cookies, 'real-default');
+
+    // Deliberately NOT passing `exportRateLimiter` — exercises the actual
+    // `DEFAULT_EXPORT_RATE_LIMIT` constant (`export/routes.ts`) that ships to
+    // production, not an injected stand-in (same rationale as ai-engine's
+    // equivalent Verifier-added test — every other test in this file injects
+    // its own limiter, so none of them would catch that constant being
+    // silently widened to match the 300/60s global default).
+    const app = buildServer(loadConfig({ NODE_ENV: 'test' }));
+    await registerAuthModule(app, { db, config: loadConfig({ NODE_ENV: 'test' }) });
+    registerWorkspaceModule(app, { db });
+    registerExportModule(app, { db, storage: createFakeStorage() });
+    await app.ready();
+
+    try {
+      const statusCodes: number[] = [];
+      // 31 requests: the real default is 30/60s, so the 31st must 429 — and
+      // 31 is far below the global default's own 300/60s ceiling.
+      for (let i = 0; i < 31; i++) {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/diagrams/${diagramId}/exports`,
+          cookies: owner.cookies,
+        });
+        statusCodes.push(response.statusCode);
+      }
+
+      expect(statusCodes.slice(0, 30).every((code) => code !== 429)).toBe(true);
+      expect(statusCodes[30]).toBe(429);
+    } finally {
+      await app.close();
+    }
+  });
+
   it('shares the same limiter budget across /exports and /bundle', async () => {
     const owner = await seedUserWithSession('export-rl-shared');
     const { diagramId } = await seedDiagramAs(owner.cookies, 'shared');
