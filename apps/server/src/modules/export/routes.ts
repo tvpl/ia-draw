@@ -3,6 +3,7 @@ import { can } from '@arch-canvas/auth';
 import { recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
@@ -35,6 +36,8 @@ export interface ExportModuleDeps {
    * `testConnectionRateLimiter`.
    */
   exportRateLimiter?: InMemoryRateLimiter;
+  /** OBS-01 (T91) — observes `POST /diagrams/:id/exports`'s generation duration, one observation per format. Optional, same degrade as every other observability seam here. */
+  metrics?: MetricsRegistry;
 }
 
 /** Download URL TTL for a generated export/bundle (seconds) — long enough for a client to fetch right after the response, short enough not to leak a durable public link. */
@@ -88,7 +91,7 @@ function bundleObjectKey(diagramId: string, bundleId: string): string {
 
 /** Registers the export module's routes: single-diagram export (EXP-01), `.zip` bundle (EXP-02), `.excalidraw` import preview/confirm (EXP-03), and bulk workspace export (EXP-04). */
 export function registerExportModule(app: FastifyInstance, deps: ExportModuleDeps): void {
-  const { db, storage, jobs } = deps;
+  const { db, storage, jobs, metrics } = deps;
   const exportRateLimiter =
     deps.exportRateLimiter ?? new InMemoryRateLimiter(DEFAULT_EXPORT_RATE_LIMIT);
   const exportRateLimited = createRateLimitPreHandler(
@@ -114,7 +117,14 @@ export function registerExportModule(app: FastifyInstance, deps: ExportModuleDep
       if (!decision.allowed) notFound();
 
       const { scene, revision } = await materializeScene(db, diagramId);
+      // OBS-01 (T91): `generateExports` produces all 4 formats in one call
+      // (`excalidraw`/`svg`/`png`/`pdf`) — there is no cheap way to time
+      // each format independently without restructuring that function, so
+      // this observes the WHOLE call's duration once, labeled `'bundle'`
+      // (documented scope decision, not a per-format breakdown).
+      const exportStartedAt = process.hrtime.bigint();
       const formats = await generateExports(scene);
+      metrics?.observeExport('bundle', Number(process.hrtime.bigint() - exportStartedAt) / 1e9);
       const exportId = randomUUID();
 
       const results: Record<

@@ -7,7 +7,7 @@ import { registerAuthModule } from '../modules/auth/routes.js';
 import { registerCommentModule } from '../modules/comment/routes.js';
 import { registerDiagramSyncModule } from '../modules/diagram-sync/routes.js';
 import { registerDocgenModule } from '../modules/docgen/routes.js';
-import { registerBulkBundleJob } from '../modules/export/bulkBundle.js';
+import { BULK_WORKSPACE_BUNDLE_JOB, registerBulkBundleJob } from '../modules/export/bulkBundle.js';
 import { registerExportModule } from '../modules/export/routes.js';
 import { registerInteropModule } from '../modules/interop/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
@@ -16,11 +16,11 @@ import { registerLintModule } from '../modules/lint/routes.js';
 import { registerPresentationPublishModule } from '../modules/presentation/publishRoutes.js';
 import { registerPresentationModule } from '../modules/presentation/routes.js';
 import { registerShareModule } from '../modules/share/routes.js';
-import { registerCompactionJob } from '../modules/snapshot/compaction.js';
+import { COMPACT_DIAGRAM_JOB, registerCompactionJob } from '../modules/snapshot/compaction.js';
 import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
 import { createStorageClient, type StorageClient } from '../modules/storage/signedUrl.js';
-import { registerWebhookDeliveryJob } from '../modules/webhook/deliver.js';
+import { registerWebhookDeliveryJob, WEBHOOK_DELIVERY_JOB } from '../modules/webhook/deliver.js';
 import { registerWebhookModule } from '../modules/webhook/routes.js';
 import { registerWorkspaceModule } from '../modules/workspace/routes.js';
 import {
@@ -30,6 +30,7 @@ import {
 import { RedisPresenceBroadcaster } from '../modules/ws-gateway/redisPresence.js';
 import { registerWsGatewayModule } from '../modules/ws-gateway/routes.js';
 import type { AppConfig } from './config.js';
+import './metrics.js';
 
 export interface ModuleDependencies {
   /** Injectable so tests can supply a pre-built client (mocked send) instead of a real S3Client. */
@@ -53,6 +54,12 @@ export async function registerAllModules(
   deps: ModuleDependencies = {},
 ): Promise<void> {
   const storage = deps.storage ?? createStorageClient(createS3Client(config));
+  // OBS-01 (T91): `buildServer` always decorates `app.metrics` (a fresh
+  // `MetricsRegistry` by default) before this function runs — every call
+  // site in this codebase calls `buildServer` first. Read back here (never
+  // constructed anew) so every module below observes into the SAME
+  // registry `GET /metrics` serves.
+  const metrics = app.metrics;
 
   // AD-009/T81: RedisPresenceBroadcaster when config.redisUrl is set,
   // InMemoryPresenceBroadcaster (single-process, zero external I/O)
@@ -72,14 +79,14 @@ export async function registerAllModules(
   // reasoning, awaited before the routes below.
   await registerAuthModule(app, { db, config });
   registerWorkspaceModule(app, { db, jobs: deps.jobs });
-  registerDiagramSyncModule(app, { db, jobs: deps.jobs });
+  registerDiagramSyncModule(app, { db, jobs: deps.jobs, metrics });
   registerAssetModule(app, { db, storage });
   registerSnapshotModule(app, { db, storage });
-  registerExportModule(app, { db, storage, jobs: deps.jobs });
+  registerExportModule(app, { db, storage, jobs: deps.jobs, metrics });
   registerInteropModule(app, { db, storage, jobs: deps.jobs });
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
-  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
+  registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage, metrics });
   registerDocgenModule(app, { db, storage, jobs: deps.jobs });
   registerLintModule(app, { db });
   registerPresentationModule(app, { db });
@@ -87,11 +94,23 @@ export async function registerAllModules(
   registerCommentModule(app, { db, jobs: deps.jobs });
   registerShareModule(app, { db });
   registerWebhookModule(app, { db, encryptionKey: config.encryptionKey });
-  await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence });
+  await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence, metrics });
 
   if (deps.jobs) {
-    await registerCompactionJob(deps.jobs, db, storage);
+    await registerCompactionJob(deps.jobs, db, storage, metrics);
     await registerBulkBundleJob(deps.jobs, db, storage);
     await registerWebhookDeliveryJob(deps.jobs, db, config.encryptionKey);
+
+    // OBS-01 (T91): wires the live job-queue-depth gauge's sampler onto
+    // every queue THIS wave registers a worker for. T90's
+    // `backup-restore-test` job is deliberately NOT registered here yet
+    // (its own registration is T96's job, same precedent T79/T80's webhook
+    // module already established) — its queue name is added to this list
+    // by T96 alongside its `registerRestoreTestJob` call.
+    metrics.setJobQueueDepthSource(deps.jobs, [
+      COMPACT_DIAGRAM_JOB,
+      BULK_WORKSPACE_BUNDLE_JOB,
+      WEBHOOK_DELIVERY_JOB,
+    ]);
   }
 }

@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
@@ -32,6 +33,8 @@ export interface AiEngineModuleDeps {
    * `ai-provider`'s `testConnectionRateLimiter`.
    */
   aiRunRateLimiter?: InMemoryRateLimiter;
+  /** OBS-01 (T91) — forwarded to `pipeline.ts`'s `CreateAiRunDeps.metrics`. Optional, same degrade as every other observability seam here. */
+  metrics?: MetricsRegistry;
 }
 
 /** Stricter than `core/server.ts`'s default (300/60s) — an AI run is materially more expensive (provider call, patch computation) than an ordinary REST request. */
@@ -88,9 +91,16 @@ function parseRunRef(runRef: string): { runId: string; action: 'approve' | 'canc
  * cancels without applying anything (T55).
  */
 export function registerAiEngineModule(app: FastifyInstance, deps: AiEngineModuleDeps): void {
-  const { db, encryptionKey, storage, fetchImpl, onTransition } = deps;
+  const { db, encryptionKey, storage, fetchImpl, onTransition, metrics } = deps;
   const runStore = deps.runStore ?? new RunStore();
-  const pipelineDeps: CreateAiRunDeps = { db, encryptionKey, fetchImpl, runStore, onTransition };
+  const pipelineDeps: CreateAiRunDeps = {
+    db,
+    encryptionKey,
+    fetchImpl,
+    runStore,
+    onTransition,
+    metrics,
+  };
   const aiRunRateLimiter =
     deps.aiRunRateLimiter ?? new InMemoryRateLimiter(DEFAULT_AI_RUN_RATE_LIMIT);
   const aiRunRateLimited = createRateLimitPreHandler(

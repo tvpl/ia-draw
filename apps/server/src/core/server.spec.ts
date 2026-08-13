@@ -3,6 +3,7 @@ import { problemDetailsSchema } from '@arch-canvas/shared-contracts';
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
 import { loadConfig } from './config.js';
+import { createMetricsRegistry } from './metrics.js';
 import { InMemoryRateLimiter } from './rateLimit.js';
 import { buildServer, registerGracefulShutdown } from './server.js';
 
@@ -248,6 +249,44 @@ describe('default rate limiting for authenticated routes (SEC-02, T83)', () => {
     expect(userA1.statusCode).toBe(200);
     expect(userA2.statusCode).toBe(429);
     expect(userB1.statusCode).toBe(200);
+    await app.close();
+  });
+});
+
+describe('GET /metrics (OBS-01, T91)', () => {
+  it('returns Prometheus text-exposition format, content-type included', async () => {
+    const app = buildServer(testConfig());
+    const response = await app.inject({ method: 'GET', url: '/metrics' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.headers['content-type']).toContain('text/plain');
+    expect(response.body).toContain('arch_canvas_http_request_duration_seconds');
+    await app.close();
+  });
+
+  it('is never session-protected — reachable with zero auth, matching the /health/* disclosure', async () => {
+    const app = buildServer(testConfig());
+    const response = await app.inject({ method: 'GET', url: '/metrics' });
+    expect(response.statusCode).toBe(200); // never 401
+    await app.close();
+  });
+
+  it('a real REST request increments the http_request_duration_seconds series for its own route, observable on the next scrape', async () => {
+    const app = buildServer(testConfig());
+
+    await app.inject({ method: 'GET', url: '/health/live' });
+    const response = await app.inject({ method: 'GET', url: '/metrics' });
+
+    expect(response.body).toMatch(
+      /arch_canvas_http_request_duration_seconds_count\{method="GET",route="\/health\/live",status_code="200"\} 1/,
+    );
+    await app.close();
+  });
+
+  it('an injected metrics registry (BuildServerOptions.metrics) is the SAME instance decorated onto app.metrics', async () => {
+    const metrics = createMetricsRegistry();
+    const app = buildServer(testConfig(), { metrics });
+    expect(app.metrics).toBe(metrics);
     await app.close();
   });
 });

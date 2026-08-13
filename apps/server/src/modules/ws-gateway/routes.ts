@@ -12,6 +12,7 @@ import websocketPlugin from '@fastify/websocket';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { WebSocket } from 'ws';
 import { z } from 'zod';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { consumeWsTicket } from '../auth/ws-ticket.js';
@@ -34,6 +35,8 @@ export interface WsGatewayModuleDeps {
   compactionThresholds?: CompactionThresholds;
   /** Injectable so tests/production can swap in `InMemoryPresenceBroadcaster`/`RedisPresenceBroadcaster` (T74) — defaults to a no-op stub so this module works standalone before either exists. */
   presence?: PresenceBroadcaster;
+  /** OBS-01 (T91) — observes the `mutation` case's ACK latency into the SAME histogram diagram-sync's `operations:batch` route observes into (labeled `transport: 'ws'` here). Optional, same degrade as every other observability seam in this codebase. */
+  metrics?: MetricsRegistry;
 }
 
 /** RFC 6455 reserves 4000-4999 for private/application use. */
@@ -100,7 +103,7 @@ export async function registerWsGatewayModule(
   app: FastifyInstance,
   deps: WsGatewayModuleDeps,
 ): Promise<void> {
-  const { db, jobs, compactionThresholds } = deps;
+  const { db, jobs, compactionThresholds, metrics } = deps;
   const presence = deps.presence ?? new NullPresenceBroadcaster();
 
   await app.register(websocketPlugin, {
@@ -258,8 +261,13 @@ export async function registerWsGatewayModule(
             }
 
             // The SAME write path REST's `operations:batch` route uses —
-            // zero LWW/validation logic duplicated here.
+            // zero LWW/validation logic duplicated here. OBS-01 (T91):
+            // ACK latency for this WS transport — the counterpart
+            // observation in diagram-sync's `operations:batch` route uses
+            // the exact same histogram with `transport: 'rest'`.
+            const ackStartedAt = process.hrtime.bigint();
             const result = await appendOperation(db, diagramId, actorId, envelope);
+            metrics?.observeMutationAck('ws', Number(process.hrtime.bigint() - ackStartedAt) / 1e9);
             const ack = result.acks[0];
             if (ack) {
               send(socket, diagramId, 'mutation_ack', {

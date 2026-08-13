@@ -9,6 +9,7 @@ import {
 import { diagramElementsMeta } from '@arch-canvas/database';
 import { type LibraryItem, libraryManifestSchema } from '@arch-canvas/library-content';
 import { eq } from 'drizzle-orm';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import type { Db } from '../auth/db.js';
 import { loadDiagramScene } from '../diagram-sync/scene.js';
 import { listAuthorizedLibraries } from '../library/index.js';
@@ -66,6 +67,8 @@ export interface CreateAiRunDeps {
   runStore: RunStore;
   /** Test-only observability seam: called after every persisted status transition, in order. Optional — a no-op in production unless a caller supplies one. */
   onTransition?: (runId: string, status: AiRunStatus) => void;
+  /** OBS-01 (T91) — observes total run duration + token/estimated-cost counters, read straight from the SAME `usageJson` this pipeline persists to `ai_runs.usage_json`. Optional, same degrade as every other observability seam here. */
+  metrics?: MetricsRegistry;
 }
 
 export interface CreateAiRunResult {
@@ -108,7 +111,9 @@ export async function createAiRun(
   deps: CreateAiRunDeps,
   params: CreateAiRunParams,
 ): Promise<CreateAiRunResult> {
-  const { db, encryptionKey, fetchImpl, runStore, onTransition } = deps;
+  const { db, encryptionKey, fetchImpl, runStore, onTransition, metrics } = deps;
+  const pipelineStartedAt = process.hrtime.bigint();
+  const elapsedSeconds = () => Number(process.hrtime.bigint() - pipelineStartedAt) / 1e9;
   const language = params.language ?? 'pt';
   const diagramKind = params.diagramKind ?? 'generic';
   const selection = params.selection ?? [];
@@ -175,6 +180,7 @@ export async function createAiRun(
   if (!callResult.ok) {
     run = await updateAiRunStatus(db, run.id, 'failed', { errorCode: callResult.error.errorCode });
     onTransition?.(run.id, run.status);
+    metrics?.observeAiRun('failed', elapsedSeconds(), {});
     return { run, toolCallCount: 0 };
   }
 
@@ -222,6 +228,7 @@ export async function createAiRun(
     if (!result.ok) {
       run = await updateAiRunStatus(db, run.id, 'failed', { errorCode: result.error.code });
       onTransition?.(run.id, run.status);
+      metrics?.observeAiRun('failed', elapsedSeconds(), usageJson);
       return { run, toolCallCount: sequence };
     }
 
@@ -232,6 +239,7 @@ export async function createAiRun(
   const patch: AbstractPatch = { operations };
   run = await updateAiRunStatus(db, run.id, 'previewing');
   onTransition?.(run.id, run.status);
+  metrics?.observeAiRun('previewing', elapsedSeconds(), usageJson);
 
   runStore.set(run.id, { patch, selection: [...selection], sourceRevision: revision });
 

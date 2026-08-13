@@ -1,5 +1,6 @@
 import { diagramOperations } from '@arch-canvas/database';
 import { and, asc, eq, gt } from 'drizzle-orm';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import type { Db } from '../auth/db.js';
 import { defineJob, enqueue, type JobQueue } from '../jobs/index.js';
 import type { StorageClient } from '../storage/index.js';
@@ -70,11 +71,20 @@ export async function compactDiagram(
   db: Db,
   storage: StorageClient,
   diagramId: string,
+  metrics?: MetricsRegistry,
 ): Promise<void> {
+  const startedAt = process.hrtime.bigint();
   const ownerId = await getDiagramOwnerId(db, diagramId);
   if (!ownerId) return; // diagram was deleted between enqueue and processing — nothing to compact.
 
-  await createSnapshot(db, storage, { diagramId, kind: 'auto', createdBy: ownerId });
+  try {
+    await createSnapshot(db, storage, { diagramId, kind: 'auto', createdBy: ownerId });
+  } finally {
+    // OBS-01 (T91): observed even on a thrown error — a slow/failing
+    // compaction is exactly the kind of outlier this histogram exists to
+    // surface, not just the successful case.
+    metrics?.observeSnapshotCompaction(Number(process.hrtime.bigint() - startedAt) / 1e9);
+  }
 }
 
 /** Registers the `compact-diagram` worker on `jobs` (T28's pg-boss wiring). */
@@ -82,9 +92,10 @@ export async function registerCompactionJob(
   jobs: JobQueue,
   db: Db,
   storage: StorageClient,
+  metrics?: MetricsRegistry,
 ): Promise<void> {
   await defineJob(jobs, COMPACT_DIAGRAM_JOB, async (payload: { diagramId: string }) => {
-    await compactDiagram(db, storage, payload.diagramId);
+    await compactDiagram(db, storage, payload.diagramId, metrics);
   });
 }
 

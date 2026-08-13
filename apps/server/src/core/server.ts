@@ -11,6 +11,7 @@ import { ZodError } from 'zod';
 import '../modules/auth/types.js';
 import type { AppConfig } from './config.js';
 import { buildLoggerOptions, type LoggerOverrides, REQUEST_ID_LOG_LABEL } from './logging.js';
+import { createMetricsRegistry, type MetricsRegistry } from './metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from './rateLimit.js';
 
 export type DependencyStatus = 'up' | 'down';
@@ -37,6 +38,15 @@ export interface BuildServerOptions {
    * hundreds of requests inject a tiny limiter here instead.
    */
   defaultRateLimiter?: InMemoryRateLimiter;
+  /**
+   * Injectable metrics registry (OBS-01, T91) — defaults to a fresh
+   * `MetricsRegistry`. Tests that need to assert on emitted series inject
+   * their own instance and read `app.metrics` directly instead of
+   * depending on the module-private default; production `index.ts` also
+   * reads the SAME instance back off `app.metrics` to thread into
+   * `registerAllModules` so every module observes into one shared registry.
+   */
+  metrics?: MetricsRegistry;
 }
 
 /**
@@ -55,6 +65,7 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
   const dependencyChecks = options.dependencyChecks ?? [];
   const defaultRateLimiter =
     options.defaultRateLimiter ?? new InMemoryRateLimiter(DEFAULT_RATE_LIMIT_OPTIONS);
+  const metrics = options.metrics ?? createMetricsRegistry();
 
   const app = Fastify({
     // Fastify's default logger is pino, which emits structured JSON logs.
@@ -62,6 +73,23 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     logger: buildLoggerOptions(config, options.loggerOverrides),
     requestIdLogLabel: REQUEST_ID_LOG_LABEL,
     bodyLimit: MAX_REQUEST_BODY_BYTES,
+  });
+
+  // OBS-01 (T91): one metrics registry per FastifyInstance, decorated on
+  // `app` so `registerAllModules` (and every sub-module it wires) can read
+  // the SAME instance back via `app.metrics` rather than each constructing
+  // its own (which would fragment series across multiple registries).
+  app.decorate('metrics', metrics);
+
+  // OBS-01: REST latency + 5xx-error count on EVERY response, keyed by the
+  // route PATTERN (`request.routeOptions.url`, e.g. `/diagrams/:id/bootstrap`)
+  // rather than the raw URL — avoids unbounded label cardinality from path
+  // params. Runs after the response is fully sent (`onResponse`), so this
+  // never adds latency to the response itself.
+  app.addHook('onResponse', async (request, reply) => {
+    const route = request.routeOptions.url ?? request.url;
+    const durationSeconds = reply.elapsedTime / 1000;
+    metrics.observeHttpRequest(request.method, route, reply.statusCode, durationSeconds);
   });
 
   // SEC-01: security response headers (CSP, X-Content-Type-Options,
@@ -158,6 +186,18 @@ export function buildServer(config: AppConfig, options: BuildServerOptions = {})
     }
 
     return { status: allUp ? ('ok' as const) : ('degraded' as const), dependencies };
+  });
+
+  // OBS-01 (T91): Prometheus text-exposition-format scrape endpoint.
+  // DISCLOSURE (same style as `/health/*` above): this route carries NO
+  // session/auth requirement — the standard Prometheus scrape convention —
+  // and MUST be restricted by network/firewall policy in a real deployment
+  // (e.g. only reachable from the cluster's own Prometheus scrape
+  // address). `registry.metrics()` awaits every metric's own async
+  // `collect()` (e.g. the job-queue-depth gauge's live pg-boss sample).
+  app.get('/metrics', async (_request, reply) => {
+    reply.type(metrics.registry.contentType);
+    return metrics.registry.metrics();
   });
 
   app.setNotFoundHandler((request, reply) => {

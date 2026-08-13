@@ -6,6 +6,7 @@ import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
+import type { MetricsRegistry } from '../../core/metrics.js';
 import type { JobQueue } from '../jobs/index.js';
 import { type CompactionThresholds, enqueueCompaction, shouldCompact } from '../snapshot/index.js';
 import { enqueueWebhookEvent } from '../webhook/deliver.js';
@@ -19,6 +20,8 @@ export interface DiagramSyncModuleDeps {
   /** Enables the VER-01 compaction trigger below when supplied — omitted call sites keep working unchanged, just without automatic compaction (e.g. tests that don't exercise it). */
   jobs?: JobQueue;
   compactionThresholds?: CompactionThresholds;
+  /** OBS-01 (T91) — observes `operations:batch`'s ACK latency into the SAME histogram ws-gateway's `mutation` handler observes into (labeled `transport: 'rest'` here), per F4's "WS is just a second transport" invariant. Optional — omitted means this transport's ACK latency simply isn't observed (e.g. a test that doesn't wire a registry). */
+  metrics?: MetricsRegistry;
 }
 
 function notFound(): never {
@@ -34,7 +37,7 @@ const catchupQuerySchema = z.object({ afterSequence: z.coerce.number().int().non
 
 /** Registers the diagram-sync module's routes — the server-first persistence core (T21). */
 export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyncModuleDeps): void {
-  const { db, jobs, compactionThresholds } = deps;
+  const { db, jobs, compactionThresholds, metrics } = deps;
 
   app.get('/diagrams/:id/bootstrap', { preHandler: requireSession(db) }, async (request) => {
     const { id } = diagramIdParamsSchema.parse(request.params);
@@ -96,7 +99,12 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       // actorId is always the authenticated session's user, never trusted from the
       // request body, mirroring the workspace module's "never accept scope/identity
       // fields from the caller" convention (see project-diagram-routes.ts).
+      // OBS-01 (T91): ACK latency for this REST transport — the counterpart
+      // observation in ws-gateway's `mutation` handler uses the exact same
+      // histogram with `transport: 'ws'`.
+      const ackStartedAt = process.hrtime.bigint();
       const result = await appendOperation(db, diagramId, user.id, envelope);
+      metrics?.observeMutationAck('rest', Number(process.hrtime.bigint() - ackStartedAt) / 1e9);
 
       // VER-01: checked at the end of every successful batch (cheap — a handful of
       // rows in the common case) — the actual compaction work is deferred to the job
