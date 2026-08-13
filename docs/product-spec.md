@@ -9,7 +9,12 @@
 > - **AD-004** — **IR declarativa `diagram-ir/v1`** como peça central da geração por IA e do architecture-as-code (fortalece §8.4 e §3.5).
 > - **AD-005** — Renderização server-side via `exportToSvg` + rasterização (`resvg`/`sharp`), com fallback Chromium headless; spike obrigatório na Fase 0.
 > - **AD-006** — MVP **sem Redis**: jobs via pg-boss sobre PostgreSQL; Redis entra apenas na fase de colaboração realtime multi-node (emenda §5.1 e §12).
+> - **AD-007** — Testes de integração de PostgreSQL usam `@electric-sql/pglite` (Postgres real compilado para WASM) em ambientes sem daemon Docker; CI real continua usando Postgres/MinIO via containers.
+> - **AD-008** — Nenhum pacote/módulo server-side importa `@excalidraw/excalidraw`/`@arch-canvas/editor-adapter` por valor (só `import type`); elementos de cena no servidor usam implementações locais dependency-free.
+> - **AD-009** — Presença/cursores em tempo real (F4) usam um `PresenceBroadcaster` injetável (em memória por padrão, Redis pub/sub quando `REDIS_URL` está configurado); o servidor sempre funciona sem Redis.
 > - Escopo adicional confirmado: **prototipagem** = kit de wireframes low-fi **+ protótipos navegáveis** (links clicáveis entre frames no modo apresentação), em fase própria.
+>
+> **Status de implementação (2026-08-13):** todo o roadmap (F0–F5, 92/92 requisitos) está implementado e independentemente verificado. Ver `.specs/STATE.md` (marco final) e `.specs/features/architecture-canvas/validation.md`.
 >
 > A spec normativa em EARS com IDs rastreáveis vive em `.specs/features/architecture-canvas/spec.md`.
 
