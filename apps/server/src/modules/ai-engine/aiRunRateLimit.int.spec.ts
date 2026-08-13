@@ -177,6 +177,53 @@ describe('POST /diagrams/:id/ai/runs rate limiting (SEC-02, T83, closes AIC-04)'
     }
   });
 
+  it('Verifier-added: the REAL, non-injected production default (20/60s) trips well before the 300/60s global default would — no aiRunRateLimiter override', async () => {
+    const owner = await seedUserWithSession('ai-rl-real-default');
+    const { workspaceId, diagramId } = await seedDiagramAs(owner.cookies, 'real-default');
+    await seedProviderConfig(workspaceId);
+
+    // Deliberately NOT passing `aiRunRateLimiter` — this exercises the
+    // actual `DEFAULT_AI_RUN_RATE_LIMIT` constant (`ai-engine/routes.ts`)
+    // that ships to production, not an injected stand-in. If that constant
+    // were ever widened to match (or exceed) `core/server.ts`'s global
+    // default of 300/60s — silently re-opening the AIC-04 gap T83 closed —
+    // this test is what would catch it; the test above only proves the
+    // MECHANISM works with an arbitrary injected limit, never that the
+    // shipped default is actually stricter than the global one.
+    const app = buildServer(loadConfig({ NODE_ENV: 'test' }));
+    await registerAuthModule(app, { db, config: loadConfig({ NODE_ENV: 'test' }) });
+    registerWorkspaceModule(app, { db });
+    registerAiEngineModule(app, {
+      db,
+      encryptionKey: ENCRYPTION_KEY,
+      storage: createFakeStorage(),
+      fetchImpl: alwaysErrorFetch(),
+    });
+    await app.ready();
+
+    try {
+      const statusCodes: number[] = [];
+      // 21 requests: the real default is 20/60s, so the 21st must 429 — and
+      // 21 is far below the global default's own 300/60s ceiling, proving
+      // the AI-run route's own limit is what actually trips, not the global
+      // per-route default.
+      for (let i = 0; i < 21; i++) {
+        const response = await app.inject({
+          method: 'POST',
+          url: `/diagrams/${diagramId}/ai/runs`,
+          cookies: owner.cookies,
+          payload: { userRequest: `Crie um diagrama ${i}` },
+        });
+        statusCodes.push(response.statusCode);
+      }
+
+      expect(statusCodes.slice(0, 20).every((code) => code !== 429)).toBe(true);
+      expect(statusCodes[20]).toBe(429);
+    } finally {
+      await app.close();
+    }
+  });
+
   it('keys the AI-run limit by userId — a second user is never blocked by the first user exhausting theirs', async () => {
     const owner = await seedUserWithSession('ai-rl-owner-b');
     const { workspaceId, diagramId } = await seedDiagramAs(owner.cookies, 'keyed');
