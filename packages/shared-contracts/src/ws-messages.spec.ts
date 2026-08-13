@@ -24,7 +24,11 @@ describe('ws-messages: per-message-type payload schemas (T72, CLB-01/02)', () =>
 
   it('parses a valid presence message with cursor and selection', () => {
     const raw = JSON.stringify(
-      envelope('presence', { cursor: { x: 10, y: 20 }, selection: ['el-1', 'el-2'], status: 'active' }),
+      envelope('presence', {
+        cursor: { x: 10, y: 20 },
+        selection: ['el-1', 'el-2'],
+        status: 'active',
+      }),
     );
     const parsed = parseWsMessage(raw);
     expect(parsed.type).toBe('presence');
@@ -97,20 +101,24 @@ describe('ws-messages: per-message-type payload schemas (T72, CLB-01/02)', () =>
     for (const type of wsMessageTypeSchema.options) {
       expect(wsPayloadSchemaByType).toHaveProperty(type);
     }
-    expect(Object.keys(wsPayloadSchemaByType).sort()).toEqual([...wsMessageTypeSchema.options].sort());
+    expect(Object.keys(wsPayloadSchemaByType).sort()).toEqual(
+      [...wsMessageTypeSchema.options].sort(),
+    );
   });
 
   it('parses hello, sync_request, sync_state, mutation, mutation_ack, mutation_rejected, comment_event, permission_changed, ping, pong', () => {
-    expect(parseWsMessage(JSON.stringify(envelope('hello', { userId: USER_ID, diagramId: DIAGRAM_ID }))).type).toBe(
-      'hello',
-    );
+    expect(
+      parseWsMessage(JSON.stringify(envelope('hello', { userId: USER_ID, diagramId: DIAGRAM_ID })))
+        .type,
+    ).toBe('hello');
     expect(parseWsMessage(JSON.stringify(envelope('sync_request', {}))).type).toBe('sync_request');
     expect(
       parseWsMessage(JSON.stringify(envelope('sync_request', { afterSequence: 5 }))).type,
     ).toBe('sync_request');
     expect(
-      parseWsMessage(JSON.stringify(envelope('sync_state', { scene: [{ id: 'el-1' }], revision: 7 })))
-        .type,
+      parseWsMessage(
+        JSON.stringify(envelope('sync_state', { scene: [{ id: 'el-1' }], revision: 7 })),
+      ).type,
     ).toBe('sync_state');
     expect(
       parseWsMessage(

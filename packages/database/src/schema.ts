@@ -585,7 +585,10 @@ export const presentationFrames = pgTable(
   ],
 );
 
-export const shareLinkResourceType = pgEnum('share_link_resource_type', ['diagram', 'presentation']);
+export const shareLinkResourceType = pgEnum('share_link_resource_type', [
+  'diagram',
+  'presentation',
+]);
 
 /**
  * A public, capped-role share link (EXT-01, F4/T71/T78). `resourceId` is a

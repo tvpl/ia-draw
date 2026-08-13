@@ -3,9 +3,8 @@ import { uuidSchema } from './ids.js';
 import {
   MAX_WS_MESSAGE_BYTES,
   type WsEnvelope,
-  wsEnvelopeSchema,
   type WsMessageType,
-  wsMessageTypeSchema,
+  wsEnvelopeSchema,
 } from './ws-envelope.js';
 
 /**
@@ -62,10 +61,7 @@ export type MutationRejectedPayload = z.infer<typeof mutationRejectedPayloadSche
 export const presenceStatusSchema = z.enum(['active', 'idle']);
 
 export const presencePayloadSchema = z.object({
-  cursor: z
-    .object({ x: z.number(), y: z.number() })
-    .nullable()
-    .optional(),
+  cursor: z.object({ x: z.number(), y: z.number() }).nullable().optional(),
   selection: z.array(z.string()).optional(),
   status: presenceStatusSchema,
 });

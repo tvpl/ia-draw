@@ -175,12 +175,8 @@
           "name": "ai_runs_diagram_id_diagrams_id_fk",
           "tableFrom": "ai_runs",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -188,12 +184,8 @@
           "name": "ai_runs_user_id_users_id_fk",
           "tableFrom": "ai_runs",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -201,12 +193,8 @@
           "name": "ai_runs_provider_config_id_ai_provider_configs_id_fk",
           "tableFrom": "ai_runs",
           "tableTo": "ai_provider_configs",
-          "columnsFrom": [
-            "provider_config_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["provider_config_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -296,12 +284,8 @@
           "name": "ai_tool_calls_ai_run_id_ai_runs_id_fk",
           "tableFrom": "ai_tool_calls",
           "tableTo": "ai_runs",
-          "columnsFrom": [
-            "ai_run_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["ai_run_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -411,12 +395,8 @@
           "name": "audit_events_actor_id_users_id_fk",
           "tableFrom": "audit_events",
           "tableTo": "users",
-          "columnsFrom": [
-            "actor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -525,12 +505,8 @@
           "name": "comments_diagram_id_diagrams_id_fk",
           "tableFrom": "comments",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -538,12 +514,8 @@
           "name": "comments_parent_id_comments_id_fk",
           "tableFrom": "comments",
           "tableTo": "comments",
-          "columnsFrom": [
-            "parent_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["parent_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -551,12 +523,8 @@
           "name": "comments_author_id_users_id_fk",
           "tableFrom": "comments",
           "tableTo": "users",
-          "columnsFrom": [
-            "author_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["author_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -671,12 +639,8 @@
           "name": "diagram_assets_workspace_id_workspaces_id_fk",
           "tableFrom": "diagram_assets",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -684,12 +648,8 @@
           "name": "diagram_assets_diagram_id_diagrams_id_fk",
           "tableFrom": "diagram_assets",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -697,12 +657,8 @@
           "name": "diagram_assets_created_by_users_id_fk",
           "tableFrom": "diagram_assets",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -769,12 +725,8 @@
           "name": "diagram_elements_meta_diagram_id_diagrams_id_fk",
           "tableFrom": "diagram_elements_meta",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -782,10 +734,7 @@
       "compositePrimaryKeys": {
         "diagram_elements_meta_diagram_id_element_id_pk": {
           "name": "diagram_elements_meta_diagram_id_element_id_pk",
-          "columns": [
-            "diagram_id",
-            "element_id"
-          ]
+          "columns": ["diagram_id", "element_id"]
         }
       },
       "uniqueConstraints": {},
@@ -903,12 +852,8 @@
           "name": "diagram_operations_diagram_id_diagrams_id_fk",
           "tableFrom": "diagram_operations",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -916,12 +861,8 @@
           "name": "diagram_operations_actor_id_users_id_fk",
           "tableFrom": "diagram_operations",
           "tableTo": "users",
-          "columnsFrom": [
-            "actor_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["actor_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1029,12 +970,8 @@
           "name": "diagram_snapshots_diagram_id_diagrams_id_fk",
           "tableFrom": "diagram_snapshots",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1042,12 +979,8 @@
           "name": "diagram_snapshots_created_by_users_id_fk",
           "tableFrom": "diagram_snapshots",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1148,12 +1081,8 @@
           "name": "diagrams_project_id_projects_id_fk",
           "tableFrom": "diagrams",
           "tableTo": "projects",
-          "columnsFrom": [
-            "project_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["project_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1161,12 +1090,8 @@
           "name": "diagrams_owner_id_users_id_fk",
           "tableFrom": "diagrams",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1247,12 +1172,8 @@
           "name": "libraries_workspace_id_workspaces_id_fk",
           "tableFrom": "libraries",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1355,12 +1276,8 @@
           "name": "library_items_library_id_libraries_id_fk",
           "tableFrom": "library_items",
           "tableTo": "libraries",
-          "columnsFrom": [
-            "library_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["library_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1514,12 +1431,8 @@
           "name": "presentation_frames_presentation_id_presentations_id_fk",
           "tableFrom": "presentation_frames",
           "tableTo": "presentations",
-          "columnsFrom": [
-            "presentation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["presentation_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1587,12 +1500,8 @@
           "name": "presentations_diagram_id_diagrams_id_fk",
           "tableFrom": "presentations",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1600,12 +1509,8 @@
           "name": "presentations_published_snapshot_id_diagram_snapshots_id_fk",
           "tableFrom": "presentations",
           "tableTo": "diagram_snapshots",
-          "columnsFrom": [
-            "published_snapshot_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["published_snapshot_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1691,12 +1596,8 @@
           "name": "projects_workspace_id_workspaces_id_fk",
           "tableFrom": "projects",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1704,12 +1605,8 @@
           "name": "projects_owner_id_users_id_fk",
           "tableFrom": "projects",
           "tableTo": "users",
-          "columnsFrom": [
-            "owner_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["owner_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1785,12 +1682,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1886,12 +1779,8 @@
           "name": "share_links_created_by_users_id_fk",
           "tableFrom": "share_links",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -1987,12 +1876,8 @@
           "name": "spec_documents_diagram_id_diagrams_id_fk",
           "tableFrom": "spec_documents",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2000,12 +1885,8 @@
           "name": "spec_documents_generated_by_users_id_fk",
           "tableFrom": "spec_documents",
           "tableTo": "users",
-          "columnsFrom": [
-            "generated_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["generated_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2203,12 +2084,8 @@
           "name": "webhook_deliveries_webhook_endpoint_id_webhook_endpoints_id_fk",
           "tableFrom": "webhook_deliveries",
           "tableTo": "webhook_endpoints",
-          "columnsFrom": [
-            "webhook_endpoint_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["webhook_endpoint_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2289,12 +2166,8 @@
           "name": "webhook_endpoints_workspace_id_workspaces_id_fk",
           "tableFrom": "webhook_endpoints",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2302,12 +2175,8 @@
           "name": "webhook_endpoints_created_by_users_id_fk",
           "tableFrom": "webhook_endpoints",
           "tableTo": "users",
-          "columnsFrom": [
-            "created_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["created_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2391,12 +2260,8 @@
           "name": "workspace_members_workspace_id_workspaces_id_fk",
           "tableFrom": "workspace_members",
           "tableTo": "workspaces",
-          "columnsFrom": [
-            "workspace_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["workspace_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2404,12 +2269,8 @@
           "name": "workspace_members_user_id_users_id_fk",
           "tableFrom": "workspace_members",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2506,12 +2367,8 @@
           "name": "workspaces_organization_id_organizations_id_fk",
           "tableFrom": "workspaces",
           "tableTo": "organizations",
-          "columnsFrom": [
-            "organization_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["organization_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2593,12 +2450,8 @@
           "name": "ws_tickets_user_id_users_id_fk",
           "tableFrom": "ws_tickets",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -2606,12 +2459,8 @@
           "name": "ws_tickets_diagram_id_diagrams_id_fk",
           "tableFrom": "ws_tickets",
           "tableTo": "diagrams",
-          "columnsFrom": [
-            "diagram_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["diagram_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -2644,77 +2493,42 @@
     "public.comment_status": {
       "name": "comment_status",
       "schema": "public",
-      "values": [
-        "open",
-        "resolved"
-      ]
+      "values": ["open", "resolved"]
     },
     "public.diagram_asset_status": {
       "name": "diagram_asset_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "ready"
-      ]
+      "values": ["pending", "ready"]
     },
     "public.diagram_snapshot_kind": {
       "name": "diagram_snapshot_kind",
       "schema": "public",
-      "values": [
-        "auto",
-        "named",
-        "published",
-        "pre_ai",
-        "restore_point"
-      ]
+      "values": ["auto", "named", "published", "pre_ai", "restore_point"]
     },
     "public.diagram_status": {
       "name": "diagram_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "in_review",
-        "approved",
-        "archived"
-      ]
+      "values": ["draft", "in_review", "approved", "archived"]
     },
     "public.share_link_resource_type": {
       "name": "share_link_resource_type",
       "schema": "public",
-      "values": [
-        "diagram",
-        "presentation"
-      ]
+      "values": ["diagram", "presentation"]
     },
     "public.spec_document_status": {
       "name": "spec_document_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "current",
-        "superseded"
-      ]
+      "values": ["draft", "current", "superseded"]
     },
     "public.webhook_delivery_status": {
       "name": "webhook_delivery_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "delivered",
-        "failed",
-        "dead_letter"
-      ]
+      "values": ["pending", "delivered", "failed", "dead_letter"]
     },
     "public.workspace_member_role": {
       "name": "workspace_member_role",
       "schema": "public",
-      "values": [
-        "org_admin",
-        "workspace_admin",
-        "editor",
-        "reviewer",
-        "viewer"
-      ]
+      "values": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
     }
   },
   "schemas": {},
