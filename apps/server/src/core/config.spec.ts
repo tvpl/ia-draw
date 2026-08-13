@@ -24,6 +24,26 @@ describe('loadConfig (spec §12 / FND-03)', () => {
     expect(config.redisUrl).toBe('redis://localhost:6379');
   });
 
+  it('never throws in development, even with both secrets left at the insecure default (SEC-03)', () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'development',
+        SESSION_SECRET: INSECURE_DEV_SECRET,
+        ENCRYPTION_KEY: INSECURE_DEV_SECRET,
+      }),
+    ).not.toThrow();
+  });
+
+  it('never throws in test, even with both secrets left at the insecure default (SEC-03)', () => {
+    expect(() =>
+      loadConfig({
+        NODE_ENV: 'test',
+        SESSION_SECRET: INSECURE_DEV_SECRET,
+        ENCRYPTION_KEY: INSECURE_DEV_SECRET,
+      }),
+    ).not.toThrow();
+  });
+
   it('throws naming SESSION_SECRET when production keeps the insecure default', () => {
     expect(() =>
       loadConfig({
