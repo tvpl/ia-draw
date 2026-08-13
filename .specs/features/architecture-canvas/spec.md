@@ -368,6 +368,99 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 
 ---
 
+### P1: Hardening de segurança e superfície de ataque ⭐ F5
+
+**User Story**: Como operador, quero controles de segurança de produção (headers, rate limiting, fail-fast em segredo inseguro, auditoria completa, regressão de threat model) para operar a plataforma com confiança fora de um ambiente de desenvolvimento.
+
+**Why P1 (F5)**: Invariante 9 do documento-fonte; consolida e fecha a superfície de ataque já parcialmente coberta onda a onda (IDOR, SSRF, prompt injection, zip bomb, etc.) numa suíte de regressão única e em controles que faltavam (headers, rate limit, fail-fast).
+
+**Acceptance Criteria**:
+
+1. WHEN the server responds to any HTTP request THEN the system SHALL send CSP, X-Content-Type-Options and X-Frame-Options headers, HSTS when served over TLS, and enforce a CORS policy restricted to an explicit origin allowlist.
+2. WHEN a client exceeds the configured rate limit for a given user/IP/action THEN the system SHALL reject further requests with 429, with stricter limits applied to AI-generation and export routes than to ordinary reads.
+3. WHEN the server starts in production mode with a known-insecure default secret (session or encryption key) THEN the system SHALL fail to start with a clear error, never silently running with an insecure default.
+4. WHEN any of {login, admin access, permission change, restore, publish, export, AI provider configuration, AI patch approval} occurs THEN the system SHALL append an audit event capturing actor, action, resource and outcome.
+5. The system SHALL maintain one regression test per threat-model scenario in the source document (workspace crossover, IDOR, WS ticket reuse, mutation replay, malicious SVG, zip bomb, AI-provider SSRF, prompt-injection exfiltration, log leakage, role escalation, stolen share link, snapshot corruption, out-of-order operation, abusive AI consumption), each explicitly cross-referenced to its covering test file.
+
+**Independent Test**: request sem header de segurança → resposta ainda carrega CSP/HSTS/CORS restritivo; 429 após estourar o limite de uma rota de IA; boot em modo produção com `SESSION_SECRET` padrão → falha explícita, nunca sobe.
+
+---
+
+### P1: Autenticação de produção via OIDC ⭐ F5
+
+**User Story**: Como admin, quero login via OIDC genérico com PKCE e mapeamento de grupos para papéis, para integrar a plataforma ao provedor de identidade corporativo sem depender só de conta local.
+
+**Why P1 (F5)**: Documento-fonte §9.1 marca OIDC como o caminho de produção; MVP local (email/senha) permanece disponível e nunca é enfraquecido por essa adição.
+
+**Acceptance Criteria**:
+
+1. WHERE OIDC is configured, the system SHALL support an OIDC-with-PKCE login flow as an alternative to local email/password, without weakening or bypassing local auth when OIDC is disabled.
+2. WHEN an OIDC user authenticates THEN the system SHALL map IdP groups to workspace roles per a configurable mapping, never granting a role beyond the mapping's explicit ceiling for that group.
+3. Refresh tokens SHALL be rotated and revocable regardless of auth method; no token SHALL ever be placed in a location a client-side script can read (`localStorage`/`sessionStorage`).
+
+**Independent Test**: login via um provedor OIDC real (protocolo completo, PKCE) mapeia o grupo configurado para o papel esperado no workspace certo; local auth continua funcionando sem OIDC configurado.
+
+---
+
+### P1: Disaster recovery reforçado ⭐ F5
+
+**User Story**: Como operador, quero backup incremental e um teste de restore automatizado recorrente, para atingir RPO/RTO documentados sem depender de disciplina manual.
+
+**Why P1 (F5)**: Documento-fonte §10 define metas de RPO ≤ 15 min / RTO ≤ 4 h e um teste de restore mensal automatizado; F1c só entregou o `backup:create/verify/restore` sob demanda.
+
+**Acceptance Criteria**:
+
+1. WHERE incremental backup is enabled, the system SHALL capture WAL-based incremental backups between full backups, per the configured retention policy.
+2. The system SHALL run an automated, recurring restore test in an isolated schema/database, alerting (not silently passing) when restored checksums or row counts diverge from the source.
+
+**Independent Test**: `backup:create` completo + 1 incremental → `backup:restore` do par completo+incremental reconstrói o estado exato; teste de restore automatizado corrompido (checksum divergente) → alerta, nunca passa silenciosamente.
+
+---
+
+### P1: Observabilidade completa ⭐ F5
+
+**User Story**: Como operador, quero métricas, traces e alertas documentados cobrindo save/colaboração/IA/capacidade, para operar a plataforma com visibilidade real de produção.
+
+**Why P1 (F5)**: Documento-fonte §11; F0-F4 entregaram logs estruturados e redação, mas não o `/metrics`, os traces OTel nem os alertas como configuração versionada.
+
+**Acceptance Criteria**:
+
+1. The system SHALL expose a `/metrics` endpoint reporting REST/WS latency and error rates, mutation ACK latency, pending job-queue depth, snapshot timing, AI latency/tokens/estimated cost, and export timing.
+2. The system SHALL emit OpenTelemetry traces across REST, WebSocket, database, storage and AI-provider call boundaries, never including sensitive payload content (prompts, scene content, tokens) in span attributes.
+3. The system SHALL document alerting thresholds matching the source SLOs (ACK p95 > 2s, save error rate > 1%, delayed job queue, failing snapshot, storage unavailable, invalid backup/restore, auth-failure spike) as versioned, testable configuration.
+
+**Independent Test**: `curl /metrics` expõe as séries documentadas; uma chamada de IA gera um trace com spans de contexto/chamada/aplicação sem prompt/cena em claro no span.
+
+---
+
+### P1: Desempenho sob carga documentada ⭐ F5
+
+**User Story**: Como operador, quero evidência automatizada de que os alvos de performance do documento-fonte (bootstrap, ACK, lote) se sustentam em cenas de 1k/5k/10k elementos.
+
+**Why P1 (F5)**: Documento-fonte §13/§17 fixam metas de performance; nenhuma onda anterior validou isso automatizado, só manualmente por amostragem.
+
+**Acceptance Criteria**:
+
+1. The system SHALL maintain an automated performance benchmark asserting bootstrap and batch-ACK latency stay within the documented targets against 1k/5k/10k-element fixtures, explicitly disclosing this as an in-sandbox proxy rather than a substitute for real infrastructure load testing at production scale.
+
+**Independent Test**: benchmark roda em CI, falha o build se o p95 de bootstrap ou ACK ultrapassar o alvo documentado para o tamanho de cena correspondente.
+
+---
+
+### P1: Acessibilidade do shell ⭐ F5
+
+**User Story**: Como usuário com necessidade de acessibilidade, quero o shell da aplicação (navegação, formulários, foco, contraste) verificado automaticamente contra WCAG 2.2 AA.
+
+**Why P1 (F5)**: Documento-fonte §13; a superfície de UI construída até aqui é majoritariamente scaffolding (`apps/web`'s sync client) — este AC cobre exatamente o que existe, disclosure explícito do que ainda não existe.
+
+**Acceptance Criteria**:
+
+1. The system SHALL run an automated accessibility check (axe-core or equivalent) against every existing `apps/web` screen/component as part of CI, explicitly disclosing in the check's own report which product surfaces are not yet built and therefore out of this check's coverage.
+
+**Independent Test**: CI roda o check de acessibilidade automatizado e falha o build em qualquer violação séria/crítica nas telas existentes.
+
+---
+
 ## Edge Cases
 
 - IF an uploaded SVG contains scripts or external references THEN the system SHALL sanitize or reject it before storage.
@@ -463,12 +556,27 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | CLB-04 | P3: Colaboração em tempo real | F4 | ✅ Verified (F4 Verifier — zero `Db`/drizzle imports confirmed by grep in `presence.ts`/`redisPresence.ts`; post-restart mutation success confirmed) |
 | EXT-01 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — `isRoleWithinCeiling` sensor-mutation-killed, leaked-token-to-real-admin scenario re-confirmed structurally (`routes.ts:210`) and by `share.int.spec.ts:232-277`, uniform-404 IDOR confirmed) |
 | EXT-02 | P3: Compartilhamento e webhooks | F4 | ✅ Verified (F4 Verifier — HMAC signs exact sent bytes, sensor-killed on divergence; secret-rotation invalidation confirmed at crypto level; backoff/dead-letter traced + sensor-killed; all 5 event sites confirmed wired, 2 spot-checked in depth) |
+| SEC-01 | P1: Hardening de segurança | F5 | Pending |
+| SEC-02 | P1: Hardening de segurança | F5 | Pending |
+| SEC-03 | P1: Hardening de segurança | F5 | Pending |
+| SEC-04 | P1: Hardening de segurança | F5 | Pending |
+| SEC-05 | P1: Hardening de segurança | F5 | Pending |
+| OIDC-01 | P1: Autenticação de produção via OIDC | F5 | Pending |
+| OIDC-02 | P1: Autenticação de produção via OIDC | F5 | Pending |
+| OIDC-03 | P1: Autenticação de produção via OIDC | F5 | Pending |
+| DR-01 | P1: Disaster recovery reforçado | F5 | Pending |
+| DR-02 | P1: Disaster recovery reforçado | F5 | Pending |
+| OBS-01 | P1: Observabilidade completa | F5 | Pending |
+| OBS-02 | P1: Observabilidade completa | F5 | Pending |
+| OBS-03 | P1: Observabilidade completa | F5 | Pending |
+| PERF-01 | P1: Desempenho sob carga documentada | F5 | Pending |
+| A11Y-01 | P1: Acessibilidade do shell | F5 | Pending |
 
 **ID format:** `[CATEGORY]-[NUMBER]` — o número corresponde ao critério de aceite de mesma posição na história.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 77 total, 6 mapped to tasks (onda F0: FND-01..05, EDT-07; spikes T10/T11 de-riscam EXP-01/EDT-01), 71 unmapped — ondas F1+ pendentes ⚠️
+**Coverage:** 92 total. 77 (F0–F4) ✅ Verified ou ⚠️ Partial-disclosed — ver linhas acima; único parcial é AIC-04 (limites de workspace/budget deferidos, disclosure explícito). 15 novos (F5: SEC-01..05, OIDC-01..03, DR-01..02, OBS-01..03, PERF-01, A11Y-01) Pending — onda F5 ainda não autorada/executada.
 
 ---
 
@@ -481,7 +589,7 @@ Explicitamente excluído. Documentado para prevenir scope creep.
 | F2 — IA geradora (4–6 sem) | Provider config, diagram-ir/v1, layout determinístico, biblioteca + semântica, tools, preview/undo, evals | AIC, AIG, AIE, LIB |
 | F3 — Arquitetura, docs e apresentação (3–4 sem) | Spec generation, lint/C4, Mermaid/Structurizr, apresentação + protótipos navegáveis, comentários | DOC, PRS, LNT, AAC, CMT |
 | F4 — Colaboração realtime (3–5 sem) | Presença, multi-node (Redis), share links, webhooks | CLB, EXT |
-| F5 — Hardening (2–4 sem) | OIDC, performance, acessibilidade, DR, observabilidade completa, piloto | — |
+| F5 — Hardening (2–4 sem) | OIDC, performance, acessibilidade, DR, observabilidade completa; piloto com times reais é atividade organizacional pós-deploy, fora do escopo de implementação autônoma | SEC, OIDC, DR, OBS, PERF, A11Y |
 
 O MVP interno mínimo termina na **F2** (persistência confiável + IA geradora).
 
