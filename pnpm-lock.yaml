@@ -26,6 +26,9 @@ importers:
       '@arch-canvas/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@arch-canvas/backup':
+        specifier: workspace:*
+        version: link:../../infra/backup
       '@arch-canvas/database':
         specifier: workspace:*
         version: link:../../packages/database
