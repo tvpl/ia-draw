@@ -15,11 +15,20 @@ import { registerLibraryModule } from '../modules/library/routes.js';
 import { registerLintModule } from '../modules/lint/routes.js';
 import { registerPresentationPublishModule } from '../modules/presentation/publishRoutes.js';
 import { registerPresentationModule } from '../modules/presentation/routes.js';
+import { registerShareModule } from '../modules/share/routes.js';
 import { registerCompactionJob } from '../modules/snapshot/compaction.js';
 import { registerSnapshotModule } from '../modules/snapshot/routes.js';
 import { createS3Client } from '../modules/storage/client.js';
 import { createStorageClient, type StorageClient } from '../modules/storage/signedUrl.js';
+import { registerWebhookDeliveryJob } from '../modules/webhook/deliver.js';
+import { registerWebhookModule } from '../modules/webhook/routes.js';
 import { registerWorkspaceModule } from '../modules/workspace/routes.js';
+import {
+  InMemoryPresenceBroadcaster,
+  type PresenceBroadcaster,
+} from '../modules/ws-gateway/presence.js';
+import { RedisPresenceBroadcaster } from '../modules/ws-gateway/redisPresence.js';
+import { registerWsGatewayModule } from '../modules/ws-gateway/routes.js';
 import type { AppConfig } from './config.js';
 
 export interface ModuleDependencies {
@@ -27,6 +36,8 @@ export interface ModuleDependencies {
   storage?: StorageClient;
   /** Injectable job queue (T28). Omitted entirely = automatic compaction (VER-01) stays inactive — a legitimate degrade path, not a boot requirement. */
   jobs?: JobQueue;
+  /** Injectable so tests can supply a fake/deterministic broadcaster instead of the real config.redisUrl-driven choice below (T81). */
+  presence?: PresenceBroadcaster;
 }
 
 /**
@@ -43,12 +54,24 @@ export async function registerAllModules(
 ): Promise<void> {
   const storage = deps.storage ?? createStorageClient(createS3Client(config));
 
+  // AD-009/T81: RedisPresenceBroadcaster when config.redisUrl is set,
+  // InMemoryPresenceBroadcaster (single-process, zero external I/O)
+  // otherwise — the server always boots and works fully without Redis,
+  // presence just stays scoped to this one process (AD-003).
+  const presence: PresenceBroadcaster =
+    deps.presence ??
+    (config.redisUrl
+      ? new RedisPresenceBroadcaster(config.redisUrl)
+      : new InMemoryPresenceBroadcaster());
+
   // registerAuthModule is async (it awaits app.register(fastifyCookie) internally) —
   // must be awaited before the other modules register, or its routes and the
   // cookie plugin race app.ready() and the server hangs waiting on Fastify's
-  // avvio boot graph to settle.
+  // avvio boot graph to settle. registerWsGatewayModule is likewise async
+  // (it awaits app.register(@fastify/websocket) internally, T73) — same
+  // reasoning, awaited before the routes below.
   await registerAuthModule(app, { db, config });
-  registerWorkspaceModule(app, { db });
+  registerWorkspaceModule(app, { db, jobs: deps.jobs });
   registerDiagramSyncModule(app, { db, jobs: deps.jobs });
   registerAssetModule(app, { db, storage });
   registerSnapshotModule(app, { db, storage });
@@ -57,14 +80,18 @@ export async function registerAllModules(
   registerLibraryModule(app, { db });
   registerAiProviderModule(app, { db, encryptionKey: config.encryptionKey });
   registerAiEngineModule(app, { db, encryptionKey: config.encryptionKey, storage });
-  registerDocgenModule(app, { db, storage });
+  registerDocgenModule(app, { db, storage, jobs: deps.jobs });
   registerLintModule(app, { db });
   registerPresentationModule(app, { db });
-  registerPresentationPublishModule(app, { db, storage });
-  registerCommentModule(app, { db });
+  registerPresentationPublishModule(app, { db, storage, jobs: deps.jobs });
+  registerCommentModule(app, { db, jobs: deps.jobs });
+  registerShareModule(app, { db });
+  registerWebhookModule(app, { db, encryptionKey: config.encryptionKey });
+  await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence });
 
   if (deps.jobs) {
     await registerCompactionJob(deps.jobs, db, storage);
     await registerBulkBundleJob(deps.jobs, db, storage);
+    await registerWebhookDeliveryJob(deps.jobs, db, config.encryptionKey);
   }
 }

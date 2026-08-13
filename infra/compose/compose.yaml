@@ -41,6 +41,12 @@ services:
       SESSION_SECRET: ${SESSION_SECRET:-dev-insecure-secret-change-me}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY:-dev-insecure-secret-change-me}
       DATABASE_URL: postgres://${POSTGRES_USER:-arch_canvas}:${POSTGRES_PASSWORD:-dev-insecure-secret-change-me}@postgres:5432/${POSTGRES_DB:-arch_canvas}
+      # Optional (AD-006/AD-009, F4/T81) — only backs ws-gateway's cross-instance
+      # presence/cursor fan-out (RedisPresenceBroadcaster). The server boots and
+      # works fully without it (InMemoryPresenceBroadcaster, single-process); it
+      # is never a source of durable content (CLB-04), so its absence or a
+      # restart of this service never risks data loss, only presence reach.
+      REDIS_URL: redis://redis:6379
       S3_ENDPOINT: http://minio:9000
       S3_ACCESS_KEY: ${MINIO_ROOT_USER:-arch-canvas-dev}
       S3_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-dev-insecure-secret-change-me}
@@ -54,6 +60,11 @@ services:
         condition: service_healthy
       migrate:
         condition: service_completed_successfully
+      # Not health-gated (unlike postgres/minio above) — redis is optional/
+      # degradable (see the REDIS_URL comment above), so the server only
+      # needs it to have STARTED, never to be confirmed healthy first.
+      redis:
+        condition: service_started
 
   web:
     build:
@@ -72,6 +83,20 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arch_canvas} -d ${POSTGRES_DB:-arch_canvas}"]
       interval: 5s
       timeout: 5s
+      retries: 10
+      start_period: 5s
+
+  # Optional/degradable (AD-006/AD-009, F4/T81) — only used by ws-gateway's
+  # cross-instance presence/cursor pub-sub. No volume/persistence configured
+  # on purpose: presence is never meant to survive a restart of Redis itself
+  # (or of `apps/server`) — CLB-04 already guarantees durable canvas content
+  # never depends on it, so a plain in-memory instance is enough.
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
       retries: 10
       start_period: 5s
 

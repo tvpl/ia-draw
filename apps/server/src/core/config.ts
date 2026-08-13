@@ -26,6 +26,15 @@ const envSchema = z.object({
   S3_ACCESS_KEY: z.string().min(1).default('arch-canvas-dev'),
   S3_SECRET_KEY: z.string().min(1).default(INSECURE_DEV_SECRET),
   S3_REGION: z.string().min(1).default('us-east-1'),
+  /**
+   * Optional (AD-006/AD-009, F4/T81) — `ws-gateway`'s presence broadcaster
+   * uses `RedisPresenceBroadcaster` when set, `InMemoryPresenceBroadcaster`
+   * otherwise. The server always boots and works fully without it; presence
+   * just stays scoped to a single process (consistent with AD-003's
+   * single-process MVP) rather than crossing multiple `apps/server`
+   * instances behind a load balancer.
+   */
+  REDIS_URL: z.string().min(1).optional(),
 });
 
 export interface AppConfig {
@@ -41,6 +50,8 @@ export interface AppConfig {
     secretAccessKey: string;
     region: string;
   };
+  /** Optional — see the env schema's own doc comment on `REDIS_URL` above. */
+  redisUrl?: string;
 }
 
 /**
@@ -75,5 +86,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
       secretAccessKey: parsed.S3_SECRET_KEY,
       region: parsed.S3_REGION,
     },
+    redisUrl: parsed.REDIS_URL,
   };
 }

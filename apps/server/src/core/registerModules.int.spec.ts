@@ -175,6 +175,30 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(testResponse.statusCode).toBe(401);
   });
 
+  it('reaches the share module routes through the same wiring path (T78, T81) — 401 without a session, never 404', async () => {
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/diagrams/some-diagram-id/share-links',
+      payload: { role: 'viewer', expiresAt: new Date(Date.now() + 60_000).toISOString() },
+    });
+    expect(createResponse.statusCode).toBe(401);
+  });
+
+  it('reaches the webhook module routes through the same wiring path (T79, T81) — 401 without a session, never 404', async () => {
+    const listResponse = await app.inject({
+      method: 'GET',
+      url: '/workspaces/some-workspace-id/webhooks',
+    });
+    expect(listResponse.statusCode).toBe(401);
+
+    const createResponse = await app.inject({
+      method: 'POST',
+      url: '/workspaces/some-workspace-id/webhooks',
+      payload: { url: 'https://example.com/hook', events: ['diagram.created'] },
+    });
+    expect(createResponse.statusCode).toBe(401);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 

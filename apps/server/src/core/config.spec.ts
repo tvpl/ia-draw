@@ -15,6 +15,13 @@ describe('loadConfig (spec §12 / FND-03)', () => {
       secretAccessKey: INSECURE_DEV_SECRET,
       region: 'us-east-1',
     });
+    // REDIS_URL is optional (AD-006/AD-009, F4/T81) — omitted entirely by default.
+    expect(config.redisUrl).toBeUndefined();
+  });
+
+  it('carries REDIS_URL through when set — ws-gateway (T81) uses it to pick RedisPresenceBroadcaster', () => {
+    const config = loadConfig({ NODE_ENV: 'development', REDIS_URL: 'redis://localhost:6379' });
+    expect(config.redisUrl).toBe('redis://localhost:6379');
   });
 
   it('throws naming SESSION_SECRET when production keeps the insecure default', () => {
