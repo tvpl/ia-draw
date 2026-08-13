@@ -24,7 +24,8 @@ export class BackupVerificationError extends Error {
   }
 }
 
-function parseObjectPath(path: string): { bucket: string; key: string } | null {
+/** Exported for reuse by `incremental.ts` (T89) — same `objects/<bucket>/<key>` archive path convention. */
+export function parseObjectPath(path: string): { bucket: string; key: string } | null {
   const match = path.match(/^objects\/([^/]+)\/(.+)$/);
   if (!match) return null;
   const [, bucket, key] = match;

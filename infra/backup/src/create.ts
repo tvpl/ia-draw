@@ -48,6 +48,7 @@ export async function createBackup(input: CreateBackupInput): Promise<BackupMani
     createdAt: new Date().toISOString(),
     buckets,
     files,
+    type: 'full',
   };
   zip.file('manifest.json', JSON.stringify(manifest, null, 2));
 

@@ -1,4 +1,16 @@
 export { type CreateBackupInput, createBackup, DEFAULT_BACKUP_BUCKETS } from './create.js';
+export {
+  type CreateIncrementalBackupInput,
+  createIncrementalBackup,
+  dumpTableSinceReal,
+  INCREMENTAL_TABLES,
+  type IncrementalBackupManifest,
+  IncrementalChainError,
+  type IncrementalTable,
+  type RestoreIncrementalChainInput,
+  restoreIncrementalChain,
+  restoreTableCopyReal,
+} from './incremental.js';
 export type { BackupManifest, BackupManifestEntry } from './manifest.js';
 export { sha256Hex } from './manifest.js';
 export {
@@ -8,5 +20,10 @@ export {
   type S3Config,
 } from './objectStore.js';
 export { dumpDatabase, restoreDatabase } from './pgDump.js';
-export { BackupVerificationError, type RestoreInput, restoreBackup } from './restore.js';
+export {
+  BackupVerificationError,
+  parseObjectPath,
+  type RestoreInput,
+  restoreBackup,
+} from './restore.js';
 export { type VerifyResult, verifyBackup } from './verify.js';
