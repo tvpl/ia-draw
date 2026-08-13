@@ -230,9 +230,36 @@ export async function registerAuthModule(
       const claims = tokenSet.claims();
       if (!claims) badOidcCallback('OIDC provider did not return an ID token');
 
-      const email = typeof claims.email === 'string' ? claims.email : undefined;
-      const displayName = typeof claims.name === 'string' ? claims.name : undefined;
-      const groupClaimValue = claims[oidcConfigForCallback.groupClaim];
+      // Most OIDC-conformant providers (this project's own test provider,
+      // T88, included — `conformIdTokenClaims` is `true` by default in
+      // `oidc-provider`, matching the OIDC Core §5.4 recommendation) omit
+      // non-essential scope claims like `email`/`profile`/a custom `groups`
+      // claim from the ID token itself whenever an access token is ALSO
+      // issued (true for every Authorization Code Grant), deferring them to
+      // the UserInfo endpoint instead. Reading ONLY `tokenSet.claims()`
+      // would silently see `groups: undefined` against such a provider —
+      // never a security issue (`resolveOidcRole` already treats "no
+      // matching group" as "no role", the safe default) but a real
+      // functional gap this fetch closes. Best-effort: if the userinfo
+      // endpoint is unreachable/misconfigured, callers still get whatever
+      // the ID token itself carried — same fail-safe default applies.
+      let mergedClaims: Record<string, unknown> = { ...claims };
+      if (tokenSet.access_token) {
+        try {
+          const userInfo = await client.fetchUserInfo(
+            oidcConfig,
+            tokenSet.access_token,
+            claims.sub,
+          );
+          mergedClaims = { ...mergedClaims, ...userInfo };
+        } catch {
+          // Best-effort enrichment only — see the comment above.
+        }
+      }
+
+      const email = typeof mergedClaims.email === 'string' ? mergedClaims.email : undefined;
+      const displayName = typeof mergedClaims.name === 'string' ? mergedClaims.name : undefined;
+      const groupClaimValue = mergedClaims[oidcConfigForCallback.groupClaim];
       const role = resolveOidcRole(groupClaimValue, oidcConfigForCallback.groupRoleMap);
 
       const user = await resolveOrCreateOidcUser(db, {
