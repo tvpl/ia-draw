@@ -70,6 +70,11 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
     const decision = can({ role }, 'diagram:read', { workspaceId });
     if (!decision.allowed) notFound();
 
+    // DOCK-02: the frontend needs a proactive `diagram:mutate` signal to decide
+    // whether to render the AI dock at all — additive alongside `permissions`
+    // (`diagram:read`), which stays unchanged for existing consumers.
+    const mutateDecision = can({ role }, 'diagram:mutate', { workspaceId });
+
     const { scene, revision } = await loadDiagramScene(db, id);
 
     return {
@@ -78,6 +83,7 @@ export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyn
       // No asset references exist yet — the asset module (EDT-06) is F1c.
       assets: [],
       permissions: decision,
+      mutatePermissions: mutateDecision,
     };
   });
 
