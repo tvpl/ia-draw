@@ -534,11 +534,15 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Atualizações agrupadas por ecossistema, não uma por dependência
-- [ ] Atualizações de major ficam isoladas em pull request próprio
-- [ ] Node fica travado na faixa 22.x, respeitando `.nvmrc` e o campo `engines`
-- [ ] A suíte completa roda em cada pull request gerado
-- [ ] Gate check passa: `make ci`
+- [x] Atualizações agrupadas por ecossistema, não uma por dependência — 8 grupos (`react`, `vitest and vite`, `fastify`, `aws-sdk`, `opentelemetry`, `postgres`, `canvas rendering`, `toolchain`)
+- [x] Atualizações de major ficam isoladas em pull request próprio — regra final com `groupName: null`, prefixo de branch `major-` e `dependencyDashboardApproval`
+- [x] Node fica travado na faixa 22.x, respeitando `.nvmrc` e o campo `engines` — `constraints.node: ">=22 <23"` mais `allowedVersions: "<23"` na regra do próprio `node`
+- [x] A suíte completa roda em cada pull request gerado — pull request do Renovate é pull request comum, então `ci.yaml` dispara nele os 9 jobs (incluindo `compose-smoke`, `e2e` e `capability-audit`)
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
+
+> **Correção aplicada na revisão.** O comentário da regra do `node` atribuía a quebra do Node 24 a `apps/web`; o teste afetado é `apps/server/src/modules/ai-engine/callProvider.spec.ts`. Corrigido antes do commit.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
