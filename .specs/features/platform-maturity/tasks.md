@@ -498,8 +498,8 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] JSON de config válido pros dois clientes, copiável sem edição além do token/URL
-- [ ] `make lint` confirma o markdown bem formado
+- [x] JSON de config válido pros dois clientes, copiável sem edição além do token/URL
+- [x] `make lint` confirma o markdown bem formado
 
 **Tests**: none
 **Gate**: build
