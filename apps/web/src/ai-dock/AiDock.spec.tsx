@@ -376,6 +376,87 @@ describe('AiDock (T7)', () => {
     expect(screen.getByRole('button', { name: 'Undo' })).not.toBeNull();
   });
 
+  it('after two sequential approvals, Undo targets the most recently applied run, not the first (DOCK-20)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/ai/runs') {
+        return Promise.resolve(
+          jsonResponse(201, {
+            run: { id: 'run-a', status: 'awaiting_approval' },
+            patch: {},
+            preview: PREVIEW,
+            requiresExplicitApproval: false,
+          }),
+        );
+      }
+      if (url === '/ai/runs/run-a:approve') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            run: { id: 'run-a', status: 'applied' },
+            snapshot: { id: 'snapshot-a' },
+            batch: {},
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderDock({ fetchImpl: fetchImpl as unknown as typeof fetch });
+
+    // Approve run A first.
+    await submitRequest('draw three services');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+      await Promise.resolve();
+    });
+    expect(screen.getByRole('button', { name: 'Undo' })).not.toBeNull();
+
+    // Swap the mock to serve a second run/approve/restore cycle for run B, then submit
+    // and approve it while run A's snapshot is still the last one Undo would have used.
+    fetchImpl.mockImplementation((url: string) => {
+      if (url === '/diagrams/diagram-1/ai/runs') {
+        return Promise.resolve(
+          jsonResponse(201, {
+            run: { id: 'run-b', status: 'awaiting_approval' },
+            patch: {},
+            preview: PREVIEW,
+            requiresExplicitApproval: false,
+          }),
+        );
+      }
+      if (url === '/ai/runs/run-b:approve') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            run: { id: 'run-b', status: 'applied' },
+            snapshot: { id: 'snapshot-b' },
+            batch: {},
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/snapshots/snapshot-b:restore') {
+        return Promise.resolve(jsonResponse(200, {}));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    await submitRequest('draw two more services');
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Approve' }));
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+      await Promise.resolve();
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith('/diagrams/diagram-1/snapshots/snapshot-b:restore', {
+      method: 'POST',
+    });
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      '/diagrams/diagram-1/snapshots/snapshot-a:restore',
+      expect.anything(),
+    );
+  });
+
   // DOCK-09 / Edge Case ("a run whose patch no longer exists on the server, e.g. after a
   // process restart, is never offered for approve again"). The current AiDockClient (T6,
   // frozen by this task's scope) has no branch distinguishing "vanished run" from any other
