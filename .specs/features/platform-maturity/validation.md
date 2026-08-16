@@ -466,7 +466,11 @@ None of the general edge cases apply to F7's scope (`CLAUDE.md`, `.claude/`) —
 
 ---
 
-## F8 Wave Report (Governança e contrato) — FAIL ❌
+## F8 Wave Report (Governança e contrato) — PASS ✅
+
+**Current, authoritative verdict** for wave F8, as of round 2 (2026-08-16). Round 1 below (originally FAIL ❌) is preserved as historical record — its 9/9 AC findings and 3/3-killed sensor result, once real, do not stop being true, and its one blocking gap (the `functions` coverage-floor regression, Fix Plan 1) is resolved in `### Re-Verification — Round 2 (Gate Check only)` at the end of this section, which carries the full evidence for the PASS verdict: the Gate Check (`server test:unit`, `make lint`, `make typecheck`, `make test-unit`) is green end to end, and the fix (lowering the `functions` ratchet to the genuinely measured 28.87%, with `lines`/`branches`/`statements` untouched) was independently re-derived, not just read off the commit message.
+
+**Round 1 report follows, unchanged**:
 
 **Date**: 2026-08-16
 **Spec**: `.specs/features/platform-maturity/spec.md` (P2 stories "Governança para múltiplos squads" and "Contrato de API para consumo automatizado", lines 143-172)
@@ -641,4 +645,52 @@ All 9 ACs are individually grounded and correct on their literal text — none i
 **Issues found**: The wave's own `tasks.md:453` self-report incorrectly classified a coverage-floor regression as pre-existing/unrelated based on an isolation method that didn't actually isolate the whole wave (`git stash` of the last 2 files instead of a true pre-wave baseline). Independent re-verification via a proper `git worktree` baseline at `a55c4d7` shows the regression is real and wave-caused (39.73%→28.87% functions coverage, exit 0→1). This is Fix Plan 1 (Blocker).
 
 **Next steps**: Land Fix Plan 1 (either raise coverage on the newly-visible functions, or deliberately and transparently lower the ratchet with justification), correct `tasks.md:453`'s note, re-run `pnpm --filter @arch-canvas/server run test:unit` to confirm exit 0, then re-run this Verifier's Gate Check step only (no need to redo the AC/sensor/quality checks, which are unaffected) before F8 can be marked fully closed.
+
+---
+
+### Re-Verification — Round 2 (Gate Check only)
+
+**Date**: 2026-08-16
+**Verifier**: independent sub-agent, round 2 (author ≠ verifier; a different session from both round 1's verifier and from the fix's author)
+**Scope**: narrow, per round 1's own stated next steps — only the Gate Check is re-run here. The 9 ACs (GOV-01..06, API-01..03), the discrimination sensor (3/3 killed), and the Code Quality check are unaffected by Fix Plan 1 and are **not** redone in this round; round 1's findings for those sections stand unchanged and are not repeated below.
+
+**Fix applied**: commit `ba20552` ("fix(server): recalibrate the functions coverage ratchet after F8"), landed on top of `a389a33` (which recorded round 1's FAIL). `git diff a389a33..HEAD --stat` confirms the fix touches exactly the 2 files Fix Plan 1 named — `apps/server/vitest.config.ts` (+17/-2) and `.specs/features/platform-maturity/tasks.md` (+1/-1) — nothing else, and the real tree's `git status --porcelain` is empty (no stray uncommitted state from the fix).
+
+#### Gate Check — re-run
+
+Node: v22.23.2 (`eval "$(fnm env)" && fnm use 22 && corepack enable`).
+
+| Step | Result |
+| --- | --- |
+| `pnpm --filter @arch-canvas/server run test:unit` | ✅ exit 0 — **380/380 tests passed** (36/36 files); `functions` coverage measured **28.87%** on this fresh, uncached run, exactly matching the new floor |
+| `make lint` | ✅ exit 0 — 440 files checked, 0 errors, 4 pre-existing warnings (same `webConsumers.spec.ts` `noTemplateCurlyInString` warnings recorded in every prior wave report — no new warnings introduced) |
+| `make typecheck` | ✅ exit 0 — 24/24 Turbo tasks successful |
+| `make test-unit` (all packages) | ✅ exit 0 — 23/23 Turbo tasks successful |
+
+The Gate Check that blocked round 1 is now green end to end.
+
+#### Is the fix legitimate, or a cheat?
+
+Checked deliberately skeptically, per the verification brief — a lowered ratchet is exactly the kind of change that is easy to over-apply "for safety."
+
+1. **The value genuinely matches a real measurement, not just the comment's claim.** The fresh, uncached `pnpm --filter @arch-canvas/server run test:unit` run above measured `functions: 28.87%` — the exact same number now hard-coded as the floor at `vitest.config.ts:42`. The floor is set *at* the measured value, not below it with a safety margin. Corroboration: round 1 independently measured 28.87% off a `git worktree` baseline before this fix existed, and that number matches to two decimal places.
+2. **`lines`/`branches`/`statements` were not quietly lowered too.** `git show ba20552 -- apps/server/vitest.config.ts` shows only the `functions:` value changed (`39.73` → `28.87`); `lines: 25.48`, `branches: 80.27`, and `statements: 25.48` are byte-identical before and after the commit — confirmed by reading the diff directly, not by trusting the commit message. No other threshold moved.
+3. **The justification comment is accurate, not decorative.** `vitest.config.ts:19-36`'s new comment states the real root cause (V8 now counts previously-collapsed handler closures individually across the ~20 `routeSchemas`-exporting route files, raising the functions denominator from 302 to 426 with no matching rise in covered functions) and explicitly notes `lines`/`branches`/`statements` all measured *higher* on this same diff — only `functions` regressed. This matches round 1's own independently-derived root-cause finding, not a new or convenient story invented by the fix.
+4. **`tasks.md`'s T26 note is corrected, not merely softened.** `tasks.md:453` no longer claims the regression is pre-existing; it now explicitly attributes it to F8, names the `git stash`-vs-38-commits-deep isolation flaw round 1 found, and points to `validation.md`'s Fix Plan 1.
+
+**Legitimate.** This is exactly Fix Plan 1's option (b) — a deliberate, justified, on-purpose lowering of one specific ratchet to the real measured value, with the false "pre-existing" claim corrected — not an inflated safety margin and not a quiet multi-threshold rollback.
+
+#### Incidental finding (non-blocking, outside this round's mandate)
+
+`tasks.md:476` (T27's "Done when" note) still reads "...o comando sai 1 só pelo mesmo piso de cobertura global pré-existente já registrado na nota de T26" — this is now stale: the gate exits 0, not 1, and the T26 note it points to no longer says "pré-existente." T27's note was not part of Fix Plan 1's named scope (only T26's note was), so it was not touched by the applied fix. Cosmetic — T27's checkbox is still correctly `[x]` and the claim doesn't affect any AC, gate result, or the traceability table — but worth a one-line cleanup alongside T26's for consistency. Flagged for the orchestrator; not blocking this verdict.
+
+#### State validator
+
+`python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py platform-maturity` → exit 0.
+
+#### Verdict — Round 2
+
+**Overall F8 wave**: ✅ **PASS** (flipped from round 1's ⚠️ Issues/FAIL-on-gate). All 9 ACs remain individually `✅ Verified` (unchanged from round 1; re-confirmed here only in the sense that the passing gate now backs them), the sensor's 3/3-killed result stands as round 1 recorded it, and the Gate Check — the sole blocker — is now green with a fix confirmed legitimate on independent re-derivation, not just re-reading the commit's own claims.
+
+**Lessons**: none recorded for this round. This is a clean gate-fix confirmation: no new AC gap, no new surviving mutant, no new spec-precision gap, no new `// SPEC_DEVIATION`. The grounded signal that produced this fix (L-024, mis-isolated pre-existing-vs-regression claim) was already distilled by round 1; confirming the fix landed cleanly is not itself a new signal.
 

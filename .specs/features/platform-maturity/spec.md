@@ -230,7 +230,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 37 total, 29 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`; 9 F8 GOV-01..06/API-01..03 — todas as 9 ACs individualmente corretas por evidência `file:line`, mas a onda em si está `⚠️ Issues`/bloqueada por uma regressão real no piso de cobertura de `functions` que este wave introduziu — ver `validation.md`'s "F8 Wave Report" e Fix Plan 1 antes de tratar F8 como fechada), 8 não mapeados (onda F9, ainda sem breakdown).
+**Coverage:** 37 total, 29 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`; 9 F8 GOV-01..06/API-01..03 — todas as 9 ACs individualmente corretas por evidência `file:line`, e a onda em si está **fechada e verificada** — o Verifier round 2 confirmou o Gate Check limpo após o Fix Plan 1 (piso de cobertura de `functions` recalibrado de 39.73% para o valor genuinamente medido de 28.87%, `lines`/`branches`/`statements` intactos) — ver `validation.md`'s "F8 Wave Report" e sua subseção "Re-Verification — Round 2"), 8 não mapeados (onda F9, ainda sem breakdown).
 
 ---
 
