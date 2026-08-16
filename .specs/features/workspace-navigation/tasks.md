@@ -115,10 +115,10 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /workspaces/:id`'s `{workspace}` includes `role: WorkspaceRole` for the requesting user
-- [ ] `getWorkspaceById` gains the necessary join without changing its 404 behavior for non-members
-- [ ] Integration test covers the role value for a non-admin member
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] `GET /workspaces/:id`'s `{workspace}` includes `role: WorkspaceRole` for the requesting user
+- [x] `getWorkspaceById` gains the necessary join without changing its 404 behavior for non-members
+- [x] Integration test covers the role value for a non-admin member
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
 
 **Tests**: integration
 **Gate**: full

@@ -210,6 +210,27 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
       });
     });
 
+    it('GET /workspaces/:id includes the caller’s role for a non-admin member', async () => {
+      const admin = await seedUserWithSession('detail-role-admin');
+      const create = await createWorkspaceAs(admin.cookies, `detail-role-${Date.now()}`);
+      const workspaceId = create.json().workspace.id;
+
+      const actor = await seedUserWithSession('detail-role-actor');
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: actor.user.id, role: 'reviewer' });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/workspaces/${workspaceId}`,
+        cookies: actor.cookies,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().workspace).toMatchObject({
+        id: workspaceId,
+        role: 'reviewer',
+      });
+    });
   });
 
   it('a successful mutation records one row in audit_events', async () => {

@@ -136,7 +136,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
     const decision = can({ role }, 'workspace:read', { workspaceId: id });
     if (!decision.allowed) notFound();
 
-    const workspace = await getWorkspaceById(db, id);
+    const workspace = await getWorkspaceById(db, id, user.id);
     if (!workspace) notFound();
     return { workspace };
   });
