@@ -7,6 +7,7 @@ import { routeSchemas as docgenRouteSchemas } from '../modules/docgen/routes.js'
 import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js';
 import { routeSchemas as interopRouteSchemas } from '../modules/interop/routes.js';
 import { routeSchemas as libraryRouteSchemas } from '../modules/library/routes.js';
+import { routeSchemas as lintRouteSchemas } from '../modules/lint/routes.js';
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
@@ -27,6 +28,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   export: exportRouteSchemas,
   interop: interopRouteSchemas,
   library: libraryRouteSchemas,
+  lint: lintRouteSchemas,
   share: shareRouteSchemas,
   snapshot: snapshotRouteSchemas,
   workspace: workspaceRouteSchemas,
