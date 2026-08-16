@@ -72,8 +72,8 @@ function badOidcCallback(message: string): never {
 }
 
 /**
- * OpenAPI schema map for this module's 7 routes (T5, API-01). `/auth/logout`,
- * `/auth/refresh`, `/me` and the two OIDC routes take no query/params/body —
+ * OpenAPI schema map for this module's 8 routes (T5, API-01). `/auth/logout`,
+ * `/auth/refresh`, `/me` and the three OIDC routes take no query/params/body —
  * they act on the session cookie, never a Zod-validated payload.
  */
 export const routeSchemas: RouteSchemaMap = {
@@ -84,6 +84,7 @@ export const routeSchemas: RouteSchemaMap = {
   'POST /diagrams/:id/ws-ticket': { params: diagramIdParamsSchema },
   'GET /auth/oidc/login': {},
   'GET /auth/oidc/callback': {},
+  'GET /auth/oidc/status': {},
 };
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
@@ -182,6 +183,14 @@ export async function registerAuthModule(
 
     const issued = await issueWsTicket(db, user.id, params.id);
     return { ticket: issued.ticket, expiresAt: issued.expiresAt.toISOString() };
+  });
+
+  // T1 (SSO-09/11): cheap, public discovery signal so the frontend knows
+  // whether to render the SSO button, without ever attempting the flow and
+  // risking a 503 mid-navigation. Never 401/403 — this is capability
+  // information about the deploy, not about the caller.
+  app.get('/auth/oidc/status', async () => {
+    return { configured: config.oidc !== undefined };
   });
 
   // T87 (OIDC-01/02/03): Authorization Code + PKCE flow against a

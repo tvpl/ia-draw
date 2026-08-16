@@ -423,3 +423,49 @@ describe('auth module — OIDC routes without OIDC configured (T87, OIDC-01)', (
     expect(response.cookies.find((c) => c.name === SESSION_COOKIE_NAME)).toBeDefined();
   });
 });
+
+describe('auth module — GET /auth/oidc/status (T1, SSO-09/11)', () => {
+  let client: PGlite;
+  let db: PgliteDatabase<typeof schema>;
+
+  beforeAll(async () => {
+    client = new PGlite();
+    db = drizzle(client, { schema });
+    await runMigrations(db, { migrationsFolder: MIGRATIONS_FOLDER });
+  });
+
+  afterAll(async () => {
+    await client.close();
+  });
+
+  it('returns 200 { configured: false } when OIDC env vars are unset', async () => {
+    const config = loadConfig({ NODE_ENV: 'test' });
+    const app = buildServer(config);
+    await registerAuthModule(app, { db, config });
+    await app.ready();
+
+    const response = await app.inject({ method: 'GET', url: '/auth/oidc/status' });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ configured: false });
+
+    await app.close();
+  });
+
+  it('returns 200 { configured: true } when all 3 OIDC env vars are set — never 401/403/503', async () => {
+    const config = loadConfig({
+      NODE_ENV: 'test',
+      OIDC_ISSUER_URL: 'https://idp.example.com',
+      OIDC_CLIENT_ID: 'test-client',
+      OIDC_CLIENT_SECRET: 'test-client-secret',
+    });
+    const app = buildServer(config);
+    await registerAuthModule(app, { db, config });
+    await app.ready();
+
+    const response = await app.inject({ method: 'GET', url: '/auth/oidc/status' });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toEqual({ configured: true });
+
+    await app.close();
+  });
+});
