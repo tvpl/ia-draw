@@ -66,6 +66,12 @@ describe('extractServerRoutes (UIX-01)', () => {
     ]);
   });
 
+  it('returns an empty list instead of throwing when the server source tree is absent', () => {
+    // Widening the scan root (T18) makes the root itself a moving part: a
+    // directory that is not there must come back empty, never as a crash.
+    expect(extractServerRoutes(fakeRepo({}))).toEqual([]);
+  });
+
   it('returns an empty list instead of throwing when a file registers no route', () => {
     const root = fakeRepo({
       'apps/server/src/modules/webhook/service.ts': 'export function deliver() { return 1; }',
@@ -90,15 +96,48 @@ describe('extractServerRoutes (UIX-01)', () => {
     expect(new Set(routes.map((route) => route.path))).toEqual(new Set(['/workspaces/:id']));
   });
 
-  it('finds at least the 48 routes registered in the real repository today', () => {
+  it('finds at least the 82 routes registered in the real repository today', () => {
     const routes = extractServerRoutes(REPO_ROOT);
 
-    expect(routes.length).toBeGreaterThanOrEqual(48);
+    expect(routes.length).toBeGreaterThanOrEqual(82);
     expect(routes).toContainEqual({
       method: 'GET',
       path: '/me',
       file: 'apps/server/src/modules/auth/routes.ts',
     });
     expect(routes.every((route) => !route.file.includes('.spec.ts'))).toBe(true);
+  });
+
+  it('includes the routes the core server registers outside apps/server/src/modules', () => {
+    const routes = extractServerRoutes(REPO_ROOT);
+
+    // Named one by one on purpose: a count assertion alone stays green when the
+    // scan root silently omits a whole directory (validation.md, UIX-01).
+    expect(routes).toContainEqual({
+      method: 'GET',
+      path: '/health/live',
+      file: 'apps/server/src/core/server.ts',
+    });
+    expect(routes).toContainEqual({
+      method: 'GET',
+      path: '/health/ready',
+      file: 'apps/server/src/core/server.ts',
+    });
+    expect(routes).toContainEqual({
+      method: 'GET',
+      path: '/metrics',
+      file: 'apps/server/src/core/server.ts',
+    });
+  });
+
+  it('ignores *.spec.ts outside the modules directory too', () => {
+    const root = fakeRepo({
+      'apps/server/src/core/server.ts': "app.get('/health/live', handler);",
+      'apps/server/src/core/server.spec.ts': "app.get('/core-fixture', handler);",
+    });
+
+    expect(extractServerRoutes(root)).toEqual([
+      { method: 'GET', path: '/health/live', file: 'apps/server/src/core/server.ts' },
+    ]);
   });
 });

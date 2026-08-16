@@ -735,13 +735,20 @@ T22  (independente)
 
 **Done when**:
 
-- [ ] A varredura cobre todo `apps/server/src`, e não apenas `apps/server/src/modules`
-- [ ] `*.spec.ts` e `*.int.spec.ts` continuam excluídos, para que rotas de fixture nunca entrem no inventário
-- [ ] Teste de regressão assevera que `GET /health/live`, `GET /health/ready` e `GET /metrics` — registradas em `apps/server/src/core/server.ts` — aparecem no resultado contra o repositório real, nomeadamente e não só por contagem
-- [ ] Contra o repositório real o extrator devolve 82 rotas, contagem conferida de forma independente
-- [ ] Gate check passa: `make test-unit`
+- [x] A varredura cobre todo `apps/server/src`, e não apenas `apps/server/src/modules`
+- [x] `*.spec.ts` e `*.int.spec.ts` continuam excluídos, para que rotas de fixture nunca entrem no inventário
+- [x] Teste de regressão assevera que `GET /health/live`, `GET /health/ready` e `GET /metrics` — registradas em `apps/server/src/core/server.ts` — aparecem no resultado contra o repositório real, nomeadamente e não só por contagem
+- [x] Contra o repositório real o extrator encontra pelo menos as 82 rotas hoje registradas, e pelo menos uma delas vem de fora de `apps/server/src/modules` — a contagem exata (82) é conferida de forma independente
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 9 testes passam em `serverRoutes.spec.ts`, 34 no package (era 6 e 31) — sem deleção silenciosa
 
-**Status**: ⬜ Pending
+> **A raiz de varredura era uma suposição, não um fato.** `MODULES_DIR = 'apps/server/src/modules'` virou `SERVER_SOURCE_DIR = 'apps/server/src'`. Contagem independente por `grep -rE "\bapp\.(get|post|put|patch|delete|head|options)\(" apps/server/src --include='*.ts' | grep -v '.spec.ts'`: **82** linhas, e o extrator devolve exatamente 82. As 3 rotas que faltavam são `GET /health/live`, `GET /health/ready` e `GET /metrics`, todas em `apps/server/src/core/server.ts` — nenhuma outra rota vive fora de `modules/`.
+>
+> **O teste de regressão nomeia as três rotas, não conta.** Uma asserção de contagem sozinha (`>= 48`) ficou verde durante toda a onda F6 com a raiz errada; é exatamente o que `validation.md` aponta. O piso de contagem subiu de 48 para 82 e ganhou um teste que assevera as três rotas por método, path e arquivo.
+>
+> **Cobertura.** Ampliar a raiz apagou um ramo antes coberto em `listSourceFiles` (144→143 ramos no package) e derrubou o piso de 83,33% por 0,12 ponto. Coberto com teste, não baixando o limiar: raiz de varredura ausente devolve lista vazia em vez de lançar. Package fecha em 92,75/84,13/100/92,75 contra o piso 92,2/83,33/100/92,2.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick

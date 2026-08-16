@@ -11,8 +11,15 @@ export interface ServerRoute {
   file: string;
 }
 
-/** Directory scanned for route registrations, relative to the repo root. */
-const MODULES_DIR = 'apps/server/src/modules';
+/**
+ * Directory scanned for route registrations, relative to the repo root.
+ *
+ * The whole server source tree, not just `modules/`: `/health/live`,
+ * `/health/ready` and `/metrics` are registered in `core/server.ts`, and a scan
+ * root narrower than the server understates the total the inventory publishes
+ * (UIX-01).
+ */
+const SERVER_SOURCE_DIR = 'apps/server/src';
 
 /**
  * `app.<method>('<path>'` — the single registration convention every server
@@ -43,17 +50,17 @@ function listSourceFiles(directory: string): string[] {
 }
 
 /**
- * Scans `apps/server/src/modules` under `sourceRoot` and returns every REST
- * route the server registers, in file order. Test files (`*.spec.ts`, which
- * covers `*.int.spec.ts`) are skipped so fixture routes never reach the
- * inventory. A directory or file with no registration yields no entries
- * rather than an error (UIX-01).
+ * Scans `apps/server/src` under `sourceRoot` and returns every REST route the
+ * server registers, in file order — module routes and the routes registered by
+ * the core server alike. Test files (`*.spec.ts`, which covers `*.int.spec.ts`)
+ * are skipped so fixture routes never reach the inventory. A directory or file
+ * with no registration yields no entries rather than an error (UIX-01).
  */
 export function extractServerRoutes(sourceRoot: string): ServerRoute[] {
-  const modulesDir = join(sourceRoot, ...MODULES_DIR.split('/'));
+  const serverSourceDir = join(sourceRoot, ...SERVER_SOURCE_DIR.split('/'));
   const routes: ServerRoute[] = [];
 
-  for (const absolute of listSourceFiles(modulesDir)) {
+  for (const absolute of listSourceFiles(serverSourceDir)) {
     const relative = absolute.slice(sourceRoot.length).split(sep).filter(Boolean).join(posix.sep);
     const contents = readFileSync(absolute, 'utf8');
     for (const match of contents.matchAll(ROUTE_PATTERN)) {
