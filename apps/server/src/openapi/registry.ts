@@ -1,3 +1,4 @@
+import { routeSchemas as aiEngineRouteSchemas } from '../modules/ai-engine/routes.js';
 import { routeSchemas as aiProviderRouteSchemas } from '../modules/ai-provider/routes.js';
 import { routeSchemas as assetRouteSchemas } from '../modules/asset/routes.js';
 import { routeSchemas as authRouteSchemas } from '../modules/auth/routes.js';
@@ -22,6 +23,7 @@ import type { RouteSchemaMap } from './types.js';
  * one entry per module as the `routeSchemas` pattern spreads (T5-T20).
  */
 export const registry: Record<string, RouteSchemaMap> = {
+  'ai-engine': aiEngineRouteSchemas,
   'ai-provider': aiProviderRouteSchemas,
   asset: assetRouteSchemas,
   auth: authRouteSchemas,

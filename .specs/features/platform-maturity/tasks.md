@@ -337,6 +337,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 - [x] `make openapi` regenera `docs/openapi.json` incluindo a rota deste módulo (só `description`, sem `requestBody`/`responses`), sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T20 (`ai-engine`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 2 rotas (`POST /diagrams/:id/ai/runs`, `POST /ai/runs/:runRef`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)
@@ -652,7 +658,7 @@ At Execute, the agent counts total tasks and packs phases into **task-budgeted b
 | Batch | Phases | Tasks | Count |
 | ----- | ------ | ----- | ----- |
 | 1 | Phase 1 + Phase 2a | T1–T10 | 10 — done |
-| 2 | Phase 2b + Phase 2c | T11–T20 | 10 |
+| 2 | Phase 2b + Phase 2c | T11–T20 | 10 — done |
 | 3 | Phase 2d + Phase 3 + Phase 4 | T21–T28 | 8 |
 | 4 | Phase 5 | T29–T35 | 7 |
 
