@@ -1,6 +1,7 @@
 import { routeSchemas as aiProviderRouteSchemas } from '../modules/ai-provider/routes.js';
 import { routeSchemas as assetRouteSchemas } from '../modules/asset/routes.js';
 import { routeSchemas as authRouteSchemas } from '../modules/auth/routes.js';
+import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
 import type { RouteSchemaMap } from './types.js';
@@ -14,6 +15,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   'ai-provider': aiProviderRouteSchemas,
   asset: assetRouteSchemas,
   auth: authRouteSchemas,
+  export: exportRouteSchemas,
   snapshot: snapshotRouteSchemas,
   workspace: workspaceRouteSchemas,
 };
