@@ -538,9 +538,9 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Campo "Requirement IDs" presente e obrigatório (marcado como tal no texto)
-- [ ] Campo "Spec link" presente
-- [ ] Checklist inclui `/gate` rodado
+- [x] Campo "Requirement IDs" presente e obrigatório (marcado como tal no texto)
+- [x] Campo "Spec link" presente
+- [x] Checklist inclui `/gate` rodado
 
 **Tests**: none
 **Gate**: build
