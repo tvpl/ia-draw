@@ -319,6 +319,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 **Requirement**: API-01 (cada task)
 **Done when** (cada task): idêntico ao bloco T5–T10 (T19 usa `{ websocket: true }` em vez de schemas JSON).
 
+**T17 (`presentation`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 8 rotas (`POST`/`GET /presentations`, `GET`/`PATCH /presentations/:id`, `POST`/`PATCH /presentations/:id/frames`, `PATCH`/`DELETE /presentations/:id/frames/:frameId`) — só `presentation/routes.ts`, não `publishRoutes.ts` (chave `presentation-publish`, T22, batch diferente)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)
