@@ -134,13 +134,17 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Retorna método, path e arquivo de origem para cada rota registrada
-- [ ] Arquivos `*.spec.ts` e `*.int.spec.ts` são ignorados, para que rotas de fixture de teste nunca entrem no inventário
-- [ ] Edge case coberto: arquivo sem nenhuma rota registrada devolve lista vazia em vez de lançar
-- [ ] Edge case coberto: mesmo path registrado com métodos diferentes conta como entradas distintas
-- [ ] Executado contra o repositório real, encontra pelo menos as 48 rotas hoje registradas
-- [ ] Gate check passa: `make test-unit`
-- [ ] Test count: 6 testes passam (sem deleção silenciosa)
+- [x] Retorna método, path e arquivo de origem para cada rota registrada
+- [x] Arquivos `*.spec.ts` e `*.int.spec.ts` são ignorados, para que rotas de fixture de teste nunca entrem no inventário
+- [x] Edge case coberto: arquivo sem nenhuma rota registrada devolve lista vazia em vez de lançar
+- [x] Edge case coberto: mesmo path registrado com métodos diferentes conta como entradas distintas
+- [x] Executado contra o repositório real, encontra pelo menos as 48 rotas hoje registradas
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 6 testes passam (sem deleção silenciosa)
+
+> **Achado — a contagem de 48 rotas estava subestimada.** O extrator encontra **79** rotas registradas, não 48. O número 48 vinha de um `grep` de uma linha só (`app.<método>('<path>'`), que não enxerga os registros quebrados em várias linhas (`app.post(\n  '/path',`). Contagem independente: existem 79 chamadas `app.<método>(` em `apps/server/src/modules` fora de arquivos `*.spec.ts`, e as 79 têm path literal — nenhum falso positivo e nenhum registro perdido. O critério pedia "pelo menos 48", então o teste passa como escrito; a spec e a documentação de produto devem usar 79.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick
