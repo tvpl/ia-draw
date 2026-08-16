@@ -45,7 +45,9 @@
                     }
                   }
                 },
-                "required": ["userRequest"],
+                "required": [
+                  "userRequest"
+                ],
                 "additionalProperties": false
               }
             }
@@ -132,7 +134,12 @@
                     "type": "boolean"
                   }
                 },
-                "required": ["scope", "baseUrl", "model", "token"],
+                "required": [
+                  "scope",
+                  "baseUrl",
+                  "model",
+                  "token"
+                ],
                 "additionalProperties": false
               }
             }
@@ -250,7 +257,10 @@
                     "maximum": 9007199254740991
                   }
                 },
-                "required": ["mimeType", "sizeBytes"],
+                "required": [
+                  "mimeType",
+                  "sizeBytes"
+                ],
                 "additionalProperties": false
               }
             }
@@ -310,7 +320,10 @@
                     "minLength": 1
                   }
                 },
-                "required": ["email", "password"],
+                "required": [
+                  "email",
+                  "password"
+                ],
                 "additionalProperties": false
               }
             }
@@ -388,6 +401,15 @@
         }
       }
     },
+    "/auth/oidc/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Successful response"
+          }
+        }
+      }
+    },
     "/diagrams/{id}/comments": {
       "post": {
         "parameters": [
@@ -425,7 +447,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["body"],
+                "required": [
+                  "body"
+                ],
                 "additionalProperties": false
               }
             }
@@ -487,7 +511,10 @@
                 "properties": {
                   "status": {
                     "type": "string",
-                    "enum": ["open", "resolved"]
+                    "enum": [
+                      "open",
+                      "resolved"
+                    ]
                   },
                   "body": {
                     "type": "string",
@@ -600,7 +627,10 @@
                         },
                         "kind": {
                           "type": "string",
-                          "enum": ["upsert", "delete"]
+                          "enum": [
+                            "upsert",
+                            "delete"
+                          ]
                         },
                         "element": {
                           "type": "object",
@@ -620,12 +650,22 @@
                           "maximum": 9007199254740991
                         }
                       },
-                      "required": ["elementId", "kind", "version", "versionNonce"],
+                      "required": [
+                        "elementId",
+                        "kind",
+                        "version",
+                        "versionNonce"
+                      ],
                       "additionalProperties": false
                     }
                   }
                 },
-                "required": ["clientMutationId", "baseRevision", "actorId", "deltas"],
+                "required": [
+                  "clientMutationId",
+                  "baseRevision",
+                  "actorId",
+                  "deltas"
+                ],
                 "additionalProperties": false
               }
             }
@@ -763,7 +803,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["section"],
+                "required": [
+                  "section"
+                ],
                 "additionalProperties": false
               }
             }
@@ -848,7 +890,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["fileContent"],
+                "required": [
+                  "fileContent"
+                ],
                 "additionalProperties": false
               }
             }
@@ -919,7 +963,9 @@
                     "minLength": 1
                   }
                 },
-                "required": ["dsl"],
+                "required": [
+                  "dsl"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1087,7 +1133,10 @@
             "schema": {
               "default": "json",
               "type": "string",
-              "enum": ["csv", "json"]
+              "enum": [
+                "csv",
+                "json"
+              ]
             }
           }
         ],
@@ -1140,7 +1189,13 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
+                    "enum": [
+                      "org_admin",
+                      "workspace_admin",
+                      "editor",
+                      "reviewer",
+                      "viewer"
+                    ]
                   },
                   "label": {
                     "type": "string",
@@ -1148,7 +1203,10 @@
                   },
                   "expiresAt": {}
                 },
-                "required": ["role", "label"],
+                "required": [
+                  "role",
+                  "label"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1294,11 +1352,18 @@
                         "additionalProperties": {}
                       }
                     },
-                    "required": ["op", "elementId", "metadata"],
+                    "required": [
+                      "op",
+                      "elementId",
+                      "metadata"
+                    ],
                     "additionalProperties": false
                   }
                 },
-                "required": ["sourceRevision", "op"],
+                "required": [
+                  "sourceRevision",
+                  "op"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1329,7 +1394,10 @@
                     "minLength": 1
                   }
                 },
-                "required": ["diagramId", "name"],
+                "required": [
+                  "diagramId",
+                  "name"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1489,12 +1557,16 @@
                           "minLength": 1
                         }
                       },
-                      "required": ["targetFrameId"],
+                      "required": [
+                        "targetFrameId"
+                      ],
                       "additionalProperties": false
                     }
                   }
                 },
-                "required": ["position"],
+                "required": [
+                  "position"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1541,12 +1613,17 @@
                           "maximum": 9007199254740991
                         }
                       },
-                      "required": ["id", "position"],
+                      "required": [
+                        "id",
+                        "position"
+                      ],
                       "additionalProperties": false
                     }
                   }
                 },
-                "required": ["frames"],
+                "required": [
+                  "frames"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1635,7 +1712,9 @@
                           "minLength": 1
                         }
                       },
-                      "required": ["targetFrameId"],
+                      "required": [
+                        "targetFrameId"
+                      ],
                       "additionalProperties": false
                     }
                   }
@@ -1761,11 +1840,20 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
+                    "enum": [
+                      "org_admin",
+                      "workspace_admin",
+                      "editor",
+                      "reviewer",
+                      "viewer"
+                    ]
                   },
                   "expiresAt": {}
                 },
-                "required": ["role", "expiresAt"],
+                "required": [
+                  "role",
+                  "expiresAt"
+                ],
                 "additionalProperties": false
               }
             }
@@ -1800,11 +1888,20 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
+                    "enum": [
+                      "org_admin",
+                      "workspace_admin",
+                      "editor",
+                      "reviewer",
+                      "viewer"
+                    ]
                   },
                   "expiresAt": {}
                 },
-                "required": ["role", "expiresAt"],
+                "required": [
+                  "role",
+                  "expiresAt"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2057,7 +2154,10 @@
                     "type": "boolean"
                   }
                 },
-                "required": ["url", "events"],
+                "required": [
+                  "url",
+                  "events"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2214,7 +2314,10 @@
                     "minLength": 1
                   }
                 },
-                "required": ["name", "slug"],
+                "required": [
+                  "name",
+                  "slug"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2348,10 +2451,19 @@
                   },
                   "role": {
                     "type": "string",
-                    "enum": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
+                    "enum": [
+                      "org_admin",
+                      "workspace_admin",
+                      "editor",
+                      "reviewer",
+                      "viewer"
+                    ]
                   }
                 },
-                "required": ["userId", "role"],
+                "required": [
+                  "userId",
+                  "role"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2395,10 +2507,18 @@
                 "properties": {
                   "role": {
                     "type": "string",
-                    "enum": ["org_admin", "workspace_admin", "editor", "reviewer", "viewer"]
+                    "enum": [
+                      "org_admin",
+                      "workspace_admin",
+                      "editor",
+                      "reviewer",
+                      "viewer"
+                    ]
                   }
                 },
-                "required": ["role"],
+                "required": [
+                  "role"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2480,7 +2600,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["workspaceId", "name"],
+                "required": [
+                  "workspaceId",
+                  "name"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2619,7 +2742,10 @@
                     "type": "string"
                   }
                 },
-                "required": ["projectId", "title"],
+                "required": [
+                  "projectId",
+                  "title"
+                ],
                 "additionalProperties": false
               }
             }
@@ -2679,7 +2805,12 @@
                   },
                   "status": {
                     "type": "string",
-                    "enum": ["draft", "in_review", "approved", "archived"]
+                    "enum": [
+                      "draft",
+                      "in_review",
+                      "approved",
+                      "archived"
+                    ]
                   },
                   "ownerId": {
                     "type": "string",
