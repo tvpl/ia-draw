@@ -1,15 +1,25 @@
 # Architecture Canvas
 
-Plataforma self-hosted de diagramação de arquitetura sobre o [Excalidraw](https://github.com/excalidraw/excalidraw), com **IA geradora de diagramas de alta qualidade** e persistência **server-first** — nenhum diagrama depende do navegador como fonte da verdade.
+Plataforma self-hosted de diagramação de arquitetura sobre o [Excalidraw](https://github.com/excalidraw/excalidraw), com persistência **server-first** — nenhum diagrama depende do navegador como fonte da verdade — e um motor de **IA geradora de diagramas** entregue como API.
 
-> **Status:** roadmap completo (F0–F5, 92/92 requisitos), implementado e independentemente verificado onda a onda. Ver [`.specs/STATE.md`](.specs/STATE.md) (marco final) e [`.specs/features/architecture-canvas/validation.md`](.specs/features/architecture-canvas/validation.md).
+> **Status:** os 92 requisitos de F0–F5 estão implementados como **contrato de backend verificado**: cada um foi checado onda a onda por um Verifier independente, com evidência em `file:line`. Ver [`.specs/STATE.md`](.specs/STATE.md) (marco final) e [`.specs/features/architecture-canvas/validation.md`](.specs/features/architecture-canvas/validation.md).
+>
+> A **superfície de produto é rastreada à parte** e está atrás do backend. Das 26 capacidades do [mapa de capacidades](docs/capability-map.yaml), 4 têm tela hoje e **22 são `backend-only`** — API verificada, sem nenhum componente em `apps/web` que as exponha ao usuário final. Em rotas: das 79 rotas REST registradas, 4 são consumidas pela interface e 75 não têm consumidor ([inventário](docs/route-inventory.md)). O CI roda `repo-tools audit` a cada pull request, então esta distinção não depende de disciplina de quem escreve documentação.
 
 ## O que é
 
+**Com tela hoje** (as 4 capacidades com superfície em `apps/web/src`):
+
 - Diagramas técnicos e de negócio (AWS/cloud, C4, microsserviços, fluxos, swimlanes) desenhados no editor Excalidraw, mas **persistidos e reconciliados no servidor** a cada alteração — crash de navegador, reload ou troca de máquina nunca apagam trabalho confirmado.
-- Um agente de IA gera diagramas a partir de linguagem natural (via uma representação intermediária declarativa, `diagram-ir/v1`) e edita diagramas existentes com **preview, aprovação explícita e undo real**.
-- Colaboração em tempo real (WebSocket + presença), documentação viva gerada a partir do canvas, lint arquitetural, import/export Mermaid/Structurizr, apresentações navegáveis, comentários, compartilhamento externo e webhooks.
-- Hardening de produção: OIDC, rate limiting, auditoria completa, backup incremental com teste de restore automatizado, métricas Prometheus, tracing OpenTelemetry, acessibilidade.
+- Sessão autenticada no editor, recuperação da fila local após crash do navegador, e o shell da aplicação com acessibilidade verificada.
+
+**Contrato de backend verificado, ainda sem tela** (`backend-only` no mapa — a API existe e é testada, o usuário final não tem por onde acessar):
+
+- Um agente de IA que gera diagramas a partir de linguagem natural (via uma representação intermediária declarativa, `diagram-ir/v1`) e edita diagramas existentes com **preview, aprovação explícita e undo real**. É o diferencial declarado do produto e a primeira fatia do roadmap de UI.
+- Colaboração em tempo real (WebSocket + presença), documentação viva gerada a partir do canvas, lint arquitetural, import/export Mermaid/Structurizr, apresentações navegáveis, comentários, biblioteca de componentes, histórico e restore de versão, export de imagem e bundle, compartilhamento externo por link e webhooks.
+- Hardening de produção: OIDC, rate limiting, auditoria completa, backup incremental com teste de restore automatizado, métricas Prometheus, tracing OpenTelemetry.
+
+O que cada capacidade tem de evidência de backend, e se tem ou não superfície, está em [`docs/capability-map.yaml`](docs/capability-map.yaml) — uma entrada por capacidade, verificada pelo CI.
 
 ## Quick start (local)
 

@@ -568,11 +568,21 @@ T16 → T17
 
 **Done when**:
 
-- [ ] A contagem de requisitos aparece qualificada como contrato de backend verificado por Verifier independente
-- [ ] A contagem de capacidades sem superfície de produto aparece explicitamente, com link para o mapa
-- [ ] Nenhuma capacidade marcada `backend-only` no mapa é descrita como disponível ao usuário
-- [ ] `repo-tools audit` passa contra o README reescrito
-- [ ] Gate check passa: `make ci`
+- [x] A contagem de requisitos aparece qualificada como contrato de backend verificado por Verifier independente
+- [x] A contagem de capacidades sem superfície de produto aparece explicitamente, com link para o mapa
+- [x] Nenhuma capacidade marcada `backend-only` no mapa é descrita como disponível ao usuário
+- [x] `repo-tools audit` passa contra o README reescrito
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
+
+> **A correção é de precisão, não de mérito.** O bloco de status passou a separar duas afirmações que antes vinham coladas: os 92 requisitos continuam verificados por Verifier independente, com evidência em `file:line`, e essa é uma afirmação forte que ficou intacta; o que mudou é que ela agora se declara como contrato de backend, com a superfície de produto medida ao lado (26 capacidades, 4 com tela, 22 `backend-only`; 79 rotas, 4 consumidas, 75 sem consumidor). Todos os números saíram de `docs/capability-map.yaml` e `docs/route-inventory.md`, nunca de estimativa.
+>
+> A seção `O que é` foi partida em duas listas. As 22 capacidades `backend-only` — IA geradora e editora, colaboração em tempo real, docgen, lint, interop, apresentações, comentários, biblioteca, histórico, export, share, webhooks, OIDC, backup, observabilidade — estavam na mesma lista das entregues e agora estão sob "ainda sem tela". A lista "com tela hoje" tem exatamente as 4 entradas com `ui_surface` no mapa.
+>
+> `repo-tools audit` sai 0 depois da reescrita (`79 routes, 4 consumed, 75 pending-product`). A auditoria não lê o README — ela protege o mapa, que é a fonte do texto; a checagem do texto contra o mapa foi feita entrada a entrada.
+>
+> **Achado não corrigido (fora do `Where` desta task):** a árvore do monorepo no README não lista `tools/repo-tools`, criado em T1.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
