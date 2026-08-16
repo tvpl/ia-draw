@@ -120,7 +120,7 @@ T7 → T9
 
 ---
 
-### T3: Add imperative `applyRemoteScene` handle to `EditorSurface`
+### T3: Add imperative `applyRemoteScene` handle to `EditorSurface` — DONE
 
 **What**: Convert `EditorSurface` to `forwardRef`, exposing `{ applyRemoteScene(remote: readonly SceneElement[]): void }` via `useImperativeHandle`, which fuses `remote` with the current local scene through `applyRemote` and pushes the result via `excalidrawAPI.updateScene(...)`.
 **Where**: `packages/editor-adapter/src/EditorSurface.tsx`
@@ -133,11 +133,11 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `excalidrawAPI` captured via the `<Excalidraw excalidrawAPI={...}/>` prop into a ref
-- [ ] `applyRemoteScene` calls `applyRemote(currentLocalElements, remote, appState)` then `excalidrawAPI.updateScene({ elements: ... })`
-- [ ] `EditorSurface` consumers using it as a plain (non-ref) component are unaffected — `forwardRef` is backward compatible when no ref is passed
-- [ ] Unit test mounts `EditorSurface` with a ref, calls `applyRemoteScene` with a scene that both adds and conflicts with a locally-mutated element, and asserts the LWW-correct merged result reaches `updateScene`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
+- [x] `excalidrawAPI` captured via the `<Excalidraw excalidrawAPI={...}/>` prop into a ref
+- [x] `applyRemoteScene` calls `applyRemote(currentLocalElements, remote, appState)` then `excalidrawAPI.updateScene({ elements: ... })`
+- [x] `EditorSurface` consumers using it as a plain (non-ref) component are unaffected — `forwardRef` is backward compatible when no ref is passed
+- [x] Unit test mounts `EditorSurface` with a ref, calls `applyRemoteScene` with a scene that both adds and conflicts with a locally-mutated element, and asserts the LWW-correct merged result reaches `updateScene`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
 
 **Tests**: unit
 **Gate**: quick
