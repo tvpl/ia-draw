@@ -195,7 +195,7 @@ T7 → T9
 
 ---
 
-### T6: Create `AiDockClient`
+### T6: Create `AiDockClient` — DONE
 
 **What**: HTTP client class calling the 4 consumed routes (`POST .../ai/runs`, `POST /ai/runs/:runRef` ×2 actions, `POST .../snapshots/:id:restore`, `GET .../bootstrap` for refresh), branching by status code exactly as design.md's Error Handling Strategy table specifies, and driving the `aiDockStore` actions from T5.
 **Where**: `apps/web/src/ai-dock/aiDockClient.ts`
@@ -208,13 +208,13 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `submitRequest` sends the exact body shape (`userRequest`, `language`, `selection` — omitted when empty, per DOCK-03) and branches 201(w/preview)/201(w/o preview)/403/424/429 into the correct store actions
-- [ ] `approve` branches 200/409 correctly, and only updates `lastSnapshotId`/`applied` phase after a resolved 200 (never optimistically)
-- [ ] `cancel` calls the store's `cancelled` action unconditionally on a resolved response
-- [ ] `undo` branches 200/other, never calling `undoSuccess` on a non-200
-- [ ] `refreshScene` calls `GET .../bootstrap` and returns `{ scene }` for the caller (`DiagramEditorPage`) to merge via `applyRemoteScene` — does not itself touch the canvas
-- [ ] Unit test covers every branch listed in design.md's Error Handling Strategy table, using the `jsonResponse(status, body)` + injected `fetchImpl: vi.fn()` pattern from `syncClient.spec.ts`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `submitRequest` sends the exact body shape (`userRequest`, `language`, `selection` — omitted when empty, per DOCK-03) and branches 201(w/preview)/201(w/o preview)/403/424/429 into the correct store actions
+- [x] `approve` branches 200/409 correctly, and only updates `lastSnapshotId`/`applied` phase after a resolved 200 (never optimistically)
+- [x] `cancel` calls the store's `cancelled` action unconditionally on a resolved response
+- [x] `undo` branches 200/other, never calling `undoSuccess` on a non-200
+- [x] `refreshScene` calls `GET .../bootstrap` and returns `{ scene }` for the caller (`DiagramEditorPage`) to merge via `applyRemoteScene` — does not itself touch the canvas
+- [x] Unit test covers every branch listed in design.md's Error Handling Strategy table, using the `jsonResponse(status, body)` + injected `fetchImpl: vi.fn()` pattern from `syncClient.spec.ts`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
