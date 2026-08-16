@@ -240,9 +240,9 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `jest-axe` run against `LoginPage` in idle and error states
-- [ ] Zero serious/critical violations in both
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` run against `LoginPage` in idle and error states
+- [x] Zero serious/critical violations in both
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
