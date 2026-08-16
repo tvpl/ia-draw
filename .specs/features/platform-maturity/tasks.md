@@ -155,10 +155,10 @@ T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `routeSchemas` cobre as 5 rotas reais de `ai-provider` (confirmar contra `app.get/post/patch` no arquivo)
-- [ ] `apps/server/src/openapi/registry.ts` criado, exporta `registry: Record<string, RouteSchemaMap>` com a entrada `ai-provider`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 1 novo teste (`registry['ai-provider']` tem as 5 chaves esperadas)
+- [x] `routeSchemas` cobre as 5 rotas reais de `ai-provider` (confirmar contra `app.get/post/patch` no arquivo)
+- [x] `apps/server/src/openapi/registry.ts` criado, exporta `registry: Record<string, RouteSchemaMap>` com a entrada `ai-provider`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [x] Test count: 1 novo teste (`registry['ai-provider']` tem as 5 chaves esperadas)
 
 **Tests**: unit
 **Gate**: quick
