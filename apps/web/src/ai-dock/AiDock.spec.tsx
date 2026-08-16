@@ -585,6 +585,64 @@ describe('AiDock (T7)', () => {
     expect(fetchImpl).toHaveBeenCalled();
   });
 
+  // DOCK-21: the AC names 6 keyboard-reachable actions — open, focus the field, submit
+  // (both covered above), approve, discard, undo. "Open" has no distinct interactive
+  // control of its own here: the dock is always mounted already-`open` when `canMutate`
+  // (there is no collapsed shell to reveal by keyboard), so its keyboard-reachable
+  // surface is the native `<summary>` toggle, asserted below alongside the three
+  // remaining terminal actions. All are plain native `<summary>`/`<button>` elements,
+  // which are focusable and activatable by keyboard for free — this proves it rather
+  // than assuming it.
+  it('the summary, approve, discard, and undo controls are all keyboard-focusable (DOCK-21)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/ai/runs') {
+        return Promise.resolve(
+          jsonResponse(201, {
+            run: { id: 'run-kbd', status: 'awaiting_approval' },
+            patch: {},
+            preview: PREVIEW,
+            requiresExplicitApproval: false,
+          }),
+        );
+      }
+      if (url === '/ai/runs/run-kbd:approve') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            run: { id: 'run-kbd', status: 'applied' },
+            snapshot: { id: 'snapshot-kbd' },
+            batch: {},
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    renderDock({ fetchImpl });
+
+    // Open: the collapsible panel's own toggle is keyboard-reachable.
+    const summary = screen.getByText('AI dock');
+    summary.focus();
+    expect(document.activeElement).toBe(summary);
+
+    await submitRequest('draw three services');
+
+    const approveButton = screen.getByRole('button', { name: 'Approve' });
+    approveButton.focus();
+    expect(document.activeElement).toBe(approveButton);
+
+    const discardButton = screen.getByRole('button', { name: 'Discard' });
+    discardButton.focus();
+    expect(document.activeElement).toBe(discardButton);
+
+    await act(async () => {
+      fireEvent.click(approveButton);
+      await Promise.resolve();
+    });
+
+    const undoButton = screen.getByRole('button', { name: 'Undo' });
+    undoButton.focus();
+    expect(document.activeElement).toBe(undoButton);
+  });
+
   it('all visible text is sourced from i18n keys in both pt-BR and en (DOCK-23)', async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
     await i18n.changeLanguage('pt-BR');
