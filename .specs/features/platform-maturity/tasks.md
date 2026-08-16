@@ -82,6 +82,17 @@ Só acontece depois que o mapa e o inventário existem — senão a reescrita se
 T16 → T17
 ```
 
+### Phase 5: Correções da rodada 1 de verificação
+
+Fecha as lacunas apontadas por `validation.md` (rodada 1). As correções de ferramenta vêm antes das de documentação, porque a contagem publicada depende delas.
+
+```
+T18 → T21
+T19  (independente)
+T20  (independente)
+T22  (independente)
+```
+
 ---
 
 ## Task Breakdown
@@ -705,10 +716,166 @@ T16 → T17
 
 ---
 
+### Phase 5 — Correções da rodada 1 de verificação
+
+> Origem: `.specs/features/platform-maturity/validation.md` (Verifier independente, veredito FAIL). A lacuna 3 do relatório (job `e2e` contra o stack do compose, CIQ-03) está **fora desta rodada** por decisão do usuário e não tem task aqui.
+
+#### T18: Varrer todas as rotas registradas, não só as dos módulos
+
+**What**: Ampliar a raiz de varredura do extrator de rotas para todo `apps/server/src`, de modo que as rotas registradas fora de `modules/` entrem no inventário.
+**Where**: `tools/repo-tools/src/serverRoutes.ts`, `tools/repo-tools/src/serverRoutes.spec.ts`
+**Depends on**: None
+**Reuses**: `extractServerRoutes` (T2) e sua exclusão de `*.spec.ts`
+**Requirement**: UIX-01
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A varredura cobre todo `apps/server/src`, e não apenas `apps/server/src/modules`
+- [ ] `*.spec.ts` e `*.int.spec.ts` continuam excluídos, para que rotas de fixture nunca entrem no inventário
+- [ ] Teste de regressão assevera que `GET /health/live`, `GET /health/ready` e `GET /metrics` — registradas em `apps/server/src/core/server.ts` — aparecem no resultado contra o repositório real, nomeadamente e não só por contagem
+- [ ] Contra o repositório real o extrator devolve 82 rotas, contagem conferida de forma independente
+- [ ] Gate check passa: `make test-unit`
+
+**Status**: ⬜ Pending
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(repo-tools): scan the whole server source tree for registered routes`
+
+---
+
+#### T19: Exigir que a superfície declarada seja um módulo de UI de verdade
+
+**What**: Endurecer `checkCapabilityMap` para que `ui_surface` só seja aceita quando aponta para um módulo `.tsx`/`.ts` de componente sob `apps/web/src` — não um arquivo de tradução, JSON ou outro ativo que não é superfície.
+**Where**: `tools/repo-tools/src/capabilityMap.ts`, `tools/repo-tools/src/capabilityMap.spec.ts`
+**Depends on**: None
+**Reuses**: `checkCapabilityMap` (T6) e o formato de violação `{ entry, problem }`
+**Requirement**: TRU-02, TRU-03
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Uma entrada cuja `ui_surface` existe em disco sob `apps/web/src` mas não é módulo de componente (por exemplo `apps/web/src/i18n/locales/en/translation.json`) é reportada como violação nomeando a entrada e o caminho
+- [ ] Arquivos de locale continuam rejeitados mesmo com extensão de módulo
+- [ ] Arquivos de teste (`*.spec.ts`, `*.spec.tsx`) e declarações (`*.d.ts`) não contam como superfície
+- [ ] As superfícies reais hoje declaradas em `docs/capability-map.yaml` continuam aceitas — a checagem contra o mapa real segue sem violação
+- [ ] Mutante M6 do `validation.md` morre: repontar `Recuperação após crash do navegador` para `apps/web/src/i18n/locales/en/translation.json` faz a suíte falhar
+- [ ] Gate check passa: `make test-unit`
+
+**Status**: ⬜ Pending
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(repo-tools): require a declared UI surface to be a real component module`
+
+---
+
+#### T20: Falhar quando um package novo não declarar piso de cobertura
+
+**What**: Checagem que enumera os packages do workspace e falha quando algum expõe `test:unit` sem declarar `coverage.thresholds`, ligada ao comando `audit` e portanto ao job `capability-audit`.
+**Where**: `tools/repo-tools/src/coverageFloors.ts`, `tools/repo-tools/src/coverageFloors.spec.ts`, `tools/repo-tools/src/cli.ts`, `tools/repo-tools/src/cli.spec.ts`
+**Depends on**: None
+**Reuses**: a CLI `runAudit` (T7) e os 12 `vitest.config.ts` com piso declarado em T8
+**Requirement**: CIQ-04
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Todo package do workspace com script `test:unit` e sem bloco `coverage.thresholds` é reportado nomeando o package
+- [ ] Package sem `test:unit` não é exigido — `packages/database` continua legítimo
+- [ ] Edge case coberto: package com `test:unit` e nenhum `vitest.config.ts` falha exigindo a declaração, em vez de passar em silêncio
+- [ ] `runAudit` sai diferente de zero quando existe qualquer package sem piso, imprimindo cada um
+- [ ] Executado contra o repositório real, nenhum package viola — os 12 já declaram piso
+- [ ] Gate check passa: `make test-unit`
+
+**Status**: ⬜ Pending
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `feat(repo-tools): fail when a workspace package declares no coverage floor`
+
+---
+
+#### T21: Propagar a contagem corrigida de rotas
+
+**What**: Regerar o inventário com o extrator corrigido e atualizar o número publicado em toda superfície de documentação que o repetia.
+**Where**: `docs/route-inventory.md`, `docs/capability-map.yaml`, `README.md`, `docs/architecture-overview.html`
+**Depends on**: T18
+**Reuses**: `pnpm --filter @arch-canvas/repo-tools run audit` como única fonte dos números
+**Requirement**: TRU-04, UIX-01, UIX-04
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] `docs/route-inventory.md` regenerado pela CLI, sem edição à mão
+- [ ] `README.md`, `docs/architecture-overview.html` e o cabeçalho de `docs/capability-map.yaml` trazem a contagem corrigida
+- [ ] O invariante `consumidas + pendentes == total` é visivelmente verdadeiro em cada lugar onde os três números aparecem
+- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai zero
+- [ ] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+**Status**: ⬜ Pending
+
+**Tests**: none
+**Gate**: build
+
+**Commit**: `docs(inventory): publish the corrected registered-route count`
+
+---
+
+#### T22: Corrigir a afirmação superestimada e a rastreabilidade
+
+**What**: Reescrever a frase que atribui ao CI mais do que ele checa e fechar a linha de rastreabilidade de CIQ-07.
+**Where**: `README.md`, `docs/architecture-overview.html`, `.specs/features/platform-maturity/spec.md`
+**Depends on**: None
+**Reuses**: o comportamento real de `repo-tools audit` (T7) como limite do que pode ser afirmado
+**Requirement**: TRU-04, CIQ-07
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A frase do README deixa de afirmar que a distinção não depende de disciplina de quem escreve documentação e passa a declarar exatamente o que a auditoria checa: o mapa contra o código
+- [ ] A frase equivalente da landing recebe a mesma correção, por ser a mesma afirmação
+- [ ] `spec.md` marca CIQ-07 como `Implementing`, não `Pending`, já que T13 entregou `.github/renovate.json`
+- [ ] Nenhum número ou outra afirmação é alterado nesta task
+- [ ] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+**Status**: ⬜ Pending
+
+**Tests**: none
+**Gate**: build
+
+**Commit**: `docs(readme): claim only what the capability audit enforces`
+
+---
+
 ## Phase Execution Map
 
 ```
-Phase 1 → Phase 2 → Phase 3 → Phase 4
+Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
 
 Phase 1:  T1 → T2 → T4
           T1 → T3 → T4
@@ -716,6 +883,8 @@ Phase 2:  T5 → T6 → T7
 Phase 3:  T8, T9, T10, T11, T12, T13 (sem dependência entre si)
 Phase 4:  T14, T15 (independentes)
           T16 → T17
+Phase 5:  T18 → T21
+          T19, T20, T22 (independentes)
 ```
 
 A execução é estritamente sequencial — não há paralelismo dentro de uma fase.
@@ -743,6 +912,11 @@ A execução é estritamente sequencial — não há paralelismo dentro de uma f
 | T15: Landing | 1 documento | ✅ Granular |
 | T16: Índice de roadmap | 1 documento | ✅ Granular |
 | T17: Spec do dock de IA | 1 spec | ✅ Granular |
+| T18: Raiz de varredura do extrator | 1 função | ✅ Granular |
+| T19: Relevância da superfície declarada | 1 função | ✅ Granular |
+| T20: Piso de cobertura obrigatório | 1 função + o wiring da CLI | ✅ Granular |
+| T21: Propagação da contagem | 1 artefato regerado + as 3 superfícies que o citam | ⚠️ Coeso — um número único replicado, não deliverables distintos |
+| T22: Afirmação e rastreabilidade | 1 frase + 1 linha de tabela | ✅ Granular |
 
 ---
 
@@ -767,6 +941,11 @@ A execução é estritamente sequencial — não há paralelismo dentro de uma f
 | T15 | T5 | fase anterior | ✅ Match |
 | T16 | T4 | fase anterior | ✅ Match |
 | T17 | T16 | T16 → T17 | ✅ Match |
+| T18 | None | — | ✅ Match |
+| T19 | None | — | ✅ Match |
+| T20 | None | — | ✅ Match |
+| T21 | T18 | T18 → T21 | ✅ Match |
+| T22 | None | — | ✅ Match |
 
 Nenhuma dependência aponta para fase posterior.
 
@@ -793,5 +972,10 @@ Nenhuma dependência aponta para fase posterior.
 | T15 | Documentação | none | none | ✅ OK |
 | T16 | Documentação | none | none | ✅ OK |
 | T17 | Spec | none | none | ✅ OK |
+| T18 | Lógica de ferramenta | unit | unit | ✅ OK |
+| T19 | Lógica de ferramenta | unit | unit | ✅ OK |
+| T20 | Lógica de ferramenta | unit | unit | ✅ OK |
+| T21 | Artefato de dados + documentação | none | none | ✅ OK |
+| T22 | Documentação + spec | none | none | ✅ OK |
 
 Todo `Tests: none` corresponde a uma linha da matriz que exige `none` — nenhum é adiamento de teste. As tasks de workflow, que não têm suíte possível, compensam com reprodução local declarada no `Done when`; T8, T10 e T12 vão além e exigem sensor de discriminação (quebrar de propósito e confirmar que o portão pega).
