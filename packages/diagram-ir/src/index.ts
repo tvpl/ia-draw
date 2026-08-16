@@ -10,7 +10,7 @@ export {
   type RectangleElement,
   type TextElement,
 } from './compile.js';
-export { decompile, type DecompileMetadataInput } from './decompile.js';
+export { type DecompileMetadataInput, decompile } from './decompile.js';
 export {
   parseMermaidFlowchart,
   parseStructurizrDsl,

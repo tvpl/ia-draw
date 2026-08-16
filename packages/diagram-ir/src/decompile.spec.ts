@@ -1,7 +1,7 @@
 import { LIBRARY_MANIFEST } from '@arch-canvas/library-content';
 import { describe, expect, it } from 'vitest';
 import { compile } from './compile.js';
-import { decompile, type DecompileMetadataInput } from './decompile.js';
+import { type DecompileMetadataInput, decompile } from './decompile.js';
 import { type IrDocument, validateIr } from './schema.js';
 
 const library = LIBRARY_MANIFEST.items;
@@ -188,9 +188,7 @@ describe('decompile', () => {
     // validateIr() proves the reverse-compiled document is itself schema-valid, not just non-throwing.
     expect(() => validateIr(decompiled)).not.toThrow();
 
-    expect(new Set(decompiled.nodes.map((n) => n.id))).toEqual(
-      new Set(ir.nodes.map((n) => n.id)),
-    );
+    expect(new Set(decompiled.nodes.map((n) => n.id))).toEqual(new Set(ir.nodes.map((n) => n.id)));
     expect(new Set(decompiled.edges.map((e) => `${e.from}->${e.to}`))).toEqual(
       new Set(ir.edges.map((e) => `${e.from}->${e.to}`)),
     );
