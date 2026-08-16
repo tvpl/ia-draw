@@ -271,13 +271,30 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Regenerate and diff docs/openapi.json (API-02)
+        # A committed docs/openapi.json that no longer matches the
+        # routeSchemas registry is a stale contract — fail naming the file,
+        # same pattern TRU-03/UIX-01 already use for a divergent claim. The
+        # biome format step is required: the raw generator output does not
+        # match biome's array-wrapping style, so skipping it would make this
+        # diff non-empty on every run, even with no real drift.
+        run: |
+          set -euo pipefail
+          make openapi
+          pnpm exec biome format --write docs/openapi.json
+          if ! git diff --exit-code docs/openapi.json; then
+            echo "::error::docs/openapi.json is stale - regenerate with 'make openapi', format it with 'pnpm exec biome format --write docs/openapi.json', and commit the result"
+            exit 1
+          fi
       - name: Build the audit tool
         run: pnpm --filter @arch-canvas/repo-tools build
       - name: Audit the capability map against the code
         # `run audit`, not `exec repo-tools audit`: on a clean checkout the bin
         # cannot be linked at install time (dist/cli.js does not exist yet), so
         # the exec form would need install -> build -> install. The script form
-        # only needs the build step above.
+        # only needs the build step above. Also covers the OpenAPI route
+        # parity check (T24, API-02) since checkOpenApiParity is wired into
+        # runAudit.
         run: pnpm --filter @arch-canvas/repo-tools run audit
       - name: Publish the generated route inventory
         if: always()

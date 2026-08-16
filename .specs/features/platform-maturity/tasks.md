@@ -424,10 +424,11 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Step novo roda `make openapi && git diff --exit-code docs/openapi.json`
-- [ ] Step roda `pnpm --filter @arch-canvas/repo-tools run audit` na sequência
-- [ ] `make lint` confirma o YAML bem formado (biome cobre `.github/workflows/*.yaml`)
-- [ ] Não pode ser testado localmente contra um evento real de PR (mesma limitação já registrada em `STATE.md` pra outros jobs de CI) — verificado manualmente rodando os dois comandos do step em sequência neste ambiente
+- [x] Step novo roda `make openapi && git diff --exit-code docs/openapi.json`
+- [x] Step roda `pnpm --filter @arch-canvas/repo-tools run audit` na sequência
+- [x] `make lint` confirma o YAML bem formado (biome cobre `.github/workflows/*.yaml`)
+- [x] Não pode ser testado localmente contra um evento real de PR (mesma limitação já registrada em `STATE.md` pra outros jobs de CI) — verificado manualmente rodando os dois comandos do step em sequência neste ambiente
+- Nota (achado ao verificar manualmente): `make openapi` sozinho não basta antes do `git diff` — a saída crua do gerador não bate com o estilo de wrap de array do biome (a mesma "known formatting gotcha" documentada no batch), então o step novo roda `pnpm exec biome format --write docs/openapi.json` entre os dois, senão o diff nunca ficaria limpo mesmo sem drift real. Confirmado manualmente: caso limpo sai 0; um drift real injetado (rota fantasma no registry) sai 1 nomeando o arquivo.
 
 **Tests**: none
 **Gate**: build
