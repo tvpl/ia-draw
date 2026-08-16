@@ -152,6 +152,14 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build workspace dependencies
+        # runThresholdCheck runs evals.spec.ts directly via `pnpm exec vitest`
+        # (not through `turbo run test:unit`), so it never gets turbo's
+        # `dependsOn: ["^build"]` for free — on a clean checkout the
+        # workspace packages evals.spec.ts imports (diagram-ir,
+        # library-content, ...) resolve to their dist/ output, which does
+        # not exist without this step.
+        run: pnpm -w build
       - name: Run the deterministic eval suite against its success threshold (API-03)
         # A dedicated, named job — a threshold miss is distinguishable in CI
         # from an unrelated `test:unit` failure. runThresholdCheck (T27)
@@ -344,6 +352,13 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build workspace dependencies
+        # `make openapi` runs apps/server's generator directly via `tsx`
+        # (not through `turbo run build`/`test:unit`), so on a clean
+        # checkout it never gets turbo's `dependsOn: ["^build"]` for free -
+        # the workspace packages it imports (shared-contracts, diagram-ir,
+        # ...) resolve to their dist/ output, which does not exist yet.
+        run: pnpm -w build
       - name: Regenerate and diff docs/openapi.json (API-02)
         # A committed docs/openapi.json that no longer matches the
         # routeSchemas registry is a stale contract — fail naming the file,
