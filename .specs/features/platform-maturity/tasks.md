@@ -210,6 +210,12 @@ Mesmo padrão de T3 (export `routeSchemas` apontando pros schemas Zod já existe
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T6 (`workspace`)**:
+- [x] `routeSchemas` cobre as 9 rotas registradas diretamente em `workspace/routes.ts` (as rotas de `project-diagram-routes.ts`, registradas por um arquivo separado que não é um `routes.ts`, ficam fora da cobertura desta wave — mesmo escopo "os 17 `routes.ts`" do design.md)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T11–T16: `routeSchemas` — lote 2 (Phase 2b)
