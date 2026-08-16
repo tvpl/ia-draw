@@ -890,13 +890,17 @@ T22  (independente)
 
 **Done when**:
 
-- [ ] A frase do README deixa de afirmar que a distinção não depende de disciplina de quem escreve documentação e passa a declarar exatamente o que a auditoria checa: o mapa contra o código
-- [ ] A frase equivalente da landing recebe a mesma correção, por ser a mesma afirmação
-- [ ] `spec.md` marca CIQ-07 como `Implementing`, não `Pending`, já que T13 entregou `.github/renovate.json`
-- [ ] Nenhum número ou outra afirmação é alterado nesta task
-- [ ] Gate check passa: `make ci` — ver nota de ambiente em T1
+- [x] A frase do README deixa de afirmar que a distinção não depende de disciplina de quem escreve documentação e passa a declarar exatamente o que a auditoria checa: o mapa contra o código
+- [x] A frase equivalente da landing recebe a mesma correção, por ser a mesma afirmação
+- [x] `spec.md` marca CIQ-07 como `Implementing`, não `Pending`, já que T13 entregou `.github/renovate.json`
+- [x] Nenhum número ou outra afirmação é alterado nesta task
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
 
-**Status**: ⬜ Pending
+> **A frase afirmava um grau a mais do que o portão prova.** `repo-tools audit` lê `docs/capability-map.yaml` e o sistema de arquivos; nunca abre o README nem a landing. Dizer que "esta distinção não depende de disciplina de quem escreve documentação" descrevia um portão que não existe — e a onda inteira é sobre não exagerar a própria cobertura. As duas frases (README e landing) passam a dizer o que é verdade: o CI cobre **o mapa contra o código**, e a correspondência entre a prosa e o mapa continua sendo revisão humana.
+>
+> **Rastreabilidade:** CIQ-07 estava `Pending` em `spec.md` desde antes de T13, que entregou `.github/renovate.json` e se marcou completa. Passou a `Implementing`, o mesmo estado das outras 14 linhas de F6 — o avanço para `Verified` é do Verifier, não do implementador.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
