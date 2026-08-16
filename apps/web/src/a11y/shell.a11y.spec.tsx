@@ -83,7 +83,21 @@ afterEach(() => {
 
 describe('AppShell (T95, A11Y-01)', () => {
   it('has zero serious/critical axe violations', async () => {
-    const { container } = render(<AppShell />);
+    // T9: `AppShell` now renders a logout button via `useLogout()`, which needs an
+    // `AuthProvider` in the tree — a permanently-pending fetch (same convention as the
+    // `DiagramEditorPage` describe below) keeps it deterministically in `status:
+    // 'loading'`, which is fine here since `useLogout()` itself doesn't depend on the
+    // resolved status, only on being inside a `AuthProvider`.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
+
+    const { container } = render(
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>,
+    );
     const results = await axe(container);
     expect(seriousOrCriticalViolations(results)).toEqual([]);
   });

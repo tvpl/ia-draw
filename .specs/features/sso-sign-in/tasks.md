@@ -290,10 +290,10 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Button renders with an i18n label (`auth.logout`), keyboard-reachable
-- [ ] Click calls `POST /auth/logout` via `useLogout()` and the app ends up on `/login` (via `ProtectedRoute` reacting to the now-anonymous state, or an explicit redirect in `useLogout()` — either is acceptable, whichever `useLogout()`'s T3 implementation already does)
-- [ ] Unit test (new `AppShell.spec.tsx`, none exists today) covers the click → logout call → anonymous state transition
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Button renders with an i18n label (`auth.logout`), keyboard-reachable
+- [x] Click calls `POST /auth/logout` via `useLogout()` and the app ends up on `/login` (via `ProtectedRoute` reacting to the now-anonymous state, or an explicit redirect in `useLogout()` — either is acceptable, whichever `useLogout()`'s T3 implementation already does)
+- [x] Unit test (new `AppShell.spec.tsx`, none exists today) covers the click → logout call → anonymous state transition
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
