@@ -448,10 +448,10 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] `checkEvalThreshold` retorna `rate` e `ok` corretos pra taxa acima/igual/abaixo do limiar
-- [ ] `EVAL_SUCCESS_THRESHOLD` exportado e documentado (comentário explica por que é 100% hoje)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 4 novos testes (100% passa; abaixo do limiar falha `ok`; limiar customizado; lista vazia não divide por zero)
+- [x] `checkEvalThreshold` retorna `rate` e `ok` corretos pra taxa acima/igual/abaixo do limiar
+- [x] `EVAL_SUCCESS_THRESHOLD` exportado e documentado (comentário explica por que é 100% hoje)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit` — os 4 testes novos passam e a suíte inteira roda 0 falhas (377/377); o comando sai 1 só pelo piso de cobertura global de `functions` (39.73%, `vitest.config.ts`), que já estava quebrado (28.67%) ANTES deste arquivo existir (confirmado isolando `threshold.ts`/`threshold.spec.ts` via `git stash` e rodando de novo) e sobe, não desce, com este arquivo (28.67% → 28.84%) — pré-existente, fora do escopo de T21-T28, não meu código causando a quebra
+- [x] Test count: 4 novos testes (100% passa; abaixo do limiar falha `ok`; limiar customizado; lista vazia não divide por zero)
 
 **Tests**: unit
 **Gate**: quick
