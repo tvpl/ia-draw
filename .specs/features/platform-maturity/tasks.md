@@ -325,6 +325,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T18 (`webhook`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 5 rotas (`GET`/`POST /workspaces/:id/webhooks`, `PATCH`/`DELETE /workspaces/:id/webhooks/:webhookId`, `PATCH /workspaces/:id/webhooks/:webhookId(^[^:]+):rotate-secret`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)

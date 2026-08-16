@@ -2,6 +2,7 @@ import { encryptToken } from '@arch-canvas/ai-tools';
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import { generateOpaqueToken } from '../auth/tokens.js';
@@ -55,6 +56,20 @@ const updateBodySchema = z
       message: 'at least one of "url", "events" or "enabled" must be provided',
     },
   );
+
+/** OpenAPI schema map for this module's 5 routes (T18, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /workspaces/:id/webhooks': { params: workspaceIdParamsSchema },
+  'POST /workspaces/:id/webhooks': { params: workspaceIdParamsSchema, body: createBodySchema },
+  'PATCH /workspaces/:id/webhooks/:webhookId': {
+    params: webhookIdParamsSchema,
+    body: updateBodySchema,
+  },
+  'DELETE /workspaces/:id/webhooks/:webhookId': { params: webhookIdParamsSchema },
+  'PATCH /workspaces/:id/webhooks/:webhookId(^[^:]+):rotate-secret': {
+    params: webhookIdParamsSchema,
+  },
+};
 
 /** Never includes `secretEncrypted` (or anything secret-shaped) — the API surface never re-exposes it after the one-shot reveal at creation/rotation. */
 function toPublicWebhookEndpoint(row: WebhookEndpointRow) {

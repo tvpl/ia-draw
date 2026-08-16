@@ -11,6 +11,7 @@ import { routeSchemas as lintRouteSchemas } from '../modules/lint/routes.js';
 import { routeSchemas as presentationRouteSchemas } from '../modules/presentation/routes.js';
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
+import { routeSchemas as webhookRouteSchemas } from '../modules/webhook/routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
 import type { RouteSchemaMap } from './types.js';
 
@@ -33,5 +34,6 @@ export const registry: Record<string, RouteSchemaMap> = {
   presentation: presentationRouteSchemas,
   share: shareRouteSchemas,
   snapshot: snapshotRouteSchemas,
+  webhook: webhookRouteSchemas,
   workspace: workspaceRouteSchemas,
 };
