@@ -171,11 +171,11 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST /workspaces/:id/mcp-tokens` cria o token, devolve o valor em texto puro só nesta resposta
-- [ ] Não-admin recebe 403 (ação de escrita, não de leitura — convênio AUTH-04 só se aplica a leitura)
-- [ ] `DELETE /mcp-tokens/:id` revoga; token revogado já não autentica (prova via `requireMcpToken`)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration` (PGlite real, ADR-0007)
-- [ ] Test count: 5 novos testes integration (criação por admin; 403 por não-admin; token devolvido só na criação; revogação efetiva; token de outro workspace não autentica em rota de workspace diferente)
+- [x] `POST /workspaces/:id/mcp-tokens` cria o token, devolve o valor em texto puro só nesta resposta
+- [x] Não-admin recebe 403 (ação de escrita, não de leitura — convênio AUTH-04 só se aplica a leitura)
+- [x] `DELETE /mcp-tokens/:id` revoga; token revogado já não autentica (prova via `requireMcpToken`)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration` (PGlite real, ADR-0007)
+- [x] Test count: 5 novos testes integration (criação por admin; 403 por não-admin; token devolvido só na criação; revogação efetiva; token de outro workspace não autentica em rota de workspace diferente)
 
 **Tests**: integration
 **Gate**: full
