@@ -162,11 +162,11 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders `children` only when `status === 'authenticated'`
-- [ ] Redirects to `/login?next=<url-encoded current path+search>` when `status === 'anonymous'`
-- [ ] Renders nothing (not `children`, not a redirect) while `status === 'loading'`
-- [ ] Unit tests cover all 3 states
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Renders `children` only when `status === 'authenticated'`
+- [x] Redirects to `/login?next=<url-encoded current path+search>` when `status === 'anonymous'`
+- [x] Renders nothing (not `children`, not a redirect) while `status === 'loading'`
+- [x] Unit tests cover all 3 states
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
