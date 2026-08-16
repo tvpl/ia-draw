@@ -3,6 +3,7 @@ import { routeSchemas as assetRouteSchemas } from '../modules/asset/routes.js';
 import { routeSchemas as authRouteSchemas } from '../modules/auth/routes.js';
 import { routeSchemas as commentRouteSchemas } from '../modules/comment/routes.js';
 import { routeSchemas as diagramSyncRouteSchemas } from '../modules/diagram-sync/routes.js';
+import { routeSchemas as docgenRouteSchemas } from '../modules/docgen/routes.js';
 import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js';
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
@@ -20,6 +21,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   auth: authRouteSchemas,
   comment: commentRouteSchemas,
   'diagram-sync': diagramSyncRouteSchemas,
+  docgen: docgenRouteSchemas,
   export: exportRouteSchemas,
   share: shareRouteSchemas,
   snapshot: snapshotRouteSchemas,
