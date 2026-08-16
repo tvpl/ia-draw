@@ -336,10 +336,10 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Resource registrado corretamente no `McpServer` (verificado por um servidor de teste em memória, sem stdio real)
-- [ ] `content` textual abre com o aviso fixo de dado não-confiável antes de qualquer texto vindo do canvas
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
-- [ ] Test count: 3 novos testes (resource lista corretamente; aviso de dado não-confiável presente; workspace sem diagramas devolve lista vazia, não erro)
+- [x] Resource registrado corretamente no `McpServer` (verificado por um servidor de teste em memória, sem stdio real)
+- [x] `content` textual abre com o aviso fixo de dado não-confiável antes de qualquer texto vindo do canvas
+- [x] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [x] Test count: 3 novos testes (resource lista corretamente; aviso de dado não-confiável presente; workspace sem diagramas devolve lista vazia, não erro)
 
 **Tests**: unit
 **Gate**: quick
