@@ -1,0 +1,86 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Automated dependency updates for the arch-canvas monorepo. Every pull request Renovate opens is an ordinary pull request, so .github/workflows/ci.yaml runs the full suite on it: lint, commit-lint, typecheck, unit, integration, e2e, the compose smoke boot, the capability audit and the image builds. Nothing merges without that.",
+  "extends": ["config:recommended", ":semanticCommitTypeAll(chore)", ":dependencyDashboard"],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "postUpdateOptions": ["pnpmDedupe"],
+  "constraints": {
+    "node": ">=22 <23"
+  },
+  "packageRules": [
+    {
+      "description": "Ecosystems are updated as one pull request each, never one per dependency. Restricted to minor/patch on purpose: the major rule at the bottom of this list ungroups anything that could break a build so it can be reviewed on its own.",
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "react-*",
+        "@types/react",
+        "@types/react-dom",
+        "@vitejs/plugin-react"
+      ],
+      "groupName": "react"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": ["vitest", "@vitest/*", "vite", "vite-node", "jsdom", "@types/jsdom"],
+      "groupName": "vitest and vite"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": ["fastify", "@fastify/*"],
+      "groupName": "fastify"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": ["@aws-sdk/*"],
+      "groupName": "aws-sdk"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": ["@opentelemetry/*", "prom-client"],
+      "groupName": "opentelemetry"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": [
+        "drizzle-orm",
+        "drizzle-kit",
+        "pg",
+        "@types/pg",
+        "pg-boss",
+        "@electric-sql/pglite"
+      ],
+      "groupName": "postgres"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": ["@excalidraw/*", "@resvg/*", "canvas", "elkjs"],
+      "groupName": "canvas rendering"
+    },
+    {
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "matchPackageNames": [
+        "typescript",
+        "turbo",
+        "@biomejs/biome",
+        "@types/node",
+        "@playwright/test"
+      ],
+      "groupName": "toolchain"
+    },
+    {
+      "description": "Node stays on 22.x (root package.json engines, .nvmrc, and the node:22 images the Dockerfiles build from). Node 24 breaks apps/server's callProvider tests: AbortSignal stops working across realms under jsdom. Raising this ceiling is a deliberate migration, not a dependency bump.",
+      "matchPackageNames": ["node"],
+      "allowedVersions": "<23"
+    },
+    {
+      "description": "Majors are never grouped. Each one gets its own pull request so a red build points at a single dependency, and each waits for approval on the dependency dashboard.",
+      "matchUpdateTypes": ["major"],
+      "groupName": null,
+      "dependencyDashboardApproval": true,
+      "additionalBranchPrefix": "major-"
+    }
+  ]
+}

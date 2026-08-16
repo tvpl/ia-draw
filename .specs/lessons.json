@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 17,
+  "next_id": 22,
   "lessons": [
     {
       "id": "L-001",
@@ -294,6 +294,96 @@
       ],
       "created": "2026-08-12T20:38:24Z",
       "last_seen": "2026-08-12T20:38:24Z"
+    },
+    {
+      "id": "L-017",
+      "key": "ac_gap::a scanning tool s scan root is an assumption not a fact assert the tool s total against an independent count over the whole source tree before publishing the number",
+      "text": "A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.",
+      "signal": "ac_gap",
+      "scope": "repo-tooling",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "UIX-01 (round 1) — tools/repo-tools/src/serverRoutes.ts:22 (repo-tooling)"
+      ],
+      "created": "2026-08-16T11:02:44Z",
+      "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-018",
+      "key": "surviving_mutant::a path existence check is not a semantic check assert a property only the correct file has because a gate that proves a file exists still passes when the file is the wrong one",
+      "text": "A path-existence check is not a semantic check — assert a property only the correct file has, because a gate that proves a file exists still passes when the file is the wrong one.",
+      "signal": "surviving_mutant",
+      "scope": "repo-tooling",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "sensor N2 — tools/repo-tools/src/capabilityMap.ts:27 (repo-tooling)"
+      ],
+      "created": "2026-08-16T11:02:44Z",
+      "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-019",
+      "key": "ac_gap::when an implementation deliberately diverges from an acceptance criterion amend the criterion in the same commit a divergence recorded only in tasks md reads as verified coverage at validation time",
+      "text": "When an implementation deliberately diverges from an acceptance criterion, amend the criterion in the same commit — a divergence recorded only in tasks.md reads as verified coverage at validation time.",
+      "signal": "ac_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CIQ-03 (round 1) — .github/workflows/ci.yaml:133 (traceability)"
+      ],
+      "created": "2026-08-16T11:02:44Z",
+      "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-020",
+      "key": "surviving_mutant::a declared threshold is only a gate when the runner is configured to measure it assert that the enforcement switch is on and the value is meaningful not merely that the number is declared",
+      "text": "A declared threshold is only a gate when the runner is configured to measure it — assert that the enforcement switch is on and the value is meaningful, not merely that the number is declared.",
+      "signal": "surviving_mutant",
+      "scope": "ci",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "sensor N14, N15 — packages/diagram-domain/vitest.config.ts:22 (ci)"
+      ],
+      "created": "2026-08-16T11:02:44Z",
+      "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-021",
+      "key": "spec_precision_gap::when an acceptance criterion names a concrete deliverable artifact ship that artifact or amend the criterion an index promising the artifact in a later round is not the artifact",
+      "text": "When an acceptance criterion names a concrete deliverable artifact, ship that artifact or amend the criterion — an index promising the artifact in a later round is not the artifact.",
+      "signal": "spec_precision_gap",
+      "scope": "traceability",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "UIX-02 — .specs/features/platform-maturity/ui-roadmap.md (traceability)"
+      ],
+      "created": "2026-08-16T11:02:44Z",
+      "last_seen": "2026-08-16T11:02:44Z"
     }
   ]
 }

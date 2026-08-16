@@ -13,5 +13,18 @@ export default defineConfig({
         inline: [/@excalidraw\/excalidraw/, /roughjs/],
       },
     },
+    // Coverage floor (CIQ-04): each number is the value measured when the floor
+    // was introduced, locked as a ratchet. Lowering any of them requires editing
+    // this file on purpose — no threshold is inherited implicitly.
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      thresholds: {
+        lines: 91.13,
+        functions: 90.24,
+        branches: 77.43,
+        statements: 91.13,
+      },
+    },
   },
 });

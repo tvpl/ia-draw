@@ -4,5 +4,18 @@ export default defineConfig({
   test: {
     include: ['src/**/*.spec.ts'],
     exclude: ['**/node_modules/**', 'src/**/*.int.spec.ts'],
+    // Coverage floor (CIQ-04): each number is the value measured when the floor
+    // was introduced, locked as a ratchet. Lowering any of them requires editing
+    // this file on purpose — no threshold is inherited implicitly.
+    coverage: {
+      enabled: true,
+      provider: 'v8',
+      thresholds: {
+        lines: 6.01,
+        functions: 46.15,
+        branches: 66.66,
+        statements: 6.01,
+      },
+    },
   },
 });

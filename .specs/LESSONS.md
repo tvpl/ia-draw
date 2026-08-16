@@ -110,6 +110,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: packages/ai-tools/src/tools/types.ts:139 (verifier sensor mutation #3, false negative on first attempt) (verification-methodology)
 - last seen: 2026-08-12T20:38:24Z
 
+### L-017 - A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: platform-maturity
+- evidence: UIX-01 (round 1) — tools/repo-tools/src/serverRoutes.ts:22 (repo-tooling)
+- last seen: 2026-08-16T11:02:44Z
+
+### L-018 - A path-existence check is not a semantic check — assert a property only the correct file has, because a gate that proves a file exists still passes when the file is the wrong one.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: platform-maturity
+- evidence: sensor N2 — tools/repo-tools/src/capabilityMap.ts:27 (repo-tooling)
+- last seen: 2026-08-16T11:02:44Z
+
+### L-019 - When an implementation deliberately diverges from an acceptance criterion, amend the criterion in the same commit — a divergence recorded only in tasks.md reads as verified coverage at validation time.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `traceability` · harmful: 0
+- features: platform-maturity
+- evidence: CIQ-03 (round 1) — .github/workflows/ci.yaml:133 (traceability)
+- last seen: 2026-08-16T11:02:44Z
+
+### L-020 - A declared threshold is only a gate when the runner is configured to measure it — assert that the enforcement switch is on and the value is meaningful, not merely that the number is declared.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `ci` · harmful: 0
+- features: platform-maturity
+- evidence: sensor N14, N15 — packages/diagram-domain/vitest.config.ts:22 (ci)
+- last seen: 2026-08-16T11:02:44Z
+
+### L-021 - When an acceptance criterion names a concrete deliverable artifact, ship that artifact or amend the criterion — an index promising the artifact in a later round is not the artifact.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `traceability` · harmful: 0
+- features: platform-maturity
+- evidence: UIX-02 — .specs/features/platform-maturity/ui-roadmap.md (traceability)
+- last seen: 2026-08-16T11:02:44Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

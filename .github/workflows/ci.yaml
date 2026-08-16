@@ -26,6 +26,40 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -w lint
 
+  commit-lint:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    # Only a pull request has a commit range to validate; a push to main has
+    # already been through this gate on the pull request that produced it.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole range base..head has to be present locally, not just the
+          # head commit the default shallow clone would give us.
+          fetch-depth: 0
+      - name: Validate every commit message in the pull request
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Merge commits are excluded on purpose: GitHub generates those
+          # messages ("Merge pull request #N from ..."), nobody authors them.
+          commits="$(git rev-list --reverse --no-merges "$BASE_SHA".."$HEAD_SHA")"
+          if [ -z "$commits" ]; then
+            echo "No non-merge commits in this pull request."
+            exit 0
+          fi
+          for sha in $commits; do
+            if ! git log -1 --format=%B "$sha" | \
+              python3 .claude/skills/tlc-spec-driven/scripts/check_commit.py; then
+              echo "::error::first non-conforming commit message: $sha $(git log -1 --format=%s "$sha")"
+              exit 1
+            fi
+          done
+          echo "$(echo "$commits" | wc -l | tr -d ' ') commit messages conform to Conventional Commits."
+
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
@@ -95,6 +129,163 @@ jobs:
               .then(() => { console.log('migration applied against real postgres:16'); })
               .catch((error) => { console.error(error); process.exit(1); });
           "
+
+  e2e:
+    name: End-to-end tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve the pinned Playwright version
+        id: playwright
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/web/package.json').devDependencies['@playwright/test']")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Restore the browser binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          # Keyed on the pinned Playwright version: a bump invalidates the
+          # cache, which is exactly when the binaries have to change.
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - name: Install Chromium
+        # Cheap on a cache hit (nothing to download), and --with-deps still has
+        # to run: the cache carries the browser, not the system libraries.
+        run: pnpm --filter @arch-canvas/web exec playwright install --with-deps chromium
+      - name: Build the workspace the dev server resolves against
+        # playwright.config.ts boots `pnpm dev` and a vite-node apps/server;
+        # both resolve workspace packages through their built entrypoints.
+        run: pnpm -w build
+      - name: Run the Playwright suite
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+        # Called directly rather than through `turbo run test:e2e` so the html
+        # reporter can be added for the artifact below without editing
+        # playwright.config.ts, whose default reporter stays `list`.
+        run: pnpm --filter @arch-canvas/web exec playwright test --reporter=list,html
+      - name: Publish the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          # test-results carries the traces `use.trace: retain-on-failure`
+          # writes, which is the half of the report that explains a failure.
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: warn
+
+  compose-smoke:
+    name: Compose stack smoke (real boot + public health)
+    runs-on: ubuntu-latest
+    # Generous ceiling: the two image builds compile `canvas` from source on
+    # Alpine. The 5-minute budget CIQ-01 asks about is the health wait below,
+    # which is enforced separately by --wait-timeout.
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require a Docker daemon
+        # CIQ-06: a runner without Docker must turn this job red, never let it
+        # be quietly reported as a pass.
+        run: |
+          set -euo pipefail
+          if ! docker info >/dev/null 2>&1; then
+            echo "::error::no Docker daemon on this runner - the compose smoke gate cannot be skipped into a green build"
+            exit 1
+          fi
+      - name: Boot the full stack and wait for every service to be healthy
+        working-directory: infra/compose
+        run: |
+          set -euo pipefail
+          cp .env.example .env
+          # Build first, so the 5-minute health budget below measures health
+          # and not image build time.
+          docker compose build
+          # CIQ-01: every service healthy inside 5 minutes. `up -d` already
+          # blocks on each depends_on health condition, but it blocks
+          # *forever* — `timeout` is what turns a service that never goes
+          # healthy into a red job instead of a hung one.
+          timeout 300 docker compose up -d
+          # Confirm the long-running services really reached healthy rather
+          # than merely started (redis is depends_on: service_started, so the
+          # line above does not prove it). --wait cannot cover migrate and
+          # minio-init: it reports a one-shot container that exited 0 as a
+          # failure. A service flapping in and out of healthy is un-healthy
+          # when this timeout expires, so the final state is what decides.
+          docker compose up -d --wait --wait-timeout 120 proxy server web postgres minio redis
+      - name: Assert GET /health/ready through the public port
+        run: |
+          set -euo pipefail
+          body="$(mktemp)"
+          code="$(curl -sS -o "$body" -w '%{http_code}' http://localhost:8080/health/ready)"
+          echo "HTTP $code"
+          cat "$body"
+          echo
+          if [ "$code" != "200" ]; then
+            echo "::error::/health/ready answered HTTP $code through the public port, expected 200"
+            exit 1
+          fi
+          status="$(jq -r '.status' "$body")"
+          if [ "$status" != "ok" ]; then
+            echo "::error::/health/ready reported status=$status, expected ok"
+            exit 1
+          fi
+          postgres="$(jq -r '.dependencies[] | select(.name == "postgres") | .status' "$body")"
+          if [ "$postgres" != "up" ]; then
+            echo "::error::/health/ready reported postgres=$postgres, expected up"
+            exit 1
+          fi
+      - name: Collect container logs
+        if: failure()
+        working-directory: infra/compose
+        run: |
+          docker compose ps --all > compose-diagnostics.txt 2>&1 || true
+          docker compose logs --no-color --timestamps >> compose-diagnostics.txt 2>&1 || true
+      - name: Publish container logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compose-smoke-logs
+          path: infra/compose/compose-diagnostics.txt
+          if-no-files-found: warn
+      - name: Tear the stack down
+        if: always()
+        working-directory: infra/compose
+        run: docker compose down -v
+
+  capability-audit:
+    name: Capability audit (documented claims vs. code)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the audit tool
+        run: pnpm --filter @arch-canvas/repo-tools build
+      - name: Audit the capability map against the code
+        # `run audit`, not `exec repo-tools audit`: on a clean checkout the bin
+        # cannot be linked at install time (dist/cli.js does not exist yet), so
+        # the exec form would need install -> build -> install. The script form
+        # only needs the build step above.
+        run: pnpm --filter @arch-canvas/repo-tools run audit
+      - name: Publish the generated route inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-inventory
+          path: docs/route-inventory.md
+          if-no-files-found: error
 
   build-images:
     name: Build Docker images
