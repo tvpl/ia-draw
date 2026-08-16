@@ -642,11 +642,21 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Toda capacidade `backend-only` do mapa tem entrada correspondente no roadmap
-- [ ] Cada entrada declara escopo, rotas de backend que consome, dependências entre entradas e tamanho estimado em ondas
-- [ ] Nenhuma entrada depende de outra que esteja depois dela na ordem proposta
-- [ ] O índice declara explicitamente que cada entrada vira uma spec própria em sua própria rodada de Specify, e não nesta onda
-- [ ] Gate check passa: `make ci`
+- [x] Toda capacidade `backend-only` do mapa tem entrada correspondente no roadmap
+- [x] Cada entrada declara escopo, rotas de backend que consome, dependências entre entradas e tamanho estimado em ondas
+- [x] Nenhuma entrada depende de outra que esteja depois dela na ordem proposta
+- [x] O índice declara explicitamente que cada entrada vira uma spec própria em sua própria rodada de Specify, e não nesta onda
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
+
+> **Cobertura fechada por contagem, não por impressão.** O mapa tem 22 entradas com `status: backend-only` (conferido: `grep -c '^    status: backend-only'` devolve 22, e `ui_surface: null` também 22). Delas, 16 viraram entradas de produto R1–R16 e 6 ficaram registradas como superfície operacional — instalação, backup, DR, hardening, observabilidade e desempenho, cujo lugar certo é compose, job ou painel Grafana, não tela. 16 + 6 = 22.
+>
+> Dois casos não são um-para-um, e estão declarados no documento: R1 cobre duas capacidades (geração e edição por IA) porque vivem no mesmo dock, e a capacidade de workspace foi partida em R3 (navegação, 15 rotas) e R4 (membros e papéis, 4 rotas) para caber no orçamento de uma onda.
+>
+> **Dimensionamento é fórmula, não palpite.** Base de 1 onda, mais 0,5 para cada um de: mais de 10 rotas pendentes, transporte novo no frontend ou rota pública sem sessão, mais de 3 superfícies novas. Total 18,5 ondas em 16 entradas, nenhuma acima de 2. As rotas de cada entrada saíram linha a linha do `pending-product` de `docs/route-inventory.md`: 73 das 75 atribuídas. As 2 restantes são as de `asset`, que pertencem a `Edição server-first do canvas` — capacidade que **tem** superfície e por isso não é `backend-only` e não gera entrada; ficam declaradas como escopo de R5.
+>
+> **Ordem verificada por tabela própria** no fim do documento: as 16 entradas têm dependência apontando só para posição anterior. R1 e R2 são raízes independentes.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
