@@ -517,8 +517,8 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Todo domínio de primeiro nível tem uma linha de dono — nenhum sem dono
-- [ ] `make lint` confirma o arquivo bem formado (biome trata `CODEOWNERS` como texto genérico, sem erro)
+- [x] Todo domínio de primeiro nível tem uma linha de dono — nenhum sem dono
+- [x] `make lint` confirma o arquivo bem formado (biome trata `CODEOWNERS` como texto genérico, sem erro)
 
 **Tests**: none
 **Gate**: build
