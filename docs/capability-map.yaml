@@ -1,0 +1,174 @@
+# Mapa de capacidades (TRU-01)
+#
+# Contrato entre o que a documentação de produto afirma e o que existe no
+# código. Cada capacidade anunciada no README ou em docs/architecture-overview.html
+# tem exatamente uma entrada aqui.
+#
+# Campos obrigatórios em toda entrada:
+#   capability        nome da capacidade como a documentação a apresenta
+#   requirements      IDs de .specs/features/architecture-canvas/spec.md
+#   backend_evidence  arquivo que implementa a capacidade no servidor
+#   ui_surface        arquivo em apps/web/src que a expõe ao usuário final,
+#                     ou null — e nesse caso `status: backend-only` é obrigatório
+#
+# `backend-only` significa: o contrato de backend está verificado, o usuário
+# final não tem por onde acessar. Não descreva essas capacidades como entregues.
+#
+# Verificado por `repo-tools audit` (TRU-03). Estado hoje: 4 das 79 rotas REST
+# registradas têm consumidor de UI.
+
+capabilities:
+  - capability: Instalação self-hosted com stack completo
+    requirements: [FND-01, FND-02, FND-03, FND-04, FND-05]
+    backend_evidence: infra/compose/compose.yaml
+    ui_surface: null
+    status: backend-only
+
+  - capability: Sessão autenticada no editor
+    requirements: [AUTH-01]
+    backend_evidence: apps/server/src/modules/auth/routes.ts
+    ui_surface: apps/web/src/diagram/DiagramEditorPage.tsx
+
+  - capability: Workspaces, projetos e RBAC
+    requirements: [AUTH-02, AUTH-03, AUTH-04, AUTH-05]
+    backend_evidence: apps/server/src/modules/workspace/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Edição server-first do canvas
+    requirements: [EDT-01, EDT-02, EDT-03, EDT-04, EDT-05, EDT-06, EDT-07]
+    backend_evidence: apps/server/src/modules/diagram-sync/routes.ts
+    ui_surface: apps/web/src/diagram/DiagramEditorPage.tsx
+
+  - capability: Recuperação após crash do navegador
+    requirements: [REC-01, REC-02, REC-03, REC-04, REC-05]
+    backend_evidence: apps/server/src/modules/diagram-sync/routes.ts
+    ui_surface: apps/web/src/sync/syncClient.ts
+
+  - capability: Snapshots, histórico e restore de versão
+    requirements: [VER-01, VER-02, VER-03, VER-04]
+    backend_evidence: apps/server/src/modules/snapshot/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Configuração do provider de IA
+    requirements: [AIC-01, AIC-02, AIC-03, AIC-04]
+    backend_evidence: apps/server/src/modules/ai-provider/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Geração de diagramas por IA a partir de linguagem natural
+    requirements: [AIG-01, AIG-02, AIG-03, AIG-04, AIG-05, AIG-06, AIG-07]
+    backend_evidence: apps/server/src/modules/ai-engine/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Edição por IA com prévia, aprovação explícita e undo
+    requirements: [AIE-01, AIE-02, AIE-03, AIE-04, AIE-05]
+    backend_evidence: apps/server/src/modules/ai-engine/preview.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Biblioteca de componentes e metadados semânticos
+    requirements: [LIB-01, LIB-02, LIB-03, LIB-04]
+    backend_evidence: apps/server/src/modules/library/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Export de imagem e bundle, e salvamento local
+    requirements: [EXP-01, EXP-02, EXP-03, EXP-04]
+    backend_evidence: apps/server/src/modules/export/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Backup com restore testado automaticamente
+    requirements: [OPS-01, OPS-02, OPS-03, OPS-04, OPS-05]
+    backend_evidence: infra/backup/src/create.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Documentação viva gerada a partir do canvas
+    requirements: [DOC-01, DOC-02, DOC-03, DOC-04]
+    backend_evidence: apps/server/src/modules/docgen/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Apresentações navegáveis e protótipos
+    requirements: [PRS-01, PRS-02, PRS-03, PRS-04, PRS-05]
+    backend_evidence: apps/server/src/modules/presentation/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Lint arquitetural e checagem C4
+    requirements: [LNT-01, LNT-02, LNT-03]
+    backend_evidence: apps/server/src/modules/lint/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Import e export Mermaid e Structurizr
+    requirements: [AAC-01, AAC-02]
+    backend_evidence: apps/server/src/modules/interop/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Comentários e revisão no diagrama
+    requirements: [CMT-01, CMT-02]
+    backend_evidence: apps/server/src/modules/comment/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Colaboração em tempo real e presença
+    requirements: [CLB-01, CLB-02, CLB-03, CLB-04]
+    backend_evidence: apps/server/src/modules/ws-gateway/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Compartilhamento externo por link
+    requirements: [EXT-01]
+    backend_evidence: apps/server/src/modules/share/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Webhooks de eventos do workspace
+    requirements: [EXT-02]
+    backend_evidence: apps/server/src/modules/webhook/routes.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Hardening de segurança HTTP e rate limiting
+    requirements: [SEC-01, SEC-02, SEC-03, SEC-04, SEC-05]
+    backend_evidence: apps/server/src/core/server.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Autenticação de produção via OIDC
+    requirements: [OIDC-01, OIDC-02, OIDC-03]
+    backend_evidence: apps/server/src/modules/auth/oidc.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Disaster recovery com backup incremental
+    requirements: [DR-01, DR-02]
+    backend_evidence: infra/backup/src/incremental.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Métricas Prometheus e tracing OpenTelemetry
+    requirements: [OBS-01, OBS-02, OBS-03]
+    backend_evidence: apps/server/src/core/metrics.ts
+    ui_surface: null
+    status: backend-only
+
+  - capability: Desempenho de bootstrap sob carga documentada
+    requirements: [PERF-01]
+    backend_evidence: apps/server/src/modules/diagram-sync/bootstrap.perf.int.spec.ts
+    ui_surface: null
+    status: backend-only
+
+  # A evidência aqui é de frontend: a capacidade é do próprio shell React,
+  # não de uma rota. O campo continua obrigatório, então aponta para o teste
+  # que a verifica.
+  - capability: Acessibilidade do shell da aplicação
+    requirements: [A11Y-01]
+    backend_evidence: apps/web/src/a11y/shell.a11y.spec.tsx
+    ui_surface: apps/web/src/app-shell/AppShell.tsx

@@ -187,7 +187,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| TRU-01 | P1: Documentação honesta | F6 | Pending |
+| TRU-01 | P1: Documentação honesta | F6 | Implementing |
 | TRU-02 | P1: Documentação honesta | F6 | Pending |
 | TRU-03 | P1: Documentação honesta | F6 | Pending |
 | TRU-04 | P1: Documentação honesta | F6 | Pending |

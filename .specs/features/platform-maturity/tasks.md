@@ -236,11 +236,15 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Cada entrada tem `capability`, `requirements`, `backend_evidence` e `ui_surface` (caminho de arquivo ou `null` com `status: backend-only`)
-- [ ] Toda capacidade hoje afirmada como entregue no README e na landing tem entrada correspondente
-- [ ] As capacidades sem componente em `apps/web/src` — dock de IA, apresentação, comentários, biblioteca, histórico, docgen, lint, navegação de workspace — estão marcadas `backend-only`
-- [ ] O arquivo é consistente com a saída do inventário de T4 (nenhuma capacidade marcada com superfície que o inventário classifica como `pending-product`)
-- [ ] Gate check passa: `make ci`
+- [x] Cada entrada tem `capability`, `requirements`, `backend_evidence` e `ui_surface` (caminho de arquivo ou `null` com `status: backend-only`)
+- [x] Toda capacidade hoje afirmada como entregue no README e na landing tem entrada correspondente
+- [x] As capacidades sem componente em `apps/web/src` — dock de IA, apresentação, comentários, biblioteca, histórico, docgen, lint, navegação de workspace — estão marcadas `backend-only`
+- [x] O arquivo é consistente com a saída do inventário de T4 (nenhuma capacidade marcada com superfície que o inventário classifica como `pending-product`)
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+> **Estado do mapa:** 26 entradas cobrindo os 92 requisitos de `architecture-canvas` exatamente uma vez cada. 22 são `backend-only`; 4 têm superfície de UI (`DiagramEditorPage.tsx` para sessão e edição, `syncClient.ts` para recuperação após crash, `AppShell.tsx` para acessibilidade). Além das capacidades nomeadas no critério, export/import, backup, colaboração em tempo real, compartilhamento, webhooks, OIDC, hardening, observabilidade e desempenho também não têm componente e entraram como `backend-only`.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
