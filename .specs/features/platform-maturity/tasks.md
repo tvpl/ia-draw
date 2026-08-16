@@ -201,12 +201,16 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Toda rota recebe exatamente uma classificação, sem categoria de escape
-- [ ] A soma de `consumed` e `pending-product` iguala o total de rotas de entrada — invariante asseverada em teste
-- [ ] Edge case coberto: consumidor apontando para rota inexistente no servidor é reportado como `orphan-consumer` em vez de ignorado
-- [ ] Edge case coberto: rota parametrizada casa com o consumidor que a chama com interpolação
-- [ ] Gate check passa: `make test-unit`
-- [ ] Test count: 7 testes passam (sem deleção silenciosa)
+- [x] Toda rota recebe exatamente uma classificação, sem categoria de escape
+- [x] A soma de `consumed` e `pending-product` iguala o total de rotas de entrada — invariante asseverada em teste
+- [x] Edge case coberto: consumidor apontando para rota inexistente no servidor é reportado como `orphan-consumer` em vez de ignorado
+- [x] Edge case coberto: rota parametrizada casa com o consumidor que a chama com interpolação
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 7 testes passam (sem deleção silenciosa)
+
+> **Resultado no repositório real:** 79 rotas, 4 `consumed`, 75 `pending-product`, 0 `orphan-consumer`. 4 + 75 = 79, que é o invariante de Success Criteria da spec. O casamento é por path: uma chamada `fetch` não carrega método legível estaticamente, então um path registrado com vários métodos contaria como consumido em todos eles. Não acontece hoje — as 4 rotas consumidas têm path distinto.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick
