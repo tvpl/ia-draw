@@ -60,6 +60,61 @@ jobs:
           done
           echo "$(echo "$commits" | wc -l | tr -d ' ') commit messages conform to Conventional Commits."
 
+  changeset-check:
+    name: Changeset required for package changes
+    runs-on: ubuntu-latest
+    # Same reasoning as commit-lint: only a pull request has a base..head range
+    # to diff against.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need the full range base..head, not just the head commit.
+          fetch-depth: 0
+      - name: Fail naming any package changed under src/ without a new changeset
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          changed_files="$(git diff --name-only "$BASE_SHA".."$HEAD_SHA")"
+
+          changed_dirs="$(printf '%s\n' "$changed_files" \
+            | grep -E '^packages/[^/]+/src/' \
+            | sed -E 's#^packages/([^/]+)/src/.*#\1#' \
+            | sort -u || true)"
+          if [ -z "$changed_dirs" ]; then
+            echo "No packages/*/src changes in this pull request."
+            exit 0
+          fi
+
+          new_changesets="$(printf '%s\n' "$changed_files" \
+            | grep -E '^\.changeset/[^/]+\.md$' \
+            | grep -v '^\.changeset/README\.md$' || true)"
+
+          missing=""
+          for dir in $changed_dirs; do
+            pkg_name="$(git show "$HEAD_SHA:packages/$dir/package.json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')"
+            covered=false
+            if [ -n "$new_changesets" ]; then
+              for f in $new_changesets; do
+                if git show "$HEAD_SHA:$f" | grep -q "\"$pkg_name\""; then
+                  covered=true
+                  break
+                fi
+              done
+            fi
+            if [ "$covered" = false ]; then
+              missing="$missing $pkg_name"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::missing changeset for package(s):$missing - add a .changeset/*.md entry (pnpm exec changeset)"
+            exit 1
+          fi
+          echo "Every changed package (from: $(echo "$changed_dirs" | tr '\n' ' ')) has a changeset entry."
+
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest

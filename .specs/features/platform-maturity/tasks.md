@@ -582,9 +582,9 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Job novo compara `packages/*/src/**` alterado contra `.changeset/*.md` novo no mesmo PR
-- [ ] `make lint` confirma o YAML bem formado
-- [ ] Não pode ser testado localmente contra um evento real de PR — mesma limitação já registrada em `STATE.md`
+- [x] Job novo compara `packages/*/src/**` alterado contra `.changeset/*.md` novo no mesmo PR
+- [x] `make lint` confirma o YAML bem formado
+- [x] Não pode ser testado localmente contra um evento real de PR — mesma limitação já registrada em `STATE.md`
 
 **Tests**: none
 **Gate**: build
