@@ -398,12 +398,13 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Rota real sem entrada no OpenAPI → violação nomeando a rota exata
-- [ ] Entrada do OpenAPI sem rota real → violação nomeando a entrada exata
-- [ ] `docs/openapi.json` ausente ou sem nenhuma rota → violação explícita (cobre o Edge Case do spec.md)
-- [ ] Wired em `runAudit` (`tools/repo-tools/src/cli.ts`) — `/audit` agora cobre TRU-03/UIX-01 (F6) + CIQ-04 (F6) + API-02 (F8) num único comando
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/repo-tools run test:unit`
-- [ ] Test count: 4 novos testes (rota sem schema; schema sem rota; doc vazio; caso limpo passa)
+- [x] Rota real sem entrada no OpenAPI → violação nomeando a rota exata
+- [x] Entrada do OpenAPI sem rota real → violação nomeando a entrada exata
+- [x] `docs/openapi.json` ausente ou sem nenhuma rota → violação explícita (cobre o Edge Case do spec.md)
+- [x] Wired em `runAudit` (`tools/repo-tools/src/cli.ts`) — `/audit` agora cobre TRU-03/UIX-01 (F6) + CIQ-04 (F6) + API-02 (F8) num único comando
+- [x] Gate check passes: `pnpm --filter @arch-canvas/repo-tools run test:unit`
+- [x] Test count: 4 novos testes (rota sem schema; schema sem rota; doc vazio; caso limpo passa)
+- Nota: `tools/repo-tools/src/cli.spec.ts`'s `fakeRepo` helper gained a matching `docs/openapi.json` fixture (`OPENAPI_DOC`) — without it, every existing `runAudit` test would fail the new openapi-parity check on an unrelated fixture, not because of a real regression. `pnpm --filter @arch-canvas/repo-tools run audit` confirmed zero parity violations against the real repo after T21-T23.
 
 **Tests**: unit
 **Gate**: quick
