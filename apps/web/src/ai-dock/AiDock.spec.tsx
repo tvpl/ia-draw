@@ -22,9 +22,9 @@ function jsonResponse(status: number, body: unknown): Response {
 const PREVIEW = {
   added: ['el-1', 'el-2', 'el-3'],
   removed: ['el-0'],
-  moved: [],
-  modified: [],
-  metadataChanged: [],
+  moved: ['el-4'],
+  modified: ['el-5', 'el-6'],
+  metadataChanged: ['el-7'],
 };
 
 function renderDock(overrides: {
@@ -142,9 +142,16 @@ describe('AiDock (T7)', () => {
       }),
     );
 
-    // DOCK-07: removed (1) rendered before added (3).
+    // DOCK-06: all five diff lists render, each with its own element count.
+    // DOCK-07: `removed` precedes the other four whenever it has >=1 element.
     const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
-    expect(headings.indexOf('Removed (1)')).toBeLessThan(headings.indexOf('Added (3)'));
+    expect(headings).toEqual([
+      'Removed (1)',
+      'Added (3)',
+      'Moved (1)',
+      'Modified (2)',
+      'Metadata changed (1)',
+    ]);
     expect(screen.getByRole('button', { name: 'Approve' })).not.toBeNull();
     expect(screen.getByRole('button', { name: 'Discard' })).not.toBeNull();
     expect(onApproved).not.toHaveBeenCalled();
