@@ -218,7 +218,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | API-02 | P2: Contrato de API | F8 | ✅ Verified |
 | API-03 | P2: Contrato de API | F8 | ✅ Verified |
 | MCP-01 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | Pending |
+| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
 | MCP-03 | P1: Diagramas como contexto (MCP) | F9 | Pending |
 | MCP-04 | P1: Diagramas como contexto (MCP) | F9 | Pending |
 | MCP-05 | P1: Diagramas como contexto (MCP) | F9 | Pending |

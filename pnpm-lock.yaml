@@ -416,6 +416,9 @@ importers:
 
   packages/diagram-ir:
     dependencies:
+      '@arch-canvas/diagram-domain':
+        specifier: workspace:*
+        version: link:../diagram-domain
       '@arch-canvas/library-content':
         specifier: workspace:*
         version: link:../library-content

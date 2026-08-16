@@ -98,13 +98,13 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Nós e edges reconstruídos corretamente a partir de uma cena real (rótulo, `componentKey`, `semantics` quando presentes em `metadata`)
-- [ ] Containers inferidos por containment geométrico, aninhamento suportado, `kind` sempre `'group'`
-- [ ] Retângulo sem filho vira `IrNode`, nunca um container vazio
-- [ ] Teste de round-trip: `compile(ir)` seguido de `decompile(scene)` produz nós e edges idênticos aos de `ir` (por id) e containers com a mesma associação pai-filho (não o `kind`, sabidamente perdido no caminho geométrico — asserção documenta essa limitação, não a esconde)
-- [ ] `packages/diagram-ir/package.json` ganha a dependência `@arch-canvas/diagram-domain: workspace:*`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/diagram-ir run test:unit`
-- [ ] Test count: 8 novos testes (nós simples; edges por binding de arrow; componentKey/semantics de metadata; container de 1 nível; container aninhado; retângulo sem filho vira nó; cena vazia não quebra; round-trip completo)
+- [x] Nós e edges reconstruídos corretamente a partir de uma cena real (rótulo, `componentKey`, `semantics` quando presentes em `metadata`)
+- [x] Containers inferidos por containment geométrico, aninhamento suportado, `kind` sempre `'group'`
+- [x] Retângulo sem filho vira `IrNode`, nunca um container vazio
+- [x] Teste de round-trip: `compile(ir)` seguido de `decompile(scene)` produz nós e edges idênticos aos de `ir` (por id) e containers com a mesma associação pai-filho (não o `kind`, sabidamente perdido no caminho geométrico — asserção documenta essa limitação, não a esconde)
+- [x] `packages/diagram-ir/package.json` ganha a dependência `@arch-canvas/diagram-domain: workspace:*`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/diagram-ir run test:unit`
+- [x] Test count: 8 novos testes (nós simples; edges por binding de arrow; componentKey/semantics de metadata; container de 1 nível; container aninhado; retângulo sem filho vira nó; cena vazia não quebra; round-trip completo)
 
 **Tests**: unit
 **Gate**: quick
