@@ -152,6 +152,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: F7 discrimination sensor / CLAUDE.md, .claude/commands/*.md (agent-onboarding)
 - last seen: 2026-08-16T11:39:04Z
 
+### L-024 - When a batch worker isolates a suspected pre-existing gate failure with git stash of only the most recently added files, re-verify against the true wave-start commit in a separate worktree before trusting the pre-existing/unrelated classification — stashing a few files still leaves the rest of the wave's diff in place and can hide a regression the wave itself caused.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `verification-methodology` · harmful: 0
+- features: platform-maturity
+- evidence: apps/server/vitest.config.ts:26 (F8 wave, CIQ-04 functions ratchet) (verification-methodology)
+- last seen: 2026-08-16T13:25:54Z
+
+### L-025 - A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: platform-maturity
+- evidence: design.md:34 (F8, corrected by tasks.md T21-T23/Phase 2d) (repo-tooling)
+- last seen: 2026-08-16T13:25:59Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

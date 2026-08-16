@@ -464,3 +464,181 @@ None of the general edge cases apply to F7's scope (`CLAUDE.md`, `.claude/`) —
 
 **Next steps**: apply Fix Plan 1 (three-file, one-word-per-file change) in a follow-up commit; no re-verification round needed given its non-blocking severity and trivial fix. No other action required to close F7.
 
+---
+
+## F8 Wave Report (Governança e contrato) — FAIL ❌
+
+**Date**: 2026-08-16
+**Spec**: `.specs/features/platform-maturity/spec.md` (P2 stories "Governança para múltiplos squads" and "Contrato de API para consumo automatizado", lines 143-172)
+**Diff range**: `a55c4d7..HEAD` (40 commits; `git diff a55c4d7..HEAD --stat` — 49 files, +5705/-725)
+**Verifier**: independent sub-agent (author ≠ verifier)
+
+**Headline**: all 9 acceptance criteria (GOV-01..06, API-01..03) are independently re-verified with `file:line` evidence and PASS on their own literal text — the OpenAPI generator, the CI parity/threshold gates, and all 6 governance deliverables are real, correct, and match the spec. **The wave is marked FAIL because the mandatory Gate Check itself fails**: `pnpm --filter @arch-canvas/server run test:unit` exits 1 on the coverage floor for `functions` (28.87% measured vs. 39.73% locked ratchet), and this is a **real regression introduced by this wave**, not the pre-existing/unrelated condition `tasks.md`'s T26 note claims. This was independently disproven by running the exact same command against a scratch `git worktree` checked out at `a55c4d7` (the true start of F8, before any of its 40 commits) — that baseline measures **39.73% functions, exactly the locked floor, exit 0** — versus HEAD's confirmed **28.87%, exit 1**. The task's own claim was based on isolating only the last 2 files of the wave (`threshold.ts`/`threshold.spec.ts`) via `git stash`, comparing against an already-40-commits-deep intermediate state, not the wave's actual starting point. See Gate Check and Fix Plan 1 below for the full root-cause trace.
+
+---
+
+### Task Completion
+
+All 35 tasks (T1-T35) in `tasks.md` are checked `[x]` with individual "Done when" evidence per task. One apparent gap on inspection — 4 unchecked `- [ ]` boxes at `tasks.md:363-366` — is the shared **template** checklist printed once before the T21/T22/T23 batch (`**Done when** (cada task):`), not a real per-task tracker; the actual per-task instances immediately below it (`**T21 (core)**:`, `**T22 (presentation-publish)**:`, `**T23 (workspace-project-diagram)**:`, `tasks.md:368-384`) are all `[x]`. Confirmed not a completion gap.
+
+| Task | Status | Notes |
+| ---- | ------ | ----- |
+| T1-T4 | ✅ Done | OpenAPI foundation (`types.ts`, `buildDocument.ts`, `registry.ts`, `generate.ts`) |
+| T5-T20 | ✅ Done | `routeSchemas` export in all 16 `routes.ts` modules (batches 1-3) |
+| T21-T23 | ✅ Done | Phase 2d — the 3 non-`routes.ts`-named route files (`core/server.ts`, `presentation/publishRoutes.ts`, `workspace/project-diagram-routes.ts`), added mid-execution after Batch 1 found the naming-convention gap |
+| T24-T25 | ✅ Done | `checkOpenApiParity` (repo-tools) + CI wiring into `capability-audit` |
+| T26-T28 | ✅ Done | `checkEvalThreshold`, `runThresholdCheck.ts`, dedicated `ai-evals` CI job |
+| T29-T35 | ✅ Done | `CODEOWNERS`, PR template, Changesets config + CI gate, ADR template, GOV-04 note, `STATE.md` Handoffs restructure |
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+#### P2: Governança para múltiplos squads (spec.md:143-158)
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| GOV-01: ownership de cada domínio de primeiro nível em `CODEOWNERS`, sem nenhum domínio sem dono | Todo domínio de primeiro nível (server, packages, infra, web + os demais do monorepo) tem uma linha de dono | `CODEOWNERS:7-13` — 7 domínios (`/apps/server/`, `/apps/web/`, `/packages/`, `/infra/`, `/.github/`, `/docs/`, `/.specs/`), cada um com `@tvpl` (único colaborador real, decisão registrada em `spec.md`'s Assumptions table) | ✅ PASS |
+| GOV-02: template de PR exige IDs de requisito e link para spec | Campos obrigatórios presentes no template | `.github/PULL_REQUEST_TEMPLATE.md:5-11` — seção `## Requirement IDs (required)` + seção `## Spec link` | ✅ PASS |
+| GOV-03: PR que altera package publicável sem changeset falha no CI nomeando o package | O job falha citando o nome exato do package alterado sem changeset | `.github/workflows/ci.yaml:63-115` (`changeset-check` job); comportamento verificado ao vivo — ver Gate Check § GOV-03 abaixo (real historical range `2606a2e..015b5c6` correctly fails naming `@arch-canvas/diagram-ir`; a crafted changeset makes the identical logic pass) | ✅ PASS |
+| GOV-04: `.specs/features/` mantém uma spec por domínio em vez de spec monolítica | Convenção documentada + exemplar real existente | `CLAUDE.md:99-101` — "Convenção em uso desde F6: uma spec por domínio... exemplar real: `.specs/features/ai-dock/spec.md`"; confirmed `.specs/features/ai-dock/spec.md` exists with its own `DOCK-NNN` requirement prefix (`ai-dock/spec.md:154`) | ✅ PASS |
+| GOV-05: nova decisão arquitetural registrada como ADR no mesmo formato de ADR-0001..0009 | Template extrai o formato real já em uso (Status/Contexto/Decisão/Consequências) | `docs/adr/TEMPLATE.md:1-24` — structure verified to match `docs/adr/0009-pluggable-presence-broadcaster.md:1-10` (Status/Data/Contexto/Decisão/Consequências) exactly | ✅ PASS |
+| GOV-06: `STATE.md` handoff por frente (não um único snapshot global) enquanto ≥2 frentes ativas | `## Handoffs` (plural) com subseção `### <feature-slug> (branch: ...)` por frente | `.specs/STATE.md:77-82` — `## Handoffs` heading + `### platform-maturity (branch: feature/improvements-2)` subsection; correctly does NOT prematurely claim F8 verified (`STATE.md:86`: "O Verifier independente de F8 ainda não rodou... não reivindicar F8 como verificado/fechado até ele reportar PASS") — corrected post-verification, see note below | ✅ PASS |
+
+#### P2: Contrato de API para consumo automatizado (spec.md:161-172)
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| API-01: OpenAPI 3.1 gerado dos schemas Zod, cobrindo toda rota REST registrada | Documento cobre as 82 rotas reais, nenhuma faltando ou sobrando | `apps/server/src/openapi/buildDocument.ts:119-146` (`buildOpenApiDocument`); `apps/server/src/openapi/registry.ts:28-49` (20-module registry, includes the 3 Phase-2d files); **independently recounted** — a from-scratch Python re-scan of `apps/server/src` (whole tree, `*.spec.ts` excluded, multi-line-aware regex matching the real `ROUTE_PATTERN`) totals exactly **82** routes, matching `docs/openapi.json`'s 82 operations (61 paths) and `docs/route-inventory.md`'s `4 consumed + 78 pending-product = 82`; `pnpm --filter @arch-canvas/repo-tools run audit` exits 0 with zero `checkOpenApiParity` violations reported | ✅ PASS |
+| API-02: rota adicionada/alterada sem regenerar o documento faz o CI falhar apontando a rota divergente | CI step regenerates and diffs the doc, failing on divergence | `.github/workflows/ci.yaml:347-360` (`capability-audit` job: `make openapi` → `biome format` → `git diff --exit-code docs/openapi.json` → `run audit`); reproduced live: `make openapi` + `pnpm exec biome format --write docs/openapi.json` + `git diff --exit-code docs/openapi.json` exits 0 (doc genuinely up to date) | ✅ PASS |
+| API-03: suíte de evals do `ai-engine` falha o build se a taxa de sucesso ficar abaixo do limiar declarado | Threshold check fails build below declared rate; passes at/above it | `apps/server/src/modules/ai-engine/evals/threshold.ts:29-41` (`checkEvalThreshold`, `EVAL_SUCCESS_THRESHOLD = 1.0`); `apps/server/src/modules/ai-engine/evals/runThresholdCheck.ts` wired into `.github/workflows/ci.yaml:144-160` (`ai-evals` job); reproduced live: `pnpm exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts` (from `apps/server`) → `5/5 evals passed, limiar 100%`, exit 0. Real case count is **5**, not the "10" `design.md:54` and `tasks.md:463-466` state — a genuinely stale prose fact, already caught and disclosed in `tasks.md:474` during implementation (`evals.spec.ts`'s own header already documents only 5/11 product-spec.md §8.6 cases are in this batch's built scope) — confirmed here as a real, harmless doc inaccuracy, not a checker defect | ✅ PASS (⚠️ disclosed spec-precision gap in `design.md`/`tasks.md` prose, not in the AC itself) |
+
+**Status**: ✅ All 9 ACs covered with `file:line` evidence, 0 unevidenced, 1 disclosed prose-only spec-precision gap (API-03's "10 vs 5", non-blocking) — **but see the Gate Check FAIL below, which blocks the wave regardless of AC-level correctness.**
+
+---
+
+### Discrimination Sensor
+
+Isolated in a scratch `git worktree` at HEAD (`git worktree add`, never `git stash`); real tree's `git status --porcelain` confirmed empty before and after; worktree removed with `git worktree remove --force` after each mutation.
+
+| Mutation | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `apps/server/src/openapi/buildDocument.ts:135` | `if (routeCount === 0)` → `if (routeCount < 0)` (empty-registry guard neutered) | ✅ Killed — `buildDocument.spec.ts`'s "throws citing the empty registry" test fails as expected |
+| 2 | `tools/repo-tools/src/openApiParity.ts:102` | `if (!documented.has(key))` → `if (documented.has(key))` (inverted — flags every documented route as missing instead of undocumented ones) | ✅ Killed — 2/2 `openApiParity.spec.ts` tests fail (false violations reported / real violations missed) |
+| 3 | `apps/server/src/modules/ai-engine/evals/threshold.ts:40` | `rate >= threshold` → `rate > threshold` (100% pass rate at 100% threshold now reports `ok: false`) | ✅ Killed — `threshold.spec.ts`'s "reports ok: true... at the 100% threshold" test fails as expected |
+
+**Sensor depth**: lightweight (1 mutation each on `buildOpenApiDocument`, `checkOpenApiParity`, `checkEvalThreshold` — non-P0 surfaces per the brief)
+**Result**: 3/3 killed — PASS ✅
+
+---
+
+### Code Quality
+
+Spot-checked 3 of the 20 `routeSchemas` modules by reading the full `routes.ts`/route file and diffing every real route against its `routeSchemas` entry by hand (method, path, params/query/body schema reference):
+
+- `apps/server/src/modules/share/routes.ts` (T10) — 4 real routes (`POST /diagrams/:id/share-links`, `POST /presentations/:id/share-links`, `GET /share/:token`, `POST /share-links/:id(^[^:]+):revoke`) vs. `routeSchemas:47-58` — exact match, correct params/body schema references, no extras, no omissions.
+- `apps/server/src/modules/workspace/project-diagram-routes.ts` (T23) — 10 real routes (`GET`/`POST /projects`, `GET`/`PATCH`/`DELETE /projects/:id`, `GET`/`POST /diagrams`, `GET`/`PATCH`/`DELETE /diagrams/:id`) vs. `routeSchemas:86-97` — exact match.
+- `apps/server/src/modules/workspace/routes.ts` (T6) — 9 real routes vs. `routeSchemas` — exact match, correctly excludes the project/diagram routes that live in the separate `project-diagram-routes.ts` file (T23), avoiding a duplicate/colliding registry key.
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ |
+| No abstractions for single-use code | ✅ — `RouteSchemaMap` is genuinely reused across 20 modules |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — diff stat matches exactly the 20 route files + `openapi/*` + `evals/*` + governance files + CI/docs |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — every `routeSchemas` export follows the identical shape and JSDoc pattern across all 20 modules |
+| Would senior engineer approve? | ⚠️ — yes for the AC-level work itself, but not without pushback on the T26 self-report (see Fix Plan 1) — a coverage-floor claim was asserted as "confirmed" from a `git stash` isolation that did not actually isolate the whole wave |
+| Tests map to acceptance criteria and are non-shallow | ✅ — `buildDocument.spec.ts` (7 tests), `openApiParity.spec.ts` (4 tests), `threshold.spec.ts` (4 tests), `runThresholdCheck.spec.ts` (2 tests), `registry.spec.ts` (1 test) all target real branch behavior, confirmed via the discrimination sensor above |
+| Spec-anchored outcome check | ✅ — all 9 AC assertions above target the literal spec outcome, not just "a file exists" |
+| Per-layer Coverage Expectation met | ✅ for the new `openapi`/`evals` domain logic (near-1:1, confirmed by sensor); ❌ for the wave's net effect on the pre-existing global `functions` ratchet (see Gate Check) |
+| Every test in scope maps to a spec AC / edge case / Done-when (no unclaimed tests) | ✅ |
+| Documented project quality/testing guidelines followed | `coding-principles.md` + `.specs/features/platform-maturity/tasks.md`'s own "Gate Check Commands" table — both followed for individual tasks; the wave-level coverage-floor claim in `tasks.md:453` (T26) is the one place a documented verification step (isolate-and-compare) was performed incorrectly (see Fix Plan 1) |
+
+---
+
+### Edge Cases
+
+From `spec.md`'s general Edge Cases section (lines 176-183), checked against F8's scope:
+
+- [x] "IF a geração do OpenAPI produzir um documento sem nenhuma rota THEN o CI SHALL falhar": `buildOpenApiDocument` throws on an empty registry (`buildDocument.ts:135-139`, sensor-confirmed killed above); `checkOpenApiParity` separately treats a missing/unparseable/route-less `docs/openapi.json` as a violation on its own (`openApiParity.ts:65-91`, tested at `openApiParity.spec.ts:74`) — both layers covered
+- [x] "WHEN dois squads editarem STATE.md na mesma janela THEN o formato por frente SHALL permitir merge sem perda de contexto": `STATE.md:77-82`'s `## Handoffs` + per-feature `###` subsection format is in place; only 1 real front exists today so N-front merge itself is unexercised, but the structural mechanism (independent Markdown subsections, no shared mutable block) is present as designed
+- [ ] n/a — MCP cross-workspace token: F9 scope, not F8
+- [ ] n/a — healthcheck flapping: F6/CIQ scope, not F8
+- [ ] n/a — capability map pointing at removed UI component: F6/TRU scope, not F8
+- [ ] n/a — new package with no coverage floor: F6/CIQ-04 scope, not F8 (though see Gate Check — this wave regresses an *existing* floor, a different failure mode than "no floor declared")
+
+---
+
+### Gate Check
+
+- **Gate command**: Full level (`tasks.md`'s Gate Check Commands table — "tasks touching CI wiring or cross-package behavior") = `make lint && make typecheck && make test-unit`; also ran the Quick-level per-package commands for `@arch-canvas/repo-tools` and `@arch-canvas/server` directly.
+- **Node**: v22.23.2 via `fnm use 22 && corepack enable` (confirmed load-bearing, matches `CLAUDE.md`'s documented constraint).
+
+| Step | Result |
+| --- | --- |
+| `make lint` | ✅ exit 0 — 440 files checked, 0 errors, 4 pre-existing warnings (`tools/repo-tools/src/webConsumers.spec.ts`, untouched by this wave — same warnings F6/F7 reports already recorded) |
+| `make typecheck` | ✅ exit 0 — 24/24 tasks successful (Turbo) |
+| `pnpm --filter @arch-canvas/repo-tools run test:unit` | ✅ exit 0 — 49/49 tests passed (7 files, incl. `openApiParity.spec.ts`'s 4 new tests) |
+| `pnpm --filter @arch-canvas/repo-tools run audit` (note: `run`, not bare `audit` — bare form reproduced the documented `ERROR Unknown option: 'recursive'` collision with pnpm's builtin, confirming L-022 is still live) | ✅ exit 0 — "82 routes, 4 consumed, 78 pending-product", zero parity/floor/capability violations |
+| `pnpm --filter @arch-canvas/server run test:unit` | ❌ **exit 1** — 380/380 individual tests PASS (36/36 files), but the run fails on `ERROR: Coverage for functions (28.87%) does not meet global threshold (39.73%)` (`apps/server/vitest.config.ts:26`, CIQ-04's locked ratchet from F6) |
+| `make test-unit` (all packages) | ❌ exit 1 — 22/23 Turbo tasks successful; the single failure is `@arch-canvas/server#test:unit`, same coverage-floor error as above |
+
+**Root-cause investigation (this is the wave's central finding)**: `tasks.md:453` (T26) claims this coverage-floor failure "já estava quebrado (28.67%) ANTES deste arquivo existir (confirmado isolando `threshold.ts`/`threshold.spec.ts` via `git stash`)" and is therefore pre-existing and out of scope. **This claim does not hold up under independent re-verification**:
+
+1. Created a scratch `git worktree` at `a55c4d7` (the actual commit immediately preceding F8's first commit — the wave's true starting point, not an intermediate state).
+2. `pnpm install --frozen-lockfile` + `make build` in that worktree (fast — pnpm content-addressable store), then `pnpm --filter @arch-canvas/server run test:unit --coverage.reporter=json-summary`.
+3. Result: **360/360 tests pass, exit 0, `functions: 39.73%`** — exactly matching the floor value hard-coded in `vitest.config.ts:26`, confirming that value was calibrated against this exact pre-F8 state. Reproduced twice, byte-identical both times.
+4. Same command on HEAD (real tree): **380/380 tests pass, exit 1, `functions: 28.87%`**.
+5. Diffed the two runs' `coverage-summary.json` per-file function totals (not just the human-truncated console table). Finding: **every one of ~30 `routes.ts`/business-logic files across nearly every module (`share`, `webhook`, `ai-provider`, `export`, `auth`, `comment`, `asset`, `presentation`, `ws-gateway`, `lint`, `ai-engine`, `docgen`, `interop`, `diagram-sync`, `library`, `workspace`, ...) jumped from "1 total function, 0 covered" (pre-F8) to "N total functions (3-9), 0 covered" (HEAD)** — same real functions, now correctly counted by V8's coverage instrumentation where they previously collapsed into a single reported unit. Aggregate: **total functions denominator rose from 302 (pre-F8) to 426 (HEAD, +124)**, while covered functions barely moved (120 → 123, from this wave's own new, well-tested `openapi`/`evals` code). This directly and reproducibly drags the global `functions` percentage from 39.73% to 28.87% — a genuine, wave-caused change in what gets measured, not a pre-existing condition and not something F8 "nudges up."
+6. Cleanup verified: both scratch worktrees removed with `git worktree remove --force`; `git status --porcelain` on the real tree confirmed empty before and after every step in this investigation.
+
+**Test count before/after this wave**: 360 → 380 (+20 new tests, all passing) — matches the 5 new spec files (`buildDocument.spec.ts` 7, `openApiParity.spec.ts` 4, `registry.spec.ts` 1, `threshold.spec.ts` 4, `runThresholdCheck.spec.ts` 2 = 18... plus `cli.spec.ts` gained the `OPENAPI_DOC` fixture wiring, accounting for the remainder). No test-count regression; the failure is purely the coverage-floor gate, not the tests themselves.
+
+---
+
+### Fix Plans
+
+#### Fix 1 (Blocker): `functions` coverage floor regression, mis-classified as pre-existing
+
+- **Root cause**: Adding `routeSchemas` exports (and the `import type { RouteSchemaMap }` that comes with them) across ~20 route files changed how V8's coverage instrumentation attributes functions within those files — functions that already existed (route handler closures, business-logic helpers) were previously being collapsed into a single "1 function" unit per file under coverage and are now counted individually, all still at 0% coverage. This raised the wave-wide `functions` denominator from 302 to 426 without a matching rise in covered functions, dragging the aggregate below the CIQ-04 ratchet locked in `apps/server/vitest.config.ts:26` (39.73%). `tasks.md:453`'s self-report incorrectly attributed this to a pre-existing condition, because its isolation method (`git stash` of only the last 2 files) compared against an already-38-commits-deep intermediate state of the wave, not the wave's actual starting point.
+- **Where**: `apps/server/vitest.config.ts:26` (the locked threshold) vs. the ~20 modified `routes.ts`/route files across `apps/server/src/modules/*` and `apps/server/src/core/server.ts`; the false claim itself is at `.specs/features/platform-maturity/tasks.md:453`.
+- **Fix task**: Either (a) add unit tests directly exercising a representative sample of the now-newly-counted, previously-uninstrumented functions until `functions` coverage clears 39.73% again, or (b) if the team judges the new, more-accurate function count doesn't warrant closing that gap in this wave, deliberately edit the ratchet in `vitest.config.ts` down to the new measured value with an explicit justification comment (CIQ-04's own rule: "Lowering any of them requires editing this file on purpose — no threshold is inherited implicitly"), and correct `tasks.md:453`'s note to stop citing this as pre-existing/unrelated.
+- **Verify**: `pnpm --filter @arch-canvas/server run test:unit` exits 0.
+- **Done when**: the Full gate (`make lint && make typecheck && make test-unit`) exits 0 end to end, and `tasks.md:453`'s note is corrected to reflect the real root cause (or removed if the threshold is deliberately adjusted instead).
+- **Priority**: **Blocker** — this is not cosmetic; it means the branch as it stands would turn the `unit` CI job red on any real pull request, exactly the failure mode CIQ-04 exists to prevent, caused by this wave's own diff.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous | New |
+| --- | --- | --- |
+| GOV-01 | Pending | ✅ Verified |
+| GOV-02 | Pending | ✅ Verified |
+| GOV-03 | Pending | ✅ Verified |
+| GOV-04 | Pending | ✅ Verified |
+| GOV-05 | Pending | ✅ Verified |
+| GOV-06 | Pending | ✅ Verified |
+| API-01 | Pending | ✅ Verified |
+| API-02 | Pending | ✅ Verified |
+| API-03 | Pending | ✅ Verified |
+
+All 9 ACs are individually grounded and correct on their literal text — none is downgraded to "Needs Fix" on its own merits. The wave's blocking gap (Fix Plan 1) is a regression against **CIQ-04** (an F6 requirement, already `✅ Verified` in that wave's own report) rather than a failure of any GOV/API criterion's literal wording — but it is real, it is caused by this wave's diff, and it must close before F8 can be considered mergeable/done. `STATE.md`'s Handoffs section is updated accordingly (see below) to stop pointing at "Verifier pendente" and instead record the actual FAIL verdict and its one blocking fix task.
+
+---
+
+### Summary
+
+**Overall**: ⚠️ Issues (not ❌ Not Ready — the gap is single, well-understood, and one fix task away; not ✅ Ready — the Gate Check genuinely fails today)
+
+**Spec-anchored check**: 9/9 ACs matched spec outcome with `file:line` evidence · 1 disclosed prose-only spec-precision gap (API-03, "10 vs 5" in `design.md`/`tasks.md`, non-blocking, already caught by the implementer)
+**Sensor**: 3/3 mutations killed (lightweight tier, `buildOpenApiDocument`, `checkOpenApiParity`, `checkEvalThreshold`)
+**Gate**: `make lint` ✅ · `make typecheck` ✅ · `repo-tools test:unit` ✅ (49/49) · `repo-tools run audit` ✅ (82/4/78) · `server test:unit` ❌ (380/380 individual tests pass, but exit 1 on the `functions` coverage floor — confirmed wave-caused, not pre-existing) · `make test-unit` ❌ (22/23 Turbo tasks; same single failure)
+
+**What works**: The OpenAPI generation pipeline is real and correct — `z.toJSONSchema()`-based conversion, 20-module registry (including the 3 non-`routes.ts`-named files the Phase 2d mid-wave correction added), zero parity violations against an independently recounted 82-route reality, empty-document guard rail, CI regeneration+diff gate all verified by direct execution, not just reading YAML. The evals threshold checker is correct and honest about the real 5/5 case count. All 6 governance deliverables (`CODEOWNERS`, PR template, Changesets + CI gate, ADR template, GOV-04 note, `STATE.md` Handoffs) are genuine, correctly scoped, and (for `changeset-check`) empirically proven correct against both a real historical no-changeset commit range and a crafted passing case — not merely read and assumed.
+
+**Issues found**: The wave's own `tasks.md:453` self-report incorrectly classified a coverage-floor regression as pre-existing/unrelated based on an isolation method that didn't actually isolate the whole wave (`git stash` of the last 2 files instead of a true pre-wave baseline). Independent re-verification via a proper `git worktree` baseline at `a55c4d7` shows the regression is real and wave-caused (39.73%→28.87% functions coverage, exit 0→1). This is Fix Plan 1 (Blocker).
+
+**Next steps**: Land Fix Plan 1 (either raise coverage on the newly-visible functions, or deliberately and transparently lower the ratchet with justification), correct `tasks.md:453`'s note, re-run `pnpm --filter @arch-canvas/server run test:unit` to confirm exit 0, then re-run this Verifier's Gate Check step only (no need to redo the AC/sensor/quality checks, which are unaffected) before F8 can be marked fully closed.
+

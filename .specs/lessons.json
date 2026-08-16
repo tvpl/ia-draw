@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 24,
+  "next_id": 26,
   "lessons": [
     {
       "id": "L-001",
@@ -420,6 +420,42 @@
       ],
       "created": "2026-08-16T11:39:04Z",
       "last_seen": "2026-08-16T11:39:04Z"
+    },
+    {
+      "id": "L-024",
+      "key": "gate_fail::when a batch worker isolates a suspected pre existing gate failure with git stash of only the most recently added files re verify against the true wave start commit in a separate worktree before trusting the pre existing unrelated classification stashing a few files still leaves the rest of the wave s diff in place and can hide a regression the wave itself caused",
+      "text": "When a batch worker isolates a suspected pre-existing gate failure with git stash of only the most recently added files, re-verify against the true wave-start commit in a separate worktree before trusting the pre-existing/unrelated classification — stashing a few files still leaves the rest of the wave's diff in place and can hide a regression the wave itself caused.",
+      "signal": "gate_fail",
+      "scope": "verification-methodology",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/vitest.config.ts:26 (F8 wave, CIQ-04 functions ratchet) (verification-methodology)"
+      ],
+      "created": "2026-08-16T13:25:54Z",
+      "last_seen": "2026-08-16T13:25:54Z"
+    },
+    {
+      "id": "L-025",
+      "key": "spec_precision_gap::a scanning tool s scan root is an assumption not a fact assert the tool s total against an independent count over the whole source tree before publishing the number",
+      "text": "A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.",
+      "signal": "spec_precision_gap",
+      "scope": "repo-tooling",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "design.md:34 (F8, corrected by tasks.md T21-T23/Phase 2d) (repo-tooling)"
+      ],
+      "created": "2026-08-16T13:25:59Z",
+      "last_seen": "2026-08-16T13:25:59Z"
     }
   ]
 }
