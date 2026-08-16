@@ -643,6 +643,50 @@ describe('AiDock (T7)', () => {
     expect(document.activeElement).toBe(undoButton);
   });
 
+  // DOCK-04: the submit button must stay disabled for the whole in-flight window, not
+  // just during the 429 rate-limit path (the only case previously asserted). A
+  // deferred-resolution fetchImpl makes the `submitting` phase observable before the
+  // request settles.
+  it('keeps submit disabled while a run is in flight, from submitting through awaiting_approval (DOCK-04)', async () => {
+    let resolveRun: ((response: Response) => void) | undefined;
+    const fetchImpl = vi.fn(
+      () =>
+        new Promise<Response>((resolve) => {
+          resolveRun = resolve;
+        }),
+    ) as unknown as typeof fetch;
+    renderDock({ fetchImpl });
+
+    fireEvent.change(screen.getByLabelText('Describe what you want to change'), {
+      target: { value: 'draw three services' },
+    });
+    const submitButton = screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement;
+    expect(submitButton.disabled).toBe(false);
+
+    await act(async () => {
+      fireEvent.click(submitButton);
+      await Promise.resolve();
+    });
+
+    // Still in flight (phase: submitting) — submit must stay disabled.
+    expect(submitButton.disabled).toBe(true);
+
+    await act(async () => {
+      resolveRun?.(
+        jsonResponse(201, {
+          run: { id: 'run-inflight', status: 'awaiting_approval' },
+          patch: {},
+          preview: PREVIEW,
+          requiresExplicitApproval: false,
+        }),
+      );
+      await Promise.resolve();
+    });
+
+    // Now awaiting_approval — still an ongoing run, submit stays disabled.
+    expect((screen.getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it('all visible text is sourced from i18n keys in both pt-BR and en (DOCK-23)', async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
     await i18n.changeLanguage('pt-BR');
