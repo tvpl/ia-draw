@@ -100,7 +100,7 @@ mais recente — leia-o ao retomar trabalho.
 ## Fluxos versionados (em vez de instrução repetida em prosa)
 
 - `/audit` (`.claude/commands/audit.md`) — roda o auditor de capacidades/rotas
-  (`pnpm --filter @arch-canvas/repo-tools audit`), que toda onda usa antes de fechar para conferir
+  (`pnpm --filter @arch-canvas/repo-tools run audit`), que toda onda usa antes de fechar para conferir
   o mapa de capacidades e o piso de cobertura.
 - `/gate` (`.claude/commands/gate.md`) — roda o gate local completo (lint + typecheck + testes) que
   toda task deste projeto usa como critério de "Done when".

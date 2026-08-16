@@ -19,7 +19,7 @@
       "Bash(pnpm -w typecheck*)",
       "Bash(pnpm -w build*)",
       "Bash(pnpm -w test:*)",
-      "Bash(pnpm --filter @arch-canvas/repo-tools audit)",
+      "Bash(pnpm --filter @arch-canvas/repo-tools run audit)",
       "Bash(git status*)",
       "Bash(git diff*)",
       "Bash(git log*)"

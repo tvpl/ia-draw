@@ -1,11 +1,11 @@
 ---
 description: Run the capability-map and route-inventory audit (repo-tools)
-allowed-tools: Bash(pnpm --filter @arch-canvas/repo-tools audit)
+allowed-tools: Bash(pnpm --filter @arch-canvas/repo-tools run audit)
 ---
 
 Run the repository audit and report the result to the user.
 
-1. Run `pnpm --filter @arch-canvas/repo-tools audit`.
+1. Run `pnpm --filter @arch-canvas/repo-tools run audit`.
 2. This regenerates `docs/route-inventory.md` and checks:
    - every `docs/capability-map.yaml` entry against the real code (TRU-03, UIX-01) — a `ui_surface`
      that doesn't exist in `apps/web/src`, or a capability wrongly marked `backend-only`, fails it;
