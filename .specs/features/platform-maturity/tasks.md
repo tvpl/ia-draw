@@ -359,11 +359,18 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] `diagram://{id}` devolve o `IrDocument` estruturado em `structuredContent`, nunca uma imagem
-- [ ] `component://{diagramId}/{stableKey}` devolve metadados + relações
-- [ ] Ambos aplicam o aviso de dado não-confiável no `content` textual
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
-- [ ] Test count: 5 novos testes (IR estruturado correto; componente com relações; componente inexistente vira erro tratado, não exceção não capturada; aviso presente nos dois; nenhum texto de rótulo do canvas aparece fora de `structuredContent`)
+- [x] `diagram://{id}` devolve o `IrDocument` estruturado em `structuredContent`, nunca uma imagem
+- [x] `component://{diagramId}/{stableKey}` devolve metadados + relações
+- [x] Ambos aplicam o aviso de dado não-confiável no `content` textual
+- [x] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [x] Test count: 5 novos testes (IR estruturado correto; componente com relações; componente inexistente vira erro tratado, não exceção não capturada; aviso presente nos dois; nenhum texto de rótulo do canvas aparece fora de `structuredContent`)
+
+  SPEC_DEVIATION: the SDK's `ReadResourceResult` (`@modelcontextprotocol/sdk@1.30.0`) has no
+  dedicated `structuredContent` field — only `CallToolResult` (tool responses) does. For these two
+  resources, "estruturado em structuredContent" is satisfied in spirit rather than by that literal
+  field name: the JSON payload lives in its own `contents` entry (`mimeType: application/json`),
+  fully separate from the disclaimer's plain-text entry — never spliced into free prose an agent
+  could read as an instruction. See `untrustedContent.ts`'s doc comment.
 
 **Tests**: unit
 **Gate**: quick
