@@ -11,10 +11,14 @@
       "import": "./dist/index.js"
     }
   },
+  "bin": {
+    "repo-tools": "./dist/cli.js"
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "audit": "node dist/cli.js audit"
   },
   "dependencies": {
     "yaml": "^2.9.0"

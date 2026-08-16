@@ -302,13 +302,21 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Sai com código diferente de zero quando o mapa de capacidades tem qualquer divergência, imprimindo cada entrada ofensora
-- [ ] Escreve o inventário em `docs/route-inventory.md` com as rotas agrupadas por classificação
-- [ ] Edge case coberto: sem divergência nenhuma, sai zero e ainda assim escreve o artefato
-- [ ] Edge case coberto: caminho de repositório inválido falha com mensagem explícita, nunca com stack trace cru
-- [ ] `pnpm --filter @arch-canvas/repo-tools exec repo-tools audit` roda de verdade no repositório e produz o artefato
-- [ ] Gate check passa: `make test-unit`
-- [ ] Test count: 5 testes passam (sem deleção silenciosa)
+- [x] Sai com código diferente de zero quando o mapa de capacidades tem qualquer divergência, imprimindo cada entrada ofensora
+- [x] Escreve o inventário em `docs/route-inventory.md` com as rotas agrupadas por classificação
+- [x] Edge case coberto: sem divergência nenhuma, sai zero e ainda assim escreve o artefato
+- [x] Edge case coberto: caminho de repositório inválido falha com mensagem explícita, nunca com stack trace cru
+- [x] `pnpm --filter @arch-canvas/repo-tools exec repo-tools audit` roda de verdade no repositório e produz o artefato
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 5 testes passam (sem deleção silenciosa)
+
+> **Como invocar (importa para T12).** O `bin` só é linkado por `pnpm install` **depois** que `dist/cli.js` existe: num checkout limpo o primeiro `pnpm install` avisa `Failed to create bin` e a forma `exec repo-tools audit` não resolve. Duas saídas, ambas verificadas: rodar `install → build → install` e então `pnpm --filter @arch-canvas/repo-tools exec repo-tools audit`, ou usar direto `pnpm --filter @arch-canvas/repo-tools run audit`, que chama `node dist/cli.js audit` e só depende do build. O CI deve preferir a segunda.
+>
+> Duas mudanças de wiring fora do `Where` da task foram necessárias: `bin` e o script `audit` em `tools/repo-tools/package.json`, e `@arch-canvas/repo-tools` como devDependency da raiz (é isso que coloca o bin no `node_modules/.bin` do workspace). Auto-referência dentro do próprio package foi testada e **não** funciona: o turbo rejeita com `@arch-canvas/repo-tools#build depends on itself`.
+>
+> **Teste independente da spec (TRU-01 AC3) reproduzido:** apontar a entrada `Acessibilidade do shell da aplicação` para um `GhostShell.tsx` inexistente faz a auditoria sair 1 nomeando a entrada. O mapa foi restaurado.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick

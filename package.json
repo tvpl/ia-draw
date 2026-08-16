@@ -19,6 +19,7 @@
     "backup:restore": "node infra/backup/dist/cli/restore.cli.js"
   },
   "devDependencies": {
+    "@arch-canvas/repo-tools": "workspace:*",
     "@biomejs/biome": "^2.3.2",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
