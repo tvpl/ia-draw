@@ -469,4 +469,69 @@ describe('OIDC login — real in-process OpenID Provider, full PKCE protocol (T8
 
     await app.close();
   });
+
+  describe('callback failure paths redirect to the SPA instead of throwing (T2, SSO-12)', () => {
+    it('a missing PKCE cookie redirects to /login?error=oidc_failed instead of a raw error body', async () => {
+      const app = await buildAppWithOidc(workspaceId);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/auth/oidc/callback?code=some-code&state=some-state',
+      });
+
+      expect(response.statusCode).toBeGreaterThanOrEqual(300);
+      expect(response.statusCode).toBeLessThan(400);
+      expect(response.headers.location).toBe(`${PUBLIC_URL}/login?error=oidc_failed`);
+
+      await app.close();
+    });
+
+    it('a malformed PKCE cookie (not JSON) redirects to /login?error=oidc_failed instead of a raw error body', async () => {
+      const app = await buildAppWithOidc(workspaceId);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/auth/oidc/callback?code=some-code&state=some-state',
+        cookies: { [OIDC_PKCE_COOKIE_NAME]: 'this-is-not-json' },
+      });
+
+      expect(response.statusCode).toBeGreaterThanOrEqual(300);
+      expect(response.statusCode).toBeLessThan(400);
+      expect(response.headers.location).toBe(`${PUBLIC_URL}/login?error=oidc_failed`);
+
+      await app.close();
+    });
+
+    it('a token-exchange failure (wrong code/state) redirects to /login?error=oidc_failed, with the audit event still recorded before the redirect', async () => {
+      const app = await buildAppWithOidc(workspaceId);
+
+      // A well-formed PKCE cookie whose state/code_verifier can never match
+      // what the real IdP actually issued for this request — the exact
+      // same shape `client.authorizationCodeGrant` rejects for a genuinely
+      // hijacked/replayed callback.
+      const pkceState = {
+        codeVerifier: 'a'.repeat(43),
+        state: 'expected-state-that-will-never-match',
+        nonce: 'expected-nonce',
+      };
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/auth/oidc/callback?code=invalid-code&state=expected-state-that-will-never-match',
+        cookies: { [OIDC_PKCE_COOKIE_NAME]: JSON.stringify(pkceState) },
+      });
+
+      expect(response.statusCode).toBeGreaterThanOrEqual(300);
+      expect(response.statusCode).toBeLessThan(400);
+      expect(response.headers.location).toBe(`${PUBLIC_URL}/login?error=oidc_failed`);
+
+      const failureRows = await db
+        .select()
+        .from(schema.auditEvents)
+        .where(eq(schema.auditEvents.action, 'auth.oidc_login.failed'));
+      expect(failureRows.length).toBeGreaterThan(0);
+
+      await app.close();
+    });
+  });
 });

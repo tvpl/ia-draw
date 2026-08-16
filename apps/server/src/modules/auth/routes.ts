@@ -231,14 +231,19 @@ export async function registerAuthModule(
     const rawPkceState = request.cookies[OIDC_PKCE_COOKIE_NAME];
     reply.clearCookie(OIDC_PKCE_COOKIE_NAME, clearedOidcPkceCookieOptions(config));
     if (!rawPkceState) {
-      badOidcCallback('Missing or expired OIDC login state — please retry /auth/oidc/login');
+      // T2 (SSO-12): a missing/expired PKCE cookie ends the flow before the
+      // try/catch below even starts — redirect straight back to the SPA
+      // instead of throwing a raw problem+json error to the browser.
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
+      return;
     }
 
     let pkceState: OidcPkceState;
     try {
       pkceState = JSON.parse(rawPkceState) as OidcPkceState;
     } catch {
-      badOidcCallback('Malformed OIDC login state');
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
+      return;
     }
 
     const ipHash = hashToken(request.ip);
@@ -331,7 +336,14 @@ export async function registerAuthModule(
         },
       });
       metrics?.recordAuthFailure();
-      throw error;
+      // T2 (SSO-12): every failure inside the try above (token exchange,
+      // missing ID token via `badOidcCallback`, claims/userinfo issues)
+      // used to rethrow the raw error here, which Fastify turned into a
+      // bare problem+json response with no way back into the SPA. The
+      // audit/metrics calls above are unchanged — only what the browser
+      // receives changes, same redirect target as the two early-return
+      // cases above.
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
     }
   });
 }

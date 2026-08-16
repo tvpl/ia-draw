@@ -109,12 +109,12 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Missing/expired PKCE cookie → redirect to `${publicUrl}/login?error=oidc_failed` (not a `400` body)
-- [ ] Malformed PKCE cookie JSON → same redirect
-- [ ] Token exchange / claims failure → same redirect; `recordAuditEvent(..., 'auth.oidc_login.failed')` and `metrics?.recordAuthFailure()` still called before the redirect (existing behavior preserved)
-- [ ] Success path (`reply.redirect(config.publicUrl)`) unchanged
-- [ ] `oidc.int.spec.ts`/`auth.int.spec.ts` failure-path assertions updated from "expect thrown error / problem+json" to "expect a redirect response whose `Location` header is `${publicUrl}/login?error=oidc_failed`"
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Missing/expired PKCE cookie → redirect to `${publicUrl}/login?error=oidc_failed` (not a `400` body)
+- [x] Malformed PKCE cookie JSON → same redirect
+- [x] Token exchange / claims failure → same redirect; `recordAuditEvent(..., 'auth.oidc_login.failed')` and `metrics?.recordAuthFailure()` still called before the redirect (existing behavior preserved)
+- [x] Success path (`reply.redirect(config.publicUrl)`) unchanged
+- [x] `oidc.int.spec.ts`/`auth.int.spec.ts` failure-path assertions updated from "expect thrown error / problem+json" to "expect a redirect response whose `Location` header is `${publicUrl}/login?error=oidc_failed`"
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
 
 **Tests**: integration
 **Gate**: full
