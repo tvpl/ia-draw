@@ -311,10 +311,12 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Todo método injeta o bearer token corretamente
-- [ ] Resposta não-2xx (404/403/401) vira um erro tipado, nunca um objeto parcial silencioso
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit` (HTTP mockado, sem servidor real)
-- [ ] Test count: 6 novos testes (cada método feliz; erro 404 vira exceção tipada; header de auth presente em toda chamada)
+- [x] Todo método injeta o bearer token corretamente
+- [x] Resposta não-2xx (404/403/401) vira um erro tipado, nunca um objeto parcial silencioso
+- [x] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit` (HTTP mockado, sem servidor real)
+- [x] Test count: 7 novos testes (cada método feliz — 3; erro 404 vira `McpApiError` tipado; header de auth presente em toda chamada; fallback pro `fetch` global quando `fetchImpl` não é injetado; erro de configuração claro quando `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` faltam — os dois últimos além do "6" planejado, pra fechar 100% de cobertura de branch por `vitest.config.ts`'s ratchet, CIQ-04)
+
+`IrDocumentLike`/`ComponentMetadataLike`/etc. (`client.ts`) são tipos locais, estruturalmente equivalentes aos tipos reais de `@arch-canvas/diagram-ir`/`library/metadata.ts` — nunca importados, por `design.md`'s regra de `apps/mcp` nunca depender de pacote de domínio.
 
 **Tests**: unit
 **Gate**: quick
