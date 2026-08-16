@@ -96,7 +96,9 @@ Verifier independente por onda). O trabalho é feito com a skill `tlc-spec-drive
 (`.claude/skills/tlc-spec-driven/`) — ative-a pelo nome ao planejar ou implementar uma feature; ela
 é a fonte de verdade do fluxo (Specify → Design → Tasks → Execute, sub-agentes, Verifier, sensor de
 discriminação, lições). `.specs/STATE.md` guarda o log de decisões (AD-NNN) e o handoff da sessão
-mais recente — leia-o ao retomar trabalho.
+mais recente — leia-o ao retomar trabalho. Convenção em uso desde F6: uma spec por domínio em
+`.specs/features/<domínio>/` — nunca uma spec monolítica cobrindo vários domínios; exemplar real:
+`.specs/features/ai-dock/spec.md` (prefixo de requisito próprio, `DOCK-NNN`).
 
 ## Fluxos versionados (em vez de instrução repetida em prosa)
 

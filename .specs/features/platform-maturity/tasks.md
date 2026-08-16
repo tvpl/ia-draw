@@ -625,8 +625,8 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Linha adicionada, cita `ai-dock` como exemplar real
-- [ ] `make lint` limpo
+- [x] Linha adicionada, cita `ai-dock` como exemplar real
+- [x] `make lint` limpo
 
 **Tests**: none
 **Gate**: build
