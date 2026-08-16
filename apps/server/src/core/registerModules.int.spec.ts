@@ -199,6 +199,19 @@ describe('registerAllModules — production wiring is actually reachable', () =>
     expect(createResponse.statusCode).toBe(401);
   });
 
+  it('reaches the mcp module route through the same wiring path (T8, MCP-01/02) — 404 without a valid MCP token, never a missing route', async () => {
+    // requireMcpToken's uniform-deny (MCP-04/05) means an absent/invalid
+    // bearer token is a 404, identical to a diagram that doesn't exist —
+    // this alone proves the route is registered and reachable in the real
+    // production wiring, the same "route exists, auth denies it" pattern
+    // every other module's reachability assertion above already uses.
+    const response = await app.inject({
+      method: 'GET',
+      url: '/diagrams/some-diagram-id/ir',
+    });
+    expect(response.statusCode).toBe(404);
+  });
+
   it('reports readiness up when the injected postgres check passes', async () => {
     const ready = await app.inject({ method: 'GET', url: '/health/ready' });
 

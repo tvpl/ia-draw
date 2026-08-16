@@ -266,10 +266,10 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Módulo MCP registrado, rotas alcançáveis num boot real do `FastifyInstance`
-- [ ] `registerModules.int.spec.ts` estendido (não substituído) com uma asserção pro módulo novo
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
-- [ ] Test count: 1 novo teste integration (boot real confirma rota MCP alcançável)
+- [x] Módulo MCP registrado, rotas alcançáveis num boot real do `FastifyInstance`
+- [x] `registerModules.int.spec.ts` estendido (não substituído) com uma asserção pro módulo novo
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Test count: 1 novo teste integration (boot real confirma rota MCP alcançável)
 
 **Tests**: integration
 **Gate**: full

@@ -22,6 +22,7 @@ import { registerInteropModule } from '../modules/interop/routes.js';
 import type { JobQueue } from '../modules/jobs/index.js';
 import { registerLibraryModule } from '../modules/library/routes.js';
 import { registerLintModule } from '../modules/lint/routes.js';
+import { registerMcpModule } from '../modules/mcp/routes.js';
 import { registerPresentationPublishModule } from '../modules/presentation/publishRoutes.js';
 import { registerPresentationModule } from '../modules/presentation/routes.js';
 import { registerShareModule } from '../modules/share/routes.js';
@@ -151,6 +152,7 @@ export async function registerAllModules(
   });
   registerDocgenModule(app, { db, storage, jobs: deps.jobs });
   registerLintModule(app, { db });
+  registerMcpModule(app, { db });
   registerPresentationModule(app, { db });
   registerPresentationPublishModule(app, { db, storage, jobs: deps.jobs });
   registerCommentModule(app, { db, jobs: deps.jobs });
