@@ -342,11 +342,19 @@ T16 → T17
 
 **Done when**:
 
-- [ ] `@vitest/coverage-v8` adicionado como devDependency na raiz (hoje não existe provider de cobertura em lugar nenhum)
-- [ ] Cada package com `test:unit` declara `coverage.thresholds` com o valor medido na primeira execução, nunca um número aspiracional
-- [ ] Baixar qualquer limiar exige alteração explícita do arquivo — nenhum limiar é herdado implicitamente
-- [ ] Reprodução local: reduzir a cobertura de um package removendo um teste faz `make test-unit` falhar nomeando o package; o teste é restaurado em seguida
-- [ ] Gate check passa: `make ci`
+- [x] `@vitest/coverage-v8` adicionado como devDependency na raiz (hoje não existe provider de cobertura em lugar nenhum)
+- [x] Cada package com `test:unit` declara `coverage.thresholds` com o valor medido na primeira execução, nunca um número aspiracional
+- [x] Baixar qualquer limiar exige alteração explícita do arquivo — nenhum limiar é herdado implicitamente
+- [x] Reprodução local: reduzir a cobertura de um package removendo um teste faz `make test-unit` falhar nomeando o package; o teste é restaurado em seguida
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+> **Pisos medidos (não aspiracionais).** Os 12 packages com `test:unit` receberam o valor medido na primeira execução com `@vitest/coverage-v8@3.2.7`: server 25.48/39.73/80.27, web 56.54/72.5/85.52, backup 6.01/46.15/66.66, ai-tools 91.13/90.24/77.43, auth 97.61/50/75, diagram-domain 98.02/93.33/93.82, diagram-ir 89.88/92.85/77.7, editor-adapter 80.34/77.77/92.59, library-content 99.51/75/75, shared-contracts 97.34/87.5/78.26, test-fixtures 67.53/88.88/93.33, repo-tools 92.2/100/83.33 (lines/functions/branches; `statements` igual a `lines` no provider v8). `coverage.enabled: true` é o que faz o piso valer no `test:unit` normal — sem isso o limiar só existiria com `--coverage` explícito e o portão seria decorativo. `packages/database` não tem `test:unit` e ficou de fora.
+>
+> **Sensor de discriminação executado.** Removido `packages/diagram-domain/src/envelope.spec.ts` e rodado `make test-unit`: falha com `@arch-canvas/diagram-domain:test:unit: ERROR: Coverage for lines (71.92%) does not meet global threshold (98.02%)` — nomeia package, piso e valor medido, que é exatamente o que a CIQ-04 exige. Arquivo restaurado; `git status --porcelain` sem resíduo.
+>
+> **Risco declarado:** o piso é o valor medido em macOS/Node 22.23.2. Se o runner Linux do CI executar um ramo diferente em algum arquivo, o piso pode ficar 0,01 ponto acima do medido lá. Só o primeiro pull request confirma.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build

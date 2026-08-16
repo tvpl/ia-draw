@@ -21,6 +21,7 @@
   "devDependencies": {
     "@arch-canvas/repo-tools": "workspace:*",
     "@biomejs/biome": "^2.3.2",
+    "@vitest/coverage-v8": "^3.2.4",
     "turbo": "^2.5.8",
     "typescript": "^5.9.3"
   }

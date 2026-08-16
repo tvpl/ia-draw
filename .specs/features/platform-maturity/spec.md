@@ -194,7 +194,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | CIQ-01 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-02 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-03 | P1: CI que prova o sistema | F6 | Pending |
-| CIQ-04 | P1: CI que prova o sistema | F6 | Pending |
+| CIQ-04 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-05 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-06 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-07 | P1: CI que prova o sistema | F6 | Pending |
