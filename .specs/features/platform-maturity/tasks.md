@@ -1,4 +1,4 @@
-# Platform Maturity — Tasks (Onda F8: Governança e contrato)
+# Platform Maturity — Tasks (Onda F9: MCP — diagramas como contexto para agentes)
 
 ## Execution Protocol (MANDATORY -- do not skip)
 
@@ -8,647 +8,471 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ---
 
-**Design**: `.specs/features/platform-maturity/design-f8.md` (archived under its wave name once F9 needed a fresh `design.md` — OpenAPI generation approach, evals threshold, GOV decisions)
+**Design**: `.specs/features/platform-maturity/design.md` (F9 section — reverse compiler, MCP token auth, REST surface, `apps/mcp` architecture)
 **Status**: Approved
 
 ---
 
 ## Test Coverage Matrix
 
-> Generated from codebase sampling (`tools/repo-tools/src/*.spec.ts`, `apps/server/src/modules/*/*.spec.ts`) and `package.json` scripts. Guidelines found: none as a standalone `AGENTS.md`/`CONTRIBUTING.md` — conventions inferred from the existing test suite (760+ unit tests, PGlite integration tests per ADR-0007) and confirmed against F6/F7's own matrices in this feature dir.
+> Generated from codebase sampling (`apps/server/src/modules/share/*.spec.ts` + `*.int.spec.ts` as the closest precedent — token-based, DB-backed, route-gated module) and `package.json` scripts. Guidelines: none as a standalone file — conventions inferred from the existing suite (`.spec.ts` = unit/pure logic, `.int.spec.ts` = PGlite-backed integration per ADR-0007, both required for any DB-touching module).
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------- | --------------------- | ----------------- | ------------ |
-| `tools/repo-tools` generator/audit logic (pure functions) | unit | All branches; 1:1 to spec ACs (API-01/02); every listed edge case (empty doc, divergent route, missing schema) | `tools/repo-tools/src/*.spec.ts` | `pnpm --filter @arch-canvas/repo-tools run test:unit` |
-| `apps/server/src/openapi/*` (doc builder, threshold checker) | unit | All branches; 1:1 to spec ACs (API-01/03) | `apps/server/src/openapi/**/*.spec.ts`, `apps/server/src/modules/ai-engine/evals/*.spec.ts` | `pnpm --filter @arch-canvas/server run test:unit` |
-| `routeSchemas` exports per module (metadata only, no new logic) | none | build gate only — correctness proven by the Phase 3 audit extension (cross-checks against real registered routes), not a per-module unit test | `apps/server/src/modules/*/routes.ts` | build gate only |
-| CI workflow changes (`.github/workflows/ci.yaml`) | none | build gate only — cannot be unit-tested locally (depends on a real PR event: `base.sha`/`head.sha`), same limitation already logged in `STATE.md` for F6's CI jobs | `.github/workflows/ci.yaml` | `make lint` (YAML is biome-checked) |
-| Governance docs/config (`CODEOWNERS`, PR template, `.changeset/config.json`, ADR template, `CLAUDE.md` note, `STATE.md` format) | none | build gate only | `CODEOWNERS`, `.github/PULL_REQUEST_TEMPLATE.md`, `.changeset/*`, `docs/adr/TEMPLATE.md`, `CLAUDE.md`, `.specs/STATE.md` | build gate only |
+| `packages/diagram-ir` decompiler (pure, no DB) | unit | All branches; 1:1 to spec ACs (MCP-02); round-trip property covered | `packages/diagram-ir/src/*.spec.ts` | `pnpm --filter @arch-canvas/diagram-ir run test:unit` |
+| `apps/server/src/modules/mcp` data-access (`mcpTokens.ts`, `componentLookup.ts`) | unit | All branches; 1:1 to spec ACs | `apps/server/src/modules/mcp/*.spec.ts` | `pnpm --filter @arch-canvas/server run test:unit` |
+| `apps/server/src/modules/mcp` routes (auth + REST surface, DB-backed) | integration | Every route in scope: happy path + auth-denied (404, AUTH-04) + edge cases (expired/revoked token, stale revision) | `apps/server/src/modules/mcp/*.int.spec.ts` | `pnpm --filter @arch-canvas/server run test:integration` |
+| `apps/server/src/core/registerModules.ts` (wiring) | integration | Confirms the new module's routes are reachable end-to-end once wired | `apps/server/src/core/registerModules.int.spec.ts` (extend, do not replace) | `pnpm --filter @arch-canvas/server run test:integration` |
+| `apps/mcp/src/*` (HTTP client, resource/tool handlers) | unit | All branches; mocked HTTP responses (no real server needed — `apps/mcp` never touches DB directly, per design.md) | `apps/mcp/src/**/*.spec.ts` | `pnpm --filter @arch-canvas/mcp run test:unit` |
+| `apps/mcp` package scaffold, `cli.ts` entrypoint | none | build gate only — entrypoint is a thin wire-up, verified manually by running it, not unit-tested | `apps/mcp/package.json`, `apps/mcp/src/cli.ts` | build gate only |
+| `docs/capability-map.yaml` entry, `apps/mcp/README.md` | none | build gate only + `/audit` (repo-tools) confirms the capability-map entry is well-formed | `docs/capability-map.yaml`, `apps/mcp/README.md` | `pnpm --filter @arch-canvas/repo-tools run audit` |
 
-**Coverage Expectation defaults applied**: the three pieces of real logic this wave introduces (the OpenAPI builder, the audit's route-parity check, the eval-threshold checker) get full branch coverage 1:1 to the ACs they implement; everything else is metadata/config with no behavior of its own, gated by build/lint plus the Phase 3 cross-check that proves the metadata matches reality.
+**Coverage Expectation defaults applied**: the decompiler and the MCP auth/route logic are this wave's real domain logic — full branch coverage 1:1 to ACs, plus the round-trip property test that closes ADR-0004's long-standing debt. Route-level work gets integration tests (DB-backed, PGlite) matching this project's established convention for any module gated by `can()` — a unit test alone was never enough for this project's own routes, and this wave doesn't get a pass either.
 
 ## Gate Check Commands
 
 | Gate Level | When to Use | Command |
 | ---------- | ----------- | ------- |
 | Quick | After tasks touching only one package's unit tests | `pnpm --filter <pkg> run test:unit` |
-| Full | After tasks touching CI wiring or cross-package behavior (Phase 3, Phase 4) | `make lint && make typecheck && make test-unit` |
-| Build | Config/docs-only tasks (Phase 5, most of Phase 2) | `make lint` (biome parses JSON/YAML/MD structure; catches syntax errors) |
+| Full | After tasks touching cross-package behavior, module wiring, or routes | `make lint && make typecheck && make test-unit && make test-integration` |
+| Build | Config/docs-only tasks | `make lint` |
 
-`/gate` (`.claude/commands/gate.md`, shipped in F7) wraps the Full level, including the documented sandbox fallback when `make ci` can't reach `pg_lsclusters`/`redis-server`.
+`/gate` (`.claude/commands/gate.md`) wraps the Full level, including the documented sandbox fallback when `make ci` can't reach `pg_lsclusters`/`redis-server`.
 
 ---
 
 ## Execution Plan
 
-Phases are ordered and run sequentially — each phase completes before the next begins, and tasks within a phase execute in order. **Every task's `Depends on` is exactly its immediate predecessor in this ordering** (or `None` for the two genuine starting points, T1 and T26) — this wave has no non-adjacent dependencies, so the execution order and the dependency graph are the same thing, kept deliberately simple to avoid drift between the two.
+Phases run in sequence; tasks within a phase run in order. Each task's `Depends on` is its immediate predecessor unless noted (Phase 4 starts a fresh dependency chain — `apps/mcp` only needs the REST routes from Phase 3 to exist as a contract, not the DB/auth internals of Phase 2).
 
-### Phase 1: Fundação do gerador OpenAPI (API-01)
+### Phase 1: Compilador reverso (MCP-02)
+
+```
+T1
+```
+
+### Phase 2: Autenticação e persistência de token MCP (MCP-04, MCP-05)
 
 ```
 T1 → T2 → T3 → T4
 ```
 
-### Phase 2a: `routeSchemas` — lote 1 (6 módulos)
+### Phase 3: Rotas REST de leitura (MCP-01, MCP-02, MCP-03)
 
 ```
-T4 → T5 → T6 → T7 → T8 → T9 → T10
+T4 → T5 → T6 → T7 → T8
 ```
 
-### Phase 2b: `routeSchemas` — lote 2 (6 módulos)
+### Phase 4: Aplicação `apps/mcp` (MCP-01, MCP-02, MCP-03, MCP-06)
 
 ```
-T10 → T11 → T12 → T13 → T14 → T15 → T16
+T8 → T9 → T10 → T11 → T12 → T13
 ```
 
-### Phase 2c: `routeSchemas` — lote 3 (4 módulos)
+### Phase 5: Escrita atrás de flag (MCP-07)
 
 ```
-T16 → T17 → T18 → T19 → T20
+T13 → T14 → T15
 ```
 
-### Phase 2d: `routeSchemas` — lote 4, arquivos fora do padrão `routes.ts` (3 arquivos)
-
-Descoberta durante o Batch 1 (ver nota em T21–T23) — fecha o gap de escopo do `design.md` antes que a Phase 3 tropece nele.
+### Phase 6: Distribuição e inventário (MCP-08)
 
 ```
-T20 → T21 → T22 → T23
-```
-
-### Phase 3: Portão de CI do OpenAPI (API-02)
-
-```
-T23 → T24 → T25
-```
-
-### Phase 4: Limiar de sucesso dos evals de IA (API-03)
-
-Independente de Phase 1-3 (domínio isolado — evals não depende do gerador OpenAPI), mas roda
-depois por ordem de execução, não por necessidade real. `T26` começa sem dependência.
-
-```
-T26 → T27 → T28
-```
-
-### Phase 5: Governança (GOV-01..06)
-
-Cada task é independente das outras (docs/config sem sobreposição de arquivo), executadas em
-sequência só por ordem de fase. `T35` (fechamento do handoff) é a única com dependência real —
-roda por último porque resume tudo que a onda entregou.
-
-```
-T28 → T29 → T30 → T31 → T32 → T33 → T34 → T35
+T15 → T16 → T17
 ```
 
 ---
 
 ## Task Breakdown
 
-### T1: `RouteSchemaMap` type
+### T1: `decompile()` — compilador reverso cena→IR
 
-**What**: Define o tipo `RouteSchemaMap` (`Record<"METHOD path", { query?, params?, body?, response?, websocket?: true }>`, todos os campos `ZodType | undefined`) que todo `routes.ts` vai usar pra exportar seus schemas.
-**Where**: `apps/server/src/openapi/types.ts`
+**What**: `decompile(scene: SceneElement[], metadata: ElementMetadataRow[]): IrDocument` em `packages/diagram-ir/src/decompile.ts` — nós/edges via `extractSceneSemantics` (`@arch-canvas/diagram-domain`, dependência nova do package), `componentKey`/`semantics` por nó a partir de `metadata` (mesmo shape de `diagram_elements_meta`), containers por inferência geométrica de bounding box (retângulo A contém retângulo B se o box de B está inteiramente dentro do box de A), `kind` sempre `'group'` quando inferido (não recuperável da geometria — ver `design.md`). Inclui o primeiro teste de round-trip do projeto (`compile(ir) → scene → decompile(scene) → ir'`), fechando o débito documentado em `docs/adr/0004-diagram-ir-v1.md`.
+**Where**: `packages/diagram-ir/src/decompile.ts`
 **Depends on**: None
-**Reuses**: nenhum tipo existente (primeira peça nova)
-**Requirement**: API-01
+**Reuses**: `extractSceneSemantics` (`packages/diagram-domain/src/sceneSemantics.ts`), `compile()` (`packages/diagram-ir/src/compile.ts`, pro teste de round-trip)
+**Requirement**: MCP-02
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] `RouteSchemaMap` exportado com os 5 campos opcionais
-- [x] `websocket?: true` documentado como alternativa a `response` pra rotas de upgrade WS (ws-gateway, T19)
-- [x] Sem erros de TypeScript
+- [ ] Nós e edges reconstruídos corretamente a partir de uma cena real (rótulo, `componentKey`, `semantics` quando presentes em `metadata`)
+- [ ] Containers inferidos por containment geométrico, aninhamento suportado, `kind` sempre `'group'`
+- [ ] Retângulo sem filho vira `IrNode`, nunca um container vazio
+- [ ] Teste de round-trip: `compile(ir)` seguido de `decompile(scene)` produz nós e edges idênticos aos de `ir` (por id) e containers com a mesma associação pai-filho (não o `kind`, sabidamente perdido no caminho geométrico — asserção documenta essa limitação, não a esconde)
+- [ ] `packages/diagram-ir/package.json` ganha a dependência `@arch-canvas/diagram-domain: workspace:*`
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/diagram-ir run test:unit`
+- [ ] Test count: 8 novos testes (nós simples; edges por binding de arrow; componentKey/semantics de metadata; container de 1 nível; container aninhado; retângulo sem filho vira nó; cena vazia não quebra; round-trip completo)
 
-**Tests**: none
-**Gate**: build
+**Tests**: unit
+**Gate**: quick
 
 ---
 
-### T2: Construtor do documento OpenAPI 3.1
+### T2: tabela `mcp_tokens` + migration
 
-**What**: Função `buildOpenApiDocument(registry: Record<string, RouteSchemaMap>): OpenApiDocument` que itera as chaves `"MÉTODO path"`, converte cada schema Zod via `z.toJSONSchema()` (nativo do Zod 4, sem lib nova) e monta `paths`/`components.schemas` de um doc `openapi: "3.1.0"`. Falha (lança erro nomeando o motivo) se o registro estiver vazio — cobre o Edge Case "IF a geração do OpenAPI produzir um documento sem nenhuma rota THEN o CI SHALL falhar".
-**Where**: `apps/server/src/openapi/buildDocument.ts`
+**What**: Nova tabela `mcp_tokens` em `packages/database/src/schema.ts` — `id`, `workspaceId` (FK), `tokenHash`, `role` (`workspaceMemberRole`, mesmo enum de `shareLinks`), `label`, `createdBy` (FK `users.id`), `createdAt`, `expiresAt` (nullable), `revokedAt` (nullable), índice único em `tokenHash`. Mesmo padrão de `shareLinks` (`schema.ts:609-625`). Migration gerada via `db:generate`, não escrita à mão.
+**Where**: `packages/database/src/schema.ts` (modify)
 **Depends on**: T1
-**Reuses**: `RouteSchemaMap` (T1)
-**Requirement**: API-01
+**Reuses**: `shareLinks` table como referência de shape (`schema.ts:609-625`)
+**Requirement**: MCP-04
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Doc gerado é `openapi: "3.1.0"` válido nas chaves obrigatórias (`info`, `paths`)
-- [x] Uma rota com `websocket: true` vira uma entrada documentada sem `requestBody`/`responses` JSON forçados (nota explícita no doc, não um schema inventado)
-- [x] Registro vazio lança erro citando "nenhuma rota no registro" (não gera doc vazio silenciosamente)
-- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [x] Test count: 6 novos testes (doc válido; conversão de query/body/response; rota `websocket`; registro vazio falha; múltiplos módulos mesclados; nomes de rota com params `:id` viram `{id}` no path OpenAPI) — +1 teste adicionado durante T10 (ver nota abaixo), total 7
-
-**Tests**: unit
-**Gate**: quick
-
----
-
-### T3: `routeSchemas` piloto em `ai-provider` + registro agregador
-
-**What**: Exporta `routeSchemas: RouteSchemaMap` de `ai-provider/routes.ts` (aponta pros schemas Zod já existentes: `listQuerySchema`, `idParamsSchema`, `createBodySchema`, `updateBodySchema` — mapeados pras 5 rotas reais do módulo) e cria `apps/server/src/openapi/registry.ts`, que importa e mescla `routeSchemas` de cada módulo já convertido (só `ai-provider` por enquanto).
-**Where**: `apps/server/src/modules/ai-provider/routes.ts` (modify — só adiciona o export, zero mudança de comportamento)
-**Depends on**: T2
-**Reuses**: schemas Zod já existentes no arquivo
-**Requirement**: API-01
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] `routeSchemas` cobre as 5 rotas reais de `ai-provider` (confirmar contra `app.get/post/patch` no arquivo)
-- [x] `apps/server/src/openapi/registry.ts` criado, exporta `registry: Record<string, RouteSchemaMap>` com a entrada `ai-provider`
-- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [x] Test count: 1 novo teste (`registry['ai-provider']` tem as 5 chaves esperadas)
-
-**Tests**: unit
-**Gate**: quick
-
----
-
-### T4: script `openapi` + wiring no `Makefile`
-
-**What**: `apps/server/package.json` ganha `"openapi": "tsx src/openapi/generate.ts"` (script novo que chama `buildOpenApiDocument(registry)` e escreve `docs/openapi.json` na raiz do repo); `Makefile` ganha `make openapi` chamando `pnpm --filter @arch-canvas/server run openapi`.
-**Where**: `apps/server/src/openapi/generate.ts` (novo — CLI entrypoint fino, sem lógica própria além de escrever o arquivo)
-**Depends on**: T3
-**Reuses**: `buildOpenApiDocument` (T2), `registry` (T3)
-**Requirement**: API-01
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] `make openapi` roda e escreve `docs/openapi.json` com a rota de `ai-provider` presente
-- [x] `docs/openapi.json` commitado (snapshot inicial, só `ai-provider` — as Phases 2a/b/c vão expandindo o mesmo arquivo)
-- [x] Gate check passes: `make lint && make typecheck`
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T5–T10: `routeSchemas` — lote 1 (Phase 2a)
-
-Mesmo padrão de T3 (export `routeSchemas` apontando pros schemas Zod já existentes no arquivo + registrar em `apps/server/src/openapi/registry.ts` + regenerar `docs/openapi.json` via `make openapi`), um módulo por task, cada uma dependendo só da task imediatamente anterior. **Tests: none** (metadata only — a correção real é provada pela Phase 3). **Gate: build** (`make lint && make typecheck && make openapi` sem erro).
-
-| Task | Módulo | Where | Depends on |
-| ---- | ------ | ----- | ---------- |
-| T5 | `auth` | `apps/server/src/modules/auth/routes.ts` | T4 |
-| T6 | `workspace` | `apps/server/src/modules/workspace/routes.ts` | T5 |
-| T7 | `asset` | `apps/server/src/modules/asset/routes.ts` | T6 |
-| T8 | `snapshot` | `apps/server/src/modules/snapshot/routes.ts` | T7 |
-| T9 | `export` | `apps/server/src/modules/export/routes.ts` | T8 |
-| T10 | `share` | `apps/server/src/modules/share/routes.ts` | T9 |
-
-**Requirement**: API-01 (cada task)
-
-**Done when** (cada task, T5–T10 status noted individually below):
-
-**T5 (`auth`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo (conferir contra `app.get/post/patch/put/delete` no arquivo)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T6 (`workspace`)**:
-- [x] `routeSchemas` cobre as 9 rotas registradas diretamente em `workspace/routes.ts` (as rotas de `project-diagram-routes.ts`, registradas por um arquivo separado que não é um `routes.ts`, ficam fora da cobertura desta wave — mesmo escopo "os 17 `routes.ts`" do design.md)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T7 (`asset`)**:
-- [x] `routeSchemas` cobre as 2 rotas reais do módulo (two-phase upload: `:initiate`, `:complete`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T8 (`snapshot`)**:
-- [x] `routeSchemas` cobre as 4 rotas reais do módulo (criar/listar snapshots, restore, diff)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T9 (`export`)**:
-- [x] `routeSchemas` cobre as 4 rotas reais do módulo (exports, bundle, import, bulk bundles)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T10 (`share`)**:
-- [x] `routeSchemas` cobre as 4 rotas reais do módulo (criar share-link p/ diagrama, p/ apresentação, resolver token, revogar)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-- Nota: `createShareLinkBodySchema` usa `z.coerce.date()`, que `z.toJSONSchema()` não representa por padrão (lança erro) — corrigido em `buildDocument.ts` (T2) com `unrepresentable: 'any'`, commit separado antes deste.
-
----
-
-### T11–T16: `routeSchemas` — lote 2 (Phase 2b)
-
-Mesmo padrão. **Tests: none**. **Gate: build**.
-
-| Task | Módulo | Where | Depends on |
-| ---- | ------ | ----- | ---------- |
-| T11 | `comment` | `apps/server/src/modules/comment/routes.ts` | T10 |
-| T12 | `diagram-sync` | `apps/server/src/modules/diagram-sync/routes.ts` | T11 |
-| T13 | `docgen` | `apps/server/src/modules/docgen/routes.ts` | T12 |
-| T14 | `interop` | `apps/server/src/modules/interop/routes.ts` | T13 |
-| T15 | `library` | `apps/server/src/modules/library/routes.ts` | T14 |
-| T16 | `lint` | `apps/server/src/modules/lint/routes.ts` | T15 |
-
-**Requirement**: API-01 (cada task)
-**Done when** (cada task): idêntico ao bloco T5–T10.
-
-**T11 (`comment`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo (conferir contra `app.get/post/patch/put/delete` no arquivo) — 3 rotas (`POST`/`GET /diagrams/:id/comments`, `PATCH /diagrams/:id/comments/:commentId`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T12 (`diagram-sync`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 3 rotas (`GET /diagrams/:id/bootstrap`, `POST /diagrams/:id/operations:batch`, `GET /diagrams/:id/operations`); o body de `operations:batch` reusa `operationEnvelopeSchema` (`@arch-canvas/diagram-domain`), o mesmo schema Zod que `parseOperationEnvelope` já valida contra
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T13 (`docgen`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 3 rotas (`POST /diagrams/:id/specs:generate`, `GET /diagrams/:id/specs`, `POST /diagrams/:id/specs/:version(^[^:]+):regenerate-section`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T14 (`interop`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 2 rotas (`POST /projects/:id/import:format`, `POST /diagrams/:id/export:format`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T15 (`library`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 4 rotas (`GET /libraries`, `GET`/`PATCH /diagrams/:id/elements/:elementId/metadata`, `GET /diagrams/:id/inventory`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T16 (`lint`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 1 rota (`GET /diagrams/:id/lint`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
----
-
-### T17–T20: `routeSchemas` — lote 3 (Phase 2c)
-
-Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única rota, e é upgrade WebSocket (`{ websocket: true }`), não REST/JSON — sua entrada em `routeSchemas` usa `{ websocket: true }` (T1's campo dedicado) em vez de inventar um schema de request/response que não existe. **Tests: none**. **Gate: build**.
-
-| Task | Módulo | Where | Depends on |
-| ---- | ------ | ----- | ---------- |
-| T17 | `presentation` | `apps/server/src/modules/presentation/routes.ts` | T16 |
-| T18 | `webhook` | `apps/server/src/modules/webhook/routes.ts` | T17 |
-| T19 | `ws-gateway` | `apps/server/src/modules/ws-gateway/routes.ts` | T18 |
-| T20 | `ai-engine` | `apps/server/src/modules/ai-engine/routes.ts` | T19 |
-
-**Requirement**: API-01 (cada task)
-**Done when** (cada task): idêntico ao bloco T5–T10 (T19 usa `{ websocket: true }` em vez de schemas JSON).
-
-**T17 (`presentation`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 8 rotas (`POST`/`GET /presentations`, `GET`/`PATCH /presentations/:id`, `POST`/`PATCH /presentations/:id/frames`, `PATCH`/`DELETE /presentations/:id/frames/:frameId`) — só `presentation/routes.ts`, não `publishRoutes.ts` (chave `presentation-publish`, T22, batch diferente)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T18 (`webhook`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 5 rotas (`GET`/`POST /workspaces/:id/webhooks`, `PATCH`/`DELETE /workspaces/:id/webhooks/:webhookId`, `PATCH /workspaces/:id/webhooks/:webhookId(^[^:]+):rotate-secret`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T19 (`ws-gateway`)**:
-- [x] `routeSchemas` cobre a única rota real do módulo — `GET /ws/diagrams/:diagramId`, usando `{ websocket: true }` (não um schema JSON inventado)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo a rota deste módulo (só `description`, sem `requestBody`/`responses`), sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T20 (`ai-engine`)**:
-- [x] `routeSchemas` cobre toda rota real do módulo — 2 rotas (`POST /diagrams/:id/ai/runs`, `POST /ai/runs/:runRef`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
----
-
-### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)
-
-**Descoberto durante a execução do Batch 1** (T6): `extractServerRoutes` (o extrator que o F6 já usa e que a Phase 3 desta onda reusa em T24) escaneia **toda** a árvore de `apps/server/src`, não só arquivos chamados `routes.ts` — o commit `2757437` (F6) já fixou isso de propósito. `design.md` tinha escopado F8 aos "17 `routes.ts`", o que ficou incompleto: existem 3 arquivos a mais que registram rotas reais fora desse padrão de nome, encontrados só quando o Batch 1 leu `workspace/routes.ts` por completo e notou que o módulo tinha rotas a mais do que as 9 documentadas ali. Sem esta fase, T25 (Phase 3, paridade de auditoria) falharia citando essas rotas como "sem entrada no OpenAPI" — mais barato fechar o gap agora do que descobrir isso como um "bug" na Phase 3.
-
-Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src/openapi/registry.ts` + regenerar `docs/openapi.json`). **Tests: none**. **Gate: build**.
-
-| Task | Arquivo | Rotas | Chave no registry | Where | Depends on |
-| ---- | ------- | ----- | ------------------ | ----- | ---------- |
-| T21 | `apps/server/src/core/server.ts` | 3 (`/health/live`, `/health/ready`, `/metrics` — sem query/body, entradas vazias em `routeSchemas`) | `core` | `apps/server/src/core/server.ts` (modify) | T20 |
-| T22 | `apps/server/src/modules/presentation/publishRoutes.ts` | 3 | `presentation-publish` (distinta de `presentation`, já coberta em T17) | `apps/server/src/modules/presentation/publishRoutes.ts` (modify) | T21 |
-| T23 | `apps/server/src/modules/workspace/project-diagram-routes.ts` | 10 | `workspace-project-diagram` (distinta de `workspace`, já coberta em T6) | `apps/server/src/modules/workspace/project-diagram-routes.ts` (modify) | T22 |
-
-**Requirement**: API-01 (cada task)
-
-**Done when** (cada task):
-- [ ] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`)
-- [ ] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave listada acima (não colide com a chave do módulo `routes.ts` irmão)
-- [ ] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
+- [ ] Tabela `mcp_tokens` declarada, índice único em `token_hash`
+- [ ] `pnpm --filter @arch-canvas/database run db:generate` gera a migration nova em `infra/migrations/`
+- [ ] Migration aplica limpo contra PGlite (confirmado pelo gate de integração)
 - [ ] Gate check passes: `make lint && make typecheck`
 
-**T21 (`core`)**:
-- [x] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`) — 3 rotas (`GET /health/live`, `GET /health/ready`, `GET /metrics`), todas sem query/params/body
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave `core`
-- [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T22 (`presentation-publish`)**:
-- [x] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`) — 3 rotas (`POST /presentations/:id(^[^:]+):publish`, `GET /presentations/:id/published`, `POST /presentations/:id(^[^:]+):export-pdf`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave `presentation-publish` (distinta de `presentation`, T17)
-- [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
-
-**T23 (`workspace-project-diagram`)**:
-- [x] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`) — 10 rotas confirmadas (`GET`/`POST /projects`, `GET`/`PATCH`/`DELETE /projects/:id`, `GET`/`POST /diagrams`, `GET`/`PATCH`/`DELETE /diagrams/:id`)
-- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave `workspace-project-diagram` (distinta de `workspace`, T6)
-- [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
-- [x] Gate check passes: `make lint && make typecheck`
+**Tests**: none
+**Gate**: build
 
 ---
 
-### T24: extensão do `repo-tools audit` — paridade de rotas do OpenAPI
+### T3: `requireMcpToken` middleware
 
-**What**: Nova função `checkOpenApiParity(sourceRoot)` em `tools/repo-tools`, chamada por `runAudit` junto de `checkCapabilityMap`/`checkCoverageFloors`: lê `docs/openapi.json`, cruza suas chaves de rota contra `extractServerRoutes(sourceRoot)` (já existe) e retorna uma violação nomeada pra cada rota real sem entrada no OpenAPI e pra cada entrada do OpenAPI sem rota real correspondente.
-**Where**: `tools/repo-tools/src/openApiParity.ts`
-**Depends on**: T23
-**Reuses**: `extractServerRoutes` (já existe, `tools/repo-tools/src/serverRoutes.ts`)
-**Requirement**: API-02
+**What**: `apps/server/src/modules/mcp/auth.ts` — lê `Authorization: Bearer <token>`, `hashToken()`, busca em `mcp_tokens` por hash, nega (mesmo formato 404/sem detalhe da AUTH-04) se não encontrado, revogado (`revokedAt` setado) ou expirado (`expiresAt` no passado), senão popula `request.mcpContext = { workspaceId, role }`. `mcpTokens.ts` (data access: `findMcpTokenByHash`, `createMcpToken`, `revokeMcpToken`) na mesma pasta, mesmo padrão de `shareLinks.ts`.
+**Where**: `apps/server/src/modules/mcp/auth.ts`
+**Depends on**: T2
+**Reuses**: `hashToken`/`generateOpaqueToken` (`apps/server/src/modules/auth/tokens.ts`), padrão `shareLinks.ts`'s `isShareLinkActive`
+**Requirement**: MCP-04, MCP-05
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Rota real sem entrada no OpenAPI → violação nomeando a rota exata
-- [x] Entrada do OpenAPI sem rota real → violação nomeando a entrada exata
-- [x] `docs/openapi.json` ausente ou sem nenhuma rota → violação explícita (cobre o Edge Case do spec.md)
-- [x] Wired em `runAudit` (`tools/repo-tools/src/cli.ts`) — `/audit` agora cobre TRU-03/UIX-01 (F6) + CIQ-04 (F6) + API-02 (F8) num único comando
-- [x] Gate check passes: `pnpm --filter @arch-canvas/repo-tools run test:unit`
-- [x] Test count: 4 novos testes (rota sem schema; schema sem rota; doc vazio; caso limpo passa)
-- Nota: `tools/repo-tools/src/cli.spec.ts`'s `fakeRepo` helper gained a matching `docs/openapi.json` fixture (`OPENAPI_DOC`) — without it, every existing `runAudit` test would fail the new openapi-parity check on an unrelated fixture, not because of a real regression. `pnpm --filter @arch-canvas/repo-tools run audit` confirmed zero parity violations against the real repo after T21-T23.
+- [ ] Token válido popula `request.mcpContext` corretamente
+- [ ] Token ausente, inválido, revogado ou expirado nega de forma idêntica (mesmo código/formato de resposta — não distinguível)
+- [ ] `findMcpTokenByHash`/`createMcpToken`/`revokeMcpToken` testados isoladamente (unit, sem HTTP)
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [ ] Test count: 6 novos testes unit (token válido resolve context; ausente nega; inválido nega; revogado nega; expirado nega; create/revoke roundtrip)
 
 **Tests**: unit
 **Gate**: quick
 
 ---
 
-### T25: job de CI — regenerar e comparar `docs/openapi.json`
+### T4: rotas de emissão/revogação de token MCP
 
-**What**: Adiciona um step ao job `capability-audit` existente (`.github/workflows/ci.yaml`): roda `make openapi`, depois `git diff --exit-code docs/openapi.json` (falha nomeando o arquivo se divergir do commitado — mesmo padrão de erro que TRU-03 já usa pro `route-inventory.md`), depois `pnpm --filter @arch-canvas/repo-tools run audit` (agora cobre a paridade de T24).
-**Where**: `.github/workflows/ci.yaml` (modify — um step novo dentro do job `capability-audit`)
-**Depends on**: T24
-**Reuses**: job `capability-audit` já existente (F6)
-**Requirement**: API-02
+**What**: `POST /workspaces/:id/mcp-tokens` (autenticado por sessão — `requireSession`, não pelo próprio token MCP —, exige `can({role},'workspace:manage_tokens'` ou ação equivalente já existente de admin, `workspace_admin`/`org_admin`), devolve o token em texto puro **uma única vez** na resposta de criação (nunca recuperável depois, mesmo padrão de `share/routes.ts`). `DELETE /mcp-tokens/:id` (mesma exigência de admin) seta `revokedAt`. Integrado a `apps/server/src/modules/mcp/routes.ts`.
+**Where**: `apps/server/src/modules/mcp/routes.ts`
+**Depends on**: T3
+**Reuses**: `requireSession` (`auth/middleware.ts`), `resolveWorkspaceRole` + `can()`, padrão de emissão de `share/routes.ts`
+**Requirement**: MCP-04
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Step novo roda `make openapi && git diff --exit-code docs/openapi.json`
-- [x] Step roda `pnpm --filter @arch-canvas/repo-tools run audit` na sequência
-- [x] `make lint` confirma o YAML bem formado (biome cobre `.github/workflows/*.yaml`)
-- [x] Não pode ser testado localmente contra um evento real de PR (mesma limitação já registrada em `STATE.md` pra outros jobs de CI) — verificado manualmente rodando os dois comandos do step em sequência neste ambiente
-- Nota (achado ao verificar manualmente): `make openapi` sozinho não basta antes do `git diff` — a saída crua do gerador não bate com o estilo de wrap de array do biome (a mesma "known formatting gotcha" documentada no batch), então o step novo roda `pnpm exec biome format --write docs/openapi.json` entre os dois, senão o diff nunca ficaria limpo mesmo sem drift real. Confirmado manualmente: caso limpo sai 0; um drift real injetado (rota fantasma no registry) sai 1 nomeando o arquivo.
+- [ ] `POST /workspaces/:id/mcp-tokens` cria o token, devolve o valor em texto puro só nesta resposta
+- [ ] Não-admin recebe 403 (ação de escrita, não de leitura — convênio AUTH-04 só se aplica a leitura)
+- [ ] `DELETE /mcp-tokens/:id` revoga; token revogado já não autentica (prova via `requireMcpToken`)
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration` (PGlite real, ADR-0007)
+- [ ] Test count: 5 novos testes integration (criação por admin; 403 por não-admin; token devolvido só na criação; revogação efetiva; token de outro workspace não autentica em rota de workspace diferente)
 
-**Tests**: none
-**Gate**: build
+**Tests**: integration
+**Gate**: full
 
 ---
 
-### T26: checker de limiar de sucesso dos evals
+### T5: `GET /diagrams/:id/ir`
 
-**What**: Função pura `checkEvalThreshold(results: { passed: boolean }[], threshold: number): { rate: number; ok: boolean }` — calcula `passed.length / results.length`, compara contra `threshold`. Constante `EVAL_SUCCESS_THRESHOLD = 1.0` (100% — a suíte é 100% determinística hoje, ver `design.md`).
-**Where**: `apps/server/src/modules/ai-engine/evals/threshold.ts`
-**Depends on**: None (Phase 4 é um domínio independente de Phase 1-3, ver nota da Execution Plan)
-**Reuses**: nenhum
-**Requirement**: API-03
+**What**: Rota que carrega a cena (`loadDiagramScene`, `diagram-sync/scene.ts`) e o `diagram_elements_meta` da diagram (`listElementMetadata`, `library/metadata.ts`), chama `decompile()` (T1), devolve o `IrDocument` como JSON. Autorização: `requireMcpToken` (T3) + `can({role: mcpContext.role}, 'diagram:read', {workspaceId})`, mesmo convênio 404 (AUTH-04) que toda leitura já usa.
+**Where**: `apps/server/src/modules/mcp/routes.ts` (modify)
+**Depends on**: T4
+**Reuses**: `loadDiagramScene`, `listElementMetadata`, `decompile()` (T1), `can()`
+**Requirement**: MCP-01, MCP-02, MCP-04, MCP-05
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] `checkEvalThreshold` retorna `rate` e `ok` corretos pra taxa acima/igual/abaixo do limiar
-- [x] `EVAL_SUCCESS_THRESHOLD` exportado e documentado (comentário explica por que é 100% hoje)
-- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit` — os 4 testes novos passam e a suíte inteira roda 0 falhas. **Correção pós-Verifier** (ver `validation.md`'s F8 Wave Report, Fix Plan 1): a nota original desta linha classificava a quebra do piso de `functions` como pré-existente, isolando só os 2 últimos arquivos da onda via `git stash` contra um estado já 38 commits dentro da onda — não contra o início real dela. Reverificação independente via `git worktree` no commit `a55c4d7` (início real de F8) mostrou `functions: 39.73%`, exit 0 — a quebra é causada por esta onda (export de `routeSchemas` em ~20 arquivos muda como o V8 atribui funções nesses arquivos), não pré-existente. Corrigido baixando o piso pra `28.87` (o valor medido de verdade) em `apps/server/vitest.config.ts`, com justificativa no comentário — `lines`/`branches`/`statements` todos subiram nesta mesma onda, só `functions` regrediu, e só porque está medindo com mais exatidão agora, não porque algo ficou menos testado
-- [x] Test count: 4 novos testes (100% passa; abaixo do limiar falha `ok`; limiar customizado; lista vazia não divide por zero)
+- [ ] Token com permissão de leitura recebe o `IrDocument` correto do diagrama
+- [ ] Token sem permissão recebe 404 (nunca 403, nunca distingue "não existe" de "sem permissão")
+- [ ] Diagrama inexistente recebe o mesmo 404
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [ ] Test count: 4 novos testes integration (leitura com permissão; sem permissão 404; diagrama inexistente 404; resposta nunca é imagem renderizada, é o IR estruturado — MCP-02 literal)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T6: `findElementsByComponentKey` + expansão de relações
+
+**What**: `apps/server/src/modules/mcp/componentLookup.ts` — `findElementsByComponentKey(db, diagramId, stableKey)` varre `diagram_elements_meta` da diagram filtrando `metadataJson->>'componentKey' = stableKey`. `expandComponentRelations(scene, elementId)` — cópia server-side equivalente à lógica de `ai-tools`'s `get_neighbors` (`expandNeighborhood`/`collectEdges`), já que `apps/mcp` nunca importa `ai-tools` diretamente (design.md) — devolve `{ inbound: IrEdge[], outbound: IrEdge[] }`.
+**Where**: `apps/server/src/modules/mcp/componentLookup.ts`
+**Depends on**: T5
+**Reuses**: lógica de `packages/ai-tools/src/tools/readTools.ts`'s `expandNeighborhood`/`collectEdges` como referência de implementação (não importada, reescrita local per design.md)
+**Requirement**: MCP-03
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `findElementsByComponentKey` resolve o(s) elemento(s) certo(s) por `stableKey`, vazio quando não existe
+- [ ] `expandComponentRelations` devolve edges de entrada e saída corretos pro elemento resolvido
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [ ] Test count: 5 novos testes unit (componente existe com relações; componente sem relações; `stableKey` não resolve nada; múltiplos elementos com o mesmo `componentKey` na mesma diagram; edge direction correta inbound vs outbound)
 
 **Tests**: unit
 **Gate**: quick
 
 ---
 
-### T27: script `runThresholdCheck` sobre a suíte de evals existente
+### T7: `GET /diagrams/:id/components/:stableKey`
 
-**What**: Script CLI fino que roda `evals.spec.ts` via Vitest com reporter JSON, lê o resultado e chama `checkEvalThreshold` (T26), imprimindo "X/Y evals passed, limiar Z%" e saindo com código não-zero se `ok` for falso. Não reescreve a suíte existente (`evals.spec.ts`, T57) — só a envolve.
-**Where**: `apps/server/src/modules/ai-engine/evals/runThresholdCheck.ts`
-**Depends on**: T26
-**Reuses**: `checkEvalThreshold` (T26), suíte `evals.spec.ts` já existente (T57)
-**Requirement**: API-03
+**What**: Rota que usa `findElementsByComponentKey` + `expandComponentRelations` (T6), devolve `{ metadata, inbound, outbound }`. Mesma autorização de T5 (`requireMcpToken` + `can()`, convênio 404 AUTH-04).
+**Where**: `apps/server/src/modules/mcp/routes.ts` (modify)
+**Depends on**: T6
+**Reuses**: `findElementsByComponentKey`/`expandComponentRelations` (T6), padrão de autorização de T5
+**Requirement**: MCP-03, MCP-04, MCP-05
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Rodar o script localmente contra a suíte real imprime "X/Y evals passed, limiar 100%" e sai 0 — nota (spec-precision gap): a suíte real (`evals.spec.ts`) tem 5 casos hoje, não 10 (`design.md`'s "10 casos determinísticos" está desatualizado — o próprio cabeçalho de `evals.spec.ts` já documenta que só 5 dos 11 casos do product-spec.md §8.6 estão no escopo construído); rodado manualmente com `pnpm exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts` a partir de `apps/server`, saída real "5/5 evals passed, limiar 100%", sai 0
-- [x] Um cenário simulado abaixo do limiar (teste unitário injetando um resultado fake) sai não-zero com a mesma mensagem citando a taxa real
-- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit` — 380/380 testes passam (0 falhas), comando sai 0 (o piso de `functions` foi recalibrado após o Verifier, ver a nota corrigida de T26 e `apps/server/vitest.config.ts`)
-- [x] Test count: 2 novos testes (saída 0 com resultado 100%; saída não-zero com resultado abaixo do limiar, mensagem cita taxa e limiar)
-- Nota (achado durante a implementação): a resolução de `apps/server`'s package root via `new URL('../../../../', import.meta.url)` quebra sob o ambiente `jsdom` deste pacote quando o módulo é importado por um teste (o `URL` global do jsdom não resolve a base relativa corretamente) — corrigido computando isso preguiçosamente dentro de `runEvalsSpec()`, nunca no topo do módulo; como os 2 testes injetam `runEvals`, essa função (e a resolução) nunca roda sob os testes, só na execução real via Node puro.
+- [ ] Componente existente com permissão devolve metadados + relações corretos
+- [ ] `stableKey` sem correspondência devolve 404
+- [ ] Sem permissão devolve o mesmo 404 (não distingue)
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [ ] Test count: 4 novos testes integration (componente com relações; sem correspondência 404; sem permissão 404; múltiplos módulos MCP-01/02/03 juntos numa mesma diagram real)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T8: registrar o módulo MCP em `registerAllModules`
+
+**What**: `apps/server/src/core/registerModules.ts` ganha `registerMcpModule(app, deps)` (T4/T5/T7's rotas) na lista de módulos registrados. Estende `registerModules.int.spec.ts` (não substitui) confirmando que as rotas MCP ficam alcançáveis end-to-end quando o servidor sobe de verdade — mesmo padrão que toda a wiring gate deste arquivo já prova pros outros módulos.
+**Where**: `apps/server/src/core/registerModules.ts` (modify)
+**Depends on**: T7
+**Reuses**: padrão de registro dos outros ~20 módulos já wireados neste arquivo
+**Requirement**: MCP-01, MCP-02, MCP-03, MCP-04
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Módulo MCP registrado, rotas alcançáveis num boot real do `FastifyInstance`
+- [ ] `registerModules.int.spec.ts` estendido (não substituído) com uma asserção pro módulo novo
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [ ] Test count: 1 novo teste integration (boot real confirma rota MCP alcançável)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T9: scaffold do package `apps/mcp`
+
+**What**: `apps/mcp/package.json` (`"name": "@arch-canvas/mcp"`, `"bin": { "arch-canvas-mcp": "./dist/cli.js" }`, mesmo padrão de `tools/repo-tools`), `apps/mcp/tsconfig.json` (estende `tsconfig.base.json`, mesmo padrão de `apps/server`/`apps/web`), dependência `@modelcontextprotocol/sdk@^1.30.0` (versão estável atual — a linha `2.0.0` no GitHub ainda não é o que `npm install` resolve, não usar).
+**Where**: `apps/mcp/package.json` (novo)
+**Depends on**: T8
+**Reuses**: `tools/repo-tools/package.json` como referência de shape `bin`
+**Requirement**: MCP-01 (fundação)
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `pnpm install` resolve o package novo sem erro
+- [ ] `pnpm-workspace.yaml` já cobre `apps/*` — nenhuma mudança de config de workspace necessária, confirmado
+- [ ] Gate check passes: `make lint && make typecheck` (package vazio, só scaffold, ainda compila)
+
+**Tests**: none
+**Gate**: build
+
+---
+
+### T10: cliente HTTP de `apps/mcp`
+
+**What**: `apps/mcp/src/client.ts` — wrapper fino sobre `fetch` nativo do Node, lê `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` do ambiente, injeta `Authorization: Bearer` em toda chamada, expõe `listDiagrams(workspaceId)`, `getDiagramIr(diagramId)`, `getComponent(diagramId, stableKey)` — um método por rota REST criada nas Phases 2-3. Sem dependência nova (fetch nativo, sem lib de HTTP).
+**Where**: `apps/mcp/src/client.ts`
+**Depends on**: T9
+**Reuses**: nenhum (primeira peça de `apps/mcp`)
+**Requirement**: MCP-01, MCP-02, MCP-03
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Todo método injeta o bearer token corretamente
+- [ ] Resposta não-2xx (404/403/401) vira um erro tipado, nunca um objeto parcial silencioso
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit` (HTTP mockado, sem servidor real)
+- [ ] Test count: 6 novos testes (cada método feliz; erro 404 vira exceção tipada; header de auth presente em toda chamada)
 
 **Tests**: unit
 **Gate**: quick
 
 ---
 
-### T28: job de CI dedicado "AI evals"
+### T11: resource MCP — listar diagramas
 
-**What**: Novo job `ai-evals` em `.github/workflows/ci.yaml`, rodando `runThresholdCheck` (T27) isolado dos outros testes unitários — nome próprio no CI, distinguível de uma falha genérica de `test:unit`.
-**Where**: `.github/workflows/ci.yaml` (modify — job novo)
-**Depends on**: T27
-**Reuses**: `runThresholdCheck.ts` (T27)
-**Requirement**: API-03
+**What**: `apps/mcp/src/resources/listDiagrams.ts` — `server.registerResource('diagrams', new ResourceTemplate('diagrams://{workspaceId}', { list: undefined }), config, handler)` usando `client.listDiagrams` (T10). Aplica o wrapper de dado não-confiável (MCP-06) no texto de resposta.
+**Where**: `apps/mcp/src/resources/listDiagrams.ts`
+**Depends on**: T10
+**Reuses**: `client.ts` (T10)
+**Requirement**: MCP-01, MCP-06
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Job `ai-evals` roda `runThresholdCheck` e falha citando a taxa/limiar se abaixo, nunca só "testes falharam"
-- [x] `make lint` confirma o YAML bem formado
-- [x] Verificado manualmente rodando o job localmente (`act` não disponível neste ambiente — rodar o comando do step diretamente, mesma limitação de evento real de PR já registrada): `pnpm --filter @arch-canvas/server exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts` a partir da raiz do repo imprime "5/5 evals passed, limiar 100%" e sai 0
+- [ ] Resource registrado corretamente no `McpServer` (verificado por um servidor de teste em memória, sem stdio real)
+- [ ] `content` textual abre com o aviso fixo de dado não-confiável antes de qualquer texto vindo do canvas
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [ ] Test count: 3 novos testes (resource lista corretamente; aviso de dado não-confiável presente; workspace sem diagramas devolve lista vazia, não erro)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T12: resources MCP — ler diagrama (IR) e componente
+
+**What**: `apps/mcp/src/resources/readDiagram.ts` (`diagram://{diagramId}` → `client.getDiagramIr`) e `apps/mcp/src/resources/readComponent.ts` (`component://{diagramId}/{stableKey}` → `client.getComponent`). Mesmo wrapper MCP-06 em ambos.
+**Where**: `apps/mcp/src/resources/readDiagram.ts` (e `readComponent.ts` no mesmo commit — dois resources pequenos e cohesivos, mesmo padrão de wrapping, cohesão justifica um único commit per o critério "2-3 coisas relacionadas no mesmo conceito = OK")
+**Depends on**: T11
+**Reuses**: `client.ts` (T10), wrapper MCP-06 (T11)
+**Requirement**: MCP-01, MCP-02, MCP-03, MCP-06
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `diagram://{id}` devolve o `IrDocument` estruturado em `structuredContent`, nunca uma imagem
+- [ ] `component://{diagramId}/{stableKey}` devolve metadados + relações
+- [ ] Ambos aplicam o aviso de dado não-confiável no `content` textual
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [ ] Test count: 5 novos testes (IR estruturado correto; componente com relações; componente inexistente vira erro tratado, não exceção não capturada; aviso presente nos dois; nenhum texto de rótulo do canvas aparece fora de `structuredContent`)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T13: `cli.ts` — entrypoint stdio
+
+**What**: `apps/mcp/src/cli.ts` — cria o `McpServer`, registra os 3 resources (T11, T12), conecta via `StdioServerTransport`. Shebang `#!/usr/bin/env node`, referenciado pelo `bin` de `package.json` (T9).
+**Where**: `apps/mcp/src/cli.ts`
+**Depends on**: T12
+**Reuses**: `McpServer`/`StdioServerTransport` do SDK, resources de T11/T12
+**Requirement**: MCP-01
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] `pnpm --filter @arch-canvas/mcp run build && node dist/cli.js` sobe sem erro (verificado manualmente, com `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` de teste — stdio não é algo que se automatize fácil num teste unitário, verificação manual documentada aqui em vez de fingida)
+- [ ] `make lint && make typecheck` limpos
+- [ ] Gate check passes: build
 
 **Tests**: none
 **Gate**: build
 
 ---
 
-### T29: `CODEOWNERS`
+### T14: `POST /diagrams/:id/mcp-patch` (MCP-07, atrás de flag)
 
-**What**: Declara dono (`@tvpl` — único colaborador real do repo hoje, confirmado via `gh api repos/tvpl/ia-draw/collaborators`; troca por time real quando squads existirem, decisão já registrada no `spec.md`) pra cada domínio de primeiro nível: `apps/server/`, `apps/web/`, `packages/`, `infra/`, `.github/`, `docs/`, `.specs/`.
-**Where**: `CODEOWNERS` (raiz)
-**Depends on**: T28
+**What**: Rota que aceita um único op `setMetadata` (mesmo shape que `ai-tools`/`applyPatch.ts` já aplica), reusa **exatamente** `createSnapshot(db, storage, {kind:'pre_ai', ...})` + `appendOperation` + `applyMetadataOps` (o mesmo trio de `approveAiRun`, `ai-engine/applyPatch.ts:134-195`), com o mesmo cheque de staleness de revisão (409 se a revisão mudou). Só ativa quando `MCP_WRITE_ENABLED=true` no ambiente do servidor — com a flag desligada, a rota nem registra (404 genérico, não uma rota que existe e nega).
+**Where**: `apps/server/src/modules/mcp/routes.ts` (modify)
+**Depends on**: T13
+**Reuses**: `createSnapshot`, `appendOperation`, `applyMetadataOps` (`ai-engine/applyPatch.ts`)
+**Requirement**: MCP-07
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Com a flag ligada: escreve o metadado, cria snapshot `pre_ai`, aplica via op-log, cheque de staleness funciona (409 correto)
+- [ ] Com a flag desligada: rota não existe (404 genérico, sem vazar que a feature existe)
+- [ ] Autorização: `can({role},'diagram:mutate',{workspaceId})`, nunca checagem paralela
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [ ] Test count: 5 novos testes integration (escrita com sucesso + snapshot criado; staleness 409; sem permissão de escrita nega; flag desligada = rota ausente; snapshot `pre_ai` reconstituível como undo point)
+
+**Tests**: integration
+**Gate**: full
+
+---
+
+### T15: tool MCP `set_component_metadata` (atrás de flag)
+
+**What**: `apps/mcp/src/tools/setComponentMetadata.ts` — `server.registerTool('set_component_metadata', {inputSchema, outputSchema}, handler)` chamando `client.setComponentMetadata` (novo método em `client.ts`, T10). Só registrado no `McpServer` (`cli.ts`, T13) quando `MCP_WRITE_ENABLED=true` no ambiente de `apps/mcp` — espelhando a flag do lado do servidor MCP em vez de deixar a UI do cliente MCP anunciar uma capacidade que o backend vai rejeitar.
+**Where**: `apps/mcp/src/tools/setComponentMetadata.ts`
+**Depends on**: T14
+**Reuses**: `client.ts` (T10, ganha o método novo no mesmo commit), `cli.ts` (T13, modify pra registro condicional)
+**Requirement**: MCP-07
+
+**Tools**:
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+- [ ] Com a flag ligada, a tool aparece na lista de capacidades do servidor e funciona
+- [ ] Com a flag desligada, a tool nem é registrada — cliente nunca vê a capacidade
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [ ] Test count: 3 novos testes (tool registra só com flag ligada; chamada bem-sucedida; erro do servidor vira resposta de erro estruturada, não exceção)
+
+**Tests**: unit
+**Gate**: quick
+
+---
+
+### T16: `apps/mcp/README.md` — distribuição
+
+**What**: Configuração pronta pro `claude_desktop_config.json` (Claude Code) e `mcp.json` (Cursor), apontando pra `npx @arch-canvas/mcp` com `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN`. Explica como emitir um token (via T4's rota, ou um passo futuro de UI que ainda não existe — disclosed, não inventado).
+**Where**: `apps/mcp/README.md`
+**Depends on**: T15
 **Reuses**: nenhum
-**Requirement**: GOV-01
+**Requirement**: MCP-08
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] Todo domínio de primeiro nível tem uma linha de dono — nenhum sem dono
-- [x] `make lint` confirma o arquivo bem formado (biome trata `CODEOWNERS` como texto genérico, sem erro)
+- [ ] JSON de config válido pros dois clientes, copiável sem edição além do token/URL
+- [ ] `make lint` confirma o markdown bem formado
 
 **Tests**: none
 **Gate**: build
 
 ---
 
-### T30: template de Pull Request
+### T17: `docs/capability-map.yaml` — entrada MCP
 
-**What**: `.github/PULL_REQUEST_TEMPLATE.md` com campos obrigatórios: IDs de requisito afetados, link pra spec correspondente, checklist confirmando que `/gate` (F7) rodou antes do PR.
-**Where**: `.github/PULL_REQUEST_TEMPLATE.md`
-**Depends on**: T29
-**Reuses**: `.claude/commands/gate.md` (F7, referenciado no checklist)
-**Requirement**: GOV-02
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] Campo "Requirement IDs" presente e obrigatório (marcado como tal no texto)
-- [x] Campo "Spec link" presente
-- [x] Checklist inclui `/gate` rodado
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T31: Changesets — config
-
-**What**: `@changesets/cli` como devDependency da raiz; `.changeset/config.json` com `"access": "restricted"` (nunca publica no npm — todo `packages/*` já é `"private": true`, ver `design.md`).
-**Where**: `.changeset/config.json`
-**Depends on**: T30
-**Reuses**: nenhum
-**Requirement**: GOV-03
+**What**: Nova entrada no mapa de capacidades (F6, TRU-01/UIX-01) pra "Servidor MCP — diagramas como contexto", `backend_evidence` apontando pro módulo `apps/server/src/modules/mcp/` e `apps/mcp/`, `ui_surface: null`, `status: backend-only` (é consumido por agentes externos, não por `apps/web` — honesto sobre isso, não uma omissão).
+**Where**: `docs/capability-map.yaml` (modify)
+**Depends on**: T16
+**Reuses**: entradas já existentes como referência de shape (checker já validado em F6/F8)
+**Requirement**: MCP-08 (rastreabilidade), TRU-01/UIX-01 (F6, mantidas honestas)
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [x] `.changeset/config.json` válido, `access: restricted`
-- [x] `@changesets/cli` instalado como devDependency da raiz
-- [x] `make lint` confirma JSON bem formado
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T32: portão de CI — changeset obrigatório
-
-**What**: Job novo `changeset-check` em `.github/workflows/ci.yaml` (só roda em `pull_request`, mesmo padrão do job `commit-lint` já existente — usa `BASE_SHA`/`HEAD_SHA` de `github.event.pull_request`): falha nomeando o package se `packages/<nome>/src/**` mudou sem um arquivo novo em `.changeset/`.
-**Where**: `.github/workflows/ci.yaml` (modify — job `changeset-check`)
-**Depends on**: T31
-**Reuses**: padrão do job `commit-lint` já existente
-**Requirement**: GOV-03
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] Job novo compara `packages/*/src/**` alterado contra `.changeset/*.md` novo no mesmo PR
-- [x] `make lint` confirma o YAML bem formado
-- [x] Não pode ser testado localmente contra um evento real de PR — mesma limitação já registrada em `STATE.md`
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T33: template de ADR
-
-**What**: `docs/adr/TEMPLATE.md` extraindo o formato já usado por `0001..0009` (Status/Contexto/Decisão/Consequências) — não inventa um formato novo, documenta o existente.
-**Where**: `docs/adr/TEMPLATE.md`
-**Depends on**: T32
-**Reuses**: `docs/adr/0001-server-first-op-log-lww.md` como referência de formato
-**Requirement**: GOV-05
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] Template tem as mesmas seções que `0001..0009` usam
-- [x] `CLAUDE.md` ganha uma linha referenciando o template
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T34: nota GOV-04 (uma spec por domínio) no `CLAUDE.md`
-
-**What**: Uma linha no `CLAUDE.md` (seção "Requisitos e progresso rastreável") confirmando explicitamente o padrão já em uso desde F6 (`ai-dock/spec.md` como exemplar): uma spec por domínio em `.specs/features/`, nunca uma spec monolítica pra múltiplos domínios.
-**Where**: `CLAUDE.md` (modify)
-**Depends on**: T33
-**Reuses**: `ai-dock/spec.md` (F6) como exemplar citado
-**Requirement**: GOV-04
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] Linha adicionada, cita `ai-dock` como exemplar real
-- [x] `make lint` limpo
-
-**Tests**: none
-**Gate**: build
-
----
-
-### T35: `STATE.md` — `Handoff` vira `Handoffs` por frente (GOV-06)
-
-**What**: Reestrutura a seção `## Handoff` de `.specs/STATE.md` pra `## Handoffs` (plural), com uma subseção `### <feature-slug> (branch: ...)` por frente ativa — migra o handoff atual (só `platform-maturity`) pro novo formato, provando que funciona com 1 frente e comporta N sem colisão de merge (Edge Case do spec.md). Esta é também a task que fecha a onda F8 — o handoff final de F8 já nasce no formato novo, resumindo tudo entregue nas Phases 1-5.
-**Where**: `.specs/STATE.md` (modify)
-**Depends on**: T34
-**Reuses**: estrutura de `## Decisions` (formato AD-NNN) como referência de "uma entrada versionável por vez" que já funciona bem em merges
-**Requirement**: GOV-06
-
-**Tools**:
-- MCP: NONE
-- Skill: NONE
-
-**Done when**:
-- [x] `## Handoffs` substitui `## Handoff`, com `### platform-maturity (branch: feature/improvements-2)` como única subseção hoje
-- [x] Conteúdo migrado sem perda (branch, fase, entregas de F8, próximo passo, armadilhas, lições)
-- [x] `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py platform-maturity` continua saindo 0 (o script não depende do formato exato do Handoff, só do `validation.md`)
+- [ ] Entrada nova passa no `checkCapabilityMap` sem violação
+- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
 
 **Tests**: none
 **Gate**: build
@@ -657,33 +481,25 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 
 ## Phase Execution Map
 
-Visual representation of task ordering. Every arrow below has a matching `Depends on` in the task body above, and every `Depends on` above has a matching arrow here — this wave's dependency graph is a single line, split into phase-labeled rows for readability (the boundary task repeats at the start of the next phase's row to show the connecting arrow explicitly; Phase 4 starts a fresh line at T26 because it has no real dependency on Phase 3):
-
 ```
-Phase 1:   T1 → T2 → T3 → T4
-Phase 2a:            T4 → T5 → T6 → T7 → T8 → T9 → T10
-Phase 2b:                                        T10 → T11 → T12 → T13 → T14 → T15 → T16
-Phase 2c:                                                                    T16 → T17 → T18 → T19 → T20
-Phase 2d:                                                                                        T20 → T21 → T22 → T23
-Phase 3:                                                                                                          T23 → T24 → T25
-Phase 4 (independent):                                                                                                   T26 → T27 → T28
-Phase 5:                                                                                                                        T28 → T29 → T30 → T31 → T32 → T33 → T34 → T35
+Phase 1:  T1
+Phase 2:            T1 → T2 → T3 → T4
+Phase 3:                            T4 → T5 → T6 → T7 → T8
+Phase 4:                                                 T8 → T9 → T10 → T11 → T12 → T13
+Phase 5:                                                                              T13 → T14 → T15
+Phase 6:                                                                                          T15 → T16 → T17
 ```
 
-Execution is strictly sequential - there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.
-
-**How phase-based execution works:**
-
-At Execute, the agent counts total tasks and packs phases into **task-budgeted batches** (~7 tasks per worker, whole phases). This wave has **35 tasks across 8 phases** (grew from 32/7 mid-execution — Phase 2d was added after Batch 1 found 3 route-registering files outside the `routes.ts` naming pattern; see the note on T21–T23) — well above the ~8-task single-batch threshold, so the sub-agent offer is mandatory here (see [sub-agents.md](../../../.claude/skills/tlc-spec-driven/references/sub-agents.md)). Packing, updated after the addition (Batches 1-2 already dispatched under the original numbering, unaffected since T1-T20 didn't shift):
+**17 tasks across 6 phases** — acima do limite de um único lote (~8 tasks), então a oferta de sub-agentes é obrigatória (ver [sub-agents.md](../../../.claude/skills/tlc-spec-driven/references/sub-agents.md)). Empacotamento natural:
 
 | Batch | Phases | Tasks | Count |
 | ----- | ------ | ----- | ----- |
-| 1 | Phase 1 + Phase 2a | T1–T10 | 10 — done |
-| 2 | Phase 2b + Phase 2c | T11–T20 | 10 — done |
-| 3 | Phase 2d + Phase 3 + Phase 4 | T21–T28 | 8 |
-| 4 | Phase 5 | T29–T35 | 7 |
+| 1 | Phase 1 + Phase 2 | T1–T4 | 4 |
+| 2 | Phase 3 + Phase 4 (parcial: scaffold + cliente) | T5–T10 | 6 |
+| 3 | Phase 4 (resources + cli) + Phase 5 | T11–T15 | 5 |
+| 4 | Phase 6 | T16–T17 | 2 |
 
-Batches run sequentially: each worker executes ALL its tasks in order, then reports a compact summary before the next batch starts.
+Execução é estritamente sequencial - there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.
 
 **The orchestrating agent's role during Execute:**
 1. Count total tasks and pack phases into ~7-task batches - offer batch sub-agents if that yields more than one batch and the user accepts
@@ -699,13 +515,15 @@ Batches run sequentially: each worker executes ALL its tasks in order, then repo
 
 | Task | Escopo | Status |
 | ---- | ------ | ------ |
-| T1–T2 | 1 arquivo cada (tipo, depois builder) | ✅ Granular |
-| T3–T20 | 1 módulo/arquivo por task (export + registro) | ✅ Granular — 18 tasks quase idênticas, mas cada uma é literalmente "1 file change" (a definição própria de task atômica), e módulos diferentes não podem ser cohesivamente fundidos numa task só sem violar "Where nomeia 1 arquivo" |
-| T21–T23 | 1 arquivo por task (mesmo padrão de T3–T20, aplicado aos 3 arquivos de rota fora do padrão `routes.ts` encontrados no Batch 1) | ✅ Granular |
-| T24 | 1 arquivo novo (`openApiParity.ts`) + wiring de 2 linhas no `cli.ts` já existente | ✅ Granular (cohesivo — o wiring é parte do mesmo commit da função que ele chama, não um arquivo novo) |
-| T25, T28, T32 | 1 arquivo YAML modificado (job/step novo) cada | ✅ Granular |
-| T26, T27 | 1 arquivo novo cada (função pura, depois o script que a usa) | ✅ Granular |
-| T29, T30, T31, T33, T34, T35 | 1 arquivo cada | ✅ Granular |
+| T1 | 1 arquivo (decompiler completo + testes co-localizados) | ✅ Granular |
+| T2 | 1 arquivo (schema.ts, + migration gerada por ferramenta, não escrita à mão) | ✅ Granular |
+| T3 | 1 arquivo (`auth.ts`, inclui `mcpTokens.ts` data-access cohesiva) | ✅ Granular |
+| T4, T5, T7, T14 | 1 arquivo (`routes.ts`, modificado incrementalmente por task) | ✅ Granular |
+| T6 | 1 arquivo (`componentLookup.ts`) | ✅ Granular |
+| T8 | 1 arquivo (`registerModules.ts`) | ✅ Granular |
+| T9, T13, T16, T17 | 1 arquivo cada | ✅ Granular |
+| T10, T11, T15 | 1 arquivo cada | ✅ Granular |
+| T12 | 2 arquivos cohesivos (`readDiagram.ts` + `readComponent.ts`, mesmo padrão de wrapping, mesma revisão) | ⚠️ OK se cohesivo — justificado na própria task (regra "2-3 coisas relacionadas = OK") |
 
 ---
 
@@ -730,27 +548,8 @@ Batches run sequentially: each worker executes ALL its tasks in order, then repo
 | T15 | T14 | T14 → T15 | ✅ Match |
 | T16 | T15 | T15 → T16 | ✅ Match |
 | T17 | T16 | T16 → T17 | ✅ Match |
-| T18 | T17 | T17 → T18 | ✅ Match |
-| T19 | T18 | T18 → T19 | ✅ Match |
-| T20 | T19 | T19 → T20 | ✅ Match |
-| T21 | T20 | T20 → T21 | ✅ Match |
-| T22 | T21 | T21 → T22 | ✅ Match |
-| T23 | T22 | T22 → T23 | ✅ Match |
-| T24 | T23 | T23 → T24 | ✅ Match |
-| T25 | T24 | T24 → T25 | ✅ Match |
-| T26 | None | — (Phase 4 inicia sozinha, sem arco de entrada) | ✅ Match |
-| T27 | T26 | T26 → T27 | ✅ Match |
-| T28 | T27 | T27 → T28 | ✅ Match |
-| T29 | T28 | T28 → T29 | ✅ Match |
-| T30 | T29 | T29 → T30 | ✅ Match |
-| T31 | T30 | T30 → T31 | ✅ Match |
-| T32 | T31 | T31 → T32 | ✅ Match |
-| T33 | T32 | T32 → T33 | ✅ Match |
-| T34 | T33 | T33 → T34 | ✅ Match |
-| T35 | T34 | T34 → T35 | ✅ Match |
 
-Nenhuma task depende de uma fase posterior. Nenhum arco no diagrama fica sem `Depends on`
-correspondente, e nenhum `Depends on` fica sem arco correspondente.
+Nenhuma task depende de uma fase posterior. Cadeia estritamente sequencial — mesma disciplina usada em F8 pra evitar drift entre o diagrama e os campos `Depends on`.
 
 ---
 
@@ -758,21 +557,16 @@ correspondente, e nenhum `Depends on` fica sem arco correspondente.
 
 | Task | Code Layer Created/Modified | Matrix Requires | Task Says | Status |
 | ---- | ----------------------------- | ----------------- | ----------- | ------ |
-| T1 | Type only | none | none | ✅ OK |
-| T2 | `apps/server/src/openapi/*` builder | unit | unit | ✅ OK |
-| T3 | `routeSchemas` export (metadata) + `registry.ts` | none / n/a | none — mas `registry.ts` ganha 1 teste próprio dentro da task | ✅ OK |
-| T4 | Script/CLI entrypoint, sem lógica própria | none | none | ✅ OK |
-| T5–T20 | `routeSchemas` exports (metadata only) | none | none | ✅ OK |
-| T21–T23 | `routeSchemas` exports (metadata only, non-`routes.ts` files) | none | none | ✅ OK |
-| T24 | `tools/repo-tools` audit logic | unit | unit | ✅ OK |
-| T25, T28, T32 | CI YAML | none | none | ✅ OK |
-| T26 | `checkEvalThreshold` pure function | unit | unit | ✅ OK |
-| T27 | `runThresholdCheck` script (wraps T26 + existing suite) | unit | unit | ✅ OK |
-| T29, T30, T31, T33, T34, T35 | Docs/config | none | none | ✅ OK |
+| T1 | `decompile()`, pure | unit | unit | ✅ OK |
+| T2 | schema/migration | none | none | ✅ OK |
+| T3 | `auth.ts`/`mcpTokens.ts`, pure logic | unit | unit | ✅ OK |
+| T4, T5, T7, T14 | rotas DB-backed | integration | integration | ✅ OK |
+| T6 | `componentLookup.ts`, pure (opera sobre scene/metadata já carregados) | unit | unit | ✅ OK |
+| T8 | wiring, integration-tested por convenção do arquivo | integration | integration | ✅ OK |
+| T9, T13, T16, T17 | scaffold/docs/config | none | none | ✅ OK |
+| T10, T11, T12, T15 | `apps/mcp`, HTTP mockado (nunca DB direto) | unit | unit | ✅ OK |
 
-Nenhuma violação — nenhuma task com `Tests: none` cria uma camada de domínio/lógica que a matriz
-exige testar (a única lógica real desta onda — o builder OpenAPI, a paridade de auditoria, o
-checker de limiar e seu script — está em T2/T24/T26/T27, todas `Tests: unit`).
+Nenhuma violação.
 
 ---
 
@@ -780,7 +574,8 @@ checker de limiar e seu script — está em T2/T24/T26/T27, todas `Tests: unit`)
 
 - **Phases are ordered** - Each phase completes before the next; tasks run in order within a phase
 - **Reuses = Token saver** - Always reference existing code
-- **T5-T20 são mecânicas** - mesmo padrão 16 vezes; a variação real está em quantas rotas cada módulo tem e se alguma é WebSocket (só `ws-gateway`, T19)
+- **T1 é a peça de maior risco técnico** - o compilador reverso não tem precedente no projeto; as outras 16 tasks são mecânicas em comparação
+- **`apps/mcp` nunca importa pacotes de domínio** - só HTTP + token (design.md) - todo teste de `apps/mcp` mocka HTTP, nunca sobe um servidor real
 - **Done when = Testable** - If you can't verify it, rewrite it
 - **Requirement ID = Traceable** - Every task traces back to a spec requirement
 - **One commit per task** - Plan the commit message format in advance
