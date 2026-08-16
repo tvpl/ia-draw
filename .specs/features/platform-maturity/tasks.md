@@ -195,11 +195,11 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Token com permissão de leitura recebe o `IrDocument` correto do diagrama
-- [ ] Token sem permissão recebe 404 (nunca 403, nunca distingue "não existe" de "sem permissão")
-- [ ] Diagrama inexistente recebe o mesmo 404
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
-- [ ] Test count: 4 novos testes integration (leitura com permissão; sem permissão 404; diagrama inexistente 404; resposta nunca é imagem renderizada, é o IR estruturado — MCP-02 literal)
+- [x] Token com permissão de leitura recebe o `IrDocument` correto do diagrama
+- [x] Token sem permissão recebe 404 (nunca 403, nunca distingue "não existe" de "sem permissão")
+- [x] Diagrama inexistente recebe o mesmo 404
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Test count: 6 novos testes integration (leitura com permissão; sem permissão 404; diagrama inexistente 404; sem token 404; resposta nunca é imagem renderizada, é o IR estruturado — MCP-02 literal; mais `GET /workspaces/:id/diagrams`'s 2 testes — SPEC_DEVIATION documentada em `routes.ts`, closing MCP-01's listing gap tasks.md never assigned a task to)
 
 **Tests**: integration
 **Gate**: full

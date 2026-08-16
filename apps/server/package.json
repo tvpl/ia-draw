@@ -18,6 +18,7 @@
     "@arch-canvas/backup": "workspace:*",
     "@arch-canvas/database": "workspace:*",
     "@arch-canvas/diagram-domain": "workspace:*",
+    "@arch-canvas/diagram-ir": "workspace:*",
     "@arch-canvas/editor-adapter": "workspace:*",
     "@arch-canvas/shared-contracts": "workspace:*",
     "@aws-sdk/client-s3": "^3.1108.0",
@@ -48,7 +49,6 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@arch-canvas/diagram-ir": "workspace:*",
     "@arch-canvas/library-content": "workspace:*",
     "@arch-canvas/test-fixtures": "workspace:*",
     "@electric-sql/pglite": "^0.5.4",
