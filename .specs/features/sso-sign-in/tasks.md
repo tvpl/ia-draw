@@ -136,11 +136,11 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `status` transitions `loading` → `authenticated` (200 on first `/me`) or `loading` → `authenticated` (401 → refresh 200 → retry `/me` 200) or `loading` → `anonymous` (refresh fails, or retried `/me` still fails)
-- [ ] `user` populated with exactly `{id, email, displayName}` from the response body, never more
-- [ ] `useLogout()` calls `POST /auth/logout`, then sets `status` to `anonymous`/`user` to `null`
-- [ ] Unit tests cover all 3 status-transition branches from design.md's sequence diagram, using an injected `fetchImpl`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `status` transitions `loading` → `authenticated` (200 on first `/me`) or `loading` → `authenticated` (401 → refresh 200 → retry `/me` 200) or `loading` → `anonymous` (refresh fails, or retried `/me` still fails)
+- [x] `user` populated with exactly `{id, email, displayName}` from the response body, never more
+- [x] `useLogout()` calls `POST /auth/logout`, then sets `status` to `anonymous`/`user` to `null`
+- [x] Unit tests cover all 3 status-transition branches from design.md's sequence diagram, using an injected `fetchImpl`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
