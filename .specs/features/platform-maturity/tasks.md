@@ -606,11 +606,19 @@ T16 → T17
 
 **Done when**:
 
-- [ ] As seções que descrevem capacidades sem superfície deixam claro que são contrato de backend
-- [ ] O rodapé com a contagem de requisitos recebe a mesma qualificação do README
-- [ ] O mockup do editor continua rotulado como ilustrativo, sem sugerir tela existente
-- [ ] `repo-tools audit` passa contra a landing reescrita
-- [ ] Gate check passa: `make ci`
+- [x] As seções que descrevem capacidades sem superfície deixam claro que são contrato de backend
+- [x] O rodapé com a contagem de requisitos recebe a mesma qualificação do README
+- [x] O mockup do editor continua rotulado como ilustrativo, sem sugerir tela existente
+- [x] `repo-tools audit` passa contra a landing reescrita
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
+
+> **Marcação por seção, não aviso genérico no topo.** Um bloco `.status-panel` no herói dá os números (26 capacidades, 4 com tela, 22 `backend-only`; 79 rotas, 4 consumidas) com link para o mapa e para o inventário. Cada seção que descreve capacidade sem superfície ganhou um selo `contrato de backend · sem tela` ao lado do título e um `.surface-note` dizendo o que existe e o que falta: 02 (IA), 04 (colaboração), 05 (formatos, docgen, lint) e 06 (produção). As seções 01 e 03, que têm superfície parcial, receberam só o `.surface-note` separando o que abre do que é `backend-only` — biblioteca e presets na 01; snapshots, conflito e export na 03. São 5 selos (4 seções + 1 na legenda do painel) e 6 notas.
+>
+> **Três afirmações de UI foram corrigidas no texto, não só anotadas:** `Um botão "Gerar documentação"` virou `A geração de documentação`, `O editor avisa quando algo parece errado` virou `O lint avisa...` com `roda no servidor` no lugar de `roda em segundo plano`, e o eyebrow `IA geradora · tempo real` virou `IA e tempo real como API`. Frase de mockup reescrita: era `o desenho real usa os componentes da biblioteca`, que sugere tela existente; agora é `Mockup ilustrativo, não uma captura de tela` mais a afirmação explícita de que nenhum componente equivalente existe em `apps/web`.
+>
+> **Verificação de render.** Página aberta no navegador: HTML fecha todas as tags (checagem por parser), os 5 selos medem 221×24, as 6 notas de 117 a 163 px de altura, o painel de status 622×325, e `scrollWidth == clientWidth` — nenhum overflow horizontal. Os estilos novos usam só tokens já definidos (`--amber`, `--amber-soft`, `--paper-deep`), então o tema escuro segue pelo mesmo caminho dos demais.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build

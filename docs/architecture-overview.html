@@ -462,6 +462,45 @@
 
   .hero-visual { margin: 40px 0 4px; }
   .hero-note { font-size: 13.5px; color: var(--ink-faint); margin: 12px 2px 0; }
+
+  /* Marcação de superfície (TRU-04) — separa contrato de backend verificado
+     de capacidade acessível ao usuário final. Fonte: docs/capability-map.yaml. */
+  .surface-flag {
+    display: inline-block;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", "IBM Plex Mono", Menlo, Consolas, monospace;
+    font-size: 11px;
+    color: var(--amber);
+    border: 1px solid var(--amber-soft-2);
+    background: var(--amber-soft);
+    border-radius: 5px;
+    padding: 2px 7px;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+  .surface-note {
+    border-left: 2px solid var(--amber);
+    background: var(--amber-soft);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 0 0 30px;
+    font-size: 14.5px;
+    color: var(--ink-dim);
+    max-width: 70ch;
+  }
+  .surface-note b { color: var(--ink); }
+  .status-panel {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper-deep);
+    padding: 18px 20px;
+    margin-top: 28px;
+    font-size: 14.5px;
+    color: var(--ink-dim);
+    max-width: 74ch;
+  }
+  .status-panel h4 { margin: 0 0 10px; font-size: 15px; color: var(--ink); }
+  .status-panel p { margin: 0 0 10px; }
+  .status-panel p:last-child { margin-bottom: 0; }
   .hero-links { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; }
   .hero-links a { font-size: 14px; }
   .hero-links .sep { color: var(--ink-faint); }
@@ -845,14 +884,15 @@
 
 <div class="wrap">
   <div class="hero">
-    <div class="eyebrow">self-hosted · IA geradora · tempo real</div>
+    <div class="eyebrow">self-hosted · editor server-first · IA e tempo real como API</div>
     <h1 class="title">Desenhe arquitetura.<br /><span class="accent">Descreva o resto.</span></h1>
     <p class="lede">
       <strong>Architecture Canvas</strong> é um editor de diagramas — infraestrutura cloud, C4,
       fluxos de negócio — construído sobre o Excalidraw. A diferença: cada traço é salvo no servidor
-      antes de você perceber, e você pode descrever o que precisa em português e deixar um agente de
-      IA montar o diagrama, sempre com um preview pra você aprovar ou descartar antes de qualquer coisa
-      grudar na tela.
+      antes de você perceber. E o motor de IA que monta o diagrama a partir de uma descrição em
+      português, sempre com preview pra aprovar ou descartar antes de qualquer coisa grudar na tela,
+      está entregue e verificado <b>como API</b> — o dock que o expõe dentro do editor é a próxima
+      fatia de produto, não uma tela que já existe.
     </p>
 
     <figure class="browser-mock hero-visual" aria-hidden="true">
@@ -886,13 +926,36 @@
       </div>
     </figure>
     <p class="hero-note">
-      Mockup ilustrativo do editor — o desenho real usa os componentes AWS/C4 da biblioteca, não caixas genéricas.
+      Mockup ilustrativo, não uma captura de tela. O painel de IA à direita desenha o fluxo que a API
+      já implementa (proposta, diff, aprovar/descartar); nenhum componente equivalente existe hoje em
+      <code>apps/web</code>.
     </p>
+
+    <div class="status-panel">
+      <h4>Onde o projeto está, sem arredondar</h4>
+      <p>
+        Os <b>92 requisitos de F0–F5 são um contrato de backend verificado</b>: cada um foi checado
+        onda a onda por um Verifier independente, com evidência em <code>arquivo:linha</code>. É a
+        parte forte do trabalho e ela está de pé.
+      </p>
+      <p>
+        A superfície de produto vem atrás e é medida à parte. Das <b>26 capacidades</b> do
+        <a href="capability-map.yaml">mapa de capacidades</a>, 4 têm tela e <b>22 são
+        <code>backend-only</code></b> — API verificada, nenhum componente em <code>apps/web</code>
+        que as exponha. Em rotas: das <b>79 rotas REST</b> registradas, 4 são consumidas pela
+        interface e 75 não têm consumidor (<a href="route-inventory.md">inventário</a>).
+      </p>
+      <p>
+        As seções marcadas <span class="surface-flag">contrato de backend · sem tela</span> abaixo
+        descrevem capacidades dessa segunda lista. O CI roda <code>repo-tools audit</code> a cada
+        pull request, então a distinção não depende de disciplina de quem escreve esta página.
+      </p>
+    </div>
 
     <div class="hero-links">
       <a href="#comecar">Rodar localmente →</a>
       <span class="sep">·</span>
-      <a href="#tecnico-detalhes">92/92 requisitos, como foi verificado →</a>
+      <a href="#tecnico-detalhes">contrato de backend 92/92, como foi verificado →</a>
     </div>
   </div>
 
@@ -945,17 +1008,33 @@
         </div>
       </div>
     </div>
+
+    <p class="surface-note">
+      <b>O que já dá pra abrir:</b> o canvas, com a persistência server-first descrita na seção 03.
+      A biblioteca de componentes AWS/C4 e os presets de layout por tipo de diagrama são
+      <code>backend-only</code> — existem e são testados em <code>library-content</code> e
+      <code>diagram-ir</code>, mas ainda não há seletor de biblioteca no editor.
+    </p>
   </section>
 
   <section class="sheet" id="ia">
     <div class="sheet-head">
       <span class="sheet-num">02</span>
       <h2 class="sheet-title">Descreva. Aprove. Pronto.</h2>
+      <span class="surface-flag">contrato de backend · sem tela</span>
     </div>
     <p class="sheet-dek">
       Você escreve o que precisa em português. A IA monta uma proposta — nunca aplica nada sozinha.
       Você vê exatamente o que vai mudar antes de decidir, e um clique em Desfazer sempre volta pro
       estado de antes.
+    </p>
+
+    <p class="surface-note">
+      Esse fluxo inteiro está implementado e verificado no servidor —
+      <code>POST /diagrams/:id/ai/runs</code>, a prévia, o limiar de aprovação e o snapshot
+      <code>pre_ai</code> que o undo restaura — e nenhuma parte dele tem interface. Não existe dock de
+      IA em <code>apps/web</code>: hoje a capacidade só é alcançável por chamada de API. Ela é a
+      primeira fatia vertical do roadmap de produto justamente por ser o diferencial declarado.
     </p>
 
     <h3 class="sub">Componentes prontos pra usar</h3>
@@ -1022,15 +1101,32 @@
         mesmo se o servidor de IA ou a colaboração em tempo real estiverem fora do ar.</li>
       </ul>
     </div>
+
+    <p class="surface-note">
+      <b>Esta é a seção com mais superfície real.</b> A persistência server-first, a confirmação
+      "Salvo" e a recuperação da fila local depois de um crash do navegador estão no editor hoje
+      (<code>DiagramEditorPage.tsx</code>, <code>syncClient.ts</code>). Os três itens acima —
+      snapshots nomeáveis, comparação de variantes em conflito e export — são
+      <code>backend-only</code>: as rotas de <code>snapshot</code> e <code>export</code> existem e
+      são testadas, o botão que as chama não.
+    </p>
   </section>
 
   <section class="sheet" id="colaboracao">
     <div class="sheet-head">
       <span class="sheet-num">04</span>
       <h2 class="sheet-title">O time inteiro no mesmo desenho</h2>
+      <span class="surface-flag">contrato de backend · sem tela</span>
     </div>
     <p class="sheet-dek">
       Cursores, seleção e comentários em tempo real — com papéis que o frontend não decide sozinho.
+    </p>
+
+    <p class="surface-note">
+      O gateway WebSocket, a presença, os comentários, os links de compartilhamento e o modo
+      apresentação são <code>backend-only</code>. O mockup abaixo mostra o protocolo que o servidor
+      já fala, não uma sessão que você consegue abrir: nenhum desses recursos tem componente em
+      <code>apps/web</code>.
     </p>
 
     <div class="browser-mock" aria-hidden="true">
@@ -1066,9 +1162,17 @@
     <div class="sheet-head">
       <span class="sheet-num">05</span>
       <h2 class="sheet-title">Fala os formatos que o seu time já usa</h2>
+      <span class="surface-flag">contrato de backend · sem tela</span>
     </div>
     <p class="sheet-dek">
       Nada fica preso dentro do Architecture Canvas — nem o que entra, nem o que sai.
+    </p>
+
+    <p class="surface-note">
+      Export, import, Mermaid/Structurizr, a geração de documentação e o lint arquitetural são
+      <code>backend-only</code>. Cada formato listado abaixo tem rota registrada e teste; o
+      "botão Gerar documentação" descreve a chamada <code>POST /diagrams/:id/specs:generate</code>,
+      não um botão que existe na tela.
     </p>
 
     <div class="format-row">
@@ -1083,16 +1187,16 @@
 
     <div class="prose">
       <p>
-        Um botão "Gerar documentação" produz um Markdown estruturado a partir do canvas — resumo,
+        A geração de documentação produz um Markdown estruturado a partir do canvas — resumo,
         contexto, componentes, integrações, riscos, decisões — com cada seção linkada de volta ao
         elemento do diagrama que a originou. Campo sem metadado vira literalmente
         <code>"não especificado"</code>: a IA nunca inventa uma decisão que ninguém tomou.
       </p>
     </div>
 
-    <h3 class="sub">O editor avisa quando algo parece errado</h3>
+    <h3 class="sub">O lint avisa quando algo parece errado</h3>
     <div class="prose">
-      <p>Um lint arquitetural roda em segundo plano — sempre como aviso, nunca bloqueando o desenho:</p>
+      <p>Um lint arquitetural roda no servidor — sempre como aviso, nunca bloqueando o desenho:</p>
     </div>
     <div class="lint-list">
       <div class="lint-item"><span class="lint-dot"></span><span><b>Componente órfão</b> — nada conectado a ele.</span></div>
@@ -1108,10 +1212,18 @@
     <div class="sheet-head">
       <span class="sheet-num">06</span>
       <h2 class="sheet-title">Pronto pra produção, não só pra demo</h2>
+      <span class="surface-flag">contrato de backend · sem tela</span>
     </div>
     <p class="sheet-dek">
       Cada item aqui existe porque alguém precisou dele de verdade num ambiente corporativo — não é
       checklist de vitrine.
+    </p>
+
+    <p class="surface-note">
+      Os cinco itens abaixo rodam no servidor e na infraestrutura, e são configurados por variável de
+      ambiente, job ou provedor de identidade. Todos são <code>backend-only</code>: não existe tela de
+      administração no produto — nem para provider de IA, nem para membros do workspace, nem para
+      auditoria.
     </p>
 
     <div class="feature-grid">
@@ -1494,11 +1606,13 @@ make web-dev              <span class="c"># apps/web sozinho, Vite + HMR</span><
   </details>
 
   <details class="tech">
-    <summary>Roadmap — as 6 fases, 92/92 requisitos verificados</summary>
+    <summary>Roadmap — as 6 fases, 92/92 requisitos de backend verificados</summary>
     <div class="tech-body">
       <p class="sheet-dek">
         Cada fase foi fechada com um verificador independente antes da próxima começar — nunca a mesma
-        sessão que escreveu o código atestando que ele está correto.
+        sessão que escreveu o código atestando que ele está correto. O que foi verificado é o contrato
+        de backend: das 26 capacidades entregues nessas seis fases, 22 continuam sem superfície de
+        produto, e fechar essa distância é o roadmap seguinte.
       </p>
       <div class="timeline">
         <div class="tl-row">
@@ -1559,7 +1673,8 @@ make web-dev              <span class="c"># apps/web sozinho, Vite + HMR</span><
       </div>
       <div class="stat-row" style="margin-top: 30px;">
         <div class="stat"><div class="n">6</div><div class="l">fases (F0–F5)</div></div>
-        <div class="stat"><div class="n">92</div><div class="l">requisitos verificados</div></div>
+        <div class="stat"><div class="n">92</div><div class="l">requisitos de backend verificados</div></div>
+        <div class="stat"><div class="n">22</div><div class="l">capacidades sem tela</div></div>
         <div class="stat"><div class="n">34</div><div class="l">módulos e pacotes</div></div>
         <div class="stat"><div class="n">9</div><div class="l">decisões de arquitetura</div></div>
       </div>
@@ -1689,11 +1804,12 @@ make web-dev              <span class="c"># apps/web sozinho, Vite + HMR</span><
 
 <footer>
   <div class="wrap">
-    <span class="mono">architecture-canvas · F0–F5 · 92/92 requisitos</span>
+    <span class="mono">architecture-canvas · F0–F5 · 92/92 requisitos de backend verificados · 22 das 26 capacidades sem tela</span>
     <div class="links">
       <a href="../.specs/STATE.md">STATE.md</a>
       <a href="../.specs/features/architecture-canvas/spec.md">spec.md</a>
       <a href="../.specs/features/architecture-canvas/validation.md">validation.md</a>
+      <a href="capability-map.yaml">capability-map.yaml</a>
       <a href="../README.md">README</a>
     </div>
   </div>
