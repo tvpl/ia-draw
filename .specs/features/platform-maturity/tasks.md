@@ -371,6 +371,12 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T22 (`presentation-publish`)**:
+- [x] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`) — 3 rotas (`POST /presentations/:id(^[^:]+):publish`, `GET /presentations/:id/published`, `POST /presentations/:id(^[^:]+):export-pdf`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave `presentation-publish` (distinta de `presentation`, T17)
+- [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T24: extensão do `repo-tools audit` — paridade de rotas do OpenAPI
