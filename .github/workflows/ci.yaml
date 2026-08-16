@@ -26,6 +26,40 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -w lint
 
+  commit-lint:
+    name: Conventional Commits
+    runs-on: ubuntu-latest
+    # Only a pull request has a commit range to validate; a push to main has
+    # already been through this gate on the pull request that produced it.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The whole range base..head has to be present locally, not just the
+          # head commit the default shallow clone would give us.
+          fetch-depth: 0
+      - name: Validate every commit message in the pull request
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          # Merge commits are excluded on purpose: GitHub generates those
+          # messages ("Merge pull request #N from ..."), nobody authors them.
+          commits="$(git rev-list --reverse --no-merges "$BASE_SHA".."$HEAD_SHA")"
+          if [ -z "$commits" ]; then
+            echo "No non-merge commits in this pull request."
+            exit 0
+          fi
+          for sha in $commits; do
+            if ! git log -1 --format=%B "$sha" | \
+              python3 .claude/skills/tlc-spec-driven/scripts/check_commit.py; then
+              echo "::error::first non-conforming commit message: $sha $(git log -1 --format=%s "$sha")"
+              exit 1
+            fi
+          done
+          echo "$(echo "$commits" | wc -l | tr -d ' ') commit messages conform to Conventional Commits."
+
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest

@@ -195,7 +195,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | CIQ-02 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-03 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-04 | P1: CI que prova o sistema | F6 | Implementing |
-| CIQ-05 | P1: CI que prova o sistema | F6 | Pending |
+| CIQ-05 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-06 | P1: CI que prova o sistema | F6 | Pending |
 | CIQ-07 | P1: CI que prova o sistema | F6 | Pending |
 | UIX-01 | P1: Inventário do gap de produto | F6 | Implementing |

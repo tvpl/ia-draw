@@ -378,10 +378,22 @@ T16 → T17
 
 **Done when**:
 
-- [ ] O job percorre todos os commits do pull request, não apenas o head
-- [ ] Falha nomeando a primeira mensagem não conforme
-- [ ] Reprodução local: `check_commit.py --message "mensagem invalida"` sai diferente de zero e `--message "feat(x): y"` sai zero
-- [ ] Gate check passa: `make ci`
+- [x] O job percorre todos os commits do pull request, não apenas o head
+- [x] Falha nomeando a primeira mensagem não conforme
+- [x] Reprodução local: `check_commit.py --message "mensagem invalida"` sai diferente de zero e `--message "feat(x): y"` sai zero
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+> **Reprodução local do job inteiro, não só do script.** O bloco `run` do job foi extraído do YAML e executado como shell:
+> - Faixa real deste branch (`a09b6ef..HEAD`, 13 commits): sai 0, `13 commit messages conform to Conventional Commits`.
+> - Repositório descartável com um commit ruim no meio (`feat(a): ...` → `mensagem invalida` → `fix(b): ...`): sai 1 em `mensagem invalida` e **não** chega ao commit seguinte, que é o que prova "primeira mensagem não conforme" e não "alguma mensagem".
+>
+> `--reverse` existe por isso: sem ele o `rev-list` sai do mais novo para o mais antigo e "primeira" seria a última em ordem cronológica. Commits de merge ficam fora (`--no-merges`) porque a mensagem é gerada pelo GitHub — o próprio repositório já tem uma (`fc143f8`). `fetch-depth: 0` é obrigatório: o clone raso padrão não tem `base.sha`.
+>
+> **Achado (não corrigido):** dois commits de T4 e T5 têm header acima de 72 caracteres. O `check_commit.py` trata isso como WARN, não ERROR, então o job passa.
+>
+> **Não verificável localmente:** que `github.event.pull_request.base.sha` e `head.sha` cheguem preenchidos e que o `if: github.event_name == 'pull_request'` selecione o job. Só o primeiro pull request confirma.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
