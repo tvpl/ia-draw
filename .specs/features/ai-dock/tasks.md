@@ -170,7 +170,7 @@ T7 → T9
 
 ---
 
-### T5: Create `aiDockStore` (Zustand factory)
+### T5: Create `aiDockStore` (Zustand factory) — DONE
 
 **What**: `createAiDockStore()` factory returning a Zustand store with `AiDockState` (phase, requestText, run, preview, requiresExplicitApproval, errorCode, lastSnapshotId, rateLimitedUntil) and the actions listed in design.md's Components section.
 **Where**: `apps/web/src/ai-dock/aiDockStore.ts`
@@ -183,10 +183,10 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] All fields and actions from design.md's `AiDockState` interface implemented
-- [ ] `aiDockStatusTranslationKey(phase)` helper exported, mirroring `saveStatusTranslationKey`
-- [ ] Unit test exercises every action at least once, asserting the resulting state shape (submitStart→submitting, submitSuccess→awaiting_approval with preview set, submitFailed→error with errorCode, rateLimited→rate_limited with rateLimitedUntil set, approveStart→approving, approveSuccess→applied with lastSnapshotId set, approveConflict→idle with preview cleared and requestText preserved, cancelled→idle, undoStart→restoring, undoSuccess→idle, undoFailed→ still offering undo, reset→idle)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] All fields and actions from design.md's `AiDockState` interface implemented
+- [x] `aiDockStatusTranslationKey(phase)` helper exported, mirroring `saveStatusTranslationKey`
+- [x] Unit test exercises every action at least once, asserting the resulting state shape (submitStart→submitting, submitSuccess→awaiting_approval with preview set, submitFailed→error with errorCode, rateLimited→rate_limited with rateLimitedUntil set, approveStart→approving, approveSuccess→applied with lastSnapshotId set, approveConflict→idle with preview cleared and requestText preserved, cancelled→idle, undoStart→restoring, undoSuccess→idle, undoFailed→ still offering undo, reset→idle)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
