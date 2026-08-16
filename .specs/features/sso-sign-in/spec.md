@@ -200,27 +200,27 @@ usando apenas Tab e Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SSO-01 | P1: Login local | F10 | Pending |
-| SSO-02 | P1: Login local | F10 | Pending |
-| SSO-03 | P1: Login local | F10 | Pending |
-| SSO-04 | P1: Login local | F10 | Pending |
-| SSO-05 | P1: Login local | F10 | Pending |
-| SSO-06 | P1: Login local | F10 | Pending |
-| SSO-07 | P1: Login local | F10 | Pending |
-| SSO-08 | P1: SSO quando disponível | F10 | Pending |
-| SSO-09 | P1: SSO quando disponível | F10 | Pending |
-| SSO-10 | P1: SSO quando disponível | F10 | Pending |
-| SSO-11 | P1: SSO quando disponível | F10 | Pending |
-| SSO-12 | P1: SSO quando disponível | F10 | Pending |
-| SSO-13 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-14 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-15 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-16 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-17 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-18 | P1: Sessão renovada ou redirecionamento | F10 | Pending |
-| SSO-19 | P2: Teclado e idioma | F10 | Pending |
-| SSO-20 | P2: Teclado e idioma | F10 | Pending |
-| SSO-21 | P2: Teclado e idioma | F10 | Pending |
+| SSO-01 | P1: Login local | F10 | ✅ Verified |
+| SSO-02 | P1: Login local | F10 | ✅ Verified |
+| SSO-03 | P1: Login local | F10 | ✅ Verified |
+| SSO-04 | P1: Login local | F10 | ✅ Verified |
+| SSO-05 | P1: Login local | F10 | ✅ Verified |
+| SSO-06 | P1: Login local | F10 | ✅ Verified |
+| SSO-07 | P1: Login local | F10 | ✅ Verified |
+| SSO-08 | P1: SSO quando disponível | F10 | ✅ Verified |
+| SSO-09 | P1: SSO quando disponível | F10 | ✅ Verified |
+| SSO-10 | P1: SSO quando disponível | F10 | ✅ Verified |
+| SSO-11 | P1: SSO quando disponível | F10 | ✅ Verified |
+| SSO-12 | P1: SSO quando disponível | F10 | ✅ Verified |
+| SSO-13 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-14 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-15 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-16 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-17 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-18 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
+| SSO-19 | P2: Teclado e idioma | F10 | ✅ Verified |
+| SSO-20 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
+| SSO-21 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

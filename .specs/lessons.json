@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 30,
+  "next_id": 31,
   "lessons": [
     {
       "id": "L-001",
@@ -528,6 +528,24 @@
       ],
       "created": "2026-08-16T21:47:59Z",
       "last_seen": "2026-08-16T21:47:59Z"
+    },
+    {
+      "id": "L-030",
+      "key": "surviving_mutant::when an acceptance criterion names an aria attribute or live region assert that attribute in the test not just that the message text renders",
+      "text": "When an acceptance criterion names an ARIA attribute or live region, assert that attribute in the test, not just that the message text renders.",
+      "signal": "surviving_mutant",
+      "scope": "a11y",
+      "status": "candidate",
+      "features": [
+        "sso-sign-in"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/auth/LoginPage.tsx:115 (mutant M5, SSO-20) (a11y)"
+      ],
+      "created": "2026-08-16T22:27:30Z",
+      "last_seen": "2026-08-16T22:27:30Z"
     }
   ]
 }

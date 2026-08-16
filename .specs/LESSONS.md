@@ -188,6 +188,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/ai-dock/spec.md Edge Cases (>50 elements) vs apps/web/src/ai-dock/AiDock.tsx:160 (traceability)
 - last seen: 2026-08-16T21:47:59Z
 
+### L-030 - When an acceptance criterion names an ARIA attribute or live region, assert that attribute in the test, not just that the message text renders.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `a11y` · harmful: 0
+- features: sso-sign-in
+- evidence: apps/web/src/auth/LoginPage.tsx:115 (mutant M5, SSO-20) (a11y)
+- last seen: 2026-08-16T22:27:30Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
