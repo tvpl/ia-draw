@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
-<title>Architecture Canvas</title>
+<title>Architecture Canvas — diagramas de arquitetura com IA</title>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
   :root {
@@ -454,6 +454,378 @@
     .tl-phase { grid-column: 1 / -1; padding-top: 0; }
     .tl-dot-col { display: none; }
   }
+
+  /* ==========================================================================
+     Product mockups — concrete illustrations of the actual app, not diagrams
+     of the system that builds it.
+     ========================================================================== */
+
+  .hero-visual { margin: 40px 0 4px; }
+  .hero-note { font-size: 13.5px; color: var(--ink-faint); margin: 12px 2px 0; }
+  .hero-links { display: flex; flex-wrap: wrap; gap: 10px 22px; margin-top: 26px; }
+  .hero-links a { font-size: 14px; }
+  .hero-links .sep { color: var(--ink-faint); }
+
+  .browser-mock {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -34px rgba(0, 0, 0, 0.45);
+  }
+  .browser-mock .chrome {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-deep);
+  }
+  .browser-mock .chrome .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .browser-mock .chrome .dot:nth-child(1) { background: #e5675f; }
+  .browser-mock .chrome .dot:nth-child(2) { background: #e6b93d; }
+  .browser-mock .chrome .dot:nth-child(3) { background: #5fb865; }
+  .browser-mock .chrome .url {
+    margin-left: 8px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 12px;
+    color: var(--ink-faint);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 4px 12px;
+    flex: 1;
+    max-width: 340px;
+  }
+  .browser-mock .chrome .saved {
+    margin-left: auto;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ok);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .browser-mock .chrome .saved::before {
+    content: "";
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--ok);
+  }
+
+  .app-mock { display: grid; grid-template-columns: 1fr 272px; min-height: 320px; }
+  @media (max-width: 720px) { .app-mock { grid-template-columns: 1fr; } }
+
+  .canvas-mock {
+    position: relative;
+    background:
+      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px 26px),
+      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 26px),
+      var(--paper);
+    border-right: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .node {
+    position: absolute;
+    border: 1.3px solid var(--ink-faint);
+    background: var(--surface);
+    border-radius: 7px;
+    padding: 6px 11px;
+    font-size: 11.5px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .node.blue { border-color: var(--blue); background: var(--blue-soft); color: var(--ink); }
+  .node.ghost {
+    border-style: dashed;
+    border-color: var(--blue);
+    background: var(--blue-soft);
+    color: var(--blue);
+  }
+  .node .new-tag {
+    display: block;
+    font-size: 9.5px;
+    color: var(--blue);
+    margin-top: 1px;
+    letter-spacing: 0.03em;
+  }
+  .zone {
+    position: absolute;
+    border: 1.3px dashed var(--amber);
+    background: var(--amber-soft);
+    border-radius: 10px;
+  }
+  .zone .zone-label {
+    position: absolute;
+    top: -9px; left: 12px;
+    font-size: 10px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    color: var(--amber);
+    background: var(--surface);
+    padding: 0 5px;
+    white-space: nowrap;
+  }
+  .conn {
+    position: absolute;
+    border-top: 1.3px solid var(--ink-faint);
+  }
+
+  .chat-panel {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: var(--paper-deep);
+  }
+  .chat-panel .chat-label {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 2px;
+  }
+  .msg {
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-size: 12.8px;
+    line-height: 1.5;
+  }
+  .msg.user { background: var(--blue-soft); color: var(--ink); }
+  .msg.ai { background: var(--surface); border: 1px solid var(--line); }
+  .diff-chip {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+    border: 1px dashed var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    line-height: 1.7;
+    background: var(--surface);
+  }
+  .diff-chip .add { color: var(--ok); }
+  .diff-chip .mod { color: var(--blue); }
+  .btn-row { display: flex; gap: 8px; margin-top: 2px; }
+  .btn {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 11.5px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    color: var(--ink-dim);
+    background: var(--surface);
+  }
+  .btn.primary { background: var(--blue); color: var(--surface); border-color: var(--blue); font-weight: 600; }
+
+  /* ---------- diagram type cards ---------- */
+  .thumb-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin: 26px 0 6px;
+  }
+  .thumb-card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .thumb-canvas {
+    position: relative;
+    height: 148px;
+    background:
+      repeating-linear-gradient(to right, var(--grid-line) 0 1px, transparent 1px 22px),
+      repeating-linear-gradient(to bottom, var(--grid-line) 0 1px, transparent 1px 22px),
+      var(--paper);
+    overflow: hidden;
+  }
+  .thumb-label { padding: 12px 14px 14px; border-top: 1px solid var(--line); }
+  .thumb-label b { font-size: 14.5px; color: var(--ink); display: block; margin-bottom: 3px; }
+  .thumb-label span { font-size: 12.5px; color: var(--ink-dim); }
+  .lane {
+    position: absolute;
+    left: 0; right: 0;
+    border-top: 1px dashed var(--line);
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 9px;
+    color: var(--ink-faint);
+    padding: 3px 8px 0;
+  }
+
+  /* ---------- crash-recovery comparison ---------- */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 18px;
+    align-items: center;
+    margin: 28px 0 10px;
+  }
+  .compare .panel {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 18px 18px 16px;
+  }
+  .compare .panel .k {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+  }
+  .compare .panel .state {
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .compare .panel.bad .state { color: var(--amber); }
+  .compare .panel.good .state { color: var(--ok); }
+  .compare .panel p { margin: 0; font-size: 13px; color: var(--ink-dim); max-width: none; }
+  .compare .arrow { font-size: 22px; color: var(--ink-faint); text-align: center; }
+  @media (max-width: 640px) {
+    .compare { grid-template-columns: 1fr; }
+    .compare .arrow { transform: rotate(90deg); }
+  }
+
+  /* ---------- collaboration mockup ---------- */
+  .cursor-pill {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10.5px;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    padding: 3px 9px 3px 7px;
+    border-radius: 20px;
+    color: #fff;
+    white-space: nowrap;
+  }
+  .cursor-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #fff; }
+  .cursor-pill.a { background: var(--blue); }
+  .cursor-pill.b { background: var(--amber); }
+  .comment-card {
+    position: absolute;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    max-width: 190px;
+    box-shadow: 0 8px 20px -12px rgba(0, 0, 0, 0.3);
+  }
+  .comment-card b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- format badges ---------- */
+  .format-row { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 8px; }
+  .format-badge {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 12px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 20px;
+    padding: 5px 13px;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- lint list ---------- */
+  .lint-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 10px;
+    margin: 16px 0 4px;
+  }
+  .lint-item {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+    font-size: 13.5px;
+    color: var(--ink-dim);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 11px 13px;
+    background: var(--surface);
+  }
+  .lint-item .lint-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--amber); margin-top: 6px; flex-shrink: 0; }
+  .lint-item b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- feature grid (production) ---------- */
+  .feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+    margin-top: 10px;
+  }
+  .feature-card {
+    border: 1px solid var(--line);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 17px 18px;
+  }
+  .feature-card .tag {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    color: var(--blue);
+    letter-spacing: 0.04em;
+    display: block;
+    margin-bottom: 8px;
+  }
+  .feature-card h4 { margin: 0 0 6px; font-size: 15px; }
+  .feature-card p { margin: 0; font-size: 13.5px; color: var(--ink-dim); max-width: none; }
+
+  /* ---------- quick start ---------- */
+  pre.code-block {
+    background: var(--paper-deep);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 18px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.8;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    color: var(--ink);
+  }
+  pre.code-block .c { color: var(--ink-faint); }
+  .start-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 18px;
+    margin-top: 22px;
+  }
+  .start-grid h4 {
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 13px;
+    margin: 0 0 10px;
+    color: var(--ink-dim);
+  }
+
+  /* ---------- technical appendix ---------- */
+  details.tech { border-top: 1px solid var(--line); }
+  details.tech + details.tech { border-top: none; }
+  details.tech summary {
+    cursor: pointer;
+    font-family: ui-monospace, "SF Mono", "JetBrains Mono", monospace;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 20px 0;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  details.tech summary::-webkit-details-marker { display: none; }
+  details.tech summary::before {
+    content: "▸";
+    color: var(--blue);
+    display: inline-block;
+    transition: transform 0.15s;
+  }
+  details.tech[open] summary::before { transform: rotate(90deg); }
+  details.tech .tech-body { padding-bottom: 30px; }
+  details.tech .tech-body > p.sheet-dek { margin-top: -4px; }
 </style>
 </head>
 <body>
@@ -461,547 +833,858 @@
 <div class="topbar">
   <span class="brand">ARCHITECTURE_CANVAS</span>
   <nav>
-    <a href="#invariant">server-first</a>
-    <a href="#roadmap">roadmap</a>
-    <a href="#ai">ia geradora</a>
-    <a href="#realtime">tempo real</a>
-    <a href="#hardening">hardening</a>
-    <a href="#modules">módulos</a>
+    <a href="#o-que-e">o que você desenha</a>
+    <a href="#ia">a IA</a>
+    <a href="#nunca-perde">nunca perde nada</a>
+    <a href="#colaboracao">time</a>
+    <a href="#formatos">formatos</a>
+    <a href="#producao">produção</a>
+    <a href="#comecar">comece agora</a>
   </nav>
 </div>
 
 <div class="wrap">
   <div class="hero">
-    <div class="eyebrow">roadmap completo — 92/92 requisitos verificados</div>
-    <h1 class="title">Diagramas que <span class="accent">o servidor</span><br />é dono de verdade.</h1>
+    <div class="eyebrow">self-hosted · IA geradora · tempo real</div>
+    <h1 class="title">Desenhe arquitetura.<br /><span class="accent">Descreva o resto.</span></h1>
     <p class="lede">
-      <strong>Architecture Canvas</strong> é uma plataforma self-hosted de diagramação técnica sobre o
-      Excalidraw. Todo desenho — infraestrutura cloud, C4, fluxos de negócio — vive persistido no
-      PostgreSQL a cada alteração, nunca só no navegador. Um agente de IA gera e edita esses diagramas
-      a partir de linguagem natural, sempre com prévia, aprovação explícita e undo real.
+      <strong>Architecture Canvas</strong> é um editor de diagramas — infraestrutura cloud, C4,
+      fluxos de negócio — construído sobre o Excalidraw. A diferença: cada traço é salvo no servidor
+      antes de você perceber, e você pode descrever o que precisa em português e deixar um agente de
+      IA montar o diagrama, sempre com um preview pra você aprovar ou descartar antes de qualquer coisa
+      grudar na tela.
     </p>
-    <div class="stat-row">
-      <div class="stat"><div class="n">6</div><div class="l">fases (F0–F5)</div></div>
-      <div class="stat"><div class="n">92</div><div class="l">requisitos verificados</div></div>
-      <div class="stat"><div class="n">34</div><div class="l">módulos e pacotes</div></div>
-      <div class="stat"><div class="n">9</div><div class="l">decisões de arquitetura</div></div>
+
+    <figure class="browser-mock hero-visual" aria-hidden="true">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">workspace/prod-checkout/vpc-prod</span>
+        <span class="saved">Salvo</span>
+      </div>
+      <div class="app-mock">
+        <div class="canvas-mock">
+          <div class="zone" style="left:6%; top:26px; width:56%; height:190px;">
+            <span class="zone-label">vpc-prod · 10.0.0.0/16</span>
+          </div>
+          <div class="node blue" style="left:12%; top:56px;">ALB · público</div>
+          <div class="node" style="left:12%; top:118px;">ECS · api</div>
+          <div class="node" style="left:32%; top:170px;">RDS · postgres</div>
+          <div class="node ghost" style="left:66%; top:118px;">health check /health<span class="new-tag">proposto pela IA</span></div>
+        </div>
+        <div class="chat-panel">
+          <div>
+            <div class="chat-label">agente de IA</div>
+            <div class="msg user">adicione um health check em /health no ALB, na frente do ECS</div>
+          </div>
+          <div class="msg ai">Proposta pronta — nada foi aplicado ainda.</div>
+          <div class="diff-chip"><span class="add">+ 1 health check</span> em ALB · público<br /><span class="mod">~ 1 conexão</span> ALB → ECS · api</div>
+          <div class="btn-row">
+            <span class="btn primary">Aprovar</span>
+            <span class="btn">Descartar</span>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <p class="hero-note">
+      Mockup ilustrativo do editor — o desenho real usa os componentes AWS/C4 da biblioteca, não caixas genéricas.
+    </p>
+
+    <div class="hero-links">
+      <a href="#comecar">Rodar localmente →</a>
+      <span class="sep">·</span>
+      <a href="#tecnico-detalhes">92/92 requisitos, como foi verificado →</a>
     </div>
   </div>
 
-  <section class="sheet" id="invariant">
+  <section class="sheet" id="o-que-e">
     <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;01</span>
-      <h2 class="sheet-title">O invariante server-first</h2>
+      <span class="sheet-num">01</span>
+      <h2 class="sheet-title">Três formas de desenhar, um editor</h2>
     </div>
     <p class="sheet-dek">
-      O navegador nunca é a fonte da verdade. Toda alteração de canvas — vinda de um formulário REST
-      comum ou de uma conexão WebSocket aberta — passa por exatamente <b>uma</b> função de escrita no
-      servidor antes de existir.
+      O mesmo canvas serve infraestrutura, arquitetura de software e processo de negócio — o editor e
+      o agente de IA sabem diferenciar um do outro e aplicam o preset de layout certo pra cada caso.
     </p>
 
-    <figure class="diagram">
-      <svg viewBox="0 0 900 300" role="img" aria-label="Duas origens de mutação, REST e WebSocket, convergindo na mesma função appendOperation, que grava no op-log do PostgreSQL e só então confirma ao cliente.">
-        <defs>
-          <marker id="arH" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" fill="currentColor" style="fill: var(--ink-dim)"></polygon>
-          </marker>
-          <marker id="arHblue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
-          </marker>
-        </defs>
+    <div class="thumb-row">
+      <div class="thumb-card">
+        <div class="thumb-canvas" aria-hidden="true">
+          <div class="zone" style="left:8%; top:20px; width:56%; height:96px;"><span class="zone-label">vpc-prod</span></div>
+          <div class="node" style="left:14%; top:48px;">EC2 · app</div>
+          <div class="node" style="left:14%; top:86px;">RDS · db</div>
+          <div class="node blue" style="left:70%; top:62px;">ALB</div>
+        </div>
+        <div class="thumb-label">
+          <b>Infraestrutura cloud</b>
+          <span>VPC, subnets, EC2, RDS, ALB — ícones AWS de verdade, agrupados em containers de account/region/VPC/subnet.</span>
+        </div>
+      </div>
+      <div class="thumb-card">
+        <div class="thumb-canvas" aria-hidden="true">
+          <div class="node" style="left:5%; top:56px;">Cliente</div>
+          <div class="node blue" style="left:33%; top:56px;">Arch. Canvas</div>
+          <div class="node" style="left:66%; top:56px;">Provider IA</div>
+        </div>
+        <div class="thumb-label">
+          <b>C4</b>
+          <span>Context, Container, Component e Deployment — com validação suave de nível, nunca bloqueando o desenho.</span>
+        </div>
+      </div>
+      <div class="thumb-card">
+        <div class="thumb-canvas" aria-hidden="true">
+          <div class="lane" style="top:12px;">vendas</div>
+          <div class="node" style="left:8%; top:28px;">Pedido criado</div>
+          <div class="lane" style="top:64px;">financeiro</div>
+          <div class="node" style="left:36%; top:80px;">Aprovação</div>
+          <div class="lane" style="top:116px;">logística</div>
+          <div class="node" style="left:64%; top:116px;">Envio</div>
+        </div>
+        <div class="thumb-label">
+          <b>Fluxo de negócio</b>
+          <span>Swimlanes por responsável — decisões e handoffs entre times, sem virar um quadro branco bagunçado.</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
-        <rect x="20" y="30" width="168" height="52" rx="7" class="diagram-box"></rect>
-        <text x="104" y="52" text-anchor="middle" class="diagram-label">Editor (apps/web)</text>
-        <text x="104" y="68" text-anchor="middle" class="diagram-label dim">POST operations:batch</text>
+  <section class="sheet" id="ia">
+    <div class="sheet-head">
+      <span class="sheet-num">02</span>
+      <h2 class="sheet-title">Descreva. Aprove. Pronto.</h2>
+    </div>
+    <p class="sheet-dek">
+      Você escreve o que precisa em português. A IA monta uma proposta — nunca aplica nada sozinha.
+      Você vê exatamente o que vai mudar antes de decidir, e um clique em Desfazer sempre volta pro
+      estado de antes.
+    </p>
 
-        <rect x="20" y="210" width="168" height="52" rx="7" class="diagram-box"></rect>
-        <text x="104" y="232" text-anchor="middle" class="diagram-label">Editor (apps/web)</text>
-        <text x="104" y="248" text-anchor="middle" class="diagram-label dim">WS frame: mutation</text>
+    <h3 class="sub">Componentes prontos pra usar</h3>
+    <div class="prose">
+      <p>Peça pelo nome e a IA resolve pela biblioteca do workspace, já com layout aplicado — nunca posicionado no olho:</p>
+    </div>
+    <div class="format-row">
+      <span class="format-badge">VPC + subnets</span>
+      <span class="format-badge">EKS</span>
+      <span class="format-badge">event-driven</span>
+      <span class="format-badge">three-tier web</span>
+      <span class="format-badge">mobile + BFF</span>
+      <span class="format-badge">API Gateway + Lambda</span>
+      <span class="format-badge">observability stack</span>
+      <span class="format-badge">C4 starter</span>
+    </div>
 
-        <line x1="188" y1="56" x2="330" y2="120" class="diagram-arrow" marker-end="url(#arH)"></line>
-        <line x1="188" y1="236" x2="330" y2="172" class="diagram-arrow" marker-end="url(#arH)"></line>
+    <h3 class="sub">Duas travas, sempre ligadas</h3>
+    <div class="prose">
+      <ul>
+        <li><b>O que está escrito dentro do diagrama nunca vira instrução pra IA.</b> Um label, comentário
+        ou metadado de um elemento é tratado como dado, nunca como comando — mesmo que alguém escreva
+        algo tipo "ignore as regras anteriores" dentro de uma caixa do canvas, isso não tem efeito
+        nenhum sobre o que o agente faz.</li>
+        <li><b>Mudança arriscada sempre pede aprovação explícita:</b> remover algo, alterar mais de 50
+        elementos de uma vez, ou mexer fora do que você tinha selecionado. Fora isso, tudo o que a IA
+        aplica primeiro grava um snapshot do estado anterior — desfazer é literalmente restaurar esse
+        snapshot, não um "melhor esforço".</li>
+      </ul>
+    </div>
+  </section>
 
-        <rect x="330" y="90" width="200" height="52" rx="7" class="diagram-box"></rect>
-        <text x="430" y="112" text-anchor="middle" class="diagram-label dim">diagram-sync/routes.ts</text>
-        <text x="430" y="128" text-anchor="middle" class="diagram-label dim">operations:batch handler</text>
+  <section class="sheet" id="nunca-perde">
+    <div class="sheet-head">
+      <span class="sheet-num">03</span>
+      <h2 class="sheet-title">Feche a aba sem medo</h2>
+    </div>
+    <p class="sheet-dek">
+      Cada lote de alteração é confirmado pelo servidor antes de aparecer como "Salvo" na tela — não
+      depois de um autosave por tempo, e nunca só no navegador.
+    </p>
 
-        <rect x="330" y="150" width="200" height="52" rx="7" class="diagram-box"></rect>
-        <text x="430" y="172" text-anchor="middle" class="diagram-label dim">ws-gateway/routes.ts</text>
-        <text x="430" y="188" text-anchor="middle" class="diagram-label dim">mutation handler</text>
+    <div class="compare">
+      <div class="panel bad">
+        <div class="k">antes de fechar</div>
+        <div class="state">Aba fechada sem querer</div>
+        <p>14 elementos editados nos últimos 3 minutos, nenhum "Ctrl+S" apertado, o notebook até travou no meio.</p>
+      </div>
+      <div class="arrow">→</div>
+      <div class="panel good">
+        <div class="k">reabrindo a mesma URL</div>
+        <div class="state">Os 14 elementos estão lá</div>
+        <p>Exatamente onde você parou — cada lote de mutação já tinha sido confirmado pelo servidor antes de qualquer coisa aparecer como salva.</p>
+      </div>
+    </div>
 
-        <line x1="530" y1="116" x2="612" y2="146" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
-        <line x1="530" y1="176" x2="612" y2="150" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
+    <div class="prose">
+      <ul>
+        <li><b>Snapshots automáticos e nomeáveis</b> — comparáveis lado a lado e restauráveis como uma
+        nova revisão, sem apagar o que veio depois.</li>
+        <li><b>Conflito estrutural nunca descarta dado.</b> Se duas edições brigam pelo mesmo elemento,
+        as duas variantes ficam preservadas pra comparação — nada some silenciosamente.</li>
+        <li><b>Export de emergência a qualquer momento</b> em <code>.excalidraw</code>, SVG, PNG e PDF —
+        mesmo se o servidor de IA ou a colaboração em tempo real estiverem fora do ar.</li>
+      </ul>
+    </div>
+  </section>
 
-        <rect x="612" y="116" width="188" height="60" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="706" y="140" text-anchor="middle" class="diagram-title">appendOperation()</text>
-        <text x="706" y="158" text-anchor="middle" class="diagram-label dim">única porta de escrita</text>
+  <section class="sheet" id="colaboracao">
+    <div class="sheet-head">
+      <span class="sheet-num">04</span>
+      <h2 class="sheet-title">O time inteiro no mesmo desenho</h2>
+    </div>
+    <p class="sheet-dek">
+      Cursores, seleção e comentários em tempo real — com papéis que o frontend não decide sozinho.
+    </p>
 
-        <line x1="706" y1="176" x2="706" y2="222" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
-        <rect x="612" y="222" width="188" height="52" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="706" y="244" text-anchor="middle" class="diagram-label">diagram_operations</text>
-        <text x="706" y="260" text-anchor="middle" class="diagram-label dim">op-log, PostgreSQL</text>
+    <div class="browser-mock" aria-hidden="true">
+      <div class="chrome">
+        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+        <span class="url">workspace/prod-checkout/vpc-prod</span>
+      </div>
+      <div class="canvas-mock" style="min-height:220px;">
+        <div class="zone" style="left:6%; top:26px; width:46%; height:140px;"><span class="zone-label">vpc-prod</span></div>
+        <div class="node" style="left:12%; top:56px;">ECS · api</div>
+        <div class="node" style="left:12%; top:118px;">RDS · postgres</div>
+        <span class="cursor-pill a" style="left:16%; top:36px;">Ana</span>
+        <span class="cursor-pill b" style="left:56%; top:150px;">Bruno</span>
+        <div class="comment-card" style="left:58%; top:96px;"><b>Ana</b> essa RDS deveria ser Multi-AZ?</div>
+      </div>
+    </div>
 
-        <path d="M 800 146 C 850 146, 850 50, 800 56" class="diagram-arrow" fill="none" marker-end="url(#arH)"></path>
-        <text x="830" y="100" text-anchor="middle" class="diagram-label tiny">ACK só</text>
-        <text x="830" y="112" text-anchor="middle" class="diagram-label tiny">após commit</text>
-      </svg>
-      <figcaption>
-        <b>Um único caminho de escrita, dois transportes.</b> A rota REST e o gateway WebSocket
-        (WS entrou na fase F4) chamam a mesma <code>appendOperation()</code> — nunca há uma segunda
-        implementação de validação ou de desempate LWW por transporte. O cliente só marca algo como
-        “Salvo” depois que o servidor confirma o commit, nunca antes.
-      </figcaption>
-    </figure>
+    <div class="prose">
+      <ul>
+        <li><b>Papel <code>revisor</code></b> comenta e compara versões, mas nunca edita o canvas — a
+        checagem de permissão roda no servidor, não é uma opção escondida no menu.</li>
+        <li><b>Links de compartilhamento</b> com papel travado num teto e expiração — mesmo se o link
+        vazar, ninguém herda mais acesso do que foi concedido.</li>
+        <li><b>Modo apresentação</b> com frames ordenáveis, presenter em tela cheia e um link publicado
+        que fica imutável — não reflete edições feitas depois de publicado.</li>
+        <li><b>Protótipos navegáveis:</b> elementos viram links clicáveis pra outro frame, simulando
+        navegação entre telas, tipo um protótipo de produto.</li>
+      </ul>
+    </div>
+  </section>
 
-    <h3 class="sub">Reconciliação por elemento (LWW)</h3>
+  <section class="sheet" id="formatos">
+    <div class="sheet-head">
+      <span class="sheet-num">05</span>
+      <h2 class="sheet-title">Fala os formatos que o seu time já usa</h2>
+    </div>
+    <p class="sheet-dek">
+      Nada fica preso dentro do Architecture Canvas — nem o que entra, nem o que sai.
+    </p>
+
+    <div class="format-row">
+      <span class="format-badge">.excalidraw</span>
+      <span class="format-badge">PNG</span>
+      <span class="format-badge">SVG</span>
+      <span class="format-badge">PDF</span>
+      <span class="format-badge">Mermaid</span>
+      <span class="format-badge">Structurizr DSL</span>
+      <span class="format-badge">CSV / JSON (inventário)</span>
+    </div>
+
     <div class="prose">
       <p>
-        Em vez de um CRDT genérico sobre o documento inteiro (Yjs), cada elemento de cena carrega seu
-        próprio <code>version</code> e <code>versionNonce</code> — o modelo nativo do Excalidraw. Em
-        empate de <code>version</code>, o menor <code>versionNonce</code> vence. O resultado é um
-        histórico de operações legível e auditável, sem precisar materializar o documento inteiro para
-        inspecionar uma mudança.
+        Um botão "Gerar documentação" produz um Markdown estruturado a partir do canvas — resumo,
+        contexto, componentes, integrações, riscos, decisões — com cada seção linkada de volta ao
+        elemento do diagrama que a originou. Campo sem metadado vira literalmente
+        <code>"não especificado"</code>: a IA nunca inventa uma decisão que ninguém tomou.
       </p>
     </div>
-  </section>
 
-  <section class="sheet" id="roadmap">
-    <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;02</span>
-      <h2 class="sheet-title">Como o roadmap foi entregue</h2>
-    </div>
-    <p class="sheet-dek">
-      Seis fases, cada uma fechada com um verificador independente antes da próxima começar — nunca a
-      mesma sessão que escreveu o código atestando que ele está correto.
-    </p>
-
-    <div class="timeline">
-      <div class="tl-row">
-        <div class="tl-phase">F0</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>Fundação <span class="tl-tag">verificado</span></h4>
-          <p>Monorepo, compose local, migrations, health checks, spikes de renderização server-side e
-          do adaptador do Excalidraw.</p>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-phase">F1</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>Persistência server-first <span class="tl-tag">verificado</span></h4>
-          <p>Contas/RBAC, o op-log e a reconciliação LWW, recuperação após crash, snapshots com restore,
-          upload de assets, export local e backup com restore testado.</p>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-phase">F2</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>IA geradora <span class="tl-tag">verificado</span></h4>
-          <p>Configuração segura de provider, a IR declarativa <code>diagram-ir/v1</code>, layout
-          determinístico, biblioteca de componentes e o agente com prévia/aprovação/undo. O
-          <b>MVP interno mínimo</b> do roadmap termina aqui.</p>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-phase">F3</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>Documentação e visão completa <span class="tl-tag">verificado</span></h4>
-          <p>Geração de spec a partir do canvas, apresentações navegáveis, lint arquitetural/C4,
-          import-export Mermaid/Structurizr, comentários assíncronos.</p>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-phase">F4</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>Colaboração em tempo real <span class="tl-tag">verificado</span></h4>
-          <p>Primeiro transporte novo do projeto (WebSocket) e primeira dependência externa opcional
-          (Redis) — ambos provados com engines reais. Links de compartilhamento e webhooks assinados.</p>
-        </div>
-      </div>
-      <div class="tl-row">
-        <div class="tl-phase">F5</div>
-        <div class="tl-dot-col"><div class="tl-dot"></div></div>
-        <div class="tl-body">
-          <h4>Hardening de produção <span class="tl-tag">verificado</span></h4>
-          <p>OIDC com PKCE, rate limiting, auditoria completa, backup incremental + teste de restore
-          automatizado, métricas Prometheus, tracing OpenTelemetry, acessibilidade. Fecha o roadmap.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="sheet" id="ai">
-    <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;03</span>
-      <h2 class="sheet-title">O agente de IA</h2>
-    </div>
-    <p class="sheet-dek">
-      O texto de dentro do canvas nunca vira instrução. É a regra estrutural que impede injeção de
-      prompt — não uma promessa de que “o modelo vai se comportar”.
-    </p>
-
-    <div class="legend">
-      <span><i class="swatch amber"></i> canal de dados não-confiável (conteúdo do canvas)</span>
-      <span><i class="swatch blue"></i> caminho de escrita/aprovação</span>
-    </div>
-
-    <figure class="diagram">
-      <svg viewBox="0 0 900 400" role="img" aria-label="Pedido do usuário e conteúdo da cena entram no contexto por canais separados; o texto da cena nunca cruza para o canal de instrução. O modelo propõe uma IR ou chamadas de ferramenta, que passam por um limiar de aprovação antes de um apply atômico com snapshot prévio para undo.">
-        <defs>
-          <marker id="arH2" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
-          </marker>
-          <marker id="arH2amber" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--amber)"></polygon>
-          </marker>
-          <marker id="arH2blue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
-          </marker>
-        </defs>
-
-        <rect x="20" y="20" width="220" height="50" rx="7" class="diagram-box"></rect>
-        <text x="130" y="42" text-anchor="middle" class="diagram-label">Pedido do usuário</text>
-        <text x="130" y="58" text-anchor="middle" class="diagram-label dim">"crie um VPC com 2 AZs"</text>
-
-        <rect x="20" y="100" width="220" height="50" rx="7" class="diagram-box amber diagram-fill-amber dashed"></rect>
-        <text x="130" y="122" text-anchor="middle" class="diagram-label">Conteúdo da cena</text>
-        <text x="130" y="138" text-anchor="middle" class="diagram-label dim">labels, metadados — dado bruto</text>
-
-        <line x1="240" y1="45" x2="330" y2="70" class="diagram-arrow" marker-end="url(#arH2)"></line>
-        <line x1="240" y1="125" x2="330" y2="100" class="diagram-arrow amber" marker-end="url(#arH2amber)"></line>
-
-        <rect x="330" y="46" width="230" height="80" rx="7" class="diagram-box"></rect>
-        <text x="445" y="68" text-anchor="middle" class="diagram-title">buildContext()</text>
-        <text x="445" y="86" text-anchor="middle" class="diagram-label dim">instructions: só o pedido</text>
-        <text x="445" y="102" text-anchor="middle" class="diagram-label dim amber-text" style="fill: var(--amber)">sceneData: serializado como DATA</text>
-
-        <line x1="560" y1="86" x2="640" y2="86" class="diagram-arrow" marker-end="url(#arH2)"></line>
-        <rect x="640" y="46" width="180" height="80" rx="7" class="diagram-box"></rect>
-        <text x="730" y="72" text-anchor="middle" class="diagram-title">Provider de IA</text>
-        <text x="730" y="90" text-anchor="middle" class="diagram-label dim">emite IR</text>
-        <text x="730" y="106" text-anchor="middle" class="diagram-label dim">ou chama tools</text>
-
-        <line x1="730" y1="126" x2="730" y2="176" class="diagram-arrow" marker-end="url(#arH2)"></line>
-        <rect x="620" y="176" width="220" height="52" rx="7" class="diagram-box"></rect>
-        <text x="730" y="198" text-anchor="middle" class="diagram-label dim">ToolRegistry.execute()</text>
-        <text x="730" y="214" text-anchor="middle" class="diagram-label dim">tool desconhecida → rejeitada</text>
-
-        <line x1="620" y1="200" x2="470" y2="240" class="diagram-arrow" marker-end="url(#arH2)"></line>
-        <rect x="270" y="240" width="220" height="52" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="380" y="262" text-anchor="middle" class="diagram-title">Limiar de aprovação</text>
-        <text x="380" y="278" text-anchor="middle" class="diagram-label dim">remoção / &gt;50 elementos / fora da seleção</text>
-
-        <line x1="380" y1="292" x2="380" y2="330" class="diagram-arrow blue" marker-end="url(#arH2blue)"></line>
-        <rect x="230" y="330" width="140" height="50" rx="7" class="diagram-box amber diagram-fill-amber"></rect>
-        <text x="300" y="350" text-anchor="middle" class="diagram-label">snapshot</text>
-        <text x="300" y="366" text-anchor="middle" class="diagram-label dim">kind: pre_ai</text>
-
-        <line x1="370" y1="355" x2="420" y2="355" class="diagram-arrow" marker-end="url(#arH2)"></line>
-        <rect x="420" y="330" width="160" height="50" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="500" y="350" text-anchor="middle" class="diagram-label">apply atômico</text>
-        <text x="500" y="366" text-anchor="middle" class="diagram-label dim">undo = restore</text>
-      </svg>
-      <figcaption>
-        <b>Dois canais até a chamada do modelo, nunca depois.</b> Um <code>ToolRegistry</code> rejeita
-        qualquer ferramenta fora da allowlist; mudanças de risco (remoção, mais de 50 elementos, fora
-        da seleção do usuário) exigem aprovação explícita antes do apply. Todo apply grava um snapshot
-        <code>pre_ai</code> primeiro — o undo é literalmente restaurar esse snapshot.
-      </figcaption>
-    </figure>
-
-    <h3 class="sub">Geração vs. edição</h3>
+    <h3 class="sub">O editor avisa quando algo parece errado</h3>
     <div class="prose">
-      <ul>
-        <li><b>Criação:</b> o modelo emite uma <code>diagram-ir/v1</code> completa (nós, containers, edges
-        semânticos) em uma única chamada — mais barato e visualmente consistente do que dezenas de
-        chamadas de ferramenta. O servidor resolve componentes da biblioteca por <code>stable_key</code>
-        e aplica layout <b>determinístico</b> (grid-zones, elk-layered ou swimlane conforme o tipo de
-        diagrama) — nunca o LLM decide posição de pixel.</li>
-        <li><b>Edição incremental:</b> tools como <code>create_element</code>, <code>connect_elements</code> ou
-        <code>auto_layout</code> retornam um <code>AbstractPatch</code> — nunca escrevem direto no banco
-        ou fazem chamada de rede.</li>
-      </ul>
+      <p>Um lint arquitetural roda em segundo plano — sempre como aviso, nunca bloqueando o desenho:</p>
+    </div>
+    <div class="lint-list">
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Componente órfão</b> — nada conectado a ele.</span></div>
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Fluxo sem direção</b> — seta ausente ou ambígua.</span></div>
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Trust boundary ausente</b> — dado sensível cruzando fronteira sem marcação.</span></div>
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Single point of failure</b> — um nó sozinho carregando tudo.</span></div>
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Secret como texto</b> — senha ou chave escrita direto no diagrama.</span></div>
+      <div class="lint-item"><span class="lint-dot"></span><span><b>Conector sem protocolo</b> — liga dois nós sem dizer como.</span></div>
     </div>
   </section>
 
-  <section class="sheet" id="realtime">
+  <section class="sheet" id="producao">
     <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;04</span>
-      <h2 class="sheet-title">Presença em tempo real</h2>
+      <span class="sheet-num">06</span>
+      <h2 class="sheet-title">Pronto pra produção, não só pra demo</h2>
     </div>
     <p class="sheet-dek">
-      Cursores e seleção de outros usuários propagam via WebSocket sem nunca tocar o PostgreSQL —
-      perder presença nunca arrisca conteúdo durável.
+      Cada item aqui existe porque alguém precisou dele de verdade num ambiente corporativo — não é
+      checklist de vitrine.
     </p>
 
-    <figure class="diagram">
-      <svg viewBox="0 0 900 300" role="img" aria-label="Duas instâncias do servidor, cada uma com uma conexão WebSocket própria, publicam presença em um PresenceBroadcaster. Sem REDIS_URL configurado, a implementação em memória mantém presença só dentro do mesmo processo; com REDIS_URL configurado, pub/sub via Redis propaga entre as duas instâncias.">
-        <defs>
-          <marker id="arH3" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
-          </marker>
-          <marker id="arH3blue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
-          </marker>
-        </defs>
-
-        <rect x="20" y="30" width="160" height="46" rx="7" class="diagram-box"></rect>
-        <text x="100" y="58" text-anchor="middle" class="diagram-label dim">Browser A — WS</text>
-        <line x1="180" y1="53" x2="250" y2="53" class="diagram-arrow" marker-end="url(#arH3)"></line>
-
-        <rect x="250" y="20" width="200" height="66" rx="7" class="diagram-box"></rect>
-        <text x="350" y="46" text-anchor="middle" class="diagram-title">apps/server — instância 1</text>
-        <text x="350" y="64" text-anchor="middle" class="diagram-label dim">ws-gateway</text>
-
-        <rect x="20" y="200" width="160" height="46" rx="7" class="diagram-box"></rect>
-        <text x="100" y="228" text-anchor="middle" class="diagram-label dim">Browser B — WS</text>
-        <line x1="180" y1="223" x2="250" y2="245" class="diagram-arrow" marker-end="url(#arH3)"></line>
-
-        <rect x="250" y="214" width="200" height="66" rx="7" class="diagram-box dashed"></rect>
-        <text x="350" y="240" text-anchor="middle" class="diagram-title">apps/server — instância 2</text>
-        <text x="350" y="258" text-anchor="middle" class="diagram-label dim">(opcional — load balancer)</text>
-
-        <line x1="450" y1="53" x2="560" y2="140" class="diagram-arrow blue" marker-end="url(#arH3blue)"></line>
-        <line x1="450" y1="247" x2="560" y2="160" class="diagram-arrow blue" marker-end="url(#arH3blue)"></line>
-
-        <rect x="560" y="112" width="220" height="76" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="670" y="136" text-anchor="middle" class="diagram-title">PresenceBroadcaster</text>
-        <text x="670" y="154" text-anchor="middle" class="diagram-label dim">sem REDIS_URL → EventEmitter</text>
-        <text x="670" y="170" text-anchor="middle" class="diagram-label dim">com REDIS_URL → Redis pub/sub</text>
-
-        <line x1="670" y1="188" x2="670" y2="230" class="diagram-arrow" stroke-dasharray="3 3"></line>
-        <text x="700" y="222" class="diagram-label tiny">nunca grava aqui</text>
-        <rect x="600" y="230" width="140" height="40" rx="6" class="diagram-box dashed"></rect>
-        <text x="670" y="254" text-anchor="middle" class="diagram-label dim">PostgreSQL</text>
-        <line x1="655" y1="235" x2="685" y2="265" class="diagram-arrow" style="stroke:var(--amber)"></line>
-        <line x1="685" y1="235" x2="655" y2="265" class="diagram-arrow" style="stroke:var(--amber)"></line>
-      </svg>
-      <figcaption>
-        <b>Uma interface, duas implementações.</b> <code>InMemoryPresenceBroadcaster</code> é o padrão —
-        funciona em um único processo sem nenhuma dependência externa (AD-003). Quando duas instâncias
-        de <code>apps/server</code> ficam atrás de um load balancer, <code>RedisPresenceBroadcaster</code>
-        propaga presença entre elas via pub/sub real. Mutações de cena continuam passando pelo
-        <code>appendOperation()</code> de sempre — a presença é um canal completamente separado.
-      </figcaption>
-    </figure>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="tag">AUTENTICAÇÃO</span>
+        <h4>Login corporativo (OIDC)</h4>
+        <p>Conecta no provedor de identidade que o time já usa. Grupos mapeiam pra papéis com um teto explícito — ninguém sobe de nível sozinho, mesmo que o token sugira.</p>
+      </div>
+      <div class="feature-card">
+        <span class="tag">AUDITORIA</span>
+        <h4>Toda ação fica registrada</h4>
+        <p>Quem mudou o quê, quando e de onde — trilha de auditoria completa, não um log de erro que só ajuda depois que já deu problema.</p>
+      </div>
+      <div class="feature-card">
+        <span class="tag">BACKUP</span>
+        <h4>Backup que já foi restaurado de verdade</h4>
+        <p>Um job recorrente restaura a cadeia inteira contra um banco isolado e cruza checksum com contagem de linhas antes de dizer que está tudo bem — nunca confia só porque o arquivo existe.</p>
+      </div>
+      <div class="feature-card">
+        <span class="tag">OBSERVABILIDADE</span>
+        <h4>Métricas e alertas prontos</h4>
+        <p>Latência, fila de jobs, custo estimado de IA, falhas de login — um painel Prometheus/Grafana opcional já vem configurado.</p>
+      </div>
+      <div class="feature-card">
+        <span class="tag">LIMITES</span>
+        <h4>Ninguém derruba o servidor sozinho</h4>
+        <p>Rate limiting por usuário, mais rígido nas rotas de geração por IA e de export, que são as mais caras.</p>
+      </div>
+    </div>
   </section>
 
-  <section class="sheet" id="hardening">
+  <section class="sheet" id="comecar">
     <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;05</span>
-      <h2 class="sheet-title">Backup, restore e observabilidade</h2>
+      <span class="sheet-num">07</span>
+      <h2 class="sheet-title">Comece agora</h2>
     </div>
     <p class="sheet-dek">
-      Um backup nunca é confiável só porque foi criado. A fase de hardening (F5) adiciona um job
-      recorrente que restaura de verdade e compara o resultado.
+      Um <code>Makefile</code> na raiz do repositório embrulha tanto o stack Docker completo quanto os
+      comandos de desenvolvimento do dia a dia — rode <code>make help</code> a qualquer momento pra ver
+      a lista inteira.
     </p>
 
-    <figure class="diagram">
-      <svg viewBox="0 0 900 280" role="img" aria-label="Backup completo encadeado a dois incrementais por checksum; o job de teste de restore aplica a cadeia contra um banco isolado, nunca o de produção, e compara checksums e contagens de linha antes de gravar um evento de auditoria e alimentar uma métrica que dispara alerta.">
-        <defs>
-          <marker id="arH4" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
-            <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
-          </marker>
-        </defs>
+    <div class="start-grid">
+      <div>
+        <h4>com Docker (stack completo)</h4>
+        <pre class="code-block"><span class="c"># builda tudo, sobe o stack, roda as migrations</span>
+make up
+<span class="c"># http://localhost:8080 quando os health checks ficarem verdes</span>
 
-        <rect x="20" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
-        <text x="85" y="50" text-anchor="middle" class="diagram-label">Backup completo</text>
-        <text x="85" y="66" text-anchor="middle" class="diagram-label dim">checksum C0</text>
-
-        <line x1="150" y1="55" x2="210" y2="55" class="diagram-arrow" marker-end="url(#arH4)"></line>
-        <text x="180" y="45" text-anchor="middle" class="diagram-label tiny">referencia</text>
-
-        <rect x="210" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
-        <text x="275" y="50" text-anchor="middle" class="diagram-label">Incremental 1</text>
-        <text x="275" y="66" text-anchor="middle" class="diagram-label dim">desde C0</text>
-
-        <line x1="340" y1="55" x2="400" y2="55" class="diagram-arrow" marker-end="url(#arH4)"></line>
-        <text x="370" y="45" text-anchor="middle" class="diagram-label tiny">referencia</text>
-
-        <rect x="400" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
-        <text x="465" y="50" text-anchor="middle" class="diagram-label">Incremental 2</text>
-        <text x="465" y="66" text-anchor="middle" class="diagram-label dim">desde C1</text>
-
-        <line x1="85" y1="80" x2="85" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
-        <line x1="275" y1="80" x2="150" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
-        <line x1="465" y1="80" x2="220" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
-
-        <rect x="20" y="140" width="280" height="50" rx="7" class="diagram-box amber diagram-fill-amber"></rect>
-        <text x="160" y="160" text-anchor="middle" class="diagram-label">job recorrente de teste de restore</text>
-        <text x="160" y="176" text-anchor="middle" class="diagram-label dim">verifica cada elo antes de aplicar</text>
-
-        <line x1="300" y1="165" x2="360" y2="165" class="diagram-arrow" marker-end="url(#arH4)"></line>
-        <rect x="360" y="140" width="200" height="50" rx="7" class="diagram-box dashed"></rect>
-        <text x="460" y="160" text-anchor="middle" class="diagram-label dim">Postgres isolado</text>
-        <text x="460" y="176" text-anchor="middle" class="diagram-label dim">nunca o de produção</text>
-
-        <line x1="460" y1="190" x2="460" y2="220" class="diagram-arrow" marker-end="url(#arH4)"></line>
-        <rect x="330" y="220" width="260" height="42" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
-        <text x="460" y="246" text-anchor="middle" class="diagram-label dim">checksum + contagem de linhas — cross-check</text>
-
-        <line x1="590" y1="241" x2="650" y2="241" class="diagram-arrow" marker-end="url(#arH4)"></line>
-        <rect x="650" y="216" width="230" height="50" rx="7" class="diagram-box"></rect>
-        <text x="765" y="236" text-anchor="middle" class="diagram-label dim">audit_events +</text>
-        <text x="765" y="252" text-anchor="middle" class="diagram-label dim">alerts.yml (Prometheus)</text>
-      </svg>
-      <figcaption>
-        <b>Divergência nunca passa em silêncio.</b> Cada backup incremental referencia o checksum do
-        seu predecessor — a cadeia é recusada inteira se qualquer elo não bater. O job de teste de
-        restore roda contra um banco propositalmente isolado (nunca o de produção — checagem de
-        segurança que lança <i>antes</i> de tocar em qualquer coisa) e cruza checksum com contagem real
-        de linhas, não confiando em só um dos dois sinais.
-      </figcaption>
-    </figure>
-
-    <h3 class="sub">Observabilidade e segurança de produção</h3>
-    <div class="prose">
-      <ul>
-        <li><b>Métricas</b> (<code>GET /metrics</code>, Prometheus) cobrem latência REST/WS, ACK de mutação
-        (mesma série para os dois transportes), fila de jobs, tokens/custo estimado de IA, falhas de
-        snapshot/restore/login.</li>
-        <li><b>Tracing</b> (OpenTelemetry) encadeia spans de contexto → chamada de IA → apply — nunca com
-        prompt, cena ou token em nenhum atributo, provado por busca de substring nos spans capturados.</li>
-        <li><b>OIDC com PKCE</b> mapeia grupos do provedor de identidade para papéis, com teto explícito —
-        um grupo não mapeado nunca herda um papel elevado, mesmo que o token traga claims sugestivos.</li>
-        <li><b>Rate limiting</b> por usuário, com limites mais estritos nas rotas de geração de IA e de
-        export — a mesma classe de limitador reaproveitada desde a fase F2.</li>
-      </ul>
+make logs              <span class="c"># acompanhar os logs</span>
+make ps                <span class="c"># status de cada serviço</span>
+make down               <span class="c"># parar — os dados continuam nos volumes</span></pre>
+      </div>
+      <div>
+        <h4>sem Docker (loop rápido de dev)</h4>
+        <pre class="code-block">make install
+make ci                 <span class="c"># lint + typecheck + unit + integration</span>
+make web-dev              <span class="c"># apps/web sozinho, Vite + HMR</span></pre>
+      </div>
     </div>
-  </section>
 
-  <section class="sheet" id="modules">
-    <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;06</span>
-      <h2 class="sheet-title">Referência de módulos</h2>
-    </div>
-    <p class="sheet-dek">
-      Todo módulo agrupado pela fase em que nasceu — a mesma ordem em que o roadmap foi construído e
-      verificado.
+    <p class="hero-note" style="margin-top: 20px;">
+      Testes de integração rodam contra Postgres real via PGlite — sem precisar do Docker (ADR-0007).
+      Perfis opcionais do Docker: <code>make up-observability</code> (Prometheus/Grafana/OTel) e
+      <code>make up-oidc</code> (um Keycloak local pra testar login OIDC).
     </p>
-</div>
-
-<div class="wide">
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F0</span>
-        <h4>Fundação</h4>
-        <span class="count">4 módulos</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">core</td><td class="desc"><b>apps/server/src/core</b> — bootstrap do Fastify, config validada por Zod (falha ao subir com segredo padrão em produção), logging estruturado com redação de PII, headers de segurança, rate limit, métricas e tracing (F5).</td></tr>
-        <tr><td class="path">jobs</td><td class="desc"><b>apps/server/src/modules/jobs</b> — fila de background via pg-boss sobre o PostgreSQL existente, sem Redis obrigatório (AD-006).</td></tr>
-        <tr><td class="path">storage</td><td class="desc"><b>apps/server/src/modules/storage</b> — cliente S3/MinIO com URLs assinadas de curta duração.</td></tr>
-        <tr><td class="path">render</td><td class="desc"><b>apps/server/src/modules/render</b> — SVG determinístico + rasterização (resvg), sem Chromium obrigatório (AD-005).</td></tr>
-      </table></div>
-    </div>
-
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F1</span>
-        <h4>Persistência server-first</h4>
-        <span class="count">8 módulos</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">auth</td><td class="desc"><b>apps/server/src/modules/auth</b> — sessões locais (Argon2id, cookie HttpOnly/Secure), tickets de WebSocket de uso único, e desde F5 o fluxo OIDC-PKCE reusando a mesma sessão.</td></tr>
-        <tr><td class="path">workspace</td><td class="desc"><b>apps/server/src/modules/workspace</b> — workspaces, projetos, membros e papéis; toda checagem de permissão calculada no backend.</td></tr>
-        <tr><td class="path">diagram-sync</td><td class="desc"><b>apps/server/src/modules/diagram-sync</b> — o coração do invariante: bootstrap, <code>operations:batch</code> idempotente, catch-up, e a única <code>appendOperation()</code> que qualquer transporte usa.</td></tr>
-        <tr><td class="path">snapshot</td><td class="desc"><b>apps/server/src/modules/snapshot</b> — compactação automática do op-log, snapshots nomeados/publicados, restore como nova revisão, diff estrutural.</td></tr>
-        <tr><td class="path">asset</td><td class="desc"><b>apps/server/src/modules/asset</b> — upload em duas fases, dedup por SHA-256, sanitização de SVG.</td></tr>
-        <tr><td class="path">export</td><td class="desc"><b>apps/server/src/modules/export</b> — export <code>.excalidraw</code>/SVG/PNG/PDF, bundle <code>.zip</code>, import com preview e limite de elementos.</td></tr>
-        <tr><td class="path">infra/backup</td><td class="desc"><b>infra/backup</b> — CLI <code>backup:create/verify/restore</code>, testado ponta a ponta contra Postgres real.</td></tr>
-        <tr><td class="path">editor-adapter</td><td class="desc"><b>packages/editor-adapter</b> — única fronteira do projeto com o pacote <code>@excalidraw/excalidraw</code>; nunca importado por valor no lado servidor (AD-008).</td></tr>
-      </table></div>
-    </div>
-
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F2</span>
-        <h4>IA geradora</h4>
-        <span class="count">6 módulos</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">ai-provider</td><td class="desc"><b>apps/server/src/modules/ai-provider</b> — configuração cifrada (AES-256-GCM) do endpoint de IA, com bloqueio de SSRF (link-local/metadata/privado).</td></tr>
-        <tr><td class="path">library</td><td class="desc"><b>apps/server/src/modules/library</b> — biblioteca de componentes por workspace, resolvida por <code>stable_key</code>.</td></tr>
-        <tr><td class="path">ai-engine</td><td class="desc"><b>apps/server/src/modules/ai-engine</b> — pipeline completo: contexto compacto, chamada ao provider, execução de tools, prévia, aprovação, apply atômico, undo, evals.</td></tr>
-        <tr><td class="path">diagram-ir</td><td class="desc"><b>packages/diagram-ir</b> — schema <code>diagram-ir/v1</code>, engines de layout determinístico (grid-zones/elk-layered/swimlane), compilador IR→cena, métricas geométricas (zero overlap).</td></tr>
-        <tr><td class="path">ai-tools</td><td class="desc"><b>packages/ai-tools</b> — ferramentas de leitura/escrita do agente; toda tool de escrita retorna um patch, nunca toca banco/rede diretamente.</td></tr>
-        <tr><td class="path">diagram-domain</td><td class="desc"><b>packages/diagram-domain</b> — modelo de operação, reconciliação LWW, diff estrutural — dependency-free, sem importar o Excalidraw (AD-008).</td></tr>
-      </table></div>
-    </div>
-
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F3</span>
-        <h4>Documentação e visão completa</h4>
-        <span class="count">5 módulos</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">docgen</td><td class="desc"><b>apps/server/src/modules/docgen</b> — Markdown estruturado gerado do canvas; campo sem metadado vira literalmente "não especificado", nunca é inventado.</td></tr>
-        <tr><td class="path">presentation</td><td class="desc"><b>apps/server/src/modules/presentation</b> — frames ordenados, modo apresentador, link publicado imutável (nunca reflete edições posteriores), export PDF.</td></tr>
-        <tr><td class="path">lint</td><td class="desc"><b>apps/server/src/modules/lint</b> — avisos arquiteturais (SPOF, boundary ausente, conector sem protocolo) e validação C4 — nunca bloqueia, só avisa.</td></tr>
-        <tr><td class="path">interop</td><td class="desc"><b>apps/server/src/modules/interop</b> — import/export Mermaid e Structurizr DSL via a mesma <code>diagram-ir</code>, com limitações de round-trip sempre reportadas.</td></tr>
-        <tr><td class="path">comment</td><td class="desc"><b>apps/server/src/modules/comment</b> — threads ancoradas a elemento/frame; papel <code>reviewer</code> comenta mas nunca muta a cena.</td></tr>
-      </table></div>
-    </div>
-
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F4</span>
-        <h4>Colaboração em tempo real</h4>
-        <span class="count">3 módulos</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">ws-gateway</td><td class="desc"><b>apps/server/src/modules/ws-gateway</b> — handshake WebSocket autenticado por ticket, relay de mutação delegando à mesma <code>appendOperation()</code>, <code>PresenceBroadcaster</code> em memória ou Redis.</td></tr>
-        <tr><td class="path">share</td><td class="desc"><b>apps/server/src/modules/share</b> — links de compartilhamento com papel travado num teto (nunca herda um papel maior mesmo se o token vazar) e expiração.</td></tr>
-        <tr><td class="path">webhook</td><td class="desc"><b>apps/server/src/modules/webhook</b> — entrega assinada (HMAC), segredo rotacionável, retry com backoff exponencial e dead-letter.</td></tr>
-      </table></div>
-    </div>
-
-    <div class="mod-group">
-      <div class="mod-group-head">
-        <span class="phase-chip">F5</span>
-        <h4>Hardening de produção</h4>
-        <span class="count">4 áreas</span>
-      </div>
-      <div class="scroll-x"><table class="mods">
-        <tr><th>local</th><th>o que faz</th></tr>
-        <tr><td class="path">core/metrics.ts</td><td class="desc">Registro Prometheus — latência REST/WS, ACK, fila, IA, exports; endpoint <code>/metrics</code> deliberadamente sem sessão (convenção de scrape), documentado para ser restrito por rede em produção.</td></tr>
-        <tr><td class="path">core/tracing.ts</td><td class="desc">Spans manuais OpenTelemetry — escolhidos no lugar de auto-instrumentação para nunca deixar SQL/params vazarem como atributo.</td></tr>
-        <tr><td class="path">backup/restoreTest.ts</td><td class="desc">Job recorrente que restaura contra um banco isolado e cruza checksum + contagem de linhas; nunca passa em silêncio.</td></tr>
-        <tr><td class="path">security/threatModel</td><td class="desc">Manifesto de 14 cenários de ameaça (IDOR, replay, SSRF, exfiltração via prompt, escalada de papel...), cada um cruzado com o teste real que o cobre.</td></tr>
-      </table></div>
-    </div>
-</div>
   </section>
 
-<div class="wrap">
-  <section class="sheet" id="decisions-section">
-    <div class="sheet-head">
-      <span class="sheet-num">FOLHA&nbsp;07</span>
-      <h2 class="sheet-title">Decisões que moldaram o sistema</h2>
+  <div id="tecnico-detalhes">
+  <details class="tech">
+    <summary>Como funciona por baixo dos panos — o invariante server-first</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">
+        O navegador nunca é a fonte da verdade. Toda alteração de canvas — vinda de um formulário REST
+        comum ou de uma conexão WebSocket aberta — passa por exatamente <b>uma</b> função de escrita no
+        servidor antes de existir.
+      </p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 900 300" role="img" aria-label="Duas origens de mutação, REST e WebSocket, convergindo na mesma função appendOperation, que grava no op-log do PostgreSQL e só então confirma ao cliente.">
+          <defs>
+            <marker id="arH" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" fill="currentColor" style="fill: var(--ink-dim)"></polygon>
+            </marker>
+            <marker id="arHblue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
+            </marker>
+          </defs>
+
+          <rect x="20" y="30" width="168" height="52" rx="7" class="diagram-box"></rect>
+          <text x="104" y="52" text-anchor="middle" class="diagram-label">Editor (apps/web)</text>
+          <text x="104" y="68" text-anchor="middle" class="diagram-label dim">POST operations:batch</text>
+
+          <rect x="20" y="210" width="168" height="52" rx="7" class="diagram-box"></rect>
+          <text x="104" y="232" text-anchor="middle" class="diagram-label">Editor (apps/web)</text>
+          <text x="104" y="248" text-anchor="middle" class="diagram-label dim">WS frame: mutation</text>
+
+          <line x1="188" y1="56" x2="330" y2="120" class="diagram-arrow" marker-end="url(#arH)"></line>
+          <line x1="188" y1="236" x2="330" y2="172" class="diagram-arrow" marker-end="url(#arH)"></line>
+
+          <rect x="330" y="90" width="200" height="52" rx="7" class="diagram-box"></rect>
+          <text x="430" y="112" text-anchor="middle" class="diagram-label dim">diagram-sync/routes.ts</text>
+          <text x="430" y="128" text-anchor="middle" class="diagram-label dim">operations:batch handler</text>
+
+          <rect x="330" y="150" width="200" height="52" rx="7" class="diagram-box"></rect>
+          <text x="430" y="172" text-anchor="middle" class="diagram-label dim">ws-gateway/routes.ts</text>
+          <text x="430" y="188" text-anchor="middle" class="diagram-label dim">mutation handler</text>
+
+          <line x1="530" y1="116" x2="612" y2="146" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
+          <line x1="530" y1="176" x2="612" y2="150" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
+
+          <rect x="612" y="116" width="188" height="60" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="706" y="140" text-anchor="middle" class="diagram-title">appendOperation()</text>
+          <text x="706" y="158" text-anchor="middle" class="diagram-label dim">única porta de escrita</text>
+
+          <line x1="706" y1="176" x2="706" y2="222" class="diagram-arrow blue" marker-end="url(#arHblue)"></line>
+          <rect x="612" y="222" width="188" height="52" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="706" y="244" text-anchor="middle" class="diagram-label">diagram_operations</text>
+          <text x="706" y="260" text-anchor="middle" class="diagram-label dim">op-log, PostgreSQL</text>
+
+          <path d="M 800 146 C 850 146, 850 50, 800 56" class="diagram-arrow" fill="none" marker-end="url(#arH)"></path>
+          <text x="830" y="100" text-anchor="middle" class="diagram-label tiny">ACK só</text>
+          <text x="830" y="112" text-anchor="middle" class="diagram-label tiny">após commit</text>
+        </svg>
+        <figcaption>
+          <b>Um único caminho de escrita, dois transportes.</b> A rota REST e o gateway WebSocket
+          (WS entrou na fase F4) chamam a mesma <code>appendOperation()</code> — nunca há uma segunda
+          implementação de validação ou de desempate LWW por transporte. O cliente só marca algo como
+          "Salvo" depois que o servidor confirma o commit, nunca antes.
+        </figcaption>
+      </figure>
+
+      <h3 class="sub">Reconciliação por elemento (LWW)</h3>
+      <div class="prose">
+        <p>
+          Em vez de um CRDT genérico sobre o documento inteiro (Yjs), cada elemento de cena carrega seu
+          próprio <code>version</code> e <code>versionNonce</code> — o modelo nativo do Excalidraw. Em
+          empate de <code>version</code>, o menor <code>versionNonce</code> vence. O resultado é um
+          histórico de operações legível e auditável, sem precisar materializar o documento inteiro para
+          inspecionar uma mudança.
+        </p>
+      </div>
     </div>
-    <p class="sheet-dek">Texto completo de cada uma em <code>docs/adr/</code>.</p>
-    <div class="decisions">
-      <div class="decision"><span class="id">ADR-0001</span><p><b>Op-log LWW</b> nativo do Excalidraw, não Yjs/CRDT — auditoria e diff legíveis de graça.</p></div>
-      <div class="decision"><span class="id">ADR-0002</span><p><b>Roadmap AI-first</b> — geração por IA entregue antes da colaboração multiplayer.</p></div>
-      <div class="decision"><span class="id">ADR-0003</span><p><b>Monólito modular</b> — um processo Node, fronteiras nos packages, split futuro trivial.</p></div>
-      <div class="decision"><span class="id">ADR-0004</span><p><b>IR declarativa</b> como peça central da geração e do architecture-as-code.</p></div>
-      <div class="decision"><span class="id">ADR-0005</span><p><b>Render server-side</b> via SVG + rasterização, sem Chromium obrigatório.</p></div>
-      <div class="decision"><span class="id">ADR-0006</span><p><b>Sem Redis no MVP</b> — pg-boss sobre PostgreSQL; Redis só entra para presença.</p></div>
-      <div class="decision"><span class="id">ADR-0007</span><p><b>PGlite</b> para testes de integração de Postgres sem Docker.</p></div>
-      <div class="decision"><span class="id">ADR-0008</span><p><b>Zero import</b> por valor do Excalidraw em código server-side.</p></div>
-      <div class="decision"><span class="id">ADR-0009</span><p><b>PresenceBroadcaster</b> injetável — memória por padrão, Redis quando configurado.</p></div>
+  </details>
+
+  <details class="tech">
+    <summary>Pipeline completo do agente de IA</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">
+        O texto de dentro do canvas nunca vira instrução. É a regra estrutural que impede injeção de
+        prompt — não uma promessa de que "o modelo vai se comportar".
+      </p>
+
+      <div class="legend">
+        <span><i class="swatch amber"></i> canal de dados não-confiável (conteúdo do canvas)</span>
+        <span><i class="swatch blue"></i> caminho de escrita/aprovação</span>
+      </div>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 900 400" role="img" aria-label="Pedido do usuário e conteúdo da cena entram no contexto por canais separados; o texto da cena nunca cruza para o canal de instrução. O modelo propõe uma IR ou chamadas de ferramenta, que passam por um limiar de aprovação antes de um apply atômico com snapshot prévio para undo.">
+          <defs>
+            <marker id="arH2" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
+            </marker>
+            <marker id="arH2amber" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--amber)"></polygon>
+            </marker>
+            <marker id="arH2blue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
+            </marker>
+          </defs>
+
+          <rect x="20" y="20" width="220" height="50" rx="7" class="diagram-box"></rect>
+          <text x="130" y="42" text-anchor="middle" class="diagram-label">Pedido do usuário</text>
+          <text x="130" y="58" text-anchor="middle" class="diagram-label dim">"crie um VPC com 2 AZs"</text>
+
+          <rect x="20" y="100" width="220" height="50" rx="7" class="diagram-box amber diagram-fill-amber dashed"></rect>
+          <text x="130" y="122" text-anchor="middle" class="diagram-label">Conteúdo da cena</text>
+          <text x="130" y="138" text-anchor="middle" class="diagram-label dim">labels, metadados — dado bruto</text>
+
+          <line x1="240" y1="45" x2="330" y2="70" class="diagram-arrow" marker-end="url(#arH2)"></line>
+          <line x1="240" y1="125" x2="330" y2="100" class="diagram-arrow amber" marker-end="url(#arH2amber)"></line>
+
+          <rect x="330" y="46" width="230" height="80" rx="7" class="diagram-box"></rect>
+          <text x="445" y="68" text-anchor="middle" class="diagram-title">buildContext()</text>
+          <text x="445" y="86" text-anchor="middle" class="diagram-label dim">instructions: só o pedido</text>
+          <text x="445" y="102" text-anchor="middle" class="diagram-label dim amber-text" style="fill: var(--amber)">sceneData: serializado como DATA</text>
+
+          <line x1="560" y1="86" x2="640" y2="86" class="diagram-arrow" marker-end="url(#arH2)"></line>
+          <rect x="640" y="46" width="180" height="80" rx="7" class="diagram-box"></rect>
+          <text x="730" y="72" text-anchor="middle" class="diagram-title">Provider de IA</text>
+          <text x="730" y="90" text-anchor="middle" class="diagram-label dim">emite IR</text>
+          <text x="730" y="106" text-anchor="middle" class="diagram-label dim">ou chama tools</text>
+
+          <line x1="730" y1="126" x2="730" y2="176" class="diagram-arrow" marker-end="url(#arH2)"></line>
+          <rect x="620" y="176" width="220" height="52" rx="7" class="diagram-box"></rect>
+          <text x="730" y="198" text-anchor="middle" class="diagram-label dim">ToolRegistry.execute()</text>
+          <text x="730" y="214" text-anchor="middle" class="diagram-label dim">tool desconhecida → rejeitada</text>
+
+          <line x1="620" y1="200" x2="470" y2="240" class="diagram-arrow" marker-end="url(#arH2)"></line>
+          <rect x="270" y="240" width="220" height="52" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="380" y="262" text-anchor="middle" class="diagram-title">Limiar de aprovação</text>
+          <text x="380" y="278" text-anchor="middle" class="diagram-label dim">remoção / &gt;50 elementos / fora da seleção</text>
+
+          <line x1="380" y1="292" x2="380" y2="330" class="diagram-arrow blue" marker-end="url(#arH2blue)"></line>
+          <rect x="230" y="330" width="140" height="50" rx="7" class="diagram-box amber diagram-fill-amber"></rect>
+          <text x="300" y="350" text-anchor="middle" class="diagram-label">snapshot</text>
+          <text x="300" y="366" text-anchor="middle" class="diagram-label dim">kind: pre_ai</text>
+
+          <line x1="370" y1="355" x2="420" y2="355" class="diagram-arrow" marker-end="url(#arH2)"></line>
+          <rect x="420" y="330" width="160" height="50" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="500" y="350" text-anchor="middle" class="diagram-label">apply atômico</text>
+          <text x="500" y="366" text-anchor="middle" class="diagram-label dim">undo = restore</text>
+        </svg>
+        <figcaption>
+          <b>Dois canais até a chamada do modelo, nunca depois.</b> Um <code>ToolRegistry</code> rejeita
+          qualquer ferramenta fora da allowlist; mudanças de risco (remoção, mais de 50 elementos, fora
+          da seleção do usuário) exigem aprovação explícita antes do apply. Todo apply grava um snapshot
+          <code>pre_ai</code> primeiro — o undo é literalmente restaurar esse snapshot.
+        </figcaption>
+      </figure>
+
+      <h3 class="sub">Geração vs. edição</h3>
+      <div class="prose">
+        <ul>
+          <li><b>Criação:</b> o modelo emite uma <code>diagram-ir/v1</code> completa (nós, containers, edges
+          semânticos) em uma única chamada — mais barato e visualmente consistente do que dezenas de
+          chamadas de ferramenta. O servidor resolve componentes da biblioteca por <code>stable_key</code>
+          e aplica layout <b>determinístico</b> (grid-zones, elk-layered ou swimlane conforme o tipo de
+          diagrama) — nunca o LLM decide posição de pixel.</li>
+          <li><b>Edição incremental:</b> tools como <code>create_element</code>, <code>connect_elements</code> ou
+          <code>auto_layout</code> retornam um <code>AbstractPatch</code> — nunca escrevem direto no banco
+          ou fazem chamada de rede.</li>
+        </ul>
+      </div>
     </div>
-  </section>
+  </details>
+
+  <details class="tech">
+    <summary>Presença em tempo real — arquitetura</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">
+        Cursores e seleção de outros usuários propagam via WebSocket sem nunca tocar o PostgreSQL —
+        perder presença nunca arrisca conteúdo durável.
+      </p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 900 300" role="img" aria-label="Duas instâncias do servidor, cada uma com uma conexão WebSocket própria, publicam presença em um PresenceBroadcaster. Sem REDIS_URL configurado, a implementação em memória mantém presença só dentro do mesmo processo; com REDIS_URL configurado, pub/sub via Redis propaga entre as duas instâncias.">
+          <defs>
+            <marker id="arH3" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
+            </marker>
+            <marker id="arH3blue" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--blue)"></polygon>
+            </marker>
+          </defs>
+
+          <rect x="20" y="30" width="160" height="46" rx="7" class="diagram-box"></rect>
+          <text x="100" y="58" text-anchor="middle" class="diagram-label dim">Browser A — WS</text>
+          <line x1="180" y1="53" x2="250" y2="53" class="diagram-arrow" marker-end="url(#arH3)"></line>
+
+          <rect x="250" y="20" width="200" height="66" rx="7" class="diagram-box"></rect>
+          <text x="350" y="46" text-anchor="middle" class="diagram-title">apps/server — instância 1</text>
+          <text x="350" y="64" text-anchor="middle" class="diagram-label dim">ws-gateway</text>
+
+          <rect x="20" y="200" width="160" height="46" rx="7" class="diagram-box"></rect>
+          <text x="100" y="228" text-anchor="middle" class="diagram-label dim">Browser B — WS</text>
+          <line x1="180" y1="223" x2="250" y2="245" class="diagram-arrow" marker-end="url(#arH3)"></line>
+
+          <rect x="250" y="214" width="200" height="66" rx="7" class="diagram-box dashed"></rect>
+          <text x="350" y="240" text-anchor="middle" class="diagram-title">apps/server — instância 2</text>
+          <text x="350" y="258" text-anchor="middle" class="diagram-label dim">(opcional — load balancer)</text>
+
+          <line x1="450" y1="53" x2="560" y2="140" class="diagram-arrow blue" marker-end="url(#arH3blue)"></line>
+          <line x1="450" y1="247" x2="560" y2="160" class="diagram-arrow blue" marker-end="url(#arH3blue)"></line>
+
+          <rect x="560" y="112" width="220" height="76" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="670" y="136" text-anchor="middle" class="diagram-title">PresenceBroadcaster</text>
+          <text x="670" y="154" text-anchor="middle" class="diagram-label dim">sem REDIS_URL → EventEmitter</text>
+          <text x="670" y="170" text-anchor="middle" class="diagram-label dim">com REDIS_URL → Redis pub/sub</text>
+
+          <line x1="670" y1="188" x2="670" y2="230" class="diagram-arrow" stroke-dasharray="3 3"></line>
+          <text x="700" y="222" class="diagram-label tiny">nunca grava aqui</text>
+          <rect x="600" y="230" width="140" height="40" rx="6" class="diagram-box dashed"></rect>
+          <text x="670" y="254" text-anchor="middle" class="diagram-label dim">PostgreSQL</text>
+          <line x1="655" y1="235" x2="685" y2="265" class="diagram-arrow" style="stroke:var(--amber)"></line>
+          <line x1="685" y1="235" x2="655" y2="265" class="diagram-arrow" style="stroke:var(--amber)"></line>
+        </svg>
+        <figcaption>
+          <b>Uma interface, duas implementações.</b> <code>InMemoryPresenceBroadcaster</code> é o padrão —
+          funciona em um único processo sem nenhuma dependência externa (AD-003). Quando duas instâncias
+          de <code>apps/server</code> ficam atrás de um load balancer, <code>RedisPresenceBroadcaster</code>
+          propaga presença entre elas via pub/sub real. Mutações de cena continuam passando pelo
+          <code>appendOperation()</code> de sempre — a presença é um canal completamente separado.
+        </figcaption>
+      </figure>
+    </div>
+  </details>
+
+  <details class="tech">
+    <summary>Backup, restore e observabilidade — arquitetura</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">
+        Um backup nunca é confiável só porque foi criado. A fase de hardening (F5) adiciona um job
+        recorrente que restaura de verdade e compara o resultado.
+      </p>
+
+      <figure class="diagram">
+        <svg viewBox="0 0 900 280" role="img" aria-label="Backup completo encadeado a dois incrementais por checksum; o job de teste de restore aplica a cadeia contra um banco isolado, nunca o de produção, e compara checksums e contagens de linha antes de gravar um evento de auditoria e alimentar uma métrica que dispara alerta.">
+          <defs>
+            <marker id="arH4" markerWidth="9" markerHeight="9" refX="7" refY="3.5" orient="auto">
+              <polygon points="0 0, 8 3.5, 0 7" style="fill: var(--ink-dim)"></polygon>
+            </marker>
+          </defs>
+
+          <rect x="20" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
+          <text x="85" y="50" text-anchor="middle" class="diagram-label">Backup completo</text>
+          <text x="85" y="66" text-anchor="middle" class="diagram-label dim">checksum C0</text>
+
+          <line x1="150" y1="55" x2="210" y2="55" class="diagram-arrow" marker-end="url(#arH4)"></line>
+          <text x="180" y="45" text-anchor="middle" class="diagram-label tiny">referencia</text>
+
+          <rect x="210" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
+          <text x="275" y="50" text-anchor="middle" class="diagram-label">Incremental 1</text>
+          <text x="275" y="66" text-anchor="middle" class="diagram-label dim">desde C0</text>
+
+          <line x1="340" y1="55" x2="400" y2="55" class="diagram-arrow" marker-end="url(#arH4)"></line>
+          <text x="370" y="45" text-anchor="middle" class="diagram-label tiny">referencia</text>
+
+          <rect x="400" y="30" width="130" height="50" rx="7" class="diagram-box"></rect>
+          <text x="465" y="50" text-anchor="middle" class="diagram-label">Incremental 2</text>
+          <text x="465" y="66" text-anchor="middle" class="diagram-label dim">desde C1</text>
+
+          <line x1="85" y1="80" x2="85" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
+          <line x1="275" y1="80" x2="150" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
+          <line x1="465" y1="80" x2="220" y2="140" class="diagram-arrow" stroke-dasharray="3 3"></line>
+
+          <rect x="20" y="140" width="280" height="50" rx="7" class="diagram-box amber diagram-fill-amber"></rect>
+          <text x="160" y="160" text-anchor="middle" class="diagram-label">job recorrente de teste de restore</text>
+          <text x="160" y="176" text-anchor="middle" class="diagram-label dim">verifica cada elo antes de aplicar</text>
+
+          <line x1="300" y1="165" x2="360" y2="165" class="diagram-arrow" marker-end="url(#arH4)"></line>
+          <rect x="360" y="140" width="200" height="50" rx="7" class="diagram-box dashed"></rect>
+          <text x="460" y="160" text-anchor="middle" class="diagram-label dim">Postgres isolado</text>
+          <text x="460" y="176" text-anchor="middle" class="diagram-label dim">nunca o de produção</text>
+
+          <line x1="460" y1="190" x2="460" y2="220" class="diagram-arrow" marker-end="url(#arH4)"></line>
+          <rect x="330" y="220" width="260" height="42" rx="7" class="diagram-box blue diagram-fill-blue"></rect>
+          <text x="460" y="246" text-anchor="middle" class="diagram-label dim">checksum + contagem de linhas — cross-check</text>
+
+          <line x1="590" y1="241" x2="650" y2="241" class="diagram-arrow" marker-end="url(#arH4)"></line>
+          <rect x="650" y="216" width="230" height="50" rx="7" class="diagram-box"></rect>
+          <text x="765" y="236" text-anchor="middle" class="diagram-label dim">audit_events +</text>
+          <text x="765" y="252" text-anchor="middle" class="diagram-label dim">alerts.yml (Prometheus)</text>
+        </svg>
+        <figcaption>
+          <b>Divergência nunca passa em silêncio.</b> Cada backup incremental referencia o checksum do
+          seu predecessor — a cadeia é recusada inteira se qualquer elo não bater. O job de teste de
+          restore roda contra um banco propositalmente isolado (nunca o de produção — checagem de
+          segurança que lança <i>antes</i> de tocar em qualquer coisa) e cruza checksum com contagem real
+          de linhas, não confiando em só um dos dois sinais.
+        </figcaption>
+      </figure>
+
+      <h3 class="sub">Observabilidade e segurança de produção</h3>
+      <div class="prose">
+        <ul>
+          <li><b>Métricas</b> (<code>GET /metrics</code>, Prometheus) cobrem latência REST/WS, ACK de mutação
+          (mesma série para os dois transportes), fila de jobs, tokens/custo estimado de IA, falhas de
+          snapshot/restore/login.</li>
+          <li><b>Tracing</b> (OpenTelemetry) encadeia spans de contexto → chamada de IA → apply — nunca com
+          prompt, cena ou token em nenhum atributo, provado por busca de substring nos spans capturados.</li>
+          <li><b>OIDC com PKCE</b> mapeia grupos do provedor de identidade para papéis, com teto explícito —
+          um grupo não mapeado nunca herda um papel elevado, mesmo que o token traga claims sugestivos.</li>
+          <li><b>Rate limiting</b> por usuário, com limites mais estritos nas rotas de geração de IA e de
+          export — a mesma classe de limitador reaproveitada desde a fase F2.</li>
+        </ul>
+      </div>
+    </div>
+  </details>
+
+  <details class="tech">
+    <summary>Roadmap — as 6 fases, 92/92 requisitos verificados</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">
+        Cada fase foi fechada com um verificador independente antes da próxima começar — nunca a mesma
+        sessão que escreveu o código atestando que ele está correto.
+      </p>
+      <div class="timeline">
+        <div class="tl-row">
+          <div class="tl-phase">F0</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>Fundação <span class="tl-tag">verificado</span></h4>
+            <p>Monorepo, compose local, migrations, health checks, spikes de renderização server-side e
+            do adaptador do Excalidraw.</p>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-phase">F1</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>Persistência server-first <span class="tl-tag">verificado</span></h4>
+            <p>Contas/RBAC, o op-log e a reconciliação LWW, recuperação após crash, snapshots com restore,
+            upload de assets, export local e backup com restore testado.</p>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-phase">F2</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>IA geradora <span class="tl-tag">verificado</span></h4>
+            <p>Configuração segura de provider, a IR declarativa <code>diagram-ir/v1</code>, layout
+            determinístico, biblioteca de componentes e o agente com prévia/aprovação/undo. O
+            <b>MVP interno mínimo</b> do roadmap termina aqui.</p>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-phase">F3</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>Documentação e visão completa <span class="tl-tag">verificado</span></h4>
+            <p>Geração de spec a partir do canvas, apresentações navegáveis, lint arquitetural/C4,
+            import-export Mermaid/Structurizr, comentários assíncronos.</p>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-phase">F4</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>Colaboração em tempo real <span class="tl-tag">verificado</span></h4>
+            <p>Primeiro transporte novo do projeto (WebSocket) e primeira dependência externa opcional
+            (Redis) — ambos provados com engines reais. Links de compartilhamento e webhooks assinados.</p>
+          </div>
+        </div>
+        <div class="tl-row">
+          <div class="tl-phase">F5</div>
+          <div class="tl-dot-col"><div class="tl-dot"></div></div>
+          <div class="tl-body">
+            <h4>Hardening de produção <span class="tl-tag">verificado</span></h4>
+            <p>OIDC com PKCE, rate limiting, auditoria completa, backup incremental + teste de restore
+            automatizado, métricas Prometheus, tracing OpenTelemetry, acessibilidade. Fecha o roadmap.</p>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row" style="margin-top: 30px;">
+        <div class="stat"><div class="n">6</div><div class="l">fases (F0–F5)</div></div>
+        <div class="stat"><div class="n">92</div><div class="l">requisitos verificados</div></div>
+        <div class="stat"><div class="n">34</div><div class="l">módulos e pacotes</div></div>
+        <div class="stat"><div class="n">9</div><div class="l">decisões de arquitetura</div></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="tech">
+    <summary>Referência de módulos (34 módulos e pacotes)</summary>
+    <div class="tech-body">
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F0</span>
+          <h4>Fundação</h4>
+          <span class="count">4 módulos</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">core</td><td class="desc"><b>apps/server/src/core</b> — bootstrap do Fastify, config validada por Zod (falha ao subir com segredo padrão em produção), logging estruturado com redação de PII, headers de segurança, rate limit, métricas e tracing (F5).</td></tr>
+          <tr><td class="path">jobs</td><td class="desc"><b>apps/server/src/modules/jobs</b> — fila de background via pg-boss sobre o PostgreSQL existente, sem Redis obrigatório (AD-006).</td></tr>
+          <tr><td class="path">storage</td><td class="desc"><b>apps/server/src/modules/storage</b> — cliente S3/MinIO com URLs assinadas de curta duração.</td></tr>
+          <tr><td class="path">render</td><td class="desc"><b>apps/server/src/modules/render</b> — SVG determinístico + rasterização (resvg), sem Chromium obrigatório (AD-005).</td></tr>
+        </table></div>
+      </div>
+
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F1</span>
+          <h4>Persistência server-first</h4>
+          <span class="count">8 módulos</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">auth</td><td class="desc"><b>apps/server/src/modules/auth</b> — sessões locais (Argon2id, cookie HttpOnly/Secure), tickets de WebSocket de uso único, e desde F5 o fluxo OIDC-PKCE reusando a mesma sessão.</td></tr>
+          <tr><td class="path">workspace</td><td class="desc"><b>apps/server/src/modules/workspace</b> — workspaces, projetos, membros e papéis; toda checagem de permissão calculada no backend.</td></tr>
+          <tr><td class="path">diagram-sync</td><td class="desc"><b>apps/server/src/modules/diagram-sync</b> — o coração do invariante: bootstrap, <code>operations:batch</code> idempotente, catch-up, e a única <code>appendOperation()</code> que qualquer transporte usa.</td></tr>
+          <tr><td class="path">snapshot</td><td class="desc"><b>apps/server/src/modules/snapshot</b> — compactação automática do op-log, snapshots nomeados/publicados, restore como nova revisão, diff estrutural.</td></tr>
+          <tr><td class="path">asset</td><td class="desc"><b>apps/server/src/modules/asset</b> — upload em duas fases, dedup por SHA-256, sanitização de SVG.</td></tr>
+          <tr><td class="path">export</td><td class="desc"><b>apps/server/src/modules/export</b> — export <code>.excalidraw</code>/SVG/PNG/PDF, bundle <code>.zip</code>, import com preview e limite de elementos.</td></tr>
+          <tr><td class="path">infra/backup</td><td class="desc"><b>infra/backup</b> — CLI <code>backup:create/verify/restore</code>, testado ponta a ponta contra Postgres real.</td></tr>
+          <tr><td class="path">editor-adapter</td><td class="desc"><b>packages/editor-adapter</b> — única fronteira do projeto com o pacote <code>@excalidraw/excalidraw</code>; nunca importado por valor no lado servidor (AD-008).</td></tr>
+        </table></div>
+      </div>
+
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F2</span>
+          <h4>IA geradora</h4>
+          <span class="count">6 módulos</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">ai-provider</td><td class="desc"><b>apps/server/src/modules/ai-provider</b> — configuração cifrada (AES-256-GCM) do endpoint de IA, com bloqueio de SSRF (link-local/metadata/privado).</td></tr>
+          <tr><td class="path">library</td><td class="desc"><b>apps/server/src/modules/library</b> — biblioteca de componentes por workspace, resolvida por <code>stable_key</code>.</td></tr>
+          <tr><td class="path">ai-engine</td><td class="desc"><b>apps/server/src/modules/ai-engine</b> — pipeline completo: contexto compacto, chamada ao provider, execução de tools, prévia, aprovação, apply atômico, undo, evals.</td></tr>
+          <tr><td class="path">diagram-ir</td><td class="desc"><b>packages/diagram-ir</b> — schema <code>diagram-ir/v1</code>, engines de layout determinístico (grid-zones/elk-layered/swimlane), compilador IR→cena, métricas geométricas (zero overlap).</td></tr>
+          <tr><td class="path">ai-tools</td><td class="desc"><b>packages/ai-tools</b> — ferramentas de leitura/escrita do agente; toda tool de escrita retorna um patch, nunca toca banco/rede diretamente.</td></tr>
+          <tr><td class="path">diagram-domain</td><td class="desc"><b>packages/diagram-domain</b> — modelo de operação, reconciliação LWW, diff estrutural — dependency-free, sem importar o Excalidraw (AD-008).</td></tr>
+        </table></div>
+      </div>
+
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F3</span>
+          <h4>Documentação e visão completa</h4>
+          <span class="count">5 módulos</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">docgen</td><td class="desc"><b>apps/server/src/modules/docgen</b> — Markdown estruturado gerado do canvas; campo sem metadado vira literalmente "não especificado", nunca é inventado.</td></tr>
+          <tr><td class="path">presentation</td><td class="desc"><b>apps/server/src/modules/presentation</b> — frames ordenados, modo apresentador, link publicado imutável (nunca reflete edições posteriores), export PDF.</td></tr>
+          <tr><td class="path">lint</td><td class="desc"><b>apps/server/src/modules/lint</b> — avisos arquiteturais (SPOF, boundary ausente, conector sem protocolo) e validação C4 — nunca bloqueia, só avisa.</td></tr>
+          <tr><td class="path">interop</td><td class="desc"><b>apps/server/src/modules/interop</b> — import/export Mermaid e Structurizr DSL via a mesma <code>diagram-ir</code>, com limitações de round-trip sempre reportadas.</td></tr>
+          <tr><td class="path">comment</td><td class="desc"><b>apps/server/src/modules/comment</b> — threads ancoradas a elemento/frame; papel <code>reviewer</code> comenta mas nunca muta a cena.</td></tr>
+        </table></div>
+      </div>
+
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F4</span>
+          <h4>Colaboração em tempo real</h4>
+          <span class="count">3 módulos</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">ws-gateway</td><td class="desc"><b>apps/server/src/modules/ws-gateway</b> — handshake WebSocket autenticado por ticket, relay de mutação delegando à mesma <code>appendOperation()</code>, <code>PresenceBroadcaster</code> em memória ou Redis.</td></tr>
+          <tr><td class="path">share</td><td class="desc"><b>apps/server/src/modules/share</b> — links de compartilhamento com papel travado num teto (nunca herda um papel maior mesmo se o token vazar) e expiração.</td></tr>
+          <tr><td class="path">webhook</td><td class="desc"><b>apps/server/src/modules/webhook</b> — entrega assinada (HMAC), segredo rotacionável, retry com backoff exponencial e dead-letter.</td></tr>
+        </table></div>
+      </div>
+
+      <div class="mod-group">
+        <div class="mod-group-head">
+          <span class="phase-chip">F5</span>
+          <h4>Hardening de produção</h4>
+          <span class="count">4 áreas</span>
+        </div>
+        <div class="scroll-x"><table class="mods">
+          <tr><th>local</th><th>o que faz</th></tr>
+          <tr><td class="path">core/metrics.ts</td><td class="desc">Registro Prometheus — latência REST/WS, ACK, fila, IA, exports; endpoint <code>/metrics</code> deliberadamente sem sessão (convenção de scrape), documentado para ser restrito por rede em produção.</td></tr>
+          <tr><td class="path">core/tracing.ts</td><td class="desc">Spans manuais OpenTelemetry — escolhidos no lugar de auto-instrumentação para nunca deixar SQL/params vazarem como atributo.</td></tr>
+          <tr><td class="path">backup/restoreTest.ts</td><td class="desc">Job recorrente que restaura contra um banco isolado e cruza checksum + contagem de linhas; nunca passa em silêncio.</td></tr>
+          <tr><td class="path">security/threatModel</td><td class="desc">Manifesto de 14 cenários de ameaça (IDOR, replay, SSRF, exfiltração via prompt, escalada de papel...), cada um cruzado com o teste real que o cobre.</td></tr>
+        </table></div>
+      </div>
+    </div>
+  </details>
+
+  <details class="tech">
+    <summary>9 decisões de arquitetura (ADRs)</summary>
+    <div class="tech-body">
+      <p class="sheet-dek">Texto completo de cada uma em <code>docs/adr/</code>.</p>
+      <div class="decisions">
+        <div class="decision"><span class="id">ADR-0001</span><p><b>Op-log LWW</b> nativo do Excalidraw, não Yjs/CRDT — auditoria e diff legíveis de graça.</p></div>
+        <div class="decision"><span class="id">ADR-0002</span><p><b>Roadmap AI-first</b> — geração por IA entregue antes da colaboração multiplayer.</p></div>
+        <div class="decision"><span class="id">ADR-0003</span><p><b>Monólito modular</b> — um processo Node, fronteiras nos packages, split futuro trivial.</p></div>
+        <div class="decision"><span class="id">ADR-0004</span><p><b>IR declarativa</b> como peça central da geração e do architecture-as-code.</p></div>
+        <div class="decision"><span class="id">ADR-0005</span><p><b>Render server-side</b> via SVG + rasterização, sem Chromium obrigatório.</p></div>
+        <div class="decision"><span class="id">ADR-0006</span><p><b>Sem Redis no MVP</b> — pg-boss sobre PostgreSQL; Redis só entra para presença.</p></div>
+        <div class="decision"><span class="id">ADR-0007</span><p><b>PGlite</b> para testes de integração de Postgres sem Docker.</p></div>
+        <div class="decision"><span class="id">ADR-0008</span><p><b>Zero import</b> por valor do Excalidraw em código server-side.</p></div>
+        <div class="decision"><span class="id">ADR-0009</span><p><b>PresenceBroadcaster</b> injetável — memória por padrão, Redis quando configurado.</p></div>
+      </div>
+    </div>
+  </details>
+  </div>
 </div>
 
 <footer>
