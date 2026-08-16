@@ -77,7 +77,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 **Acceptance Criteria**:
 1. WHEN o CI rodar em um pull request THEN ele SHALL subir o stack completo via `docker compose up --build` e falhar se qualquer serviço não atingir estado `healthy` dentro de 5 minutos.
 2. WHEN o stack estiver de pé no CI THEN ele SHALL requisitar `GET /health/ready` pela porta pública e falhar se a resposta não for HTTP 200 com `status` igual a `ok` e a dependência `postgres` em `up`.
-3. WHEN o CI rodar THEN ele SHALL executar a suíte Playwright de `apps/web` contra servidores genuinamente em execução — API e frontend reais, nunca mocks nem respostas interceptadas — e falhar se qualquer teste falhar; a fidelidade do stack containerizado é coberta separadamente por CIQ-01 e CIQ-02.
+3. WHEN o CI rodar THEN ele SHALL executar a suíte Playwright de `apps/web` contra servidores genuinamente em execução — API e frontend reais, nunca mocks nem respostas interceptadas — e falhar se qualquer teste falhar; a fidelidade de boot e de saúde do stack containerizado é coberta separadamente por CIQ-01 e CIQ-02.
 4. IF a cobertura de um package cair abaixo do piso declarado para aquele package THEN o CI SHALL falhar nomeando o package, o piso e o valor medido.
 5. WHEN um pull request for aberto THEN o CI SHALL validar cada mensagem de commit contra Conventional Commits e falhar identificando a primeira mensagem não conforme.
 6. IF o runner do CI não tiver daemon Docker disponível THEN o job de stack SHALL falhar explicitamente em vez de ser pulado como sucesso.
