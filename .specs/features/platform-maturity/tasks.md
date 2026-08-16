@@ -124,10 +124,10 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Tabela `mcp_tokens` declarada, índice único em `token_hash`
-- [ ] `pnpm --filter @arch-canvas/database run db:generate` gera a migration nova em `infra/migrations/`
-- [ ] Migration aplica limpo contra PGlite (confirmado pelo gate de integração)
-- [ ] Gate check passes: `make lint && make typecheck`
+- [x] Tabela `mcp_tokens` declarada, índice único em `token_hash`
+- [x] `pnpm --filter @arch-canvas/database run db:generate` gera a migration nova em `infra/migrations/`
+- [x] Migration aplica limpo contra PGlite (confirmado pelo gate de integração — reconfirmado por T4's `test:integration`, PGlite real)
+- [x] Gate check passes: `make lint && make typecheck`
 
 **Tests**: none
 **Gate**: build

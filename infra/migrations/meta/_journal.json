@@ -78,6 +78,13 @@
       "when": 1786575312829,
       "tag": "0010_tough_baron_zemo",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1786896564874,
+      "tag": "0011_aspiring_professor_monster",
+      "breakpoints": true
     }
   ]
 }
