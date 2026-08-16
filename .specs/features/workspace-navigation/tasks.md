@@ -140,10 +140,10 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] `list()`, `create()`, `rename()`, `archive()` implemented exactly per design.md's type signature
-- [ ] Status branching: 200/201/204 success paths, 409 conflict (create/rename), any other non-2xx treated as a generic error
-- [ ] Unit test runs the same test suite against 3 different configs (workspace-shaped, project-shaped, diagram-shaped body/URL) to prove genuine parametrization, not a workspace-only implementation with the others unexercised
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `list()`, `create()`, `rename()`, `archive()` implemented exactly per design.md's type signature
+- [x] Status branching: 200/201/204 success paths, 409 conflict (create/rename), any other non-2xx treated as a generic error
+- [x] Unit test runs the same test suite against 3 different configs (workspace-shaped, project-shaped, diagram-shaped body/URL) to prove genuine parametrization, not a workspace-only implementation with the others unexercised
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
