@@ -131,11 +131,11 @@ T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] Doc gerado é `openapi: "3.1.0"` válido nas chaves obrigatórias (`info`, `paths`)
-- [ ] Uma rota com `websocket: true` vira uma entrada documentada sem `requestBody`/`responses` JSON forçados (nota explícita no doc, não um schema inventado)
-- [ ] Registro vazio lança erro citando "nenhuma rota no registro" (não gera doc vazio silenciosamente)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 6 novos testes (doc válido; conversão de query/body/response; rota `websocket`; registro vazio falha; múltiplos módulos mesclados; nomes de rota com params `:id` viram `{id}` no path OpenAPI)
+- [x] Doc gerado é `openapi: "3.1.0"` válido nas chaves obrigatórias (`info`, `paths`)
+- [x] Uma rota com `websocket: true` vira uma entrada documentada sem `requestBody`/`responses` JSON forçados (nota explícita no doc, não um schema inventado)
+- [x] Registro vazio lança erro citando "nenhuma rota no registro" (não gera doc vazio silenciosamente)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [x] Test count: 6 novos testes (doc válido; conversão de query/body/response; rota `websocket`; registro vazio falha; múltiplos módulos mesclados; nomes de rota com params `:id` viram `{id}` no path OpenAPI)
 
 **Tests**: unit
 **Gate**: quick
