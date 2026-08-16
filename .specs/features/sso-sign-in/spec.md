@@ -219,7 +219,7 @@ usando apenas Tab e Enter, com o locale trocado para `en` no meio do caminho.
 | SSO-17 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
 | SSO-18 | P1: Sessão renovada ou redirecionamento | F10 | ✅ Verified |
 | SSO-19 | P2: Teclado e idioma | F10 | ✅ Verified |
-| SSO-20 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
+| SSO-20 | P2: Teclado e idioma | F10 | ✅ Verified |
 | SSO-21 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
