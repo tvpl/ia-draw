@@ -212,13 +212,13 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Already-authenticated visit to `/login` redirects immediately to `next` (or `/`) without rendering the form (SSO-02)
-- [ ] Submit disabled until both fields are non-empty/non-whitespace (SSO-07); disabled again while a submit is in flight
-- [ ] `POST /auth/login` sends `{email, password}`; `200` → redirect to `next` (validated same-origin, else `/` — SSO-04, Edge Case); `401`/`400` → single generic message, email preserved, password cleared, resubmit re-enabled (SSO-05, SSO-06)
-- [ ] Calls `GET /auth/oidc/status` on mount; renders the SSO link (`<a href="/auth/oidc/login">`, real navigation, not `fetch`) only when `configured: true`; never renders it on `false` or on any fetch failure (SSO-09..11)
-- [ ] `?error=oidc_failed` in the URL renders the generic SSO-failure message without blocking the local form or a configured SSO link (SSO-12)
-- [ ] Unit tests cover every bullet above
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Already-authenticated visit to `/login` redirects immediately to `next` (or `/`) without rendering the form (SSO-02)
+- [x] Submit disabled until both fields are non-empty/non-whitespace (SSO-07); disabled again while a submit is in flight
+- [x] `POST /auth/login` sends `{email, password}`; `200` → redirect to `next` (validated same-origin, else `/` — SSO-04, Edge Case); `401`/`400` → single generic message, email preserved, password cleared, resubmit re-enabled (SSO-05, SSO-06)
+- [x] Calls `GET /auth/oidc/status` on mount; renders the SSO link (`<a href="/auth/oidc/login">`, real navigation, not `fetch`) only when `configured: true`; never renders it on `false` or on any fetch failure (SSO-09..11)
+- [x] `?error=oidc_failed` in the URL renders the generic SSO-failure message without blocking the local form or a configured SSO link (SSO-12)
+- [x] Unit tests cover every bullet above
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

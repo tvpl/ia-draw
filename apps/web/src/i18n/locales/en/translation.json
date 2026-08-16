@@ -52,6 +52,7 @@
     "emailLabel": "Email",
     "passwordLabel": "Password",
     "submit": "Sign in",
+    "submitting": "Signing in…",
     "invalidCredentials": "Invalid email or password.",
     "ssoButton": "Sign in with SSO",
     "ssoFailed": "Corporate sign-in failed. Please try again.",

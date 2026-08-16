@@ -52,6 +52,7 @@
     "emailLabel": "E-mail",
     "passwordLabel": "Senha",
     "submit": "Entrar",
+    "submitting": "Entrando…",
     "invalidCredentials": "E-mail ou senha inválidos.",
     "ssoButton": "Entrar com SSO",
     "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
