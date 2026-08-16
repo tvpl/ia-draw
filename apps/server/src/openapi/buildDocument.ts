@@ -1,4 +1,4 @@
-import { z, type ZodType } from 'zod';
+import { type ZodType, z } from 'zod';
 import type { RouteSchemaMap } from './types.js';
 
 /** OpenAPI 3.1 document produced from a merged `RouteSchemaMap` registry. */
@@ -83,7 +83,10 @@ function toOperation(schemas: RouteSchemaMap[string]): OpenApiOperation {
     return { description: 'WebSocket upgrade route (not a JSON request/response endpoint)' };
   }
 
-  const parameters = [...toParameters(schemas.params, 'path'), ...toParameters(schemas.query, 'query')];
+  const parameters = [
+    ...toParameters(schemas.params, 'path'),
+    ...toParameters(schemas.query, 'query'),
+  ];
   return {
     parameters: parameters.length > 0 ? parameters : undefined,
     requestBody: toRequestBody(schemas.body),

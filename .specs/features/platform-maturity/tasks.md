@@ -178,9 +178,9 @@ T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `make openapi` roda e escreve `docs/openapi.json` com a rota de `ai-provider` presente
-- [ ] `docs/openapi.json` commitado (snapshot inicial, só `ai-provider` — as Phases 2a/b/c vão expandindo o mesmo arquivo)
-- [ ] Gate check passes: `make lint && make typecheck`
+- [x] `make openapi` roda e escreve `docs/openapi.json` com a rota de `ai-provider` presente
+- [x] `docs/openapi.json` commitado (snapshot inicial, só `ai-provider` — as Phases 2a/b/c vão expandindo o mesmo arquivo)
+- [x] Gate check passes: `make lint && make typecheck`
 
 **Tests**: none
 **Gate**: build

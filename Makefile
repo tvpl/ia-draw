@@ -87,6 +87,10 @@ test: test-unit test-integration ## Run unit + integration tests (fast local loo
 .PHONY: ci
 ci: lint typecheck test-unit test-integration ## Run the same checks CI runs (.github/workflows/ci.yaml), before you push
 
+.PHONY: openapi
+openapi: check-pnpm ## Regenerate docs/openapi.json from the routeSchemas registry (API-01)
+	$(PNPM) --filter @arch-canvas/server run openapi
+
 .PHONY: web-dev
 web-dev: check-pnpm ## Run apps/web alone with Vite's dev server + HMR (point it at a stack from `make up`)
 	$(PNPM) --filter @arch-canvas/web dev

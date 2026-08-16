@@ -162,6 +162,9 @@ importers:
       oidc-provider:
         specifier: ^9.11.3
         version: 9.11.3
+      tsx:
+        specifier: ^4.23.12
+        version: 4.23.12
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
