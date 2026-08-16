@@ -203,11 +203,11 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | UIX-02 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-03 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-04 | P1: Inventário do gap de produto | F6 | Implementing |
-| AGT-01 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-02 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-03 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-04 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-05 | P1: Onboarding e loop agêntico | F7 | Pending |
+| AGT-01 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-02 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-03 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-04 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-05 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
 | GOV-01 | P2: Governança para squads | F8 | Pending |
 | GOV-02 | P2: Governança para squads | F8 | Pending |
 | GOV-03 | P2: Governança para squads | F8 | Pending |

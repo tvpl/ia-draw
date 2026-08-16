@@ -140,6 +140,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: UIX-02 — .specs/features/platform-maturity/ui-roadmap.md (traceability)
 - last seen: 2026-08-16T11:02:44Z
 
+### L-022 - Before documenting a workspace script invocation as `pnpm --filter <pkg> <script>` in onboarding docs or slash commands, run it verbatim once — a script name that collides with one of pnpm's own built-in commands (audit, add, update, list, ...) is silently intercepted unless invoked as `pnpm --filter <pkg> run <script>`.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `agent-onboarding` · harmful: 0
+- features: platform-maturity
+- evidence: AGT-05 / .claude/commands/audit.md:8 (agent-onboarding)
+- last seen: 2026-08-16T11:39:04Z
+
+### L-023 - Prose-only onboarding artifacts (CLAUDE.md sections, slash-command bodies) have no lint or CI surface over their content, so a stale invariant or a broken documented command ships silently until a human or agent happens to run it — treat any such command as untrusted until it has actually been executed, not just read.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `agent-onboarding` · harmful: 0
+- features: platform-maturity
+- evidence: F7 discrimination sensor / CLAUDE.md, .claude/commands/*.md (agent-onboarding)
+- last seen: 2026-08-16T11:39:04Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

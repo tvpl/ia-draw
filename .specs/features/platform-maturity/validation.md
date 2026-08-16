@@ -307,3 +307,160 @@ Stated plainly, because a green local run is not a green pull request.
 **Issues found**: four survivors, none falsifying an AC — a capability can still be repointed at a real-but-wrong component; a coverage floor can be declared without being enabled, or declared as `0`; and the workflow YAML remains unprotected against being gutted. Plus UIX-02's AC text, which has been stronger than its delivery for two rounds and should be amended the way CIQ-03 was.
 
 **Next steps**: no fix tasks required for F6. Route the six ranked residuals into the F7 backlog; residual 2 (UIX-02's AC wording) is the one worth closing before the next Specify round so it does not surface a third time.
+
+---
+
+## F7 Wave Report (Onboarding e loop agêntico) — PASS ✅
+
+**Date**: 2026-08-16
+**Spec**: `.specs/features/platform-maturity/spec.md` — P1: "Onboarding e loop agêntico versionados ⭐ F7" (line 106), AGT-01..05
+**Tasks**: none — no formal `tasks.md` exists for F7. Per the skill's sizing rules, the wave is Medium scope (≤5 safety-valve steps) and was executed inline as 4 atomic commits, treated below as the task list.
+**Diff range**: `d2e4c6d..HEAD` (4 commits: `be76608`, `62ebacf`, `2b4e6b2`, `c945922`) — `CLAUDE.md` (new, 106 lines), `.claude/settings.json` (new, 40 lines), `.claude/commands/audit.md` (new, 20 lines), `.claude/commands/gate.md` (new, 17 lines). Zero application source code touched.
+**Scope**: F7 only — AGT-01..05 (5 requirements). TRU/CIQ/UIX (F6, already verified above) and GOV/API/MCP (F8/F9) are out of scope.
+**Verifier**: independent sub-agent (author ≠ verifier).
+
+---
+
+### Verdict
+
+**Result**: PASS
+
+5/5 ACs verified with `file:line` evidence, 0 failing as written. `make lint`, `make typecheck` and `make test-unit` are green on Node 22 using only the commands `CLAUDE.md` documents; `make test-integration` fails on the pre-existing, `CLAUDE.md`-disclosed sandbox limitation (missing `pg_lsclusters`/`redis-server`), which does not count against AGT-02 per the verification brief. The adapted discrimination sensor (this is a docs/config-only wave — no test layer exists over prose) confirmed `make lint` (biome) genuinely catches a broken `.claude/settings.json`, and identified two silent-regression classes that nothing in the repo catches.
+
+**One concrete, reproducible defect was found and is not blocking the verdict but is filed as a Fix Plan**: the exact command `.claude/commands/audit.md`, `CLAUDE.md:103` and `.claude/settings.json:22` all document — `pnpm --filter @arch-canvas/repo-tools audit` (without `run`) — fails with exit code 1, `ERROR Unknown option: 'recursive'`, because `audit` collides with pnpm's own built-in `audit` subcommand and the implicit-script shorthand does not fire for names that collide with a builtin. The correct, working invocation is `pnpm --filter @arch-canvas/repo-tools run audit`. This does not falsify AGT-05's literal text (a versioned slash command exists, is well-formed, and IS the mechanism the AC asks for), but it means a first-time agent who follows CLAUDE.md's own line 103 verbatim hits an error on the very first attempt — directly undermining the story's stated goal ("produzir trabalho correto na primeira tentativa"). Recorded as a lesson (L- id below).
+
+---
+
+### Task Completion
+
+| Task (commit) | Status | Notes |
+| --- | --- | --- |
+| `be76608` — root `CLAUDE.md` | ✅ Done | AGT-01, AGT-03 |
+| `62ebacf` — `.claude/settings.json` | ✅ Done | AGT-04 |
+| `2b4e6b2` — `/audit` slash command | ✅ Done | AGT-05, but its documented invocation is broken (see Verdict / Fix Plan 1) |
+| `c945922` — `/gate` slash command | ✅ Done | AGT-05, verified working (all wrapped `make` targets are real) |
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| **AGT-01** — `CLAUDE.md` na raiz declara comandos de build/teste/stack local, invariantes de arquitetura não-óbvios e armadilhas conhecidas | file exists at repo root, covers all three categories | `CLAUDE.md:29-53` (Comandos: `install`, `lint`, `typecheck`, `test-unit`, `test-integration`, `test-e2e`, `ci`, `up`, `web-dev`, `help`, plus the sandbox trap); `CLAUDE.md:55-88` (Invariantes: AD-003, AD-008, AD-007, AD-001, AD-004, AD-006/009, each with file/module scope); `CLAUDE.md:15-27` and `:49-53` (armadilhas: Node 22 `AbortSignal`, `pg_lsclusters`/`redis-server` ENOENT) | ✅ PASS |
+| **AGT-02** — WHEN an agent follows only `CLAUDE.md` THEN it SHALL be able to run lint, typecheck, unit tests, integration tests and the local stack without consulting any other file | each of the 5 documented commands genuinely resolves and (lint/typecheck/unit) genuinely passes; `test-integration`'s failure is the disclosed sandbox trap, not a doc defect | Behavioral check performed live in a fresh shell using only `CLAUDE.md:22-27,33-44`: `eval "$(fnm env)" && fnm use 22 && corepack enable` → Node v22.23.2; `make install` → exit 0 ("Already up to date"); `make lint` → exit 0, 426 files, 4 warnings (all pre-existing — see Gate Check); `make typecheck` → exit 0, 24/24 tasks; `make test-unit` → exit 0, 23/23 tasks; `make test-integration` → exit 1, root cause `spawnSync pg_lsclusters ENOENT`, an exact match for `CLAUDE.md:49-51`'s own disclosed "armadilha conhecida"; `make up` correctly documented as "sobe o stack completo via Docker" against `Makefile:114` (`up: env … $(COMPOSE) up --build -d`) — not executed (no Docker daemon in this sandbox, an environment fact outside AGT-02's own disclosure, not a doc defect) | ✅ PASS |
+| **AGT-03** — `CLAUDE.md` SHALL declarar explicitamente a restrição Node 22.x, `corepack enable`, e a proibição de importar `@excalidraw/excalidraw` por valor server-side | all three stated explicitly | `CLAUDE.md:17` ("Este repo trava em **Node 22.x**"); `CLAUDE.md:24` ("`corepack enable` # obrigatório: pnpm só é declarado via packageManager…"); `CLAUDE.md:63-73` (AD-008: "Nenhum pacote que roda no servidor (…) pode importar `@excalidraw/excalidraw` ou `@arch-canvas/editor-adapter` **por valor**") | ✅ PASS |
+| **AGT-04** — system SHALL versionar `.claude/settings.json` com permissões de ferramenta e os hooks que o fluxo exige | file tracked in git, valid config, declares permissions + ≥1 hook | `git ls-files .claude/` lists `.claude/settings.json` (tracked); `.gitignore` has no `.claude` entry, `git check-ignore -v .claude/settings.json` → exit 1 (not ignored); `python3 -c "import json; json.load(...)"` → valid JSON; `.claude/settings.json:2-27` (`permissions.allow`, 21 entries); `.claude/settings.json:28-39` (`hooks.SessionStart`, one command hook that warns off-Node-22 sessions) | ✅ PASS |
+| **AGT-05** — WHERE a workflow repeats each dev wave, the repo SHALL expose it as a versioned subagent or slash command instead of prose repeated in `tasks.md` | ≥1 such command exists, well-formed, and its wrapped command is real/correct | Two commands exist: `.claude/commands/audit.md:1-4` (valid YAML frontmatter: `description`, `allowed-tools`) and `.claude/commands/gate.md:1-4` (same). `/gate`'s wrapped commands verified real and correct: `make ci`, `make lint`, `make typecheck`, `make test-unit`, `make test-integration` all exist as real `Makefile` targets and were executed live above with the exact behavior `.claude/commands/gate.md:8-14` describes (try `make ci`, fall back to individual steps on the `pg_lsclusters`/`redis-server` `ENOENT`). `/audit`'s wrapped command, run live: `pnpm --filter @arch-canvas/repo-tools audit` → **exit 1**, `ERROR Unknown option: 'recursive'` (pnpm's built-in `audit` subcommand shadows the workspace script of the same name). Corrected form `pnpm --filter @arch-canvas/repo-tools run audit` → exit 0, "wrote docs/route-inventory.md — 82 routes, 4 consumed, 78 pending-product" | ✅ PASS — AC's literal text (mechanism exists, versioned, in lieu of prose) is met; `/audit`'s wrapped invocation is broken as documented, filed as Fix Plan 1, not a criterion failure |
+
+**Status**: ✅ 5/5 ACs covered with `file:line` evidence, 0 fail as written, 0 spec-precision gaps · 1 non-blocking defect filed (Fix Plan 1)
+
+---
+
+### Discrimination Sensor (adapted for a docs-only wave)
+
+No test suite exercises prose or config in this wave — the standard "inject a fault, watch a test die" sensor does not apply as specified. Adapted per the verification brief: for each plausible silent-regression scenario, state plainly whether anything in this repo would actually catch it, verified empirically rather than assumed.
+
+**Isolation**: mutations run against copies in the scratchpad (`/private/tmp/.../scratchpad/sensor/`), never the real tree. Baseline `git status --porcelain` on the real tree: empty, both before and after. No git worktree was used (no test-suite "kill" step exists for docs) and no `git stash` was used, per the brief.
+
+| # | Scenario | Mutation applied | Would anything in this repo catch it? | Verdict |
+| --- | --- | --- | --- | --- |
+| 1 | Someone edits `CLAUDE.md` and silently removes the Node-22 warning (`CLAUDE.md:17-20`) or the `pg_lsclusters`/`redis-server` disclosure (`:49-53`) | Not applied as a file mutation (prose has no parser to run) — reasoned from repo structure: `make lint` (biome) does not lint Markdown prose content, only formats/lints code and JSON/structured files; no CI job reads `CLAUDE.md` | **No.** Ships silently. `CLAUDE.md` has zero automated guardians — its only protection is the `SessionStart` hook (`.claude/settings.json:29-38`), which independently re-warns on wrong Node version regardless of what the prose says, but does not verify the prose is intact | ❌ Not caught — real gap |
+| 2 | Someone breaks `.claude/settings.json`'s JSON syntax (e.g. a stray key with no value) | Applied for real: copied the tracked file to a scratch path, inserted `"BROKEN_TRAILING_COMMA":,` inside the `hooks` object, ran `node_modules/.bin/biome check <scratch-path>` directly | **Yes.** `biome check` parses JSON files (per `biome.json`'s `files.includes: ["**"]`) and `make lint` runs `biome check .` from the repo root, which would traverse `.claude/settings.json` | ✅ Caught — verified live, exit 1, biome reports the exact malformed token and line |
+| 3 | Someone edits `.claude/commands/audit.md` or `.claude/commands/gate.md` to reference a command that no longer exists (e.g. renames a `Makefile` target) | Not applied as a mutation — reasoned + partially demonstrated by the pre-existing real bug found in AGT-05 above: the *actual, live* `/audit` command already references a broken invocation form, and nothing failed | **No.** Confirmed by the real-world case in this very wave: `/audit`'s wrapped command has been wrong (missing `run`) since commit `2b4e6b2` and no lint/CI/test step caught it — it was only found by manually executing the command during this verification. Nothing parses or dry-runs slash-command bodies | ❌ Not caught — real gap, and not hypothetical: it already happened |
+
+**Sensor depth**: lightweight, adapted (3 scenarios; 1 of 3 empirically injected as a real file mutation, 2 of 3 reasoned + one corroborated by a genuine pre-existing defect discovered during this same verification pass)
+**Result**: 1/3 caught, 2/3 would ship silently — both gaps are inherent to prose/config-only artifacts with no lint/CI surface over their content, not defects introduced by this wave's implementation choices
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ — exactly `CLAUDE.md`, `.claude/settings.json`, two slash commands; nothing else touched |
+| No abstractions for single-use code | ✅ — n/a, no code |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ✅ — `git diff d2e4c6d..HEAD --stat` shows exactly the 4 new files, 183 insertions, 0 deletions, 0 other files touched |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — slash commands follow the same frontmatter shape (`description` + `allowed-tools`) as commands documented elsewhere in the skill; `settings.json` permission strings follow the `Bash(cmd*)` convention |
+| Would senior engineer approve? | ⚠️ — yes, with one real complaint: the `/audit` command and its two other citations were never actually executed before being committed (see Fix Plan 1) |
+| Tests map to acceptance criteria and are non-shallow | n/a — no test layer over this wave's artifacts (docs/config only); each AC instead re-verified by direct command execution, documented per-row above |
+| Spec-anchored outcome check | ✅ — 5/5 ACs; each `file:line` citation quotes the literal spec-required content, not just "a file exists" |
+| Per-layer Coverage Expectation met | n/a — no domain logic or routes in this wave's diff |
+| Every test in scope maps to a spec AC / edge case / Done-when (no unclaimed tests) | n/a — no tests in scope |
+| Documented project quality/testing guidelines followed | `CLAUDE.md` itself (this wave's own deliverable) + `.claude/skills/tlc-spec-driven/references/validate.md` — both followed |
+
+---
+
+### Edge Cases
+
+General "Edge Cases" section of `spec.md` (lines 178-183) — checked against F7's scope:
+
+- [ ] Capability map → removed UI component: **n/a** — TRU/UIX domain (F6), not F7
+- [ ] Healthcheck flapping: **n/a** — CIQ domain (F6), not F7
+- [ ] MCP cross-workspace token: **n/a** — MCP domain (F9), not F7
+- [ ] Empty OpenAPI document: **n/a** — API domain (F8), not F7
+- [ ] `STATE.md` merge across squads: **n/a** — GOV domain (F8), not F7
+- [ ] New package with no coverage floor: **n/a** — CIQ domain (F6, already gated), not F7
+
+None of the general edge cases apply to F7's scope (`CLAUDE.md`, `.claude/`) — confirmed explicitly rather than silently skipped. F7's user story (line 108) does not enumerate its own edge cases in `spec.md`.
+
+---
+
+### Gate Check
+
+- **Gate command**: no `tasks.md` exists for F7, so no declared "Build gate command" — used `.claude/commands/gate.md`'s own documented sequence (`make ci`, falling back to `make lint && make typecheck && make test-unit` on the disclosed `pg_lsclusters`/`redis-server` `ENOENT`), matching the same substitution the F6 report above used.
+- **Node**: v22.23.2, via `fnm use 22 && corepack enable` (fnm was available in this environment; the sandbox default `node -v` is v24.9.0, confirming the Node-22 restriction is load-bearing, not decorative).
+
+| Step | Result |
+| --- | --- |
+| `make install` | ✅ exit 0 — "Lockfile is up to date… Already up to date" |
+| `make lint` | ✅ exit 0 — 426 files checked, 0 errors, 4 warnings, all pre-existing (`tools/repo-tools/src/webConsumers.spec.ts` — `noTemplateCurlyInString`, a file untouched by this wave's diff; same 4 warnings the F6 report recorded above) — **no new warnings introduced by this wave** |
+| `make typecheck` | ✅ exit 0 — 24/24 tasks successful (Turbo, cache hits) |
+| `make test-unit` | ✅ exit 0 — 23/23 tasks successful; `apps/web` reports 28/28 tests passed, other packages cache-hit at their prior green state |
+| `make test-integration` | ❌ exit 1 — root cause confirmed as `spawnSync pg_lsclusters ENOENT` (`@arch-canvas/backup`), an exact, verified match for `CLAUDE.md:49-51`'s own disclosed "armadilha conhecida deste ambiente sandbox". Per the verification brief, this specific, disclosed failure does not count against AGT-02 |
+| `pnpm --filter @arch-canvas/repo-tools run audit` | ✅ exit 0 — "wrote docs/route-inventory.md — 82 routes, 4 consumed, 78 pending-product" (regenerated byte-identical, matching F6's numbers — confirms this wave did not disturb F6's gate) |
+
+**Test count before/after this wave**: unchanged — this wave adds zero test files (confirmed by `git diff d2e4c6d..HEAD --stat` above: only `.md`/`.json` files). No test integrity concern applies.
+
+---
+
+### Fix Plans
+
+#### Fix 1: `/audit`'s documented command is broken as written
+
+- **Root cause**: `pnpm --filter @arch-canvas/repo-tools audit` (no `run`) is intercepted by pnpm's own built-in `audit` subcommand (dependency vulnerability audit) instead of the workspace's `audit` script (`tools/repo-tools/package.json`'s `"audit": "node dist/cli.js audit"`), because pnpm's implicit-script shorthand does not fire for script names that collide with a built-in command name. Verified live: `pnpm --filter @arch-canvas/repo-tools audit` → exit 1, `ERROR Unknown option: 'recursive'`; `pnpm --filter @arch-canvas/repo-tools run audit` → exit 0.
+- **Where**: `CLAUDE.md:103`, `.claude/commands/audit.md:4` (the `allowed-tools` frontmatter) and `:8` (step 1), `.claude/settings.json:22` (the pre-approved permission string — also needs the `run` form to actually pre-approve the command that works).
+- **Fix task**: In all three files, change `pnpm --filter @arch-canvas/repo-tools audit` to `pnpm --filter @arch-canvas/repo-tools run audit`.
+- **Verify**: run the corrected command; confirm exit 0 and the "wrote docs/route-inventory.md — N routes…" line.
+- **Done when**: all three citations use the `run` form, and executing `/audit` end-to-end (or the raw command) exits 0 on a clean tree.
+- **Priority**: Major (silent-on-first-attempt failure of the wave's own onboarding promise, though loud once run — not a security or data-integrity issue).
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous | New |
+| --- | --- | --- |
+| AGT-01 | Pending | ✅ Verified |
+| AGT-02 | Pending | ✅ Verified (behavioral check performed live; `test-integration`'s failure is the disclosed sandbox trap, not a doc defect) |
+| AGT-03 | Pending | ✅ Verified |
+| AGT-04 | Pending | ✅ Verified |
+| AGT-05 | Pending | ✅ Verified (mechanism correct; wrapped `/audit` invocation has a documented-but-broken command, filed as Fix Plan 1 — non-blocking, does not falsify the AC's literal text) |
+
+---
+
+### Summary
+
+**Overall**: ✅ Ready
+
+**Spec-anchored check**: 5/5 ACs covered with `file:line` evidence · 0 fail as written · 0 spec-precision gaps
+**Sensor (adapted)**: 3 silent-regression scenarios examined — 1 caught (broken `.claude/settings.json` JSON, verified live via biome) · 2 would ship silently (stale/wrong prose in `CLAUDE.md` or a command file — one of which is not hypothetical: it already happened, see Fix Plan 1)
+**Gate**: `make lint` ✅ (426 files, 0 errors, 4 pre-existing warnings) · `make typecheck` ✅ (24/24) · `make test-unit` ✅ (23/23) · `make test-integration` ❌ on the pre-existing, `CLAUDE.md`-disclosed sandbox limitation (not counted against AGT-02 per the verification brief) · `repo-tools run audit` ✅ (82/4/78, matches F6)
+
+**What works**: `CLAUDE.md` is genuinely sufficient on its own to get a fresh agent from a wrong-Node-version shell to green `lint`/`typecheck`/`test-unit` — every command in it was executed verbatim in this pass and behaved exactly as documented, including correctly disclosing its own known failure mode (`pg_lsclusters`/`redis-server` ENOENT) before that failure was even reproduced. The Node-22 restriction, `corepack enable` requirement, and the AD-008 Excalidraw-by-value ban are all stated explicitly with the right technical rationale. `.claude/settings.json` is tracked, valid, and carries both a real permission allowlist and a working `SessionStart` hook. `/gate` is fully accurate. The `4 + 78 = 82` numbers regenerated by `/audit`'s corrected form match F6's report exactly, confirming this wave did not silently disturb prior work.
+
+**Issues found**: `/audit`'s documented invocation (`CLAUDE.md:103`, `.claude/commands/audit.md:4,8`, `.claude/settings.json:22`) is broken — it needs `run` before `audit` to avoid colliding with pnpm's built-in `audit` command. Non-blocking (Fix Plan 1, Major). Two structural gaps, inherent to any prose/config-only onboarding artifact rather than specific to this wave's execution: nothing lints `CLAUDE.md`'s prose content, and nothing dry-runs slash-command bodies — both distilled as lessons below.
+
+**Next steps**: apply Fix Plan 1 (three-file, one-word-per-file change) in a follow-up commit; no re-verification round needed given its non-blocking severity and trivial fix. No other action required to close F7.
+

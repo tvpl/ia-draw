@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 22,
+  "next_id": 24,
   "lessons": [
     {
       "id": "L-001",
@@ -384,6 +384,42 @@
       ],
       "created": "2026-08-16T11:02:44Z",
       "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-022",
+      "key": "ac_gap::before documenting a workspace script invocation as pnpm filter pkg script in onboarding docs or slash commands run it verbatim once a script name that collides with one of pnpm s own built in commands audit add update list is silently intercepted unless invoked as pnpm filter pkg run script",
+      "text": "Before documenting a workspace script invocation as `pnpm --filter <pkg> <script>` in onboarding docs or slash commands, run it verbatim once — a script name that collides with one of pnpm's own built-in commands (audit, add, update, list, ...) is silently intercepted unless invoked as `pnpm --filter <pkg> run <script>`.",
+      "signal": "ac_gap",
+      "scope": "agent-onboarding",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AGT-05 / .claude/commands/audit.md:8 (agent-onboarding)"
+      ],
+      "created": "2026-08-16T11:39:04Z",
+      "last_seen": "2026-08-16T11:39:04Z"
+    },
+    {
+      "id": "L-023",
+      "key": "ac_gap::prose only onboarding artifacts claude md sections slash command bodies have no lint or ci surface over their content so a stale invariant or a broken documented command ships silently until a human or agent happens to run it treat any such command as untrusted until it has actually been executed not just read",
+      "text": "Prose-only onboarding artifacts (CLAUDE.md sections, slash-command bodies) have no lint or CI surface over their content, so a stale invariant or a broken documented command ships silently until a human or agent happens to run it — treat any such command as untrusted until it has actually been executed, not just read.",
+      "signal": "ac_gap",
+      "scope": "agent-onboarding",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "F7 discrimination sensor / CLAUDE.md, .claude/commands/*.md (agent-onboarding)"
+      ],
+      "created": "2026-08-16T11:39:04Z",
+      "last_seen": "2026-08-16T11:39:04Z"
     }
   ]
 }
