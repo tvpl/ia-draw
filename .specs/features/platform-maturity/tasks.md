@@ -560,9 +560,9 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] `.changeset/config.json` válido, `access: restricted`
-- [ ] `@changesets/cli` instalado como devDependency da raiz
-- [ ] `make lint` confirma JSON bem formado
+- [x] `.changeset/config.json` válido, `access: restricted`
+- [x] `@changesets/cli` instalado como devDependency da raiz
+- [x] `make lint` confirma JSON bem formado
 
 **Tests**: none
 **Gate**: build
