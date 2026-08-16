@@ -267,6 +267,12 @@ Mesmo padrão. **Tests: none**. **Gate: build**.
 **Requirement**: API-01 (cada task)
 **Done when** (cada task): idêntico ao bloco T5–T10.
 
+**T11 (`comment`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo (conferir contra `app.get/post/patch/put/delete` no arquivo) — 3 rotas (`POST`/`GET /diagrams/:id/comments`, `PATCH /diagrams/:id/comments/:commentId`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T17–T20: `routeSchemas` — lote 3 (Phase 2c)

@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -50,6 +51,16 @@ const patchBodySchema = z
   .refine((value) => value.status !== undefined || value.body !== undefined, {
     message: 'at least one of "status" or "body" must be provided',
   });
+
+/** OpenAPI schema map for this module's 3 routes (T11, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/comments': { params: diagramIdParamsSchema, body: createBodySchema },
+  'GET /diagrams/:id/comments': { params: diagramIdParamsSchema },
+  'PATCH /diagrams/:id/comments/:commentId': {
+    params: commentIdParamsSchema,
+    body: patchBodySchema,
+  },
+};
 
 /**
  * Registers the comment module's routes (T69, CMT-01/02): threaded
