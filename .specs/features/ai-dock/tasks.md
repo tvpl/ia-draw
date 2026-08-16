@@ -95,7 +95,7 @@ T7 → T9
 
 ---
 
-### T2: Add `onSelectionChange` to `EditorSurface`
+### T2: Add `onSelectionChange` to `EditorSurface` — DONE
 
 **What**: Extend `EditorSurfaceProps` with `onSelectionChange?: (ids: string[]) => void`, wired from Excalidraw's `onChange` second argument (`appState.selectedElementIds`).
 **Where**: `packages/editor-adapter/src/EditorSurface.tsx`
@@ -108,10 +108,10 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `onSelectionChange` prop added, called with the array of ids whose `selectedElementIds[id]` is truthy, on every `onChange` firing (even when `onDeltas` doesn't fire because there was no element delta — selection-only changes must still propagate)
-- [ ] Existing `initialElements`/`onDeltas` behavior unchanged (regression-checked by existing `EditorSurface` tests, if any, or added if none exist)
-- [ ] Unit test asserts `onSelectionChange` receives the correct id array from a mocked Excalidraw `onChange` call with a non-empty `selectedElementIds` map, and an empty array when nothing is selected
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
+- [x] `onSelectionChange` prop added, called with the array of ids whose `selectedElementIds[id]` is truthy, on every `onChange` firing (even when `onDeltas` doesn't fire because there was no element delta — selection-only changes must still propagate)
+- [x] Existing `initialElements`/`onDeltas` behavior unchanged (regression-checked by existing `EditorSurface` tests, if any, or added if none exist)
+- [x] Unit test asserts `onSelectionChange` receives the correct id array from a mocked Excalidraw `onChange` call with a non-empty `selectedElementIds` map, and an empty array when nothing is selected
+- [x] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
 
 **Tests**: unit
 **Gate**: quick

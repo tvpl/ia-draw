@@ -8,6 +8,8 @@ export interface EditorSurfaceProps {
   initialElements?: readonly SceneElement[];
   /** Called with the structured deltas (`ElementDelta[]`) since the last change, whenever the canvas mutates. */
   onDeltas?: (deltas: ElementDelta[]) => void;
+  /** Called with the ids of the currently-selected elements on every canvas change, including selection-only changes that produce no element delta. */
+  onSelectionChange?: (ids: string[]) => void;
 }
 
 /**
@@ -29,21 +31,30 @@ export interface EditorSurfaceProps {
  * app entry point (not re-exported here) — this package's own source only
  * ever imports the bare "." specifier, enforced by `no-internal-import.spec.ts`.
  */
-export function EditorSurface({ initialElements = [], onDeltas }: EditorSurfaceProps): JSX.Element {
+export function EditorSurface({
+  initialElements = [],
+  onDeltas,
+  onSelectionChange,
+}: EditorSurfaceProps): JSX.Element {
   const previousSceneRef = useRef(buildSceneIndex(initialElements));
 
   return (
     <Excalidraw
       // biome-ignore lint/suspicious/noExplicitAny: bridging SceneElement (this package's structural type) into Excalidraw's branded ExcalidrawInitialDataState without an internal subpath import — see the doc comment above.
       initialData={{ elements: initialElements as any }}
-      // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own onChange element type is branded and only importable via an internal subpath.
-      onChange={(elements: any) => {
+      // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own onChange element/appState types are branded and only importable via an internal subpath.
+      onChange={(elements: any, appState: any) => {
         const next = elements as unknown as readonly SceneElement[];
         const deltas = computeDiff(previousSceneRef.current, next);
         if (deltas.length > 0) {
           previousSceneRef.current = buildSceneIndex(next);
           onDeltas?.(deltas);
         }
+        // DOCK-03: selection propagates on every change, including selection-only
+        // changes that produce no element delta (the `if` above gates `onDeltas`,
+        // never this call).
+        const selectedElementIds = (appState?.selectedElementIds ?? {}) as Record<string, boolean>;
+        onSelectionChange?.(Object.keys(selectedElementIds).filter((id) => selectedElementIds[id]));
       }}
     />
   );

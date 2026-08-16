@@ -2,7 +2,7 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
-    include: ['src/**/*.spec.ts'],
+    include: ['src/**/*.spec.ts', 'src/**/*.spec.tsx'],
     // See packages/test-fixtures/vitest.config.ts for why both settings below are
     // required just to import @excalidraw/excalidraw's pure (non-UI) functions in Node.
     environment: 'jsdom',

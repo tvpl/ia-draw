@@ -23,3 +23,9 @@ if (typeof globalThis.FontFace === 'undefined') {
   // biome-ignore lint/suspicious/noExplicitAny: shimming a browser global not in the Node lib
   (globalThis as any).FontFace = FontFaceShim;
 }
+
+// React's `act()` (used by EditorSurface.spec.tsx to mount via react-dom/client directly,
+// since this package has no @testing-library/react dependency) otherwise warns that the
+// environment isn't configured for it — this flag is React's own documented opt-in.
+// biome-ignore lint/suspicious/noExplicitAny: React's own global testing flag, not typed in the DOM lib
+(globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
