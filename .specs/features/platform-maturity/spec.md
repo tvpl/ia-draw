@@ -44,6 +44,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | Como os squads são mapeados? | Ownership pela fronteira de pastas que já existe (módulos do server, packages, infra, web); nomes de time entram no `CODEOWNERS` quando os times existirem de fato | A estrutura do monorepo já é a fronteira real de domínio; inventar organograma antes do time seria ficção | n |
 | O que fazer com a afirmação "92/92 verificados"? | Reescrever como "92/92 com contrato de backend verificado por Verifier independente; superfície de produto rastreada à parte no mapa de capacidades" | Preserva o mérito real do trabalho entregue sem prometer uma UI que não existe | y |
 | Node 22 continua obrigatório? | Sim, permanece travado em 22.x e passa a ser verificado no onboarding agêntico | Node 24 quebra o `AbortSignal` cross-realm sob jsdom nos testes do `callProvider`; é armadilha conhecida e reprodutível | y |
+| CIQ-03 dizia "contra o stack real", mas o job roda o Playwright contra o `webServer` do próprio Playwright | AC emendada após a rodada 1 de verificação: exige servidores genuinamente em execução (nunca mocks) e delega a fidelidade do stack containerizado a CIQ-01/CIQ-02 | O valor que a AC buscava é "sem mocks", e isso o job entrega; apontar o Playwright ao compose custaria CI mais lento e frágil sem provar nada que CIQ-01/02 já não provem. Emenda aprovada explicitamente pelo usuário, registrada aqui em vez de silenciosa | y |
 
 **Open questions:** none — all resolved or logged above.
 
@@ -76,7 +77,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 **Acceptance Criteria**:
 1. WHEN o CI rodar em um pull request THEN ele SHALL subir o stack completo via `docker compose up --build` e falhar se qualquer serviço não atingir estado `healthy` dentro de 5 minutos.
 2. WHEN o stack estiver de pé no CI THEN ele SHALL requisitar `GET /health/ready` pela porta pública e falhar se a resposta não for HTTP 200 com `status` igual a `ok` e a dependência `postgres` em `up`.
-3. WHEN o CI rodar THEN ele SHALL executar a suíte Playwright de `apps/web` contra o stack real e falhar se qualquer teste falhar.
+3. WHEN o CI rodar THEN ele SHALL executar a suíte Playwright de `apps/web` contra servidores genuinamente em execução — API e frontend reais, nunca mocks nem respostas interceptadas — e falhar se qualquer teste falhar; a fidelidade do stack containerizado é coberta separadamente por CIQ-01 e CIQ-02.
 4. IF a cobertura de um package cair abaixo do piso declarado para aquele package THEN o CI SHALL falhar nomeando o package, o piso e o valor medido.
 5. WHEN um pull request for aberto THEN o CI SHALL validar cada mensagem de commit contra Conventional Commits e falhar identificando a primeira mensagem não conforme.
 6. IF o runner do CI não tiver daemon Docker disponível THEN o job de stack SHALL falhar explicitamente em vez de ser pulado como sucesso.
