@@ -170,6 +170,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)
 - last seen: 2026-08-16T17:46:09Z
 
+### L-027 - When an acceptance criterion has two clauses, assert both: the request emission is usually tested and the resulting state is usually skipped.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `web` · harmful: 0
+- features: ai-dock
+- evidence: DOCK-18, DOCK-14, DOCK-08, DOCK-04 (.specs/features/ai-dock/validation.md) (web)
+- last seen: 2026-08-16T21:47:52Z
+
+### L-028 - A generator that writes a committed artifact must run the repo formatter over its own output, or the next lint gate fails on a file nobody edited.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: ai-dock
+- evidence: .specs/features/ai-dock/validation.md Gate Check (docs/openapi.json format error, commit 9b1efae) (repo-tooling)
+- last seen: 2026-08-16T21:47:59Z
+
+### L-029 - When a criterion caps a visible list, state whether the remainder is rendered inside a scroll container or dropped — 'the rest reachable by scrolling' is not decidable against a slice.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `traceability` · harmful: 0
+- features: ai-dock
+- evidence: .specs/features/ai-dock/spec.md Edge Cases (>50 elements) vs apps/web/src/ai-dock/AiDock.tsx:160 (traceability)
+- last seen: 2026-08-16T21:47:59Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
