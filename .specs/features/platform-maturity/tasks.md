@@ -285,6 +285,12 @@ Mesmo padrão. **Tests: none**. **Gate: build**.
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T14 (`interop`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 2 rotas (`POST /projects/:id/import:format`, `POST /diagrams/:id/export:format`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T17–T20: `routeSchemas` — lote 3 (Phase 2c)

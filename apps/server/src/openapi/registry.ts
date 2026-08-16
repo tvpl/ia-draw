@@ -5,6 +5,7 @@ import { routeSchemas as commentRouteSchemas } from '../modules/comment/routes.j
 import { routeSchemas as diagramSyncRouteSchemas } from '../modules/diagram-sync/routes.js';
 import { routeSchemas as docgenRouteSchemas } from '../modules/docgen/routes.js';
 import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js';
+import { routeSchemas as interopRouteSchemas } from '../modules/interop/routes.js';
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
@@ -23,6 +24,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   'diagram-sync': diagramSyncRouteSchemas,
   docgen: docgenRouteSchemas,
   export: exportRouteSchemas,
+  interop: interopRouteSchemas,
   share: shareRouteSchemas,
   snapshot: snapshotRouteSchemas,
   workspace: workspaceRouteSchemas,

@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -63,6 +64,12 @@ function parseFormatParam(raw: string): InteropFormat {
     },
   );
 }
+
+/** OpenAPI schema map for this module's 2 routes (T14, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /projects/:id/import:format': { params: importParamsSchema, body: importBodySchema },
+  'POST /diagrams/:id/export:format': { params: exportParamsSchema },
+};
 
 /**
  * Registers the interop module's routes (T68, AAC-01/02): Mermaid/
