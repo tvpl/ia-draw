@@ -146,7 +146,7 @@ T7 → T9
 
 ---
 
-### T4: Add `aiDock` i18n keys (pt-BR, en)
+### T4: Add `aiDock` i18n keys (pt-BR, en) — DONE
 
 **What**: Add a new top-level `"aiDock": {...}` block to both locale files, covering every user-visible string the dock needs (labels, statuses, preview list headers, error messages incl. per-`errorCode` and a generic fallback that still interpolates the raw code, rate-limit message, aria-live announcements).
 **Where**: `apps/web/src/i18n/locales/en/translation.json`, `apps/web/src/i18n/locales/pt-BR/translation.json`
@@ -159,9 +159,9 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Both locale files have an identical key set under `aiDock` (no key present in one and missing in the other)
-- [ ] Includes at minimum: `aiDock.title`, `aiDock.requestLabel`, `aiDock.submit`, `aiDock.status.<phase>` per `AiDockPhase`, `aiDock.preview.{added,removed,moved,modified,metadataChanged}`, `aiDock.approve`, `aiDock.discard`, `aiDock.undo`, `aiDock.rateLimited`, `aiDock.conflict`, `aiDock.error.no_provider_configured`, `aiDock.error.unknown` (interpolates `{{code}}`), `aiDock.sensitiveChange`
-- [ ] `make lint` passes (JSON validity + formatting)
+- [x] Both locale files have an identical key set under `aiDock` (no key present in one and missing in the other)
+- [x] Includes at minimum: `aiDock.title`, `aiDock.requestLabel`, `aiDock.submit`, `aiDock.status.<phase>` per `AiDockPhase`, `aiDock.preview.{added,removed,moved,modified,metadataChanged}`, `aiDock.approve`, `aiDock.discard`, `aiDock.undo`, `aiDock.rateLimited`, `aiDock.conflict`, `aiDock.error.no_provider_configured`, `aiDock.error.unknown` (interpolates `{{code}}`), `aiDock.sensitiveChange`
+- [x] `make lint` passes (JSON validity + formatting)
 
 **Tests**: none (build gate only, per matrix)
 **Gate**: quick (`make lint`)

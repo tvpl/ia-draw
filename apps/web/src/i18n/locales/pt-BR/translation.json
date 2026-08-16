@@ -14,5 +14,38 @@
     "offline": "Offline — {{count}} alterações pendentes",
     "conflict": "Conflito",
     "readOnly": "Somente leitura"
+  },
+  "aiDock": {
+    "title": "Dock de IA",
+    "requestLabel": "Descreva o que você quer mudar",
+    "submit": "Enviar",
+    "status": {
+      "idle": "Ocioso",
+      "submitting": "Enviando pedido…",
+      "awaiting_approval": "Aguardando sua aprovação",
+      "approving": "Aplicando…",
+      "applied": "Aplicado",
+      "restoring": "Desfazendo…",
+      "error": "Algo deu errado",
+      "rate_limited": "Limite de pedidos atingido",
+      "expired": "Esta proposta expirou — envie um novo pedido"
+    },
+    "preview": {
+      "added": "Adicionados ({{count}})",
+      "removed": "Removidos ({{count}})",
+      "moved": "Movidos ({{count}})",
+      "modified": "Modificados ({{count}})",
+      "metadataChanged": "Metadados alterados ({{count}})"
+    },
+    "approve": "Aprovar",
+    "discard": "Descartar",
+    "undo": "Desfazer",
+    "rateLimited": "Limite de 20 pedidos por minuto atingido. Tente de novo em 60 segundos.",
+    "conflict": "O diagrama mudou desde o seu pedido. Envie de novo para tentar outra vez.",
+    "error": {
+      "no_provider_configured": "Nenhum provider de IA está configurado. Isso é feito fora do produto hoje.",
+      "unknown": "Erro: {{code}}"
+    },
+    "sensitiveChange": "Mudança sensível — revise com atenção antes de aprovar"
   }
 }

@@ -14,5 +14,38 @@
     "offline": "Offline — {{count}} pending changes",
     "conflict": "Conflict",
     "readOnly": "Read only"
+  },
+  "aiDock": {
+    "title": "AI dock",
+    "requestLabel": "Describe what you want to change",
+    "submit": "Send",
+    "status": {
+      "idle": "Idle",
+      "submitting": "Sending request…",
+      "awaiting_approval": "Awaiting your approval",
+      "approving": "Applying…",
+      "applied": "Applied",
+      "restoring": "Undoing…",
+      "error": "Something went wrong",
+      "rate_limited": "Rate limit reached",
+      "expired": "This proposal expired — send a new request"
+    },
+    "preview": {
+      "added": "Added ({{count}})",
+      "removed": "Removed ({{count}})",
+      "moved": "Moved ({{count}})",
+      "modified": "Modified ({{count}})",
+      "metadataChanged": "Metadata changed ({{count}})"
+    },
+    "approve": "Approve",
+    "discard": "Discard",
+    "undo": "Undo",
+    "rateLimited": "Limit of 20 requests per minute reached. Try again in 60 seconds.",
+    "conflict": "The diagram changed since your request. Send it again to try once more.",
+    "error": {
+      "no_provider_configured": "No AI provider is configured. This is set up outside the product today.",
+      "unknown": "Error: {{code}}"
+    },
+    "sensitiveChange": "Sensitive change — review carefully before approving"
   }
 }
