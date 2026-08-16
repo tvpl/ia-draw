@@ -417,12 +417,26 @@ T16 → T17
 
 **Done when**:
 
-- [ ] O job sobe o stack via `docker compose up --build` e falha se qualquer serviço não atingir `healthy` em 5 minutos
-- [ ] Requisita `GET /health/ready` pela porta pública e falha se a resposta não for 200 com `status` igual a `ok` e `postgres` em `up`
-- [ ] Ausência de daemon Docker falha o job explicitamente em vez de ser reportada como sucesso
-- [ ] Os logs dos containers são publicados como artefato quando o job falha, para diagnóstico sem reproduzir
-- [ ] Sensor de discriminação: reverter localmente o `apk add` de dependências nativas do `canvas` em `infra/compose/server.Dockerfile` faz o job falhar; reverter o `127.0.0.1` do healthcheck em `web.Dockerfile` faz o job falhar; ambas as reversões são desfeitas ao final
-- [ ] Gate check passa: `make ci`
+- [x] O job sobe o stack via `docker compose up --build` e falha se qualquer serviço não atingir `healthy` em 5 minutos
+- [x] Requisita `GET /health/ready` pela porta pública e falha se a resposta não for 200 com `status` igual a `ok` e `postgres` em `up`
+- [x] Ausência de daemon Docker falha o job explicitamente em vez de ser reportada como sucesso
+- [x] Os logs dos containers são publicados como artefato quando o job falha, para diagnóstico sem reproduzir
+- [x] Sensor de discriminação: reverter localmente o `apk add` de dependências nativas do `canvas` em `infra/compose/server.Dockerfile` faz o job falhar; reverter o `127.0.0.1` do healthcheck em `web.Dockerfile` faz o job falhar; ambas as reversões são desfeitas ao final
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+> **O stack subiu de verdade nesta máquina.** Os blocos `run` do job foram extraídos do YAML e executados como shell contra o daemon Docker real (Compose v5.1.0). Resultado do caminho feliz: os 8 serviços sobem, `migrate` e `minio-init` saem 0, e `GET http://localhost:8080/health/ready` responde `HTTP 200` com `{"status":"ok","dependencies":[{"name":"postgres","status":"up"}]}` — as três asserções da CIQ-02 batem com o corpo real, não com um corpo suposto.
+>
+> **Armadilha encontrada e corrigida: `--wait` não convive com job one-shot.** A primeira versão usava `docker compose up --build -d --wait --wait-timeout 300` e falhou com `container arch-canvas-minio-init-1 exited (0)` mesmo com o stack inteiro saudável — `--wait` trata container que terminou como falha. A forma final separa as três responsabilidades: `docker compose build` (fora do orçamento de saúde), `timeout 300 docker compose up -d` (é o `timeout` que transforma serviço que nunca fica saudável em job vermelho em vez de job pendurado, porque o `up` espera `depends_on` indefinidamente) e um `--wait` final restrito aos serviços de longa duração, que é o único jeito de provar `redis` — o `server` o declara como `service_started`, não `service_healthy`.
+>
+> **Sensor de discriminação — duas quebras, as duas pegas:**
+> 1. Removido o `RUN apk add --no-cache python3 make g++ ... cairo-dev ...` do estágio installer de `server.Dockerfile`: o job sai 1 no build, com `gyp ERR! Could not find any Python installation to use` no `canvas@3.2.3` e `failed to solve: process "/bin/sh -c pnpm install --frozen-lockfile" did not complete successfully`.
+> 2. Trocado `http://127.0.0.1/` por `http://localhost/` no HEALTHCHECK de `web.Dockerfile`: o job sai 1 em 55 segundos com `dependency failed to start: container arch-canvas-web-1 is unhealthy`; `proxy` fica em `Created` e o passo de asserção de saúde nem chega a rodar. O próprio compose desiste quando o healthcheck esgota as tentativas, antes do `timeout 300`.
+>
+> As duas reversões foram desfeitas com `git checkout HEAD --` apontando só para o arquivo quebrado, e `git status --porcelain` voltou a mostrar apenas `.github/workflows/ci.yaml`.
+>
+> **Não verificável localmente:** `actions/upload-artifact@v4` publicando `compose-diagnostics.txt`, o comportamento de `if: failure()`, e o fato de o runner Linux ter `timeout` (coreutils) — nesta máquina macOS não existe `timeout`, e a reprodução usou um substituto com o mesmo contrato (mata o filho, sai 124). O passo "Require a Docker daemon" também só é exercitado de verdade num runner sem Docker; aqui ele passa porque o daemon existe.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
