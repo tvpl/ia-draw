@@ -1,9 +1,10 @@
 import { can } from '@arch-canvas/auth';
-import { parseOperationEnvelope } from '@arch-canvas/diagram-domain';
+import { operationEnvelopeSchema, parseOperationEnvelope } from '@arch-canvas/diagram-domain';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
@@ -37,6 +38,16 @@ function forbidden(): never {
 
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
 const catchupQuerySchema = z.object({ afterSequence: z.coerce.number().int().nonnegative() });
+
+/** OpenAPI schema map for this module's 3 routes (T12, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /diagrams/:id/bootstrap': { params: diagramIdParamsSchema },
+  'POST /diagrams/:id/operations:batch': {
+    params: diagramIdParamsSchema,
+    body: operationEnvelopeSchema,
+  },
+  'GET /diagrams/:id/operations': { params: diagramIdParamsSchema, query: catchupQuerySchema },
+};
 
 /** Registers the diagram-sync module's routes — the server-first persistence core (T21). */
 export function registerDiagramSyncModule(app: FastifyInstance, deps: DiagramSyncModuleDeps): void {

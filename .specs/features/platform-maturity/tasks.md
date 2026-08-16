@@ -273,6 +273,12 @@ Mesmo padrão. **Tests: none**. **Gate: build**.
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T12 (`diagram-sync`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 3 rotas (`GET /diagrams/:id/bootstrap`, `POST /diagrams/:id/operations:batch`, `GET /diagrams/:id/operations`); o body de `operations:batch` reusa `operationEnvelopeSchema` (`@arch-canvas/diagram-domain`), o mesmo schema Zod que `parseOperationEnvelope` já valida contra
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T17–T20: `routeSchemas` — lote 3 (Phase 2c)
