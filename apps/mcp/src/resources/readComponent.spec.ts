@@ -1,6 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import type { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
+import type {
+  ServerNotification,
+  ServerRequest,
+  TextResourceContents,
+} from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it, vi } from 'vitest';
 import { McpApiError, McpClient } from '../client.js';
 import { UNTRUSTED_CONTENT_DISCLAIMER } from '../untrustedContent.js';
@@ -22,7 +26,15 @@ const noExtra = {} as unknown as RequestHandlerExtra<ServerRequest, ServerNotifi
 describe('registerReadComponentResource (MCP-03, MCP-06)', () => {
   it('returns metadata plus inbound/outbound relations for a resolved stableKey', async () => {
     const body = {
-      metadata: [{ diagramId: 'diagram-1', elementId: 'n1', semanticType: null, metadataJson: {}, revision: 1 }],
+      metadata: [
+        {
+          diagramId: 'diagram-1',
+          elementId: 'n1',
+          semanticType: null,
+          metadataJson: {},
+          revision: 1,
+        },
+      ],
       inbound: [{ from: 'n0', to: 'n1', label: null }],
       outbound: [],
     };
@@ -37,7 +49,7 @@ describe('registerReadComponentResource (MCP-03, MCP-06)', () => {
       noExtra,
     );
 
-    const [, jsonEntry] = result.contents;
+    const [, jsonEntry] = result.contents as [TextResourceContents, TextResourceContents];
     expect(JSON.parse(jsonEntry.text as string)).toEqual(body);
     expect(fetchImpl).toHaveBeenCalledWith(
       'https://api.example.test/diagrams/diagram-1/components/generic.compute.server',
@@ -58,7 +70,7 @@ describe('registerReadComponentResource (MCP-03, MCP-06)', () => {
       noExtra,
     );
 
-    const [disclaimerEntry] = result.contents;
+    const [disclaimerEntry] = result.contents as [TextResourceContents, TextResourceContents];
     expect(disclaimerEntry.text).toBe(UNTRUSTED_CONTENT_DISCLAIMER);
     expect(disclaimerEntry.mimeType).toBe('text/plain');
   });

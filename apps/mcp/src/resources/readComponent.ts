@@ -1,7 +1,7 @@
 import {
-  ResourceTemplate,
   type McpServer,
   type RegisteredResourceTemplate,
+  ResourceTemplate,
 } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { McpClient } from '../client.js';
 import { wrapUntrustedResourceContent } from '../untrustedContent.js';

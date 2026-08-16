@@ -1,6 +1,10 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { RequestHandlerExtra } from '@modelcontextprotocol/sdk/shared/protocol.js';
-import type { ServerNotification, ServerRequest } from '@modelcontextprotocol/sdk/types.js';
+import type {
+  ServerNotification,
+  ServerRequest,
+  TextResourceContents,
+} from '@modelcontextprotocol/sdk/types.js';
 import { describe, expect, it, vi } from 'vitest';
 import { McpClient } from '../client.js';
 import { UNTRUSTED_CONTENT_DISCLAIMER } from '../untrustedContent.js';
@@ -39,7 +43,10 @@ describe('registerReadDiagramResource (MCP-01, MCP-02, MCP-06)', () => {
       noExtra,
     );
 
-    const [disclaimerEntry, jsonEntry] = result.contents;
+    const [disclaimerEntry, jsonEntry] = result.contents as [
+      TextResourceContents,
+      TextResourceContents,
+    ];
     expect(jsonEntry.mimeType).toBe('application/json');
     expect(JSON.parse(jsonEntry.text as string)).toEqual(document);
     expect(disclaimerEntry.text).not.toContain('user-authored node label');
@@ -62,7 +69,7 @@ describe('registerReadDiagramResource (MCP-01, MCP-02, MCP-06)', () => {
       noExtra,
     );
 
-    const [disclaimerEntry] = result.contents;
+    const [disclaimerEntry] = result.contents as [TextResourceContents, TextResourceContents];
     expect(disclaimerEntry.text).toBe(UNTRUSTED_CONTENT_DISCLAIMER);
     expect(disclaimerEntry.mimeType).toBe('text/plain');
   });

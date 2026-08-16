@@ -390,9 +390,21 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] `pnpm --filter @arch-canvas/mcp run build && node dist/cli.js` sobe sem erro (verificado manualmente, com `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` de teste — stdio não é algo que se automatize fácil num teste unitário, verificação manual documentada aqui em vez de fingida)
-- [ ] `make lint && make typecheck` limpos
-- [ ] Gate check passes: build
+- [x] `pnpm --filter @arch-canvas/mcp run build && node dist/cli.js` sobe sem erro (verificado manualmente, com `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` de teste — stdio não é algo que se automatize fácil num teste unitário, verificação manual documentada aqui em vez de fingida)
+- [x] `make lint && make typecheck` limpos
+- [x] Gate check passes: build
+
+  Verificação manual: com stdin fechado (`< /dev/null`) o processo sai limpo (EOF no stdin encerra o
+  transporte, comportamento esperado de um servidor stdio, não um crash — sem stderr). Com stdin
+  mantido aberto (pipe nomeado, simulando como um cliente MCP real invoca o processo) o servidor
+  ficou de pé por 2s sem erro e foi encerrado manualmente — a URL falsa (`http://localhost:1`) nunca
+  chega a ser usada porque nenhum resource foi invocado nesta verificação.
+
+  SPEC_DEVIATION: `vitest.config.ts` ganhou `coverage.exclude: [...coverageConfigDefaults.exclude,
+  'src/cli.ts']` — sem essa exclusão o `test:unit` de T11/T12/T15 quebraria (linhas reais e não
+  triviais em `cli.ts`, ao contrário do `index.ts` vazio, derrubam a média agregada de 100%). Efeito
+  necessário e mínimo de introduzir `cli.ts` neste commit, coerente com a própria Test Coverage
+  Matrix da task ("build gate only... verificado manualmente").
 
 **Tests**: none
 **Gate**: build
