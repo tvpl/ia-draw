@@ -291,6 +291,12 @@ Mesmo padrão. **Tests: none**. **Gate: build**.
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T15 (`library`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo — 4 rotas (`GET /libraries`, `GET`/`PATCH /diagrams/:id/elements/:elementId/metadata`, `GET /diagrams/:id/inventory`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T17–T20: `routeSchemas` — lote 3 (Phase 2c)
