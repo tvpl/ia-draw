@@ -71,6 +71,85 @@ describe('checkCapabilityMap (TRU-02, TRU-03)', () => {
     expect(violations[0]?.problem).toContain('apps/web/src');
   });
 
+  it('fails naming the entry when ui_surface is a file that exists but is not a component', () => {
+    // The exact mutation that survived round 1 (validation.md, M6): an existing
+    // file under apps/web/src that is not a surface for anything.
+    const root = fakeRepo(['apps/web/src/i18n/locales/en/translation.json']);
+
+    const violations = checkCapabilityMap(
+      {
+        capabilities: [
+          {
+            capability: 'Recuperação após crash do navegador',
+            requirements: ['REC-01'],
+            backend_evidence: 'apps/server/src/modules/diagram-sync/routes.ts',
+            ui_surface: 'apps/web/src/i18n/locales/en/translation.json',
+          },
+        ],
+      },
+      root,
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.entry).toBe('Recuperação após crash do navegador');
+    expect(violations[0]?.problem).toContain('apps/web/src/i18n/locales/en/translation.json');
+    expect(violations[0]?.problem).toContain('not a UI component module');
+  });
+
+  it('rejects a locale file even when it carries a module extension', () => {
+    const root = fakeRepo(['apps/web/src/i18n/locales/pt-BR/translation.ts']);
+
+    const violations = checkCapabilityMap(
+      {
+        capabilities: [
+          {
+            capability: 'Idioma da interface',
+            requirements: ['A11Y-01'],
+            backend_evidence: 'apps/server/src/core/server.ts',
+            ui_surface: 'apps/web/src/i18n/locales/pt-BR/translation.ts',
+          },
+        ],
+      },
+      root,
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.entry).toBe('Idioma da interface');
+    expect(violations[0]?.problem).toContain('not a UI component module');
+  });
+
+  it('rejects a test file and a type declaration as a declared surface', () => {
+    const root = fakeRepo(['apps/web/src/sync/syncClient.spec.ts', 'apps/web/src/vite-env.d.ts']);
+
+    const violations = checkCapabilityMap(
+      {
+        capabilities: [
+          {
+            capability: 'Fila de mutações',
+            requirements: ['REC-02'],
+            backend_evidence: 'apps/server/src/modules/diagram-sync/routes.ts',
+            ui_surface: 'apps/web/src/sync/syncClient.spec.ts',
+          },
+          {
+            capability: 'Tipos do bundler',
+            requirements: ['FND-01'],
+            backend_evidence: 'apps/server/src/core/server.ts',
+            ui_surface: 'apps/web/src/vite-env.d.ts',
+          },
+        ],
+      },
+      root,
+    );
+
+    expect(violations.map((violation) => violation.entry)).toEqual([
+      'Fila de mutações',
+      'Tipos do bundler',
+    ]);
+    expect(
+      violations.every((violation) => violation.problem.includes('not a UI component module')),
+    ).toBe(true);
+  });
+
   it('fails when an entry has a null ui_surface without status backend-only', () => {
     const root = fakeRepo([]);
 

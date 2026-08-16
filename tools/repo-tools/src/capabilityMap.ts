@@ -13,6 +13,27 @@ const REQUIRED_FIELDS = ['capability', 'requirements', 'backend_evidence', 'ui_s
 /** Every UI surface must live here — a claim pointing anywhere else is not a product surface. */
 const UI_ROOT = 'apps/web/src';
 
+/** Directory segment holding translation catalogues — data the UI reads, never a surface. */
+const LOCALES_SEGMENT = 'locales';
+
+/**
+ * A declared surface has to be a UI component module, not just any file that
+ * happens to exist under `apps/web/src`. Existence alone is not evidence: a
+ * capability repointed at a translation catalogue kept the audit green in
+ * round 1 (validation.md, mutant M6). Accepted: `.ts`/`.tsx` source modules.
+ * Rejected: every other extension, type declarations, test files, and anything
+ * inside a `locales/` directory.
+ */
+function isComponentModule(surface: string): boolean {
+  const fileName = surface.split('/').pop() ?? '';
+
+  if (!fileName.endsWith('.ts') && !fileName.endsWith('.tsx')) return false;
+  if (fileName.endsWith('.d.ts')) return false;
+  if (/\.(spec|test)\.tsx?$/.test(fileName)) return false;
+
+  return !surface.split('/').includes(LOCALES_SEGMENT);
+}
+
 /**
  * Validates the capability map against the code it describes (TRU-02, TRU-03).
  * Returns one violation per problem found; an empty array means the map holds.
@@ -63,6 +84,14 @@ export function checkCapabilityMap(map: unknown, sourceRoot: string): Capability
       violations.push({
         entry: entryLabel,
         problem: `ui_surface \`${surface}\` is not under ${UI_ROOT}`,
+      });
+      return;
+    }
+
+    if (!isComponentModule(surface)) {
+      violations.push({
+        entry: entryLabel,
+        problem: `ui_surface \`${surface}\` is not a UI component module`,
       });
       return;
     }

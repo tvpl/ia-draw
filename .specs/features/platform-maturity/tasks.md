@@ -772,14 +772,23 @@ T22  (independente)
 
 **Done when**:
 
-- [ ] Uma entrada cuja `ui_surface` existe em disco sob `apps/web/src` mas não é módulo de componente (por exemplo `apps/web/src/i18n/locales/en/translation.json`) é reportada como violação nomeando a entrada e o caminho
-- [ ] Arquivos de locale continuam rejeitados mesmo com extensão de módulo
-- [ ] Arquivos de teste (`*.spec.ts`, `*.spec.tsx`) e declarações (`*.d.ts`) não contam como superfície
-- [ ] As superfícies reais hoje declaradas em `docs/capability-map.yaml` continuam aceitas — a checagem contra o mapa real segue sem violação
-- [ ] Mutante M6 do `validation.md` morre: repontar `Recuperação após crash do navegador` para `apps/web/src/i18n/locales/en/translation.json` faz a suíte falhar
-- [ ] Gate check passa: `make test-unit`
+- [x] Uma entrada cuja `ui_surface` existe em disco sob `apps/web/src` mas não é módulo de componente (por exemplo `apps/web/src/i18n/locales/en/translation.json`) é reportada como violação nomeando a entrada e o caminho
+- [x] Arquivos de locale continuam rejeitados mesmo com extensão de módulo
+- [x] Arquivos de teste (`*.spec.ts`, `*.spec.tsx`) e declarações (`*.d.ts`) não contam como superfície
+- [x] As superfícies reais hoje declaradas em `docs/capability-map.yaml` continuam aceitas — a checagem contra o mapa real segue sem violação
+- [x] Mutante M6 do `validation.md` morre: repontar `Recuperação após crash do navegador` para `apps/web/src/i18n/locales/en/translation.json` faz a suíte falhar
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 10 testes passam em `capabilityMap.spec.ts`, 37 no package (era 7 e 34) — sem deleção silenciosa
 
-**Status**: ⬜ Pending
+> **Existir não é ser superfície.** A checagem antiga aceitava qualquer caminho que existisse sob `apps/web/src`; `isComponentModule` passa a exigir uma propriedade que só o arquivo certo tem: módulo `.ts`/`.tsx`, fora de `locales/`, e nem declaração de tipo (`*.d.ts`) nem arquivo de teste (`*.spec.tsx?`, `*.test.tsx?`). Extensão de asset — JSON, CSS, imagem — cai fora por definição.
+>
+> **Sensor: M6 morre.** `checkCapabilityMap` rodado contra o `docs/capability-map.yaml` real devolve `[]`; com `Recuperação após crash do navegador` repontada em memória para `apps/web/src/i18n/locales/en/translation.json` devolve `[{"entry":"Recuperação após crash do navegador","problem":"ui_surface \`apps/web/src/i18n/locales/en/translation.json\` is not a UI component module"}]`. A mutação foi feita no objeto já parseado, então o arquivo em disco nunca foi alterado.
+>
+> **As 4 superfícies reais continuam aceitas** — `DiagramEditorPage.tsx` (×2), `syncClient.ts` e `AppShell.tsx` passam pelo predicado; a checagem contra o mapa real segue sem violação.
+>
+> **Limite declarado.** O portão prova que a superfície é um módulo de componente, não que aquele módulo implementa *aquela* capacidade. Amarrar a capacidade ao símbolo exigiria grafo de import a partir de `App.tsx`, que é escopo maior que esta rodada de correção.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick
