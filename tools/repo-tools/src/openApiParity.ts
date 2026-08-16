@@ -91,7 +91,9 @@ export function checkOpenApiParity(sourceRoot: string): OpenApiParityViolation[]
   }
 
   const realRoutes = extractServerRoutes(sourceRoot);
-  const realKeys = new Set(realRoutes.map((route) => `${route.method} ${toOpenApiPath(route.path)}`));
+  const realKeys = new Set(
+    realRoutes.map((route) => `${route.method} ${toOpenApiPath(route.path)}`),
+  );
 
   const violations: OpenApiParityViolation[] = [];
 

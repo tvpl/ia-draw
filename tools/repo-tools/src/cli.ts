@@ -134,8 +134,7 @@ export function runAudit(sourceRoot: string): AuditResult {
   }
 
   return {
-    exitCode:
-      violations.length + floorViolations.length + openApiViolations.length > 0 ? 1 : 0,
+    exitCode: violations.length + floorViolations.length + openApiViolations.length > 0 ? 1 : 0,
     output,
   };
 }
