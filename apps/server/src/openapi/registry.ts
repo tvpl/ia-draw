@@ -2,6 +2,7 @@ import { routeSchemas as aiProviderRouteSchemas } from '../modules/ai-provider/r
 import { routeSchemas as assetRouteSchemas } from '../modules/asset/routes.js';
 import { routeSchemas as authRouteSchemas } from '../modules/auth/routes.js';
 import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js';
+import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
 import type { RouteSchemaMap } from './types.js';
@@ -16,6 +17,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   asset: assetRouteSchemas,
   auth: authRouteSchemas,
   export: exportRouteSchemas,
+  share: shareRouteSchemas,
   snapshot: snapshotRouteSchemas,
   workspace: workspaceRouteSchemas,
 };

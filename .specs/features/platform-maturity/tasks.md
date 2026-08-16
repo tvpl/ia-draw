@@ -234,6 +234,13 @@ Mesmo padrão de T3 (export `routeSchemas` apontando pros schemas Zod já existe
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T10 (`share`)**:
+- [x] `routeSchemas` cobre as 4 rotas reais do módulo (criar share-link p/ diagrama, p/ apresentação, resolver token, revogar)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+- Nota: `createShareLinkBodySchema` usa `z.coerce.date()`, que `z.toJSONSchema()` não representa por padrão (lança erro) — corrigido em `buildDocument.ts` (T2) com `unrepresentable: 'any'`, commit separado antes deste.
+
 ---
 
 ### T11–T16: `routeSchemas` — lote 2 (Phase 2b)
