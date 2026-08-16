@@ -331,6 +331,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T19 (`ws-gateway`)**:
+- [x] `routeSchemas` cobre a única rota real do módulo — `GET /ws/diagrams/:diagramId`, usando `{ websocket: true }` (não um schema JSON inventado)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo a rota deste módulo (só `description`, sem `requestBody`/`responses`), sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)

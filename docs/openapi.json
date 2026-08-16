@@ -2084,6 +2084,11 @@
           }
         }
       }
+    },
+    "/ws/diagrams/{diagramId}": {
+      "get": {
+        "description": "WebSocket upgrade route (not a JSON request/response endpoint)"
+      }
     }
   }
 }
