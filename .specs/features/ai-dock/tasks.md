@@ -236,16 +236,16 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders nothing (`return null`) when `canMutate` is `false` — not even disabled (DOCK-02)
-- [ ] Request field present in the DOM and keyboard-reachable when `canMutate` is `true` (DOCK-01)
-- [ ] Submit disabled while a run is in flight; blank/whitespace-only text never triggers a submit (Edge Case)
-- [ ] Preview renders all 5 lists with counts; `removed` rendered before the other three whenever non-empty (DOCK-07); list capped to 50 visible items with a total count and the rest reachable by scroll (Edge Case)
-- [ ] Exactly two terminal actions offered for `awaiting_approval`: approve, discard (DOCK-11); approve always requires the click regardless of `requiresExplicitApproval` (DOCK-12); sensitive-change marker shown next to approve when `requiresExplicitApproval` is `true` (DOCK-16)
-- [ ] On approve success, calls the `onApproved` prop (design.md's callback into `DiagramEditorPage`) — never touches canvas state directly
-- [ ] Undo offered only for the run applied most recently in the current session (DOCK-20)
-- [ ] `aria-live="polite"` region announces every phase transition (DOCK-22); all visible text sourced from i18n keys, verified with both locales in the test (DOCK-23)
-- [ ] Unit tests (RTL) cover: hidden without `canMutate`; full happy path (submit → preview → approve); discard path; 409-on-approve path (preview cleared, text preserved); 429 path (message shown, text preserved, re-enabled after the mocked 60s); undo path; expired-run edge case; provider-not-configured edge case
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Renders nothing (`return null`) when `canMutate` is `false` — not even disabled (DOCK-02)
+- [x] Request field present in the DOM and keyboard-reachable when `canMutate` is `true` (DOCK-01)
+- [x] Submit disabled while a run is in flight; blank/whitespace-only text never triggers a submit (Edge Case)
+- [x] Preview renders all 5 lists with counts; `removed` rendered before the other three whenever non-empty (DOCK-07); list capped to 50 visible items with a total count and the rest reachable by scroll (Edge Case)
+- [x] Exactly two terminal actions offered for `awaiting_approval`: approve, discard (DOCK-11); approve always requires the click regardless of `requiresExplicitApproval` (DOCK-12); sensitive-change marker shown next to approve when `requiresExplicitApproval` is `true` (DOCK-16)
+- [x] On approve success, calls the `onApproved` prop (design.md's callback into `DiagramEditorPage`) — never touches canvas state directly
+- [x] Undo offered only for the run applied most recently in the current session (DOCK-20)
+- [x] `aria-live="polite"` region announces every phase transition (DOCK-22); all visible text sourced from i18n keys, verified with both locales in the test (DOCK-23)
+- [x] Unit tests (RTL) cover: hidden without `canMutate`; full happy path (submit → preview → approve); discard path; 409-on-approve path (preview cleared, text preserved); 429 path (message shown, text preserved, re-enabled after the mocked 60s); undo path; expired-run edge case; provider-not-configured edge case
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
