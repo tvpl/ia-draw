@@ -10,6 +10,7 @@ import { routeSchemas as exportRouteSchemas } from '../modules/export/routes.js'
 import { routeSchemas as interopRouteSchemas } from '../modules/interop/routes.js';
 import { routeSchemas as libraryRouteSchemas } from '../modules/library/routes.js';
 import { routeSchemas as lintRouteSchemas } from '../modules/lint/routes.js';
+import { routeSchemas as mcpRouteSchemas } from '../modules/mcp/routes.js';
 import { routeSchemas as presentationPublishRouteSchemas } from '../modules/presentation/publishRoutes.js';
 import { routeSchemas as presentationRouteSchemas } from '../modules/presentation/routes.js';
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
@@ -38,6 +39,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   interop: interopRouteSchemas,
   library: libraryRouteSchemas,
   lint: lintRouteSchemas,
+  mcp: mcpRouteSchemas,
   presentation: presentationRouteSchemas,
   'presentation-publish': presentationPublishRouteSchemas,
   share: shareRouteSchemas,

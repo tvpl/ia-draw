@@ -100,10 +100,14 @@ const mcpPatchBodySchema = z.object({
 });
 
 /**
- * OpenAPI schema map for this module's routes (API-01 convention) — not
- * yet wired into `openapi/registry.ts` (T8's job, along with registering
- * this module in `registerAllModules`; this batch only builds the module
- * itself, not its wiring).
+ * OpenAPI schema map for this module's routes (API-01 convention), wired
+ * into `openapi/registry.ts` under the `mcp` key. `POST
+ * /diagrams/:id/mcp-patch` is included even though it's only ever
+ * registered when `MCP_WRITE_ENABLED=true` (T14) — the documented contract
+ * covers the route's shape regardless of the flag; `checkOpenApiParity`
+ * (F8, API-02) only cross-checks routes that exist in the current process's
+ * registered set, so a doc entry for a flag-gated route is never flagged
+ * as orphaned when the flag is off.
  */
 export const routeSchemas: RouteSchemaMap = {
   'POST /workspaces/:id/mcp-tokens': {
@@ -114,6 +118,7 @@ export const routeSchemas: RouteSchemaMap = {
   'GET /workspaces/:id/diagrams': { params: workspaceIdParamsSchema },
   'GET /diagrams/:id/ir': { params: diagramIdParamsSchema },
   'GET /diagrams/:id/components/:stableKey': { params: componentParamsSchema },
+  'POST /diagrams/:id/mcp-patch': { params: diagramIdParamsSchema, body: mcpPatchBodySchema },
 };
 
 /** Never includes `tokenHash` — same one-shot-reveal discipline as `share/routes.ts`'s `toPublicShareLink`. */

@@ -2,9 +2,9 @@
 
 Gerado por `repo-tools audit`. Não editar à mão.
 
-- Rotas registradas: 82
+- Rotas registradas: 88
 - Com consumidor de UI (`consumed`): 4
-- Pendentes de produto (`pending-product`): 78
+- Pendentes de produto (`pending-product`): 84
 - Consumidores órfãos (`orphan-consumer`): 0
 
 ## consumed (4)
@@ -16,7 +16,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 
-## pending-product (78)
+## pending-product (84)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -54,6 +54,12 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/diagrams/:id/elements/:elementId/metadata` | `apps/server/src/modules/library/routes.ts` |
 | GET | `/diagrams/:id/inventory` | `apps/server/src/modules/library/routes.ts` |
 | GET | `/diagrams/:id/lint` | `apps/server/src/modules/lint/routes.ts` |
+| POST | `/workspaces/:id/mcp-tokens` | `apps/server/src/modules/mcp/routes.ts` |
+| DELETE | `/mcp-tokens/:id` | `apps/server/src/modules/mcp/routes.ts` |
+| GET | `/workspaces/:id/diagrams` | `apps/server/src/modules/mcp/routes.ts` |
+| GET | `/diagrams/:id/ir` | `apps/server/src/modules/mcp/routes.ts` |
+| GET | `/diagrams/:id/components/:stableKey` | `apps/server/src/modules/mcp/routes.ts` |
+| POST | `/diagrams/:id/mcp-patch` | `apps/server/src/modules/mcp/routes.ts` |
 | POST | `/presentations/:id(^[^:]+):publish` | `apps/server/src/modules/presentation/publishRoutes.ts` |
 | GET | `/presentations/:id/published` | `apps/server/src/modules/presentation/publishRoutes.ts` |
 | POST | `/presentations/:id(^[^:]+):export-pdf` | `apps/server/src/modules/presentation/publishRoutes.ts` |
