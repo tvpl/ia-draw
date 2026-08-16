@@ -7,6 +7,7 @@ import * as client from 'openid-client';
 import { z } from 'zod';
 import type { AppConfig } from '../../core/config.js';
 import type { MetricsRegistry } from '../../core/metrics.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import { verifyLocalPassword } from './accounts.js';
 import {
   clearedOidcPkceCookieOptions,
@@ -69,6 +70,21 @@ function oidcNotConfigured(): never {
 function badOidcCallback(message: string): never {
   throw Object.assign(new Error(message), { statusCode: 400 });
 }
+
+/**
+ * OpenAPI schema map for this module's 7 routes (T5, API-01). `/auth/logout`,
+ * `/auth/refresh`, `/me` and the two OIDC routes take no query/params/body —
+ * they act on the session cookie, never a Zod-validated payload.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /auth/login': { body: loginBodySchema },
+  'POST /auth/logout': {},
+  'POST /auth/refresh': {},
+  'GET /me': {},
+  'POST /diagrams/:id/ws-ticket': { params: diagramIdParamsSchema },
+  'GET /auth/oidc/login': {},
+  'GET /auth/oidc/callback': {},
+};
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
 export async function registerAuthModule(

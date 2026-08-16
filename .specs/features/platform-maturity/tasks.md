@@ -202,11 +202,13 @@ Mesmo padrão de T3 (export `routeSchemas` apontando pros schemas Zod já existe
 
 **Requirement**: API-01 (cada task)
 
-**Done when** (cada task):
-- [ ] `routeSchemas` cobre toda rota real do módulo (conferir contra `app.get/post/patch/put/delete` no arquivo)
-- [ ] Entrada adicionada em `apps/server/src/openapi/registry.ts`
-- [ ] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
-- [ ] Gate check passes: `make lint && make typecheck`
+**Done when** (cada task, T5–T10 status noted individually below):
+
+**T5 (`auth`)**:
+- [x] `routeSchemas` cobre toda rota real do módulo (conferir contra `app.get/post/patch/put/delete` no arquivo)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
 
 ---
 
