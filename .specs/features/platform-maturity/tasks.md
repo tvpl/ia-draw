@@ -135,7 +135,7 @@ T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
 - [x] Uma rota com `websocket: true` vira uma entrada documentada sem `requestBody`/`responses` JSON forçados (nota explícita no doc, não um schema inventado)
 - [x] Registro vazio lança erro citando "nenhuma rota no registro" (não gera doc vazio silenciosamente)
 - [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [x] Test count: 6 novos testes (doc válido; conversão de query/body/response; rota `websocket`; registro vazio falha; múltiplos módulos mesclados; nomes de rota com params `:id` viram `{id}` no path OpenAPI)
+- [x] Test count: 6 novos testes (doc válido; conversão de query/body/response; rota `websocket`; registro vazio falha; múltiplos módulos mesclados; nomes de rota com params `:id` viram `{id}` no path OpenAPI) — +1 teste adicionado durante T10 (ver nota abaixo), total 7
 
 **Tests**: unit
 **Gate**: quick

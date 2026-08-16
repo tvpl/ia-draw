@@ -71,6 +71,19 @@ describe('buildOpenApiDocument (T2, API-01)', () => {
     expect(doc.paths['/b']?.get).toBeDefined();
   });
 
+  it('degrades a field zod cannot represent in JSON Schema instead of throwing', () => {
+    const registry: Record<string, RouteSchemaMap> = {
+      mod: { 'POST /things': { body: z.object({ expiresAt: z.coerce.date() }) } },
+    };
+
+    expect(() => buildOpenApiDocument(registry)).not.toThrow();
+
+    const doc = buildOpenApiDocument(registry);
+    expect(
+      doc.paths['/things']?.post?.requestBody?.content['application/json'].schema,
+    ).toMatchObject({ properties: { expiresAt: {} } });
+  });
+
   it('converts a :id path param into the OpenAPI {id} template', () => {
     const registry: Record<string, RouteSchemaMap> = {
       mod: {

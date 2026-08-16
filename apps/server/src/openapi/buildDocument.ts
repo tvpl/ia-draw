@@ -47,10 +47,20 @@ function toOpenApiPath(path: string): string {
     .join('/');
 }
 
+/**
+ * `z.toJSONSchema()` throws by default on a type it cannot represent in JSON
+ * Schema — `z.coerce.date()` (`createShareLinkBodySchema`, `share/routes.ts`)
+ * being the one real schema in this repo that hits it. `unrepresentable:
+ * 'any'` degrades that field to `{}` (any) instead of crashing the whole
+ * document — the same "don't break on an unsupported construct" rule
+ * design.md already applies to `.refine()`/`.transform()`.
+ */
+const TO_JSON_SCHEMA_OPTIONS = { unrepresentable: 'any' } as const;
+
 /** Expands an object-shaped Zod schema into one OpenAPI parameter per field. */
 function toParameters(schema: ZodType | undefined, location: 'query' | 'path'): OpenApiParameter[] {
   if (!schema) return [];
-  const jsonSchema = z.toJSONSchema(schema) as {
+  const jsonSchema = z.toJSONSchema(schema, TO_JSON_SCHEMA_OPTIONS) as {
     properties?: Record<string, unknown>;
     required?: string[];
   };
@@ -65,7 +75,9 @@ function toParameters(schema: ZodType | undefined, location: 'query' | 'path'): 
 
 function toRequestBody(schema: ZodType | undefined): OpenApiOperation['requestBody'] {
   if (!schema) return undefined;
-  return { content: { 'application/json': { schema: z.toJSONSchema(schema) } } };
+  return {
+    content: { 'application/json': { schema: z.toJSONSchema(schema, TO_JSON_SCHEMA_OPTIONS) } },
+  };
 }
 
 function toResponses(schema: ZodType | undefined): OpenApiOperation['responses'] {
@@ -73,7 +85,7 @@ function toResponses(schema: ZodType | undefined): OpenApiOperation['responses']
   return {
     '200': {
       description: 'Successful response',
-      content: { 'application/json': { schema: z.toJSONSchema(schema) } },
+      content: { 'application/json': { schema: z.toJSONSchema(schema, TO_JSON_SCHEMA_OPTIONS) } },
     },
   };
 }
