@@ -47,5 +47,14 @@
       "unknown": "Erro: {{code}}"
     },
     "sensitiveChange": "Mudança sensível — revise com atenção antes de aprovar"
+  },
+  "auth": {
+    "emailLabel": "E-mail",
+    "passwordLabel": "Senha",
+    "submit": "Entrar",
+    "invalidCredentials": "E-mail ou senha inválidos.",
+    "ssoButton": "Entrar com SSO",
+    "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
+    "logout": "Sair"
   }
 }

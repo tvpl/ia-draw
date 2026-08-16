@@ -188,9 +188,9 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Both locale files have an identical key set under `auth`
-- [ ] Includes at minimum: `auth.emailLabel`, `auth.passwordLabel`, `auth.submit`, `auth.invalidCredentials`, `auth.ssoButton`, `auth.ssoFailed`, `auth.logout`
-- [ ] `make lint` passes
+- [x] Both locale files have an identical key set under `auth`
+- [x] Includes at minimum: `auth.emailLabel`, `auth.passwordLabel`, `auth.submit`, `auth.invalidCredentials`, `auth.ssoButton`, `auth.ssoFailed`, `auth.logout`
+- [x] `make lint` passes
 
 **Tests**: none (build gate only)
 **Gate**: quick (`make lint`)
