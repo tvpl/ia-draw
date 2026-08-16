@@ -1,32 +1,44 @@
-# Platform Maturity — Validation (onda F6)
+# Platform Maturity — Validation (onda F6, rodada 2)
 
 **Date**: 2026-08-16
 **Spec**: `.specs/features/platform-maturity/spec.md`
-**Tasks**: `.specs/features/platform-maturity/tasks.md` (T1–T17)
-**Diff range**: `89e6b4f..53c965c` (18 commits, branch `feature/improvements`)
+**Tasks**: `.specs/features/platform-maturity/tasks.md` (T1–T22)
+**Diff range**: `89e6b4f..7e70fa9` (26 commits, branch `feature/improvements`)
 **Scope**: F6 only — TRU-01..04, CIQ-01..07, UIX-01..04 (15 requirements). AGT/GOV/API/MCP (F7–F9) are out of scope and not built.
-**Verifier**: independent sub-agent (author ≠ verifier), evidence-or-zero
+**Verifier**: independent sub-agent, round 2 (author ≠ verifier, and verifier ≠ round-1 verifier). Every finding below was re-derived from the tree, not inherited from round 1.
 
 ---
 
 ## Verdict
 
-**Result**: FAIL
+**Result**: PASS
 
-**❌ FAIL** — 11/15 ACs match the spec-defined outcome, 2 are gated but not spec-anchored, **2 fail as written**, and the discrimination sensor found **1 surviving mutant**. The tooling is genuinely good and the CI gates are real, not theatre. Two defects block a PASS:
+**✅ PASS** — 15/15 in-scope ACs are covered with `file:line` evidence and no AC fails as written. Both round-1 blockers are genuinely closed and I confirmed each by mutation, not by reading the fix worker's account: the route extractor now scans all of `apps/server/src` and the published total (**82**) matches an independent count of the real tree; the capability-map gate now rejects the exact artefact that survived round 1. The gate is green (`lint`/`typecheck`/`test-unit`, 760 unit tests, 45 in `repo-tools`). The discrimination sensor ran 15 mutations: **10 killed, 4 survived, 1 inert**. None of the four survivors falsifies an AC — each sits outside the AC's literal text and is declared in the tasks — so they are recorded as ranked residuals rather than blockers.
 
-1. **UIX-01 fails its own Independent Test.** The inventory scans only `apps/server/src/modules` and therefore omits three REST routes registered in `apps/server/src/core/server.ts` — `/health/live` (`:210`), `/health/ready` (`:212`), `/metrics` (`:246`). The server registers **82** routes, not 79. `4 + 75 = 79 ≠ 82`, so "a soma de rotas consumidas e pendentes iguala o total de rotas registradas no servidor" is false. The published number in the README, the landing, `docs/capability-map.yaml` and `docs/route-inventory.md` is wrong by the project's own definition — and the omitted `/health/ready` is the exact route CIQ-02's gate asserts on.
-2. **Surviving mutant on TRU-02/TRU-03.** `checkCapabilityMap` proves a `ui_surface` *exists under `apps/web/src`*, not that it is a surface for that capability. Repointing "Recuperação após crash do navegador" at `apps/web/src/i18n/locales/en/translation.json` leaves all 31 tests and the audit CLI green.
+Four items remain flagged and are listed under Ranked Residuals: UIX-02's roadmap-index-versus-per-capability-spec reading (unaddressed since round 1), TRU-02b's prose-side gate that does not exist, the "declared but worthless" coverage-floor hole, and the compose health budget that can reach 7 minutes for one service.
 
-A third item is a documented-but-unrouted spec deviation: **CIQ-03** requires the Playwright suite to run "contra o stack real"; the `e2e` job runs it against Playwright's own `webServer`, never against the compose stack.
+---
+
+## What round 1 found, and what changed
+
+Round 1 (`63e4300`, verdict **FAIL**) reported 11/15 ACs matched, 2 failed as written, and 1 surviving mutant. Its six ranked gaps and their disposition in round 2:
+
+| # | Round-1 gap | Fixed by | Round-2 finding |
+| --- | --- | --- | --- |
+| 1 | Inventory scanned only `apps/server/src/modules`; published **79** routes; UIX-01's Independent Test false | `2757437` (T18), `1746323` (T21) | **Closed.** Independent count = 82; propagated everywhere; mutation N3 (revert the scan root) is killed by 3 tests |
+| 2 | Surviving mutant M6 — `ui_surface` proved existence, not that the file is a surface | `552f8c1` (T19) | **Closed.** Mutation N1 reproduces M6 verbatim and is now killed |
+| 3 | CIQ-03 — Playwright ran against its own `webServer`, not "o stack real" | `7e70fa9` (spec amendment) | **Resolved by amendment.** Judged on its merits below — legitimate, with one generous clause |
+| 4 | "não depende de disciplina de quem escreve documentação" overstated the gate | `c623370` (T22) | **Closed.** `grep -rn 'disciplina' README.md docs/architecture-overview.html` → no match; replacement text is exactly accurate |
+| 5 | Edge case "new package with no coverage floor" ungated | `7c69c82` (T20) | **Closed.** `checkCoverageFloors` wired into `runAudit`; mutations N5, N6, N9 all killed |
+| 6 | `spec.md` marked CIQ-07 `Pending` | `c623370` (T22) | **Closed.** `spec.md:201` now reads `Implementing` |
+
+Round 1's own three drafted lessons are judged on their merits under Lessons below.
 
 ---
 
 ## Task Completion
 
-All 17 tasks are marked `✅ Complete` in `tasks.md`, each with one atomic commit in the range. Commit-to-task mapping is 1:1 and every message conforms to Conventional Commits (verified below). No task is partial or blocked.
-
-One traceability defect: `spec.md:200` still lists **CIQ-07 as `Pending`** although T13 shipped `.github/renovate.json` and marked itself complete. The other 14 in-scope rows read `Implementing` and were never advanced to `Verified`.
+All 22 tasks are `✅ Complete` in `tasks.md`, each with exactly one atomic commit in the range; 26 commits, all Conventional-Commits conforming (re-derived below, not taken from round 1). No task is partial or blocked. The Phase-5 fix round (T18–T22) maps 1:1 to commits `2757437`, `552f8c1`, `7c69c82`, `1746323`, `c623370`; the CIQ-03 amendment is `7e70fa9`.
 
 ---
 
@@ -36,125 +48,178 @@ One traceability defect: `spec.md:200` still lists **CIQ-07 as `Pending`** altho
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **TRU-01** map records backend evidence + UI surface path per announced capability | every entry carries `capability`, `requirements`, `backend_evidence`, `ui_surface` | `tools/repo-tools/src/capabilityMap.ts:11` `REQUIRED_FIELDS = ['capability','requirements','backend_evidence','ui_surface']`; `capabilityMap.spec.ts:148` `expect(violations[0]).toEqual({ entry: 'Docgen', problem: 'missing required field \`backend_evidence\`' })`; `capabilityMap.spec.ts:161` `expect(checkCapabilityMap(map, REPO_ROOT)).toEqual([])` against the real `docs/capability-map.yaml` (26 entries) | ✅ PASS |
-| **TRU-02a** null surface ⇒ classified `backend-only` | entry with `ui_surface: null` and no `status: backend-only` is a violation | `capabilityMap.spec.ts:91-93` `expect(violations[0]?.entry).toBe('Comentários')` + `expect(violations[0]?.problem).toContain('backend-only')`; accept-path `capabilityMap.spec.ts:114` `expect(violations).toEqual([])` | ✅ PASS |
-| **TRU-02b** product docs SHALL present it in that condition, never as delivered | README/landing describe no `backend-only` capability as user-reachable | **no automated evidence** — `cli.ts:80-121` reads only `docs/capability-map.yaml` and the code; it never opens `README.md` or `docs/architecture-overview.html`. T14's own note concedes "A auditoria não lê o README". Manual entry-by-entry read: prose is correct today (see Doc Honesty) | ⚠️ Ungated — correct by hand, not by CI |
-| **TRU-03** CI fails if any entry declares a UI path absent from `apps/web/src` | non-zero exit naming the entry | `capabilityMap.spec.ts:47-49` `expect(violations).toHaveLength(1)`, `expect(violations[0]?.entry).toBe('Dock de IA')`, `expect(violations[0]?.problem).toContain('apps/web/src/ai/AiDock.tsx')`; outside-root case `capabilityMap.spec.ts:69-71`; CLI `cli.spec.ts:68` `expect(result.exitCode).toBe(1)` and `cli.spec.ts:74-75` `expect(result.output.some(l => l.includes('Dock de IA'))).toBe(true)` / `'Apresentação'`; CI wiring `.github/workflows/ci.yaml:263-288` | ⚠️ PASS for *absent* paths; **weak** for wrong-but-present paths (mutant M6 survived) |
-| **TRU-04** README + landing declare the requirement count as verified backend contract, with the count of capabilities still without surface | 92 as backend contract; 26 capabilities / 4 with UI / 22 backend-only | `README.md:5-8` ("contrato de backend verificado" + "26 capacidades … 4 têm tela … 22 são `backend-only`" + "79 rotas … 4 … 75"); `docs/architecture-overview.html:941-957` (status panel), `:958`, `:1609`, `:1807`. Numbers re-derived independently: `grep -c '^  - capability:' docs/capability-map.yaml` = 26, `ui_surface: null` = 22, non-null = 4; `docs/route-inventory.md:5-8` = 79/4/75 | ✅ PASS on the numbers as defined; ❌ the **79** is itself wrong (see UIX-01) |
+| **TRU-01** versioned map records backend evidence + UI-surface path per announced capability | every entry carries `capability`, `requirements`, `backend_evidence`, `ui_surface` | `tools/repo-tools/src/capabilityMap.ts:11` — `const REQUIRED_FIELDS = ['capability','requirements','backend_evidence','ui_surface']`; `capabilityMap.spec.ts:227` — `expect(violations[0]).toEqual({ entry: 'Docgen', problem: 'missing required field \`backend_evidence\`' })`; `capabilityMap.spec.ts:240` — `expect(checkCapabilityMap(map, REPO_ROOT)).toEqual([])` against the real 26-entry `docs/capability-map.yaml` | ✅ PASS |
+| **TRU-02a** null surface ⇒ classified `backend-only` | an entry with `ui_surface: null` and no `status: backend-only` is a violation | `capabilityMap.ts:71-77`; `capabilityMap.spec.ts:170-172` — `expect(violations).toHaveLength(1)`, `expect(violations[0]?.entry).toBe('Comentários')`, `expect(violations[0]?.problem).toContain('backend-only')`; accept path `capabilityMap.spec.ts:193` — `expect(violations).toEqual([])` | ✅ PASS |
+| **TRU-02b** product docs SHALL present such a capability in that condition, never as delivered | README/landing describe no `backend-only` capability as user-reachable | **no automated evidence** — `cli.ts:83-130` reads `docs/capability-map.yaml`, the server tree, `apps/web/src` and `pnpm-workspace.yaml`; it never opens `README.md` or `docs/architecture-overview.html`. Verified by hand entry-by-entry (see Documentation honesty): correct today. `README.md:7` and `docs/architecture-overview.html:947-953` now *say so themselves* — "O portão cobre o mapa contra o código, não este texto contra o mapa" | ⚠️ Ungated — correct by hand, honestly declared as human review, not proved by CI |
+| **TRU-03** CI fails if any entry declares a UI path absent from `apps/web/src` | non-zero exit naming the entry | `capabilityMap.ts:99-104` (`existsSync`); `capabilityMap.spec.ts:47-49` — `expect(violations).toHaveLength(1)`, `expect(violations[0]?.entry).toBe('Dock de IA')`, `expect(violations[0]?.problem).toContain('apps/web/src/ai/AiDock.tsx')`; outside-root `capabilityMap.spec.ts:69-71`; CLI `cli.spec.ts:68` — `expect(result.exitCode).toBe(1)` and `cli.spec.ts:74-75` naming both offenders; CI wiring `.github/workflows/ci.yaml:263-288`. Sensor N10 (drop `existsSync`) kills 3 tests | ✅ PASS |
+| **TRU-04** README + landing declare the requirement count as verified backend contract, plus the count of capabilities still without surface | 92 as backend contract; 26 capabilities / 4 with UI / 22 backend-only; 82 routes / 4 / 78 | `README.md:5` (92 as "contrato de backend verificado"), `README.md:7` ("Das 26 capacidades … 4 têm tela hoje e 22 são `backend-only` … das 82 rotas REST registradas, 4 são consumidas … e 78 não têm consumidor"); `docs/architecture-overview.html:937-946`, `:1617`, `:1679`, `:1810`. All six numbers re-derived independently below | ✅ PASS |
 
 ### P1 — CI que prova o sistema de pé (CIQ)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **CIQ-01** boot the full stack via `docker compose up --build`, fail if any service is not `healthy` within 5 min | red job, not a hung one | `.github/workflows/ci.yaml:210` `docker compose build`, `:215` `timeout 300 docker compose up -d`, `:222` `docker compose up -d --wait --wait-timeout 120 proxy server web postgres minio redis` | ⚠️ PASS with a precision note: build is deliberately outside the budget, but `300 + 120` means an ungated service can be waited on for up to 7 min, not 5 |
-| **CIQ-02** `GET /health/ready` on the public port ⇒ HTTP 200, `status == ok`, `postgres == up` | all three asserted | `.github/workflows/ci.yaml:227-244`. Gate logic extracted verbatim and exercised against synthetic bodies: `200/ok/up` → exit 0; `status=degraded` → exit 1; `postgres=down` → exit 1; `dependencies: []` → exit 1; `HTTP 503` → exit 1. Real body shape confirmed against `apps/server/src/core/server.ts:212-236` (`{status, dependencies:[{name,status}]}`, 503 when any dep is down) | ✅ PASS |
-| **CIQ-03** run the Playwright suite **against the real stack**, fail on any test failure | suite executed against the booted compose stack | `.github/workflows/ci.yaml:133-183` runs `playwright test --reporter=list,html` in a **standalone job** that boots Playwright's own `webServer` (vite dev + vite-node server). It has no dependency on `compose-smoke` and never touches `http://localhost:8080`. T11 documents the choice ("a suíte é autossuficiente e não depende do stack do compose") | ❌ **Spec deviation** — the suite runs, but not against the real stack |
-| **CIQ-04** coverage below the declared floor ⇒ CI fails naming package, floor and measured value | all three named | 12 configs carry `coverage.enabled: true` + `thresholds` (e.g. `packages/diagram-domain/vitest.config.ts:22-31` `lines: 98.02, functions: 93.33, branches: 93.82, statements: 98.02`). Sensor M8: deleting `packages/diagram-domain/src/envelope.spec.ts` yields `ERROR: Coverage for lines (71.92%) does not meet global threshold (98.02%)`; the package name comes from turbo's line prefix under `pnpm -w test:unit` (`@arch-canvas/diagram-domain:test:unit:`), confirmed in the `make test-unit` transcript | ✅ PASS |
-| **CIQ-05** validate every PR commit message, fail identifying the **first** non-conforming one | stops at the first offender | `.github/workflows/ci.yaml:45-61` (`git rev-list --reverse --no-merges`, loop, `exit 1` on first failure). Job body executed as shell: real range `89e6b4f..HEAD` → exit 0, "18 commit messages conform"; disposable repo with `feat(a)` → `mensagem invalida` → `fix(b)` → exit 1 at `mensagem invalida`, **never reaching** `fix(b)` | ✅ PASS |
-| **CIQ-06** no Docker daemon ⇒ job fails explicitly, never skipped as success | explicit red | `.github/workflows/ci.yaml:194-202`. Branch exercised with `DOCKER_HOST=tcp://127.0.0.1:1`: prints `::error::no Docker daemon on this runner …` and exits 1 | ✅ PASS |
-| **CIQ-07** automated dependency updates, grouped per ecosystem, each subject to the full suite | grouped PRs, majors isolated, Node pinned to 22.x | `.github/renovate.json` — 8 ecosystem groups (`react`, `vitest and vite`, `fastify`, `aws-sdk`, `opentelemetry`, `postgres`, `canvas rendering`, `toolchain`), `constraints.node: ">=22 <23"`, a `node` rule with `allowedVersions: "<23"`, and a final `matchUpdateTypes: ['major']` rule with `groupName: null`. "Full suite on each PR" follows from `ci.yaml:4` `on: pull_request` | ⚠️ PASS on config; **`spec.md:200` still marks CIQ-07 `Pending`**, and Renovate needs the app installed on the repo — not provable here |
+| **CIQ-01** boot the full stack via `docker compose up --build`, fail if any service is not `healthy` within 5 min | red job, never a hung one | `.github/workflows/ci.yaml:210` `docker compose build` (deliberately outside the budget), `:215` `timeout 300 docker compose up -d`, `:222` `docker compose up -d --wait --wait-timeout 120 proxy server web postgres minio redis`. `infra/compose/compose.yaml:56-67`: every service except `redis` is gated by `condition: service_healthy` inside the 300 s, so the 5-minute budget binds for them | ⚠️ PASS with a precision note: `redis` is `service_started` (`compose.yaml:66-67`), so it alone can consume 300 + 120 = **7 min** before the job turns red |
+| **CIQ-02** `GET /health/ready` on the public port ⇒ HTTP 200, `status == ok`, `postgres == up` | all three asserted | `.github/workflows/ci.yaml:227-244`. Assertion block extracted verbatim and exercised by me against six synthetic bodies: `200/ok/up` → exit 0; `status=degraded` → exit 1; `postgres=down` → exit 1; `dependencies: []` → exit 1; `postgres` absent from `dependencies` → exit 1; `HTTP 503` → exit 1. Response shape re-confirmed against `apps/server/src/core/server.ts:212-236` — `{status, dependencies:[{name,status}]}`, 503 when any dep is down | ✅ PASS |
+| **CIQ-03** run the Playwright suite against genuinely running servers — real API and frontend, **never mocks or intercepted responses** — and fail on any test failure; containerized-stack fidelity delegated to CIQ-01/02 (**amended text**, `spec.md:80`) | a real server process and a real frontend process, zero request interception | `.github/workflows/ci.yaml:167` — `playwright test --reporter=list,html`; `apps/web/playwright.config.ts:26-40` starts two real processes: `runTestServer.ts` (a genuine `buildServer` + `registerAuthModule`/`registerWorkspaceModule`/`registerDiagramSyncModule` instance over PGlite, `apps/web/e2e/support/runTestServer.ts:11-45`) and Vite's real dev server. `grep -n "route(\|mock\|fulfill\|intercept" apps/web/e2e/*.spec.ts` → **no match**; the suite drives the real API (`crash-recovery.spec.ts:43` posts to `${TEST_SERVER_ORIGIN}/auth/login`) | ✅ PASS on the amended text — with the "nunca mocks" clause itself ungated (see judgment below) |
+| **CIQ-04** coverage below a package's declared floor ⇒ CI fails naming package, floor and measured value | all three named | 12 configs carry `coverage.enabled: true` + numeric `thresholds` (e.g. `packages/diagram-domain/vitest.config.ts:21-29` — `lines: 98.02, functions: 93.33, branches: 93.82, statements: 98.02`). Package name comes from turbo's line prefix under `pnpm -w test:unit`, confirmed in the forced uncached run below. Edge case now gated: `tools/repo-tools/src/coverageFloors.ts:72-102`; `coverageFloors.spec.ts:73-75` — `expect(violations[0]?.package).toBe('packages/newcomer')` + `expect(violations[0]?.problem).toContain('coverage.thresholds')`; `:87-88` (no config at all); `:103-104` (empty `thresholds: {}`); `:128` (`packages/database` legitimately exempt); `:136` — `expect(checkCoverageFloors(REPO_ROOT)).toEqual([])`; CLI wiring `cli.ts:124-129` + `cli.spec.ts:117-118` | ✅ PASS |
+| **CIQ-05** validate every PR commit message, fail identifying the **first** non-conforming one | stops at the first offender | `.github/workflows/ci.yaml:45-61` (`git rev-list --reverse --no-merges`, loop, `exit 1` on first failure). Job body executed by me as bash: real range `89e6b4f..HEAD` → exit 0, "26 commit messages conform to Conventional Commits."; disposable 3-commit repo with `feat(a): first` → `mensagem invalida` → `fix(b): third` → **stopped at `mensagem invalida`, never reached `fix(b)`** | ✅ PASS |
+| **CIQ-06** no Docker daemon ⇒ job fails explicitly, never skipped as success | explicit red | `.github/workflows/ci.yaml:194-202`. Branch exercised by me with `DOCKER_HOST=tcp://127.0.0.1:1`: prints `::error::no Docker daemon on this runner - the compose smoke gate cannot be skipped into a green build` and exits 1 | ✅ PASS |
+| **CIQ-07** automated dependency updates, grouped per ecosystem, each subject to the full suite | grouped PRs, majors isolated, Node pinned to 22.x | `.github/renovate.json` — 8 ecosystem groups, `constraints.node: ">=22 <23"`, a `node` rule with `allowedVersions: "<23"`, and a final `matchUpdateTypes: ['major']` rule with `groupName: null`. "Full suite on each PR" follows from `ci.yaml:4` `on: pull_request`. `spec.md:201` traceability row now reads `Implementing` (round-1 gap 6 closed) | ⚠️ PASS on config; Renovate needs the app installed on the repo — not provable here |
 
 ### P1 — Inventário e decomposição do gap de produto (UIX)
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **UIX-01** inventory maps **every registered REST route** to its consuming UI surface, explicitly marking routes with no consumer | consumed + pending == total registered in the server | `routeInventory.spec.ts:66-69` `expect(inventory.totals.consumed).toBe(2)`, `.pendingProduct).toBe(3)`, `expect(consumed + pendingProduct).toBe(routes.length)`, `expect(totals.routes).toBe(routes.length)`; consumed naming `routeInventory.spec.ts:21-29`; real-repo floor `serverRoutes.spec.ts:96-102`. **But** `serverRoutes.ts:15` `const MODULES_DIR = 'apps/server/src/modules'` — the scan never reaches `apps/server/src/core/server.ts:210,212,246`. Independent count: 79 in `modules`, **3 more in `core`** = 82 | ❌ **GAP** — the invariant holds inside the tool's own scope but fails the spec's Independent Test against the server |
-| **UIX-02** each capability without surface enters the product roadmap as its own spec in `.specs/features/`, squad-sized | one roadmap entry per `backend-only` capability | `.specs/features/platform-maturity/ui-roadmap.md` — 16 `### R*` entries + 6 declared operational = 22, matching the 22 `backend-only` entries. Each entry declares scope, backend routes, dependencies and a wave estimate. No automated check | ⚠️ Spec-precision gap — the AC says "spec própria em `.specs/features/`"; what exists is a roadmap **index** that defers each spec to its own Specify round. Only `ai-dock` has an actual spec |
-| **UIX-03** specify the AI dock as the first vertical slice | complete EARS spec | `.specs/features/ai-dock/spec.md` (23 requirements, prefix `DOCK`). `python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py .specs/features/ai-dock/spec.md` → **exit 0, 0 errors, 0 warnings** | ✅ PASS |
-| **UIX-04** a new REST route with no UI consumer is recorded as `pending-product`, never unclassified | classification `pending-product`, no escape category | `routeInventory.spec.ts:35-36` `expect(inventory.routes[0]?.classification).toBe('pending-product')` + `expect(consumedBy).toEqual([])`; no-escape `routeInventory.spec.ts:45-49` `expect(routes.map(e => e.classification)).toEqual(['consumed','pending-product','pending-product'])`; type-level `routeInventory.ts:5` `type RouteClassification = 'consumed' \| 'pending-product'` | ✅ PASS |
+| **UIX-01** inventory maps **every registered REST route** to its consuming UI surface, explicitly marking routes with no consumer | consumed + pending == total registered in the server | `serverRoutes.ts:22` — `const SERVER_SOURCE_DIR = 'apps/server/src'`; `serverRoutes.spec.ts:102` — `expect(routes.length).toBeGreaterThanOrEqual(82)`; `serverRoutes.spec.ts:116-130` names the three previously-missed routes one by one (`expect(routes).toContainEqual({ method: 'GET', path: '/health/ready', file: 'apps/server/src/core/server.ts' })`); invariant `routeInventory.spec.ts:66-69` — `expect(inventory.totals.consumed).toBe(2)`, `.pendingProduct).toBe(3)`, `expect(consumed + pendingProduct).toBe(routes.length)`, `expect(totals.routes).toBe(routes.length)`. Independent count over the whole tree = **82**; `docs/route-inventory.md:5-8` = 82/4/78/0 | ✅ PASS |
+| **UIX-02** each capability without surface enters the product roadmap as its own spec in `.specs/features/`, squad-sized | one roadmap entry per `backend-only` capability, each destined to be its own spec | `.specs/features/platform-maturity/ui-roadmap.md` — 16 `### R*` entries + 6 declared operational surfaces = 22, matching the 22 `status: backend-only` map entries exactly (`ui-roadmap.md:211-214` closes the count). Each entry declares scope, backend routes, dependencies and a wave estimate. Only `.specs/features/ai-dock/spec.md` is an actual spec file | ⚠️ Spec-precision gap — the AC says "spec própria em `.specs/features/`"; what exists is a roadmap **index** that defers each spec to its own Specify round. Licensed by the Out of Scope and Assumptions rows, but the AC text is stronger than the delivery. Unaddressed since round 1 |
+| **UIX-03** specify the AI dock as the first vertical slice | complete EARS spec | `.specs/features/ai-dock/spec.md` (23 requirements, prefix `DOCK`). `python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py .specs/features/ai-dock/spec.md` → exit 0 | ✅ PASS |
+| **UIX-04** a new REST route with no UI consumer is recorded as `pending-product`, never unclassified | classification `pending-product`, no escape category | `routeInventory.ts:5` — `export type RouteClassification = 'consumed' \| 'pending-product'`; `routeInventory.spec.ts:35-36` — `expect(inventory.routes[0]?.classification).toBe('pending-product')` + `expect(consumedBy).toEqual([])`; no-escape `routeInventory.spec.ts:45-49` — `expect(routes.map(e => e.classification)).toEqual(['consumed','pending-product','pending-product'])`; near-miss `:105-108`. Sensor N11 (force everything to `consumed`) kills 5 tests | ✅ PASS |
 
-**Status**: 11/15 match the spec outcome · 2 ❌ fail as written (UIX-01, CIQ-03) · 2 ⚠️ spec-precision / ungated (TRU-02b, UIX-02)
+**Status**: 15/15 ACs covered with `file:line` evidence · **0 fail as written** · 4 ⚠️ flagged (TRU-02b ungated, CIQ-01 precision, CIQ-07 not provable here, UIX-02 spec-precision)
+
+---
+
+## Independent number verification
+
+The last two rounds each published a wrong route count, so every number was re-derived from the tree rather than read from an artifact.
+
+| Claim | How I derived it | Verdict |
+| --- | --- | --- |
+| **82** registered routes | `perl -0777` slurp of `\bapp\.(get\|post\|put\|patch\|delete\|head\|options)\(\s*'([^']*)'` over every non-`*.spec.ts` file in `apps/server/src` → **82**. Cross-check: `grep -rE "\bapp\.(get\|…)\("` (no quote required) → also **82**, so no registration uses a non-literal path and nothing is missed. A single-line-only grep gives 51, which is how the original 48 estimate went wrong | ✅ |
+| Only 3 routes live outside `modules/` | `apps/server/src/core/server.ts:210` `/health/live`, `:212` `/health/ready`, `:246` `/metrics` — nothing else | ✅ |
+| No other registration idiom | `grep -rE "\b(fastify\|server\|instance\|router\|scope)\.(get\|…\|route)\("` over `apps/server/src` → **no match**; `app.route(` → no match | ✅ |
+| 4 consumed / 78 pending | `pnpm --filter @arch-canvas/repo-tools run audit` → `82 routes, 4 consumed, 78 pending-product`, exit 0; `git status --porcelain` **empty** afterwards, so `docs/route-inventory.md` regenerates byte-identical | ✅ |
+| **26** capabilities | `grep -c '^  - capability:' docs/capability-map.yaml` = 26 | ✅ |
+| **22** backend-only / **4** with UI | `grep -cE '^    status: backend-only'` = 22; `grep -c 'ui_surface: null'` = 22; non-null `ui_surface` = 4 (`DiagramEditorPage.tsx` ×2, `syncClient.ts`, `AppShell.tsx`) — all four exist on disk | ✅ |
+| Roadmap closes on 22 | `grep -c '^### R'` = 16, plus 6 declared operational = 22 (`ui-roadmap.md:211-214`) | ✅ |
+
+**Invariant `consumed + pending == total` in every published place:**
+
+| Surface | Text | Sums? |
+| --- | --- | --- |
+| `docs/route-inventory.md:5-7` | 82 / 4 / 78 | ✅ |
+| `docs/capability-map.yaml:17-18` | "4 das 82 … e 78 não têm — 4 + 78 = 82" | ✅ (states the sum explicitly) |
+| `README.md:7` | "das 82 rotas REST registradas, 4 são consumidas … e 78 não têm consumidor" | ✅ |
+| `docs/architecture-overview.html:945-946` | "das 82 rotas REST registradas, 4 são consumidas … e 78 não têm consumidor" | ✅ |
+| `spec.md:7` (Problem Statement) | "82 rotas REST … 4 rotas consumidas, 78 sem superfície de produto" | ✅ |
+| `ui-roadmap.md:12` | "82 rotas REST registradas, 4 consumidas pela UI, 78 `pending-product`" | ✅ |
+
+**Residue check:** `grep -rn '79 rotas\|79 routes\|75 pending\|75 sem consumidor'` over `README.md`, `docs/` and this feature's specs returns hits only in `tasks.md`'s historical implementation notes and in round 1's own report text — i.e. only where the old number is being *described as wrong*, never where it is being published.
 
 ---
 
 ## Discrimination Sensor
 
-**Isolation**: two temporary `git worktree`s under the session scratchpad (`.../scratchpad/mut`, `.../scratchpad/compose`), created with `git worktree add … HEAD --detach`. No `git stash` at any point. Baseline `git status --porcelain` on the real tree was **empty** before the sensor and **empty** after — re-checked at the end of every mutation block.
+**Isolation**: one temporary `git worktree` (`git worktree add <scratchpad>/mut HEAD --detach`), with `node_modules` symlinked in from the real tree so nothing was installed into it. **No `git stash` at any point.** Baseline `git status --porcelain` on the real tree was **empty** before the sensor; each mutation was reverted with `git checkout -- .` *inside the worktree*; the worktree was removed with `git worktree remove --force`; the real tree's porcelain after cleanup is **empty**, matching the baseline. Runner: `vitest run` in `tools/repo-tools`, 45 tests baseline green in the scratch.
 
-| # | Target | Mutation | Expected killer | Result |
-| --- | --- | --- | --- | --- |
-| **M1** | `tools/repo-tools/src/capabilityMap.ts:70-75` | Removed the `existsSync` check so a `ui_surface` pointing at a non-existent file is accepted | TRU-03 tests + audit CLI | ✅ **Killed** — 3 failures: `capabilityMap.spec.ts:47`, `cli.spec.ts:68`, `cli.spec.ts:74` |
-| **M2** | `tools/repo-tools/src/routeInventory.ts:65,89` | `routes.slice(1).map(...)` while keeping `totals.routes = routes.length`, so a route is silently dropped and `consumed + pending != total` | UIX-01 invariant | ✅ **Killed** — 8 failures: all 7 in `routeInventory.spec.ts` (incl. the invariant at `:66-69`) plus `cli.spec.ts:85` |
-| **M3** | `tools/repo-tools/src/serverRoutes.ts:25` | `isProductionSource` reduced to `fileName.endsWith('.ts')`, breaking the `*.spec.ts` exclusion so test fixtures leak into the inventory | fixture-exclusion tests | ✅ **Killed** — 2 failures: `serverRoutes.spec.ts:51` and `:64` |
-| **M4** | `.github/workflows/ci.yaml:222,240-244` | Stripped `--wait-timeout 120` **and** deleted the `postgres == up` assertion from `compose-smoke` | — | ❌ **Survived** the unit suite (31/31 still green) — expected: `tasks.md:26` declares workflow YAML `Test Type: none`. Compensating evidence: the assertion block was extracted and proven to discriminate (see CIQ-02 row) — the gate itself is real, only unprotected against future edits |
-| **M5** | `tools/repo-tools/src/capabilityMap.ts:62` | Disabled the `apps/web/src/` prefix requirement, so a server file counts as a UI surface | TRU-02 location test | ✅ **Killed** — `capabilityMap.spec.ts:69` |
-| **M6** | `docs/capability-map.yaml:46` | Repointed "Recuperação após crash do navegador" from `apps/web/src/sync/syncClient.ts` to `apps/web/src/i18n/locales/en/translation.json` — an existing file that is not a surface for that capability | TRU-02/TRU-03 | ❌ **SURVIVED** — 31/31 tests pass, audit exits 0. The gate proves *existence and location*, not *relevance* |
-| **M7** | `tools/repo-tools/src/webConsumers.ts:31` | `isProductionSource` reduced to `isSource`, so frontend `*.spec.ts` count as production consumers | consumer-exclusion test | ✅ **Killed** — `webConsumers.spec.ts:95` |
-| **M8** | `packages/diagram-domain/src/envelope.spec.ts` | Deleted the file to drop measured coverage below the declared floor | CIQ-04 coverage gate | ✅ **Killed** — `ERROR: Coverage for lines (71.92%) does not meet global threshold (98.02%)` (+ functions, statements) |
+| # | Target | Mutation | Result |
+| --- | --- | --- | --- |
+| **N1** | `docs/capability-map.yaml:46` | **Round-1 survivor M6, verbatim.** Repoint "Recuperação após crash do navegador" from `syncClient.ts` to `apps/web/src/i18n/locales/en/translation.json` | ✅ **Killed** — `capabilityMap.spec.ts:237` "passes against the real docs/capability-map.yaml". **M6 is genuinely dead.** |
+| **N2** | `docs/capability-map.yaml:46` | **M6's successor form.** Repoint the same capability at `apps/web/src/app-shell/AppShell.tsx` — a real component module, but the wrong one | ❌ **Survived** — 45/45 green. Out of AC scope: TRU-03 requires failing on a path that "não exista em `apps/web/src`". Declared limit, `tasks.md:789` |
+| **N3** | `serverRoutes.ts:22` | Revert the scan root to round 1's `'apps/server/src/modules'` | ✅ **Killed** — 3 failures: the ≥82 floor, the named-health-routes test, and the outside-modules `*.spec.ts` test |
+| **N4** | `serverRoutes.ts:29` | Drop the `\bapp\.` anchor from `ROUTE_PATTERN` so any receiver counts | ⚪ **Inert** — not a valid mutant. Measured: no non-`app` receiver uses `.get('…')` in `apps/server/src` today, so the mutation yields the same 82 routes. Recorded for honesty, excluded from the score |
+| **N5** | `coverageFloors.ts:82` | Invert the guard: skip packages that **have** `test:unit` | ✅ **Killed** — 6 failures across `coverageFloors.spec.ts` and `cli.spec.ts` |
+| **N6** | `coverageFloors.ts:26` | `declaresCoverageThresholds` returns `true` for any `coverage:` block, ignoring whether a number is declared | ✅ **Killed** — `coverageFloors.spec.ts:91` "fails on a thresholds block that declares no number" |
+| **N7** | `serverRoutes.ts:67` | **Over-count probe.** Emit every discovered route twice (published total 82 → 164). Tests the real-repo assertion being a `>=` floor | ✅ **Killed** — 6 failures. The floor is backstopped by fixture-level `toEqual` assertions, so over-counting is not a blind spot |
+| **N8** | `capabilityMap.ts:34` | Drop the `locales/` segment exclusion from `isComponentModule` | ✅ **Killed** — `capabilityMap.spec.ts:99` "rejects a locale file even when it carries a module extension" |
+| **N9** | `cli.ts:129` | `runAudit` exit code ignores `floorViolations` | ✅ **Killed** — `cli.spec.ts:102` |
+| **N10** | `capabilityMap.ts:99` | **Round-1 M1 re-run.** Drop the `existsSync` check entirely | ✅ **Killed** — 3 failures across `capabilityMap.spec.ts` and `cli.spec.ts` |
+| **N11** | `routeInventory.ts:74` | Force `classification: 'consumed'` for every route — the invariant still sums, the classification lies | ✅ **Killed** — 5 failures |
+| **N12** | `serverRoutes.ts:32` | `isProductionSource` drops the `*.spec.ts` exclusion, so fixture routes leak in | ✅ **Killed** — 4 failures |
+| **N13** | `.github/workflows/ci.yaml:222,240-244` | **Round-1 M4 re-run.** Delete the `postgres == up` assertion and strip `--wait-timeout 120` | ❌ **Survived** — 45/45 green. Survived by declared design: `tasks.md:26` sets workflow YAML to `Test Type: none`. Compensating evidence: I exercised the assertion block myself against 6 synthetic bodies (CIQ-02 row) |
+| **N14** | `packages/diagram-domain/vitest.config.ts:23-28` | Set every threshold to `0` — a floor is declared, and it is worthless | ❌ **Survived** — `checkCoverageFloors` accepts any numeric threshold. Outside CIQ-04's literal text (a declared 0 *is* a declared floor) but a real hole in the ratchet's spirit |
+| **N15** | `packages/diagram-domain/vitest.config.ts:22` | Remove `coverage.enabled: true`, keeping `thresholds` | ❌ **Survived** — and this one bites: `test:unit` is bare `vitest run`, so without `enabled` the floor never runs. Declared at `tasks.md:831` |
 
-**Sensor depth**: 8 mutations (P0-full tier — this wave *is* the integrity gate for everything else)
-**Result**: **6 killed / 2 survived** — ❌
+**Sensor depth**: 15 mutations (P0-full tier — this wave *is* the integrity gate for everything else)
+**Result**: **10 killed / 4 survived / 1 inert** (of 14 valid mutants: 10 killed, 4 survived)
 
-- **M6 is a genuine finding** → fix task.
-- M4 is survived-by-design (workflow YAML has no possible suite) and is mitigated by the extracted-shell reproduction, but it means any future edit that guts `compose-smoke` merges silently.
+**Judgment on the survivors.** None falsifies an AC:
+
+- **N2** exceeds TRU-03, which is a pure existence requirement. Round 1's M6 pointed at a translation catalogue — a claim that was *false on its face*; that class is now dead (N1). N2 points at a real component, which no filesystem check can distinguish from the right one without an import-graph walk. `tasks.md:789` declares exactly this boundary.
+- **N13** targets a layer with no possible suite, declared as such in the Test Coverage Matrix before implementation, and compensated by reproductions I ran independently for CIQ-02, CIQ-05 and CIQ-06.
+- **N14/N15** target `vitest.config.ts` data, not code introduced by the fix round; both are declared limits and both sit outside the AC's literal text. They belong in the ranked residuals, and N15 is the one I would fix first.
 
 ---
 
 ## Gate Check
 
 - **Declared Build gate**: `make ci` (`tasks.md:39`)
-- **Substitution applied** (pre-existing, unrelated to this wave): `make ci` runs `test-integration`, which needs `pg_lsclusters` and `redis-server` — neither is installed on this machine. Failures are `ENOENT` spawn errors, never assertion failures. Ran `make lint && make typecheck && make test-unit` instead, per the environment note at `tasks.md:111`.
-- **Node**: v22.23.2 (`fnm use 22 && corepack enable`), as AC-mandated.
+- **Substitution applied** (pre-existing, unrelated to this wave, and identical to round 1's substitution): `make ci` runs `test-integration`, which needs `pg_lsclusters` and `redis-server`; neither is installed on this host. Those are `ENOENT` spawn errors, never assertion failures. Ran `make lint && make typecheck && make test-unit`, per the environment note at `tasks.md:122`.
+- **Node**: v22.23.2 (`fnm use 22 && corepack enable`), as the spec's Assumptions row mandates.
 
 | Step | Result |
 | --- | --- |
-| `make lint` | ✅ 423 files checked, 0 errors, 4 warnings (pre-existing) |
+| `make lint` | ✅ 425 files checked, 0 errors, 4 warnings (pre-existing) |
 | `make typecheck` | ✅ 24/24 tasks successful |
-| `make test-unit` | ✅ 23/23 tasks successful, exit 0, all coverage floors met |
-| `pnpm --filter @arch-canvas/repo-tools run test:unit` (fresh, uncached) | ✅ **31 passed** in 5 files — matches the claim exactly (serverRoutes 6, webConsumers 6, routeInventory 7, capabilityMap 7, cli 5) |
-| `repo-tools audit` artifact vs. tree | ✅ `docs/route-inventory.md` regenerates byte-identical (`git status --porcelain` empty after) |
+| `make test-unit` | ✅ 23/23 tasks successful, all coverage floors met |
+| `turbo run test:unit --force` (uncached, all 12 packages) | ✅ 23/23 successful — **760 unit tests**: server 360, ai-tools 70, auth 63, diagram-ir 60, editor-adapter 54, **repo-tools 45**, diagram-domain 29, web 28, shared-contracts 27, library-content 12, test-fixtures 8, backup 4 |
+| `pnpm --filter @arch-canvas/repo-tools run test:unit` | ✅ **45 passed** in 6 files — serverRoutes 9, capabilityMap 10, coverageFloors 7, routeInventory 7, webConsumers 6, cli 6. Matches the claim exactly (was 31 in round 1) |
+| `pnpm --filter @arch-canvas/repo-tools run audit` | ✅ exit 0, `82 routes, 4 consumed, 78 pending-product`; artifact regenerates byte-identical (`git status --porcelain` empty) |
 
-**Test count delta**: +31 unit tests (`tools/repo-tools`), +0 deletions. No test was weakened or skipped.
+**Test count delta**: round 1 measured 31 tests in `repo-tools`; round 2 measures **45** (+14: serverRoutes +3, capabilityMap +3, coverageFloors +7, cli +1). **No test was deleted, skipped or weakened** — every pre-existing assertion in the five original spec files is still present, and the fix round only added.
 
 ---
 
 ## CI Gates — real or theatre?
 
+Each row was re-derived in round 2, not copied.
+
 | Job | Would it fail on the defect it claims to catch? | Basis |
 | --- | --- | --- |
-| `commit-lint` (`ci.yaml:29-61`) | **Yes.** Stops at the first non-conforming message and names it | Job body executed as shell on the real range (exit 0, 18 commits) and on a disposable 3-commit repo (exit 1 at the bad middle commit, third commit never reached) |
-| `capability-audit` (`ci.yaml:263-288`) | **Yes for a removed/relocated surface** (M1, M5 killed; T7/T12 reproduced the CLI naming the entry). **No for a wrong-but-present surface** (M6 survived) | Mutation sensor + `cli.spec.ts:68,74-75` |
-| `compose-smoke` (`ci.yaml:185-261`) | **Yes for the three assertions.** `HTTP != 200`, `status != ok`, `postgres != up` and a missing `postgres` dependency each exit 1 | Assertion block extracted verbatim and run against 5 synthetic bodies |
-| `compose-smoke` — Docker absent (`:194-202`) | **Yes.** Explicit red, never a silent skip | Branch exercised with `DOCKER_HOST=tcp://127.0.0.1:1` → exit 1 |
-| `e2e` (`ci.yaml:133-183`) | **It runs the suite and fails on failure** — but against Playwright's own `webServer`, **not** the real stack CIQ-03 names. The suite is also a single test (`apps/web/e2e/crash-recovery.spec.ts`) | Workflow read; `grep -c "test("` = 1 |
-| Coverage floors (12 × `vitest.config.ts`) | **Yes.** Names floor and measured value; turbo's prefix supplies the package name | Sensor M8 |
+| `commit-lint` (`ci.yaml:29-61`) | **Yes.** Stops at the first non-conforming message and names it | Job body run as bash on the real 26-commit range (exit 0) and on a disposable repo with a bad *middle* commit (stopped there, never reached the third) |
+| `capability-audit` (`ci.yaml:263-288`) | **Yes** for a removed, relocated, non-module or locale surface (N1, N8, N10 killed). **No** for a real-but-wrong component (N2) | Sensor + `cli.spec.ts:68,74-75` |
+| `capability-audit` — coverage floors | **Yes.** A package with `test:unit` and no `thresholds` turns the job red, naming the package | `cli.ts:124-129`; `cli.spec.ts:117-118`; sensor N5, N6, N9 |
+| `compose-smoke` (`ci.yaml:185-261`) | **Yes for all three assertions**, and for two shapes round 1 did not test: a missing `postgres` dependency and an empty `dependencies` array both exit 1 | Assertion block extracted verbatim and run against 6 synthetic bodies |
+| `compose-smoke` — Docker absent (`:194-202`) | **Yes.** Explicit red, never a silent skip | Exercised with `DOCKER_HOST=tcp://127.0.0.1:1` → exit 1 with the `::error::` line |
+| `e2e` (`ci.yaml:133-183`) | **Yes**, against real processes — a real `apps/server` instance and Vite's real dev server, with zero request interception in the suite | `playwright.config.ts:26-40`, `runTestServer.ts:11-45`, `grep` for `route(`/`mock`/`fulfill`/`intercept` in `apps/web/e2e/*.spec.ts` → no match |
+| Coverage floors (12 × `vitest.config.ts`) | **Yes**, provided `coverage.enabled: true` is present — which nothing enforces (N15) | Forced uncached `test:unit` run; sensor N15 |
 
-**Not theatre.** The compose-smoke job in particular is the opposite of the pattern it was written to fix: it boots, waits with a hard timeout, and asserts a parsed body rather than a status line. Its one structural weakness is that nothing protects the YAML itself from being gutted.
+**Not theatre.** The compose-smoke job is the opposite of the pattern it was written to fix: it builds outside the health budget, waits with a hard timeout, and asserts a *parsed body* rather than a status line. Its one structural weakness is unchanged from round 1 — nothing protects the YAML itself from being gutted (N13).
 
 ---
 
 ## Documentation honesty — plain judgment
 
-Read as an outsider, **neither `README.md` nor `docs/architecture-overview.html` still asserts a capability the user cannot reach.** The rewrite is real, not cosmetic:
+Read as an outsider: **neither `README.md` nor `docs/architecture-overview.html` asserts a capability the user cannot reach, and no claim is now stronger than the gate behind it.**
 
-- The README splits "O que é" into **"Com tela hoje"** (4 items) and **"Contrato de backend verificado, ainda sem tela"**. The AI engine — the product's declared differentiator — moved into the second list and is named as such.
-- The landing carries a hero status panel plus 5 `contrato de backend · sem tela` badges and 6 per-section `surface-note`s. Three present-tense UI claims were rewritten, not merely annotated ("Um botão Gerar documentação" → "A geração de documentação"; the mockup caption now says "Mockup ilustrativo, não uma captura de tela … nenhum componente equivalente existe hoje em `apps/web`").
-- All three surviving `92/92` mentions (`:958`, `:1609`, `:1807`) are qualified as "requisitos de **backend** verificados".
+- The README splits "O que é" into **"Com tela hoje"** (`README.md:11-14`, the exact 4 capabilities with `ui_surface` in the map) and **"Contrato de backend verificado, ainda sem tela"** (`:16-20`). The AI engine — the product's declared differentiator — is in the second list and named as such, including "É o diferencial declarado do produto e a primeira fatia do roadmap de UI." The opening line already qualifies it: "um motor de IA geradora de diagramas **entregue como API**."
+- The landing carries a hero `.status-panel` (`:934-955`) plus `contrato de backend · sem tela` flags on sections 02, 04, 05 and 06 — every section describing a `backend-only` capability. Sections 01 and 03 (partial surface) carry `.surface-note`s separating what opens from what does not. Section 07 makes no capability claim. The mockup caption states outright that "nenhum componente equivalente existe hoje em `apps/web`" (`:930-932`).
+- All the `92/92` mentions (`:961`, `:1612`, `:1679`, `:1810`) are qualified as **backend** requirements.
 
-**Tone: honest precision, not spin and not self-flagellation.** "Os 92 requisitos … são um contrato de backend verificado … É a parte forte do trabalho e ela está de pé" keeps the earned credit; "A superfície de produto vem atrás e é medida à parte" states the deficit without theatrics. This is the right register.
+**Round-1 snag 2 is fixed and fixed correctly.** `grep -rn 'disciplina' README.md docs/architecture-overview.html` → **no match**. The replacement is precise rather than merely softened: "O portão cobre o mapa contra o código, não este texto contra o mapa — a correspondência entre a prosa daqui e as entradas do mapa continua sendo revisão humana" (`README.md:7`, mirrored at `docs/architecture-overview.html:947-953`). That is exactly what `cli.ts` does and exactly what it does not do. A document that names the limit of its own gate is the strongest evidence in this wave that the honesty rewrite is real rather than cosmetic.
 
-**Numbers verified against the artifacts and the tree, not the prose:**
+**Register: honest precision.** Not spin — the deficit is stated in the hero, not in a footnote, and the 22-without-a-screen number is repeated in the page footer. Not self-flagellation either — "É a parte forte do trabalho e ela está de pé" (`:939-940`) keeps the earned credit, and "A superfície de produto vem atrás e é medida à parte" states the gap without theatrics. Both documents read like an engineer reporting status to a peer.
 
-| Claim | Source of truth | Verdict |
-| --- | --- | --- |
-| 26 capabilities | `grep -c '^  - capability:' docs/capability-map.yaml` = 26 | ✅ |
-| 4 with UI / 22 backend-only | `ui_surface: null` = 22; non-null = 4 (`DiagramEditorPage.tsx` ×2, `syncClient.ts`, `AppShell.tsx`) — all 4 exist on disk | ✅ |
-| 4 consumed / 75 pending | `docs/route-inventory.md:6-7`; regenerated identically | ✅ |
-| **79 routes** | `apps/server/src/modules` = 79, **but the server also registers `/health/live`, `/health/ready`, `/metrics` in `apps/server/src/core/server.ts`** → **82** | ❌ **understated by 3** |
+**One residual, carried from round 1 and unchanged:** the 4th surface is thin. `apps/web/src/app-shell/AppShell.tsx` is a header, a language switcher and an empty `<main />` carrying the comment `nav/search/admin land here in F1+` — the very artifact the spec's Problem Statement cites as evidence of the gap. Counting "Acessibilidade do shell da aplicação" among the 4 delivered capabilities is defensible (it renders, and it has a test) but it flatters the number; `syncClient.ts` is likewise a module, not a screen. The map is not wrong, but "4 têm tela" is the most generous true reading of the data.
 
-Three residual honesty snags, in descending severity:
+---
 
-1. **The 79 is wrong** (above). It is repeated in `README.md:8`, the landing status panel, `docs/capability-map.yaml:17` and `docs/route-inventory.md:5`.
-2. **"esta distinção não depende de disciplina de quem escreve documentação"** (README:8) and "a distinção não depende de disciplina de quem escreve esta página" (landing) **overstate the gate**. `repo-tools audit` never reads either document — it validates the map against the filesystem. The prose→map correspondence is exactly what still depends on discipline. The sentence is one degree stronger than what the CI actually proves.
-3. **The 4th surface is thin.** `apps/web/src/app-shell/AppShell.tsx` is a header, a language switcher and an empty `<main />` carrying the comment `nav/search/admin land here in F1+` — the very artifact the spec's own Problem Statement cites as evidence of the gap. Counting "Acessibilidade do shell da aplicação" among the 4 delivered capabilities is defensible (it renders, and `shell.a11y.spec.tsx` covers it) but it flatters the number. Likewise `syncClient.ts` is a module, not a screen.
+## CIQ-03 amendment — judgment on its merits
+
+**Legitimate, with one clause that reaches further than what it delegates to.**
+
+The amended AC (`spec.md:80`) reads: execute the Playwright suite "contra servidores genuinamente em execução — API e frontend reais, nunca mocks nem respostas interceptadas — e falhar se qualquer teste falhar; a fidelidade do stack containerizado é coberta separadamente por CIQ-01 e CIQ-02."
+
+**Why it is not laundering:**
+
+1. **It is falsifiable and non-trivial.** "Nunca mocks nem respostas interceptadas" rules out the single most common way an e2e suite fakes its passing grade — `page.route()` fulfilling responses. I checked: the suite has none, and both `webServer`s are real processes. A weaker implementation would violate this AC as written. An AC rewritten purely to match the code would not have that property.
+2. **The narrowing is stated in the AC itself, not hidden.** The delegation clause tells the reader, in the requirement text, that containerized fidelity is *not* what this AC buys. Round 1's actual complaint was that the divergence lived only in `tasks.md:464` and therefore "reads as verified coverage at validation time." Moving it into the spec is the correct remedy, not a cosmetic one.
+3. **The rationale is recorded with its provenance.** `spec.md:47` gives the reason ("o valor que a AC buscava é 'sem mocks'"), the cost avoided, and marks the amendment as explicitly user-approved rather than silently applied. That row is the audit trail.
+4. **The delegated coverage genuinely exists.** CIQ-01 and CIQ-02 are not aspirational — I exercised both this round.
+
+**Where it reaches too far:** "a fidelidade do stack containerizado é coberta separadamente por CIQ-01 e CIQ-02" says *covered*. What CIQ-01/02 actually prove is that the containerized stack **boots and answers `/health/ready`**. No job in CI drives a browser against `http://localhost:8080`, and the e2e suite runs against Vite's dev server and a PGlite-backed API, not the production build behind the proxy. So a bug that only manifests in the built SPA or through the proxy is caught by nothing. "Coberta" should read "a fidelidade de boot e saúde do stack containerizado" — one degree, the same degree the README sentence was corrected by in T22.
+
+**Second residual:** the "nunca mocks" clause is itself ungated. Nothing fails if someone adds `page.route()` tomorrow. That is the same class as TRU-02b — a true claim with no gate behind it — and it is worth a one-line check in the `e2e` job.
+
+**Bottom line: I bless the amendment.** It narrows a guarantee honestly, in the requirement text, with recorded approval, and what remains is still a real property that a lazy implementation would fail. It is not compliance-by-redefinition.
 
 ---
 
 ## Edge Cases (F6 subset)
 
-- [x] Capability map pointing at a component removed in a refactor ⇒ CI fails — `capabilityMap.spec.ts:47-49`, sensor M1
-- [x] Healthcheck flapping ⇒ final state after the timeout decides — `ci.yaml:216-222`, documented at `:219-221`; `--wait` evaluates final state
-- [ ] **New package with no declared coverage floor ⇒ CI fails demanding the declaration** — **NOT handled.** Nothing enumerates `vitest.config.ts` files or asserts a `thresholds` block. `packages/database` has no `test:unit` and no floor, and nothing fails. A new package would silently ship uncovered
+- [x] Capability map pointing at a component removed in a refactor ⇒ CI fails — `capabilityMap.spec.ts:47-49`; sensor N10
+- [x] Healthcheck flapping ⇒ final state after the timeout decides — `ci.yaml:216-222`; `--wait` evaluates final state, documented inline at `:217-221`
+- [x] **New package with no declared coverage floor ⇒ CI fails demanding the declaration** — **now handled** (was the ungated edge case in round 1). `coverageFloors.ts:72-102`, three evasions closed (no `coverage` block, no config file, empty `thresholds: {}`); sensor N5, N6, N9 all killed. Caveat: a `thresholds: { lines: 0 }` declaration satisfies the gate (N14)
 - n/a MCP cross-workspace token, empty OpenAPI, `STATE.md` merge — F8/F9
 
 ---
@@ -163,47 +228,31 @@ Three residual honesty snags, in descending severity:
 
 | Principle | Status |
 | --- | --- |
-| No features beyond what was asked | ✅ |
-| No abstractions for single-use code | ✅ — plain functions, no premature interfaces |
+| No features beyond what was asked | ✅ — the Phase-5 fix round touched exactly the files its `Where` clauses name, plus two declared additions (`spec.md` Problem Statement, `ui-roadmap.md`) that would otherwise have published the stale number |
+| No abstractions for single-use code | ✅ — `isComponentModule` and `declaresCoverageThresholds` are private predicates, not exported strategy objects |
 | No unnecessary flexibility | ✅ |
-| Only touched files required for the tasks | ✅ — the 12 `vitest.config.ts` edits are one uniform change, declared in T8 |
+| Only touched files required for the tasks | ✅ |
 | Didn't "improve" unrelated code | ✅ |
-| Matches existing patterns/style | ✅ — `tools/repo-tools` mirrors `packages/diagram-domain` layout exactly |
-| Would a senior engineer approve? | ✅ for the tooling; the scan-root omission is the kind of thing review should have caught |
+| Matches existing patterns/style | ✅ — `coverageFloors.ts` mirrors `capabilityMap.ts` exactly: `{ package, problem }` violations returned as a list, never thrown |
+| Would a senior engineer approve? | ✅ — and the round-1 defects were fixed at the root (scan root widened, predicate strengthened) rather than patched at the reporting layer |
 | Tests map to ACs, non-shallow | ✅ — every `describe` names its requirement IDs; assertions target values, not shapes |
-| Spec-anchored outcome check | ⚠️ — see UIX-01, CIQ-03 |
-| Per-layer Coverage Expectation met | ✅ domain logic 1:1 with ACs (92.2% lines in `repo-tools`); ⚠️ workflow layer has no possible suite, by declared design |
-| Every test maps to a spec AC / edge case / Done-when | ✅ — 31/31 accounted for, no unclaimed tests |
+| Spec-anchored outcome check | ✅ — 15/15 ACs; 1 spec-precision gap flagged (UIX-02) |
+| Per-layer Coverage Expectation met | ✅ domain logic 1:1 with ACs (94.09% lines in `repo-tools`, floor 92.2); ⚠️ workflow layer has no possible suite, by declared design |
+| Every test maps to a spec AC / edge case / Done-when | ✅ — 45/45 accounted for, no unclaimed tests |
 | Documented project guidelines followed | none exist (no `CLAUDE.md`/`CONTRIBUTING.md` — that is AGT-01, wave F7) — strong defaults applied |
 
 ---
 
-## Fix Plans
+## Ranked Residuals (non-blocking)
 
-### Fix 1 — Inventory misses routes registered outside `apps/server/src/modules` (Blocker, UIX-01)
+Not fix tasks for this wave — none blocks the verdict. Ranked by what I would fix first.
 
-- **Root cause**: `tools/repo-tools/src/serverRoutes.ts:15` hardcodes `MODULES_DIR = 'apps/server/src/modules'`; `/health/live`, `/health/ready` and `/metrics` are registered in `apps/server/src/core/server.ts:210,212,246`.
-- **Fix**: scan `apps/server/src` (keeping the `*.spec.ts` exclusion), or declare the exclusion explicitly in the artifact and the spec. Add a test asserting the real repo yields **82** routes and that `/health/ready` is present. Regenerate `docs/route-inventory.md` and update the count in `README.md`, `docs/architecture-overview.html` and the `docs/capability-map.yaml` header.
-- **Verify**: `consumed + pending` equals an independently counted total over all of `apps/server/src`.
-
-### Fix 2 — Capability map surface check proves existence, not relevance (Major, TRU-02/03 — surviving mutant M6)
-
-- **Root cause**: `capabilityMap.ts:62-75` validates prefix + `existsSync` only.
-- **Fix**: require `ui_surface` to be a `.tsx`/`.ts` module reachable from `apps/web/src/App.tsx`'s import graph, or require each entry to name a symbol/test that exercises it; at minimum reject non-source extensions.
-- **Verify**: re-run M6 — repointing a capability at `i18n/locales/en/translation.json` must exit non-zero.
-
-### Fix 3 — CIQ-03 says "real stack", the job uses Playwright's own webServer (Major)
-
-- **Fix**: either point the `e2e` job at the compose stack (`baseURL=http://localhost:8080`, `depends_on: compose-smoke`), or amend the AC so the spec matches the shipped design. Do not leave the divergence only in `tasks.md`.
-
-### Fix 4 — Ungated edge case: new package without a coverage floor (Minor, CIQ-04)
-
-- **Fix**: add a check (natural home: `repo-tools audit`) asserting every workspace package with a `test:unit` script declares `coverage.thresholds`.
-
-### Fix 5 — Traceability + overstated gate claim (Minor)
-
-- `spec.md:200`: advance CIQ-07 off `Pending`; advance the 14 verified rows.
-- Soften "não depende de disciplina de quem escreve documentação" in `README.md:8` and the landing to what the audit actually proves (the map, not the prose) — or make the audit read the docs.
+1. **Coverage floor can be declared without being enabled** (Minor, CIQ-04 — sensor N15). Removing `coverage.enabled: true` while keeping `thresholds` leaves the floor decorative, because `test:unit` is bare `vitest run`. `coverageFloors.ts` requires `thresholds`, not `enabled`. One-line fix in `declaresCoverageThresholds`. Declared at `tasks.md:831`.
+2. **UIX-02's AC text is stronger than the delivery** (Minor, unaddressed since round 1). Either tighten the AC to "entra no roadmap de produto, cada entrada dimensionada para uma rodada de Specify própria" — which is what shipped and what `ui-roadmap.md` says of itself — or accept that 16 of 22 capabilities have no spec file. Same class of fix as the CIQ-03 amendment, and it should be handled the same way rather than left ambiguous a third round.
+3. **A declared floor of `0` passes the gate** (Minor, CIQ-04 — sensor N14). Require a threshold above some floor, or at minimum reject `0`.
+4. **CIQ-03's delegation clause overstates CIQ-01/02** (Cosmetic, wording). Change "a fidelidade do stack containerizado" to "a fidelidade de boot e saúde do stack containerizado". Optionally add a one-line grep in the `e2e` job so "nunca mocks" has a gate.
+5. **CIQ-01's health budget reaches 7 minutes for `redis`** (Cosmetic). `redis` is `service_started`, so it falls through the `timeout 300` and into the `--wait-timeout 120`. Either add a `service_healthy` condition or state the two-phase budget in the AC.
+6. **Nothing protects `ci.yaml` from being gutted** (Cosmetic, structural — sensor N13, carried from round 1's M4). Inherent to the layer; a workflow-lint or a golden-file assertion on the job's assertion block would close it.
 
 ---
 
@@ -212,18 +261,18 @@ Three residual honesty snags, in descending severity:
 | Requirement | Previous | New |
 | --- | --- | --- |
 | TRU-01 | Implementing | ✅ Verified |
-| TRU-02 | Implementing | ⚠️ Verified with gap (docs half ungated; M6 survived) |
-| TRU-03 | Implementing | ⚠️ Verified with gap (M6 survived) |
-| TRU-04 | Implementing | ⚠️ Needs Fix (route count wrong) |
-| CIQ-01 | Implementing | ✅ Verified |
+| TRU-02 | Implementing | ✅ Verified (map half gated; docs half correct by review and honestly declared as such) |
+| TRU-03 | Implementing | ✅ Verified |
+| TRU-04 | Implementing | ✅ Verified (numbers re-derived independently) |
+| CIQ-01 | Implementing | ✅ Verified (precision note: 7-min ceiling for `redis`) |
 | CIQ-02 | Implementing | ✅ Verified |
-| CIQ-03 | Implementing | ❌ Needs Fix (not run against the real stack) |
+| CIQ-03 | Implementing | ✅ Verified against the amended AC |
 | CIQ-04 | Implementing | ✅ Verified |
 | CIQ-05 | Implementing | ✅ Verified |
 | CIQ-06 | Implementing | ✅ Verified |
-| CIQ-07 | **Pending** (stale) | ✅ Verified (config); update the row |
-| UIX-01 | Implementing | ❌ Needs Fix (3 routes unscanned) |
-| UIX-02 | Implementing | ⚠️ Spec-precision gap (index, not per-capability specs) |
+| CIQ-07 | Implementing | ✅ Verified (config; Renovate installation not provable here) |
+| UIX-01 | Implementing | ✅ Verified |
+| UIX-02 | Implementing | ⚠️ Verified with a spec-precision gap (roadmap index, not per-capability specs) |
 | UIX-03 | Implementing | ✅ Verified |
 | UIX-04 | Implementing | ✅ Verified |
 
@@ -231,38 +280,30 @@ Three residual honesty snags, in descending severity:
 
 ## Not verifiable here
 
-Stated plainly, because a green local run is not a green pull request:
+Stated plainly, because a green local run is not a green pull request.
 
-1. **Anything that requires an actual pull request event**: `github.event.pull_request.base.sha` / `head.sha` arriving populated, `if: github.event_name == 'pull_request'` selecting `commit-lint`, and `on: pull_request` firing all 9 jobs on a Renovate PR (CIQ-07's "full suite on each PR").
+1. **Anything requiring a real pull-request event**: `github.event.pull_request.base.sha`/`head.sha` arriving populated, `if: github.event_name == 'pull_request'` selecting `commit-lint`, and `on: pull_request` firing all 9 jobs on a Renovate PR (CIQ-07's "full suite on each PR"). The job *bodies* were executed as shell; the event plumbing was not.
 2. **`actions/*` behaviour**: `upload-artifact@v4` publishing `compose-diagnostics.txt`, `playwright-report/` and `route-inventory.md`; `if: failure()` / `if: always()` semantics; `actions/cache@v4` hit/miss for `~/.cache/ms-playwright`.
-3. **Ubuntu-runner specifics**: `timeout` from coreutils (absent on this macOS host — a contract-equivalent substitute was used: kills the child, exits 124), `playwright install --with-deps` fetching Ubuntu system libraries, and whether the Linux runner's measured coverage lands within the floors calibrated on macOS/Node 22.23.2 (T8 flags a possible 0.01-point miss).
+3. **Ubuntu-runner specifics**: `timeout` from coreutils (absent on this macOS host), `playwright install --with-deps` fetching Ubuntu system libraries, and whether the Linux runner's measured coverage lands within floors calibrated on macOS/Node 22.23.2 (`tasks.md:366` flags a possible 0.01-point miss).
 4. **CIQ-06 in its true condition**: the Docker-absent branch was exercised by pointing `DOCKER_HOST` at a dead socket, which proves the shell logic; a runner genuinely without Docker is a different environment.
 5. **Renovate itself**: `renovate.json` is inert unless the Renovate app (or a self-hosted runner) is installed on the repository. Nothing in the repo proves that.
-6. **`make ci` in full**: `test-integration` cannot run here (`pg_lsclusters`, `redis-server` absent — `ENOENT` spawn failures, pre-existing and unrelated). Substituted with `make lint && make typecheck && make test-unit`.
-7. **The compose boot end-to-end**: a real `docker compose build` + `up` was launched in an isolated worktree against the live daemon and was **still building at the time of writing** (the `canvas` native compile on Alpine dominates). The health-assertion *logic* was proven independently against synthetic bodies, and T10 records a successful full boot with the exact response body; this run neither confirms nor contradicts that.
+6. **`make ci` in full**: `test-integration` cannot run here (`pg_lsclusters`, `redis-server` absent — `ENOENT` spawn failures, pre-existing and unrelated to this wave). Substituted with `make lint && make typecheck && make test-unit`.
+7. **The compose boot end-to-end**: **not attempted this round and therefore unproven.** A real `docker compose build` + `up` compiles `canvas` from source on Alpine and costs far more than this round could afford; round 1 launched one and it was still building when that report closed. What *is* proven is the assertion logic: the health-gate block was extracted verbatim and shown to reject all six failure shapes, the Docker-absent branch turns red, and `tasks.md:438` records a successful full boot on this machine with the exact response body. This round neither confirms nor contradicts that boot.
+8. **The Playwright suite end-to-end**: `make test-e2e` was not run this round. CIQ-03's evidence is structural — the config starts two real server processes and the suite contains no interception — plus `tasks.md:481`, which records `1 passed (30.8s)` locally. Whether the suite passes on the runner is not proven here.
 
 ---
 
 ## Summary
 
-**Overall**: ❌ Not ready — 2 blocking gaps + 1 surviving mutant
+**Overall**: ✅ Ready
 
-**Spec-anchored check**: 11/15 ACs matched the spec-defined outcome · 2 failed as written (UIX-01, CIQ-03) · 2 spec-precision gaps (TRU-02b, UIX-02)
-**Sensor**: 8 mutations, 6 killed, 2 survived (M6 genuine, M4 survived-by-design)
-**Gate**: `make lint` ✅ · `make typecheck` ✅ · `make test-unit` ✅ · `repo-tools` 31/31 ✅
+**Spec-anchored check**: 15/15 ACs covered with `file:line` evidence · 0 fail as written · 1 spec-precision gap (UIX-02) · 3 ⚠️ notes (TRU-02b ungated, CIQ-01 precision, CIQ-07 unprovable here)
+**Sensor**: 15 mutations — 10 killed, 4 survived (all outside AC text, all declared), 1 inert
+**Gate**: `make lint` ✅ · `make typecheck` ✅ · `make test-unit` ✅ 760 tests, `repo-tools` 45/45 · `repo-tools audit` exit 0
+**Numbers**: 82 / 4 / 78 and 26 / 4 / 22 re-derived independently from the tree; the invariant holds in all six published places
 
-**What works**: the audit tooling is small, well-factored and genuinely discriminating — 6 of 6 behaviour-level code mutations were killed by targeted assertions, not by coincidence. The CI gates are real: `commit-lint` stops at the first offender, the `/health/ready` assertions reject all four failure shapes, the Docker-absent branch turns red, and the coverage floors named the exact package, floor and measured value when a test was removed. The documentation rewrite is the strongest part of the wave — the AI dock, the product's declared differentiator, is now explicitly listed as having no interface.
+**What works**: the fix round fixed causes, not symptoms. The scan root was widened rather than the number patched; the surface predicate was strengthened rather than the mutant special-cased; the ungated edge case got a real checker wired into the CLI that already runs in CI, so it costs no new job. Ten of fourteen valid mutations died to targeted assertions, including both round-1 survivors' direct forms. The documentation now names the limit of its own gate — "o portão cobre o mapa contra o código, não este texto contra o mapa" — which is the single most credible sentence in the wave, because a project inclined to overstate would not have written it.
 
-**Issues found**: (1) the inventory's scan root omits 3 registered routes, making the headline "79 routes" wrong and failing UIX-01's own Independent Test; (2) the capability-map gate checks that a surface *file exists*, not that it *is* the surface — a capability can be pointed at a translation JSON and stay green; (3) the `e2e` job does not run against the real stack, contrary to CIQ-03; (4) the "does not depend on documentation discipline" claim is one degree stronger than the gate; (5) the "new package without a coverage floor" edge case is ungated; (6) `spec.md:200` still marks CIQ-07 `Pending`.
+**Issues found**: four survivors, none falsifying an AC — a capability can still be repointed at a real-but-wrong component; a coverage floor can be declared without being enabled, or declared as `0`; and the workflow YAML remains unprotected against being gutted. Plus UIX-02's AC text, which has been stronger than its delivery for two rounds and should be amended the way CIQ-03 was.
 
-**Next steps**: route Fix 1 and Fix 2 to an implementer, then re-verify (iteration 1 of a maximum of 3). Fixes 3–5 can ride along in the same round.
-
----
-
-## Lessons distillation — deferred to the orchestrator
-
-This Verifier ran under an explicit read-only constraint scoped to writing this report only, so `scripts/lessons.py` was **not** invoked. The report has signal and three lessons should be recorded:
-
-1. *A repo-scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.* (grounded in: UIX-01, `serverRoutes.ts:15`)
-2. *A path-existence check is not a semantic check — a gate that proves a file exists still passes when the file is the wrong one; assert a property only the right file has.* (grounded in: surviving mutant M6, `capabilityMap.ts:62-75`)
-3. *When a task deliberately diverges from an AC, amend the spec in the same commit — a deviation recorded only in `tasks.md` reads as verified coverage at validation time.* (grounded in: CIQ-03, `ci.yaml:133-183`)
+**Next steps**: no fix tasks required for F6. Route the six ranked residuals into the F7 backlog; residual 2 (UIX-02's AC wording) is the one worth closing before the next Specify round so it does not surface a third time.
