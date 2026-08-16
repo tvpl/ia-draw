@@ -147,11 +147,11 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Token válido popula `request.mcpContext` corretamente
-- [ ] Token ausente, inválido, revogado ou expirado nega de forma idêntica (mesmo código/formato de resposta — não distinguível)
-- [ ] `findMcpTokenByHash`/`createMcpToken`/`revokeMcpToken` testados isoladamente (unit, sem HTTP)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 6 novos testes unit (token válido resolve context; ausente nega; inválido nega; revogado nega; expirado nega; create/revoke roundtrip)
+- [x] Token válido popula `request.mcpContext` corretamente
+- [x] Token ausente, inválido, revogado ou expirado nega de forma idêntica (mesmo código/formato de resposta — não distinguível)
+- [x] `findMcpTokenByHash`/`createMcpToken`/`revokeMcpToken` testados isoladamente (unit, sem HTTP)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [x] Test count: 6 novos testes unit (token válido resolve context; ausente nega; inválido nega; revogado nega; expirado nega; create/revoke roundtrip)
 
 **Tests**: unit
 **Gate**: quick
