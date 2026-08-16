@@ -7,6 +7,7 @@ import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
+import { useAuth } from '../auth/AuthProvider.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -38,6 +39,10 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
 export function DiagramEditorPage(): JSX.Element {
   const { diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
   const { t } = useTranslation();
+  // T8/SSO-18: the actor id comes from AuthProvider's context (the app's one
+  // `/me` call, resolved before this route can even render behind
+  // `ProtectedRoute`), not a second `/me` fetch of this component's own.
+  const { user } = useAuth();
 
   const status = useMemo(() => createSaveStatusStore(), []);
   const clientRef = useRef<DiagramSyncClient | null>(null);
@@ -59,18 +64,13 @@ export function DiagramEditorPage(): JSX.Element {
   useEffect(() => wireForcedFlush(queue), [queue]);
 
   useEffect(() => {
-    if (!diagramId) return;
+    if (!diagramId || !user) return;
     const client = new DiagramSyncClient({ diagramId, queue, status });
     clientRef.current = client;
+    client.setActorId(user.id);
 
     let cancelled = false;
     (async () => {
-      const me = await fetch('/me').then(
-        (response) => response.json() as Promise<{ user: { id: string } }>,
-      );
-      if (cancelled) return;
-      client.setActorId(me.user.id);
-
       const bootstrapResult = await client.bootstrap();
       if (cancelled) return;
       setInitialElements(bootstrapResult.scene);
@@ -81,7 +81,7 @@ export function DiagramEditorPage(): JSX.Element {
       cancelled = true;
       clientRef.current = null;
     };
-  }, [diagramId, queue, status]);
+  }, [diagramId, queue, status, user]);
 
   // DOCK-13/18: never applies anything before the approve/restore HTTP call itself has
   // already resolved 200 — this only ever runs from AiDock's post-resolution callback.

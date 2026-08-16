@@ -3,23 +3,24 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 89
-- Com consumidor de UI (`consumed`): 7
-- Pendentes de produto (`pending-product`): 82
+- Com consumidor de UI (`consumed`): 8
+- Pendentes de produto (`pending-product`): 81
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (7)
+## consumed (8)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
 | POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
-| GET | `/me` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/diagram/DiagramEditorPage.tsx` |
+| POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
+| GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
 | GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 
-## pending-product (82)
+## pending-product (81)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -32,11 +33,10 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/admin/ai-providers/:id(^[^:]+):test` | `apps/server/src/modules/ai-provider/routes.ts` |
 | POST | `/diagrams/:id/assets:initiate` | `apps/server/src/modules/asset/routes.ts` |
 | POST | `/diagrams/:id/assets/:assetId(^[^:]+):complete` | `apps/server/src/modules/asset/routes.ts` |
-| POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/auth/refresh` | `apps/server/src/modules/auth/routes.ts` |
+| GET | `/me` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` |
-| GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/login` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/callback` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` |

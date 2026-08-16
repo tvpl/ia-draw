@@ -264,11 +264,11 @@ T3 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `AuthProvider` wraps `<Routes>`; `/login` renders `LoginPage` unguarded; `/` and `/w/:workspaceId/d/:diagramId` wrapped in `ProtectedRoute`
-- [ ] `DiagramEditorPage`'s own `fetch('/me')` call removed; `client.setActorId` now sourced from `useAuth().user.id`
-- [ ] New `App.spec.tsx`: mocked `fetch` returning 401 on `/me` and failing `/auth/refresh` → visiting a protected route lands on `/login?next=<encoded path>`; a subsequent successful `POST /auth/login` returns to that `next`
-- [ ] `repo-tools run audit` reflects `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`, `GET /me`, `GET /auth/oidc/login`, `GET /auth/oidc/callback` as consumed (no longer `pending-product`), `GET /auth/oidc/status` listed as a new consumed route
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `AuthProvider` wraps `<Routes>`; `/login` renders `LoginPage` unguarded; `/` and `/w/:workspaceId/d/:diagramId` wrapped in `ProtectedRoute`
+- [x] `DiagramEditorPage`'s own `fetch('/me')` call removed; `client.setActorId` now sourced from `useAuth().user.id`
+- [x] New `App.spec.tsx`: mocked `fetch` returning 401 on `/me` and failing `/auth/refresh` → visiting a protected route lands on `/login?next=<encoded path>`; a subsequent successful `POST /auth/login` returns to that `next`
+- [~] `repo-tools run audit` reflects `POST /auth/login`, `POST /auth/logout`, `POST /auth/refresh`, `GET /me`, `GET /auth/oidc/login`, `GET /auth/oidc/callback` as consumed (no longer `pending-product`), `GET /auth/oidc/status` listed as a new consumed route — **partial, documented deviation**: `POST /auth/login` and `GET /auth/oidc/status` now correctly show `consumed` (`LoginPage.tsx`'s literal `fetch(...)` calls). `GET /me`, `POST /auth/refresh`, `POST /auth/logout` stay `pending-product` — the audit's static scanner (`tools/repo-tools/src/webConsumers.ts`) only matches literal `fetch(`/`this.fetchImpl(` call sites, and `AuthProvider.tsx` (T3, already committed, outside this task's `Where`) calls through a locally-aliased `doFetch(...)`, invisible to that regex; this is a pre-existing T3 naming choice, not something T8 introduced (T8 in fact removed `DiagramEditorPage`'s own literal `fetch('/me')`, which was the only reason `/me` was previously detected). `GET /auth/oidc/login` stays `pending-product` by design — it's consumed via a real `<a href="/auth/oidc/login">` navigation link (SSO-09/10 explicitly forbid a `fetch`-based SSO button), which this scanner never looks for. `GET /auth/oidc/callback` is never referenced by web source at all (it's a server-redirect target reached only via the IdP), so no static scanner could ever mark it consumed. Fixing the first gap needs a small rename inside `AuthProvider.tsx`, out of T8's declared file scope — flagged separately rather than silently expanding scope.
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit (integration-style RTL)
 **Gate**: full

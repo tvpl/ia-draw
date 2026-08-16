@@ -53,6 +53,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../app-shell/AppShell.js';
 import { LanguageSwitcher } from '../app-shell/LanguageSwitcher.js';
+import { AuthProvider } from '../auth/AuthProvider.js';
 import { DiagramEditorPage } from '../diagram/DiagramEditorPage.js';
 // Side-effect import — initializes the shared i18next singleton `useTranslation()` reads
 // from, exactly like `main.tsx` does for the real app. Without this, `t()` calls in the
@@ -101,7 +102,10 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
     // A permanently-pending fetch keeps the component in its own real "loading" render
     // path deterministically (never resolves `/me`, so `<EditorSurface/>` never mounts) —
     // see this file's header disclosure for why the Excalidraw canvas itself is out of
-    // scope here.
+    // scope here. It also keeps `AuthProvider` (T8: now required to render
+    // `DiagramEditorPage`, which reads its actor id from `useAuth()`) parked in
+    // `status: 'loading'`, so `DiagramEditorPage`'s own effect never fires either —
+    // same deterministic loading render as before T8.
     vi.stubGlobal(
       'fetch',
       vi.fn(() => new Promise<Response>(() => {})),
@@ -111,9 +115,11 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
   it('renders the loading state (route params present) with zero serious/critical axe violations', async () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/w/ws-perf-1/d/diagram-perf-1']}>
-        <Routes>
-          <Route path="/w/:workspaceId/d/:diagramId" element={<DiagramEditorPage />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/w/:workspaceId/d/:diagramId" element={<DiagramEditorPage />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>,
     );
 
@@ -124,7 +130,9 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
   it('renders the "missing diagram id" state (no route match) with zero serious/critical axe violations', async () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/']}>
-        <DiagramEditorPage />
+        <AuthProvider>
+          <DiagramEditorPage />
+        </AuthProvider>
       </MemoryRouter>,
     );
 
