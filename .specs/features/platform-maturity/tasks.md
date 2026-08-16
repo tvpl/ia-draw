@@ -268,13 +268,17 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Falha nomeando a entrada quando `ui_surface` aponta para caminho inexistente em `apps/web/src`
-- [ ] Falha quando uma entrada tem `ui_surface` nula sem `status: backend-only`, impedindo capacidade sem classificação
-- [ ] Edge case coberto: mapa vazio falha em vez de passar por vacuidade
-- [ ] Edge case coberto: entrada sem campo obrigatório falha nomeando o campo
-- [ ] Executado contra `docs/capability-map.yaml` real, passa
-- [ ] Gate check passa: `make test-unit`
-- [ ] Test count: 7 testes passam (sem deleção silenciosa)
+- [x] Falha nomeando a entrada quando `ui_surface` aponta para caminho inexistente em `apps/web/src`
+- [x] Falha quando uma entrada tem `ui_surface` nula sem `status: backend-only`, impedindo capacidade sem classificação
+- [x] Edge case coberto: mapa vazio falha em vez de passar por vacuidade
+- [x] Edge case coberto: entrada sem campo obrigatório falha nomeando o campo
+- [x] Executado contra `docs/capability-map.yaml` real, passa
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 7 testes passam (sem deleção silenciosa)
+
+> **Nota.** `checkCapabilityMap` devolve uma lista de violações (`{ entry, problem }`) em vez de lançar, para que a CLI de T7 imprima todas as entradas ofensoras de uma vez. `ui_surface` precisa estar sob `apps/web/src` **e** existir em disco — apontar para um arquivo de servidor é afirmação falsa, não superfície. O package ganhou a dependência `yaml@^2.9.0` (já presente no lockfile do workspace) para ler o mapa.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick
