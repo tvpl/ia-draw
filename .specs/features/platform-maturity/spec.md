@@ -230,7 +230,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 37 total, 15 mapeados a tasks (F6, em `tasks.md`), 22 não mapeados (ondas F7–F9, ainda sem breakdown).
+**Coverage:** 37 total, 20 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`), 17 não mapeados (ondas F8–F9, ainda sem breakdown).
 
 ---
 
