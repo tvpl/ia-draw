@@ -1,3 +1,4 @@
+import type { Role } from '@arch-canvas/auth';
 import { withTx, workspaceMembers, workspaces } from '@arch-canvas/database';
 import { and, eq, isNull } from 'drizzle-orm';
 import type { Db } from '../auth/db.js';
@@ -11,6 +12,11 @@ export interface Workspace {
   accessPolicy: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+/** A `Workspace` plus the caller's own effective role in it (NAV-13, NAV-17) — used by `listWorkspacesForUser`/`getWorkspaceById`, never by the create/update/delete paths, which have no "caller's role" concept of their own. */
+export interface WorkspaceWithRole extends Workspace {
+  role: Role;
 }
 
 export interface CreateWorkspaceInput {
@@ -42,8 +48,8 @@ export async function createWorkspace(
   });
 }
 
-/** Workspaces `userId` belongs to (any role), excluding soft-deleted ones. */
-export async function listWorkspacesForUser(db: Db, userId: string): Promise<Workspace[]> {
+/** Workspaces `userId` belongs to (any role), excluding soft-deleted ones — each item carries the caller's own `role` in that workspace (NAV-13, NAV-17). */
+export async function listWorkspacesForUser(db: Db, userId: string): Promise<WorkspaceWithRole[]> {
   const rows = await db
     .select({
       id: workspaces.id,
@@ -53,6 +59,7 @@ export async function listWorkspacesForUser(db: Db, userId: string): Promise<Wor
       accessPolicy: workspaces.accessPolicy,
       createdAt: workspaces.createdAt,
       updatedAt: workspaces.updatedAt,
+      role: workspaceMembers.role,
     })
     .from(workspaces)
     .innerJoin(workspaceMembers, eq(workspaceMembers.workspaceId, workspaces.id))
