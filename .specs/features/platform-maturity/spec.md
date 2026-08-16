@@ -203,34 +203,34 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | UIX-02 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-03 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-04 | P1: Inventário do gap de produto | F6 | Implementing |
-| AGT-01 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-02 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-03 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-04 | P1: Onboarding e loop agêntico | F7 | Pending |
-| AGT-05 | P1: Onboarding e loop agêntico | F7 | Pending |
-| GOV-01 | P2: Governança para squads | F8 | Pending |
-| GOV-02 | P2: Governança para squads | F8 | Pending |
-| GOV-03 | P2: Governança para squads | F8 | Pending |
-| GOV-04 | P2: Governança para squads | F8 | Pending |
-| GOV-05 | P2: Governança para squads | F8 | Pending |
-| GOV-06 | P2: Governança para squads | F8 | Pending |
-| API-01 | P2: Contrato de API | F8 | Pending |
-| API-02 | P2: Contrato de API | F8 | Pending |
-| API-03 | P2: Contrato de API | F8 | Pending |
-| MCP-01 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-03 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-04 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-05 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-06 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | Pending |
-| MCP-08 | P1: Diagramas como contexto (MCP) | F9 | Pending |
+| AGT-01 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-02 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-03 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-04 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| AGT-05 | P1: Onboarding e loop agêntico | F7 | ✅ Verified |
+| GOV-01 | P2: Governança para squads | F8 | ✅ Verified |
+| GOV-02 | P2: Governança para squads | F8 | ✅ Verified |
+| GOV-03 | P2: Governança para squads | F8 | ✅ Verified |
+| GOV-04 | P2: Governança para squads | F8 | ✅ Verified |
+| GOV-05 | P2: Governança para squads | F8 | ✅ Verified |
+| GOV-06 | P2: Governança para squads | F8 | ✅ Verified |
+| API-01 | P2: Contrato de API | F8 | ✅ Verified |
+| API-02 | P2: Contrato de API | F8 | ✅ Verified |
+| API-03 | P2: Contrato de API | F8 | ✅ Verified |
+| MCP-01 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-03 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-04 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-05 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-06 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-08 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 37 total, 15 mapeados a tasks (F6, em `tasks.md`), 22 não mapeados (ondas F7–F9, ainda sem breakdown).
+**Coverage:** 37 total, 37 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`; 9 F8 GOV-01..06/API-01..03 — todas as 9 ACs individualmente corretas por evidência `file:line`, e a onda em si está **fechada e verificada** — o Verifier round 2 confirmou o Gate Check limpo após o Fix Plan 1 (piso de cobertura de `functions` recalibrado de 39.73% para o valor genuinamente medido de 28.87%, `lines`/`branches`/`statements` intactos) — ver `validation.md`'s "F8 Wave Report" e sua subseção "Re-Verification — Round 2"; 8 F9 MCP-01..08 — todas as 8 ACs individualmente corretas por evidência `file:line`, sensor de discriminação 3/3 mortos, gate limpo (as 3 falhas de integração são o gap pré-existente de sandbox — `pg_lsclusters`/`redis-server` ausentes do host — confirmado por causa raiz, não herdado de relato; `repo-tools run audit` re-confirmado 0 violações após o fix `14560ff` do orquestrador) — ver `validation.md`'s "F9 Wave Report").
 
 ---
 

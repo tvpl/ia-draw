@@ -2,6 +2,7 @@ import { can, type Role } from '@arch-canvas/auth';
 import { recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -55,6 +56,27 @@ function forbidden(): never {
 function conflict(detail: string): never {
   throw Object.assign(new Error(detail), { statusCode: 409 });
 }
+
+/**
+ * OpenAPI schema map for this file's 9 routes (T6, API-01). The project and
+ * diagram routes `registerProjectAndDiagramRoutes` registers separately
+ * (`project-diagram-routes.ts`) are outside this file's own registrations
+ * and out of this wave's `routes.ts`-only coverage (design.md).
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /workspaces': {},
+  'POST /workspaces': { body: createWorkspaceBodySchema },
+  'GET /workspaces/:id': { params: workspaceIdParamsSchema },
+  'PATCH /workspaces/:id': { params: workspaceIdParamsSchema, body: updateWorkspaceBodySchema },
+  'DELETE /workspaces/:id': { params: workspaceIdParamsSchema },
+  'GET /workspaces/:id/members': { params: workspaceIdParamsSchema },
+  'POST /workspaces/:id/members': { params: workspaceIdParamsSchema, body: addMemberBodySchema },
+  'PATCH /workspaces/:id/members/:userId': {
+    params: memberParamsSchema,
+    body: updateMemberBodySchema,
+  },
+  'DELETE /workspaces/:id/members/:userId': { params: memberParamsSchema },
+};
 
 /**
  * Loads the actor's role for `workspaceId`, or throws 404 when there is no

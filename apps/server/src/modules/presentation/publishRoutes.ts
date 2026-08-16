@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -28,6 +29,19 @@ function forbidden(): never {
 }
 
 const presentationIdParamsSchema = z.object({ id: z.string().min(1) });
+
+/**
+ * OpenAPI schema map for this file's 3 routes (T22, API-01) — points at the
+ * same `presentationIdParamsSchema` the handlers below already `.parse()`
+ * against. Registered under the `presentation-publish` key
+ * (`openapi/registry.ts`), distinct from `presentation` (T17, this
+ * module's sibling `routes.ts`), since this file is not named `routes.ts`.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /presentations/:id(^[^:]+):publish': { params: presentationIdParamsSchema },
+  'GET /presentations/:id/published': { params: presentationIdParamsSchema },
+  'POST /presentations/:id(^[^:]+):export-pdf': { params: presentationIdParamsSchema },
+};
 
 /**
  * Registers the presentation module's publish/read-only-link/PDF-export

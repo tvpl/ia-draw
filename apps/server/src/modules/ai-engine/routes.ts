@@ -4,6 +4,7 @@ import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { Tracing } from '../../core/tracing.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -59,6 +60,12 @@ const createRunBodySchema = z.object({
   diagramKind: z.string().min(1).optional(),
   selection: z.array(z.string().min(1)).optional(),
 });
+
+/** OpenAPI schema map for this module's 2 routes (T20, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/ai/runs': { params: diagramIdParamsSchema, body: createRunBodySchema },
+  'POST /ai/runs/:runRef': { params: runRefParamsSchema },
+};
 
 /**
  * `POST /ai/runs/{id}:approve|:cancel` (design.md's Google-AIP-136-style

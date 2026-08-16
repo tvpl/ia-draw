@@ -1,6 +1,7 @@
 import { can, type Role } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import { generateOpaqueToken, hashToken } from '../auth/tokens.js';
@@ -41,6 +42,20 @@ const createShareLinkBodySchema = z.object({
   role: roleSchema,
   expiresAt: z.coerce.date(),
 });
+
+/** OpenAPI schema map for this module's 4 routes (T10, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/share-links': {
+    params: diagramIdParamsSchema,
+    body: createShareLinkBodySchema,
+  },
+  'POST /presentations/:id/share-links': {
+    params: presentationIdParamsSchema,
+    body: createShareLinkBodySchema,
+  },
+  'GET /share/:token': { params: tokenParamsSchema },
+  'POST /share-links/:id(^[^:]+):revoke': { params: shareLinkIdParamsSchema },
+};
 
 /** Never includes `tokenHash` — the API surface never re-exposes it, mirroring `sessions`/`ws_tickets`' one-shot-reveal discipline. */
 function toPublicShareLink(row: ShareLinkRow) {

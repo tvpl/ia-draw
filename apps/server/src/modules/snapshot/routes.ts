@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -29,6 +30,17 @@ const createSnapshotBodySchema = z.object({ name: z.string().min(1).optional() }
 const restoreParamsSchema = z.object({ id: z.string().min(1), snapshotId: z.string().min(1) });
 const restoreBodySchema = z.object({ clientMutationId: z.uuid().optional() });
 const diffQuerySchema = z.object({ from: z.string().min(1), to: z.string().min(1) });
+
+/** OpenAPI schema map for this module's 4 routes (T8, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/snapshots': { params: diagramIdParamsSchema, body: createSnapshotBodySchema },
+  'GET /diagrams/:id/snapshots': { params: diagramIdParamsSchema },
+  'POST /diagrams/:id/snapshots/:snapshotId(^[^:]+):restore': {
+    params: restoreParamsSchema,
+    body: restoreBodySchema,
+  },
+  'GET /diagrams/:id/diff': { params: diagramIdParamsSchema, query: diffQuerySchema },
+};
 
 /** Registers the snapshot module's routes: on-demand creation + listing (VER-01), restore-as-new-revision (VER-02/03) and structural diff (VER-04). */
 export function registerSnapshotModule(app: FastifyInstance, deps: SnapshotModuleDeps): void {

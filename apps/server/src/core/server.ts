@@ -10,11 +10,25 @@ import { ZodError } from 'zod';
 // `core` into `modules/auth`. Needed here because SEC-02's default rate
 // limit keys off `request.authContext?.user?.id` (see below).
 import '../modules/auth/types.js';
+import type { RouteSchemaMap } from '../openapi/types.js';
 import type { AppConfig } from './config.js';
 import { buildLoggerOptions, type LoggerOverrides, REQUEST_ID_LOG_LABEL } from './logging.js';
 import { createMetricsRegistry, type MetricsRegistry } from './metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from './rateLimit.js';
 import { createTracing, type Tracing } from './tracing.js';
+
+/**
+ * OpenAPI schema map for this file's 3 routes (T21, API-01) — none of them
+ * take a query/params/body, so every entry is empty; `buildDocument.ts`
+ * still documents them (200 response, no schema) rather than skipping them.
+ * Registered under the `core` key (`openapi/registry.ts`) since this file
+ * is not named `routes.ts`.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /health/live': {},
+  'GET /health/ready': {},
+  'GET /metrics': {},
+};
 
 export type DependencyStatus = 'up' | 'down';
 

@@ -89,7 +89,13 @@ export function patchToDeltas(
   return deltas;
 }
 
-async function applyMetadataOps(
+/**
+ * Exported so `mcp/routes.ts`'s `POST /diagrams/:id/mcp-patch` (T14, MCP-07)
+ * can reuse this exact function instead of duplicating the `setMetadata`
+ * apply logic — design.md's "reusa exatamente createSnapshot + appendOperation
+ * + applyMetadataOps" for the write-behind-flag MCP tool.
+ */
+export async function applyMetadataOps(
   db: Db,
   diagramId: string,
   patch: AbstractPatch,

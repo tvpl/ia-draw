@@ -625,6 +625,40 @@ export const shareLinks = pgTable(
 );
 
 /**
+ * A named, revocable MCP server credential for one workspace (MCP-04/05,
+ * F9 design.md "MCP-04/05"). Mirrors `share_links` above almost exactly —
+ * opaque token, hash-only at rest (`tokenHash`), `role` capped by the
+ * creator's own ceiling and resolved directly by `can()` with no session —
+ * with two differences: it is `label`-ed (free text, "what this token is
+ * for") and revocable by id rather than being an anonymous one-time link.
+ * `IMMUTABLE_KINDS`-style discipline: a token is never edited in place,
+ * only revoked (`revokedAt`) and a new one issued. `expiresAt` is nullable
+ * (unlike `share_links.expiresAt`) — an MCP token may be issued with no
+ * expiry. `revokedAt`/`expiresAt` together gate `requireMcpToken`
+ * (`apps/server/src/modules/mcp/auth.ts`) into the same uniform deny
+ * `share_links` already uses, never distinguishable from "not found".
+ */
+export const mcpTokens = pgTable(
+  'mcp_tokens',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    workspaceId: uuid('workspace_id')
+      .notNull()
+      .references(() => workspaces.id),
+    tokenHash: text('token_hash').notNull(),
+    role: workspaceMemberRole('role').notNull(),
+    label: text('label').notNull(),
+    createdBy: uuid('created_by')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  },
+  (table) => [uniqueIndex('mcp_tokens_token_hash_unique').on(table.tokenHash)],
+);
+
+/**
  * An admin-configured webhook subscription for a workspace (EXT-02,
  * F4/T71/T79). `secretEncrypted` is AES-256-GCM ciphertext produced by the
  * same `encryptToken`/`decryptToken` envelope-encryption module already

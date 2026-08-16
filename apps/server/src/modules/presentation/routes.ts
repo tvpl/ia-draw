@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -63,6 +64,30 @@ const updateFrameBodySchema = z.object({
   notes: z.string().nullable().optional(),
   navLinksJson: z.array(navLinkSchema).optional(),
 });
+
+/** OpenAPI schema map for this module's 8 routes (T17, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /presentations': { body: createPresentationBodySchema },
+  'GET /presentations': { query: listQuerySchema },
+  'GET /presentations/:id': { params: presentationIdParamsSchema },
+  'PATCH /presentations/:id': {
+    params: presentationIdParamsSchema,
+    body: updatePresentationBodySchema,
+  },
+  'POST /presentations/:id/frames': {
+    params: presentationIdParamsSchema,
+    body: createFrameBodySchema,
+  },
+  'PATCH /presentations/:id/frames': {
+    params: presentationIdParamsSchema,
+    body: bulkReorderBodySchema,
+  },
+  'PATCH /presentations/:id/frames/:frameId': {
+    params: frameParamsSchema,
+    body: updateFrameBodySchema,
+  },
+  'DELETE /presentations/:id/frames/:frameId': { params: frameParamsSchema },
+};
 
 /** PRS-01/03: private per T59's schema comment — a viewer/reviewer (anyone without `diagram:mutate`) never receives frame notes over the wire, even on an otherwise-successful read. */
 function redactNotesUnlessEditor(frames: readonly FrameRow[], canEdit: boolean): FrameRow[] {

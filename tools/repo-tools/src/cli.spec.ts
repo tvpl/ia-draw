@@ -14,9 +14,21 @@ const ROUTES = [
 
 const CONSUMER = "const me = await fetch('/me');";
 
+/** Matches ROUTES exactly, so the openapi-parity check (API-02) stays clean in tests unrelated to it. */
+const OPENAPI_DOC = JSON.stringify({
+  openapi: '3.1.0',
+  info: { title: 'x', version: '1.0.0' },
+  paths: {
+    '/me': { get: { responses: { '200': { description: 'ok' } } } },
+    '/diagrams/{id}/lint': { get: { responses: { '200': { description: 'ok' } } } },
+    '/presentations': { post: { responses: { '200': { description: 'ok' } } } },
+  },
+});
+
 /**
  * A minimal repository: three registered routes, one of them consumed by the
- * web app, plus the capability map the audit checks.
+ * web app, plus the capability map the audit checks and a matching OpenAPI
+ * document.
  */
 function fakeRepo(capabilityMap: string): string {
   scratch = mkdtempSync(join(tmpdir(), 'repo-tools-cli-'));
@@ -24,6 +36,7 @@ function fakeRepo(capabilityMap: string): string {
     'apps/server/src/modules/example/routes.ts': ROUTES,
     'apps/web/src/diagram/DiagramEditorPage.tsx': CONSUMER,
     'docs/capability-map.yaml': capabilityMap,
+    'docs/openapi.json': OPENAPI_DOC,
   };
   for (const [relative, contents] of Object.entries(files)) {
     const absolute = join(scratch, relative);

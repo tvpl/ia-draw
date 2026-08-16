@@ -14,6 +14,7 @@ import type { WebSocket } from 'ws';
 import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import { assertDeltaAssetsReady } from '../asset/index.js';
 import type { Db } from '../auth/db.js';
 import { consumeWsTicket } from '../auth/ws-ticket.js';
@@ -48,6 +49,15 @@ export const WS_CLOSE_FORBIDDEN = 4403;
 
 const wsParamsSchema = z.object({ diagramId: z.string().min(1) });
 const wsQuerySchema = z.object({ ticket: z.string().min(1) });
+
+/**
+ * OpenAPI schema map for this module's 1 route (T19, API-01). A WebSocket
+ * upgrade, not a JSON REST route — `{ websocket: true }` documents it
+ * without inventing a request/response JSON schema that does not exist.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /ws/diagrams/:diagramId': { websocket: true },
+};
 
 function unauthorized(): never {
   throw Object.assign(new Error('Unauthorized'), { statusCode: 401 });

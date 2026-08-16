@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 22,
+  "next_id": 27,
   "lessons": [
     {
       "id": "L-001",
@@ -384,6 +384,96 @@
       ],
       "created": "2026-08-16T11:02:44Z",
       "last_seen": "2026-08-16T11:02:44Z"
+    },
+    {
+      "id": "L-022",
+      "key": "ac_gap::before documenting a workspace script invocation as pnpm filter pkg script in onboarding docs or slash commands run it verbatim once a script name that collides with one of pnpm s own built in commands audit add update list is silently intercepted unless invoked as pnpm filter pkg run script",
+      "text": "Before documenting a workspace script invocation as `pnpm --filter <pkg> <script>` in onboarding docs or slash commands, run it verbatim once — a script name that collides with one of pnpm's own built-in commands (audit, add, update, list, ...) is silently intercepted unless invoked as `pnpm --filter <pkg> run <script>`.",
+      "signal": "ac_gap",
+      "scope": "agent-onboarding",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "AGT-05 / .claude/commands/audit.md:8 (agent-onboarding)"
+      ],
+      "created": "2026-08-16T11:39:04Z",
+      "last_seen": "2026-08-16T11:39:04Z"
+    },
+    {
+      "id": "L-023",
+      "key": "ac_gap::prose only onboarding artifacts claude md sections slash command bodies have no lint or ci surface over their content so a stale invariant or a broken documented command ships silently until a human or agent happens to run it treat any such command as untrusted until it has actually been executed not just read",
+      "text": "Prose-only onboarding artifacts (CLAUDE.md sections, slash-command bodies) have no lint or CI surface over their content, so a stale invariant or a broken documented command ships silently until a human or agent happens to run it — treat any such command as untrusted until it has actually been executed, not just read.",
+      "signal": "ac_gap",
+      "scope": "agent-onboarding",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "F7 discrimination sensor / CLAUDE.md, .claude/commands/*.md (agent-onboarding)"
+      ],
+      "created": "2026-08-16T11:39:04Z",
+      "last_seen": "2026-08-16T11:39:04Z"
+    },
+    {
+      "id": "L-024",
+      "key": "gate_fail::when a batch worker isolates a suspected pre existing gate failure with git stash of only the most recently added files re verify against the true wave start commit in a separate worktree before trusting the pre existing unrelated classification stashing a few files still leaves the rest of the wave s diff in place and can hide a regression the wave itself caused",
+      "text": "When a batch worker isolates a suspected pre-existing gate failure with git stash of only the most recently added files, re-verify against the true wave-start commit in a separate worktree before trusting the pre-existing/unrelated classification — stashing a few files still leaves the rest of the wave's diff in place and can hide a regression the wave itself caused.",
+      "signal": "gate_fail",
+      "scope": "verification-methodology",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/vitest.config.ts:26 (F8 wave, CIQ-04 functions ratchet) (verification-methodology)"
+      ],
+      "created": "2026-08-16T13:25:54Z",
+      "last_seen": "2026-08-16T13:25:54Z"
+    },
+    {
+      "id": "L-025",
+      "key": "spec_precision_gap::a scanning tool s scan root is an assumption not a fact assert the tool s total against an independent count over the whole source tree before publishing the number",
+      "text": "A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.",
+      "signal": "spec_precision_gap",
+      "scope": "repo-tooling",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "design.md:34 (F8, corrected by tasks.md T21-T23/Phase 2d) (repo-tooling)"
+      ],
+      "created": "2026-08-16T13:25:59Z",
+      "last_seen": "2026-08-16T13:25:59Z"
+    },
+    {
+      "id": "L-026",
+      "key": "spec_deviation::when a task plan adds a new route module task it to explicitly wire that module s routeschemas into every cross cutting registry file module registration and the openapi schema registry in the same task that creates the routes a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it",
+      "text": "When a task plan adds a new route module, task it to explicitly wire that module's routeSchemas into every cross-cutting registry file (module registration AND the OpenAPI schema registry) in the same task that creates the routes — a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it.",
+      "signal": "spec_deviation",
+      "scope": "task-planning",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)"
+      ],
+      "created": "2026-08-16T17:46:09Z",
+      "last_seen": "2026-08-16T17:46:09Z"
     }
   ]
 }

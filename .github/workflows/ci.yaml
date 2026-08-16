@@ -60,6 +60,61 @@ jobs:
           done
           echo "$(echo "$commits" | wc -l | tr -d ' ') commit messages conform to Conventional Commits."
 
+  changeset-check:
+    name: Changeset required for package changes
+    runs-on: ubuntu-latest
+    # Same reasoning as commit-lint: only a pull request has a base..head range
+    # to diff against.
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Need the full range base..head, not just the head commit.
+          fetch-depth: 0
+      - name: Fail naming any package changed under src/ without a new changeset
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          changed_files="$(git diff --name-only "$BASE_SHA".."$HEAD_SHA")"
+
+          changed_dirs="$(printf '%s\n' "$changed_files" \
+            | grep -E '^packages/[^/]+/src/' \
+            | sed -E 's#^packages/([^/]+)/src/.*#\1#' \
+            | sort -u || true)"
+          if [ -z "$changed_dirs" ]; then
+            echo "No packages/*/src changes in this pull request."
+            exit 0
+          fi
+
+          new_changesets="$(printf '%s\n' "$changed_files" \
+            | grep -E '^\.changeset/[^/]+\.md$' \
+            | grep -v '^\.changeset/README\.md$' || true)"
+
+          missing=""
+          for dir in $changed_dirs; do
+            pkg_name="$(git show "$HEAD_SHA:packages/$dir/package.json" | node -p 'JSON.parse(require("fs").readFileSync(0, "utf8")).name')"
+            covered=false
+            if [ -n "$new_changesets" ]; then
+              for f in $new_changesets; do
+                if git show "$HEAD_SHA:$f" | grep -q "\"$pkg_name\""; then
+                  covered=true
+                  break
+                fi
+              done
+            fi
+            if [ "$covered" = false ]; then
+              missing="$missing $pkg_name"
+            fi
+          done
+
+          if [ -n "$missing" ]; then
+            echo "::error::missing changeset for package(s):$missing - add a .changeset/*.md entry (pnpm exec changeset)"
+            exit 1
+          fi
+          echo "Every changed package (from: $(echo "$changed_dirs" | tr '\n' ' ')) has a changeset entry."
+
   typecheck:
     name: Typecheck
     runs-on: ubuntu-latest
@@ -85,6 +140,32 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm -w test:unit
+
+  ai-evals:
+    name: AI evals (success threshold)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build workspace dependencies
+        # runThresholdCheck runs evals.spec.ts directly via `pnpm exec vitest`
+        # (not through `turbo run test:unit`), so it never gets turbo's
+        # `dependsOn: ["^build"]` for free — on a clean checkout the
+        # workspace packages evals.spec.ts imports (diagram-ir,
+        # library-content, ...) resolve to their dist/ output, which does
+        # not exist without this step.
+        run: pnpm -w build
+      - name: Run the deterministic eval suite against its success threshold (API-03)
+        # A dedicated, named job — a threshold miss is distinguishable in CI
+        # from an unrelated `test:unit` failure. runThresholdCheck (T27)
+        # prints "X/Y evals passed, limiar Z%" and exits non-zero on a miss,
+        # never a generic "tests failed".
+        run: pnpm --filter @arch-canvas/server exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts
 
   integration:
     name: Integration tests (real Postgres)
@@ -271,13 +352,37 @@ jobs:
           node-version-file: .nvmrc
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Build workspace dependencies
+        # `make openapi` runs apps/server's generator directly via `tsx`
+        # (not through `turbo run build`/`test:unit`), so on a clean
+        # checkout it never gets turbo's `dependsOn: ["^build"]` for free -
+        # the workspace packages it imports (shared-contracts, diagram-ir,
+        # ...) resolve to their dist/ output, which does not exist yet.
+        run: pnpm -w build
+      - name: Regenerate and diff docs/openapi.json (API-02)
+        # A committed docs/openapi.json that no longer matches the
+        # routeSchemas registry is a stale contract — fail naming the file,
+        # same pattern TRU-03/UIX-01 already use for a divergent claim. The
+        # biome format step is required: the raw generator output does not
+        # match biome's array-wrapping style, so skipping it would make this
+        # diff non-empty on every run, even with no real drift.
+        run: |
+          set -euo pipefail
+          make openapi
+          pnpm exec biome format --write docs/openapi.json
+          if ! git diff --exit-code docs/openapi.json; then
+            echo "::error::docs/openapi.json is stale - regenerate with 'make openapi', format it with 'pnpm exec biome format --write docs/openapi.json', and commit the result"
+            exit 1
+          fi
       - name: Build the audit tool
         run: pnpm --filter @arch-canvas/repo-tools build
       - name: Audit the capability map against the code
         # `run audit`, not `exec repo-tools audit`: on a clean checkout the bin
         # cannot be linked at install time (dist/cli.js does not exist yet), so
         # the exec form would need install -> build -> install. The script form
-        # only needs the build step above.
+        # only needs the build step above. Also covers the OpenAPI route
+        # parity check (T24, API-02) since checkOpenApiParity is wired into
+        # runAudit.
         run: pnpm --filter @arch-canvas/repo-tools run audit
       - name: Publish the generated route inventory
         if: always()

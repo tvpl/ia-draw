@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { MetricsRegistry } from '../../core/metrics.js';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import { type Tracing, withOptionalSpan } from '../../core/tracing.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -91,6 +92,14 @@ function exportObjectKey(
 function bundleObjectKey(diagramId: string, bundleId: string): string {
   return `diagrams/${diagramId}/bundles/${bundleId}/bundle.zip`;
 }
+
+/** OpenAPI schema map for this module's 4 routes (T9, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/exports': { params: diagramIdParamsSchema },
+  'POST /diagrams/:id/bundle': { params: diagramIdParamsSchema },
+  'POST /projects/:id/import': { params: projectIdParamsSchema, body: importBodySchema },
+  'POST /workspaces/:id/bundles': { params: workspaceIdParamsSchema },
+};
 
 /** Registers the export module's routes: single-diagram export (EXP-01), `.zip` bundle (EXP-02), `.excalidraw` import preview/confirm (EXP-03), and bulk workspace export (EXP-04). */
 export function registerExportModule(app: FastifyInstance, deps: ExportModuleDeps): void {

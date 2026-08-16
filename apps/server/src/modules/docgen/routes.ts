@@ -1,6 +1,7 @@
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -44,6 +45,16 @@ const regenerateParamsSchema = z.object({
   version: z.coerce.number().int().positive(),
 });
 const regenerateBodySchema = z.object({ section: z.string().min(1) });
+
+/** OpenAPI schema map for this module's 3 routes (T13, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/specs:generate': { params: diagramIdParamsSchema },
+  'GET /diagrams/:id/specs': { params: diagramIdParamsSchema, query: listQuerySchema },
+  'POST /diagrams/:id/specs/:version(^[^:]+):regenerate-section': {
+    params: regenerateParamsSchema,
+    body: regenerateBodySchema,
+  },
+};
 
 /**
  * Registers the docgen module's routes: structured Markdown spec generation

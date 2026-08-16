@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make help)",
+      "Bash(make install)",
+      "Bash(make lint)",
+      "Bash(make format)",
+      "Bash(make typecheck)",
+      "Bash(make build)",
+      "Bash(make test-unit)",
+      "Bash(make test-integration)",
+      "Bash(make test-e2e)",
+      "Bash(make ci)",
+      "Bash(make ps)",
+      "Bash(make logs*)",
+      "Bash(pnpm install*)",
+      "Bash(pnpm -w lint*)",
+      "Bash(pnpm -w format*)",
+      "Bash(pnpm -w typecheck*)",
+      "Bash(pnpm -w build*)",
+      "Bash(pnpm -w test:*)",
+      "Bash(pnpm --filter @arch-canvas/repo-tools run audit)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "case \"$(node -v 2>/dev/null)\" in v22.*) ;; *) echo \"WARNING: this repo requires Node 22.x (.nvmrc). Detected $(node -v 2>/dev/null || echo 'no node on PATH'). Run: fnm use 22 && corepack enable. See CLAUDE.md.\" ;; esac"
+          }
+        ]
+      }
+    ]
+  }
+}

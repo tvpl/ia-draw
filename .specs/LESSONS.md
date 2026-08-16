@@ -140,6 +140,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: UIX-02 — .specs/features/platform-maturity/ui-roadmap.md (traceability)
 - last seen: 2026-08-16T11:02:44Z
 
+### L-022 - Before documenting a workspace script invocation as `pnpm --filter <pkg> <script>` in onboarding docs or slash commands, run it verbatim once — a script name that collides with one of pnpm's own built-in commands (audit, add, update, list, ...) is silently intercepted unless invoked as `pnpm --filter <pkg> run <script>`.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `agent-onboarding` · harmful: 0
+- features: platform-maturity
+- evidence: AGT-05 / .claude/commands/audit.md:8 (agent-onboarding)
+- last seen: 2026-08-16T11:39:04Z
+
+### L-023 - Prose-only onboarding artifacts (CLAUDE.md sections, slash-command bodies) have no lint or CI surface over their content, so a stale invariant or a broken documented command ships silently until a human or agent happens to run it — treat any such command as untrusted until it has actually been executed, not just read.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `agent-onboarding` · harmful: 0
+- features: platform-maturity
+- evidence: F7 discrimination sensor / CLAUDE.md, .claude/commands/*.md (agent-onboarding)
+- last seen: 2026-08-16T11:39:04Z
+
+### L-024 - When a batch worker isolates a suspected pre-existing gate failure with git stash of only the most recently added files, re-verify against the true wave-start commit in a separate worktree before trusting the pre-existing/unrelated classification — stashing a few files still leaves the rest of the wave's diff in place and can hide a regression the wave itself caused.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `verification-methodology` · harmful: 0
+- features: platform-maturity
+- evidence: apps/server/vitest.config.ts:26 (F8 wave, CIQ-04 functions ratchet) (verification-methodology)
+- last seen: 2026-08-16T13:25:54Z
+
+### L-025 - A scanning tool's scan root is an assumption, not a fact — assert the tool's total against an independent count over the whole source tree before publishing the number.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: platform-maturity
+- evidence: design.md:34 (F8, corrected by tasks.md T21-T23/Phase 2d) (repo-tooling)
+- last seen: 2026-08-16T13:25:59Z
+
+### L-026 - When a task plan adds a new route module, task it to explicitly wire that module's routeSchemas into every cross-cutting registry file (module registration AND the OpenAPI schema registry) in the same task that creates the routes — a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `task-planning` · harmful: 0
+- features: platform-maturity
+- evidence: tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)
+- last seen: 2026-08-16T17:46:09Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

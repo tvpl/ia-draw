@@ -1,0 +1,13 @@
+# Code owners per top-level domain (GOV-01). Single real owner today (`@tvpl`, confirmed
+# via `gh api repos/tvpl/ia-draw/collaborators` — the only real collaborator on this repo).
+# No invented team names: when squads exist for real, each line below swaps `@tvpl` for the
+# real team, one line at a time. See .specs/features/platform-maturity/spec.md's Assumptions
+# table for the decision record.
+
+/apps/server/  @tvpl
+/apps/web/     @tvpl
+/packages/     @tvpl
+/infra/        @tvpl
+/.github/      @tvpl
+/docs/         @tvpl
+/.specs/       @tvpl

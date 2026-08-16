@@ -4,6 +4,7 @@ import { extractSceneSemantics } from '@arch-canvas/diagram-domain';
 import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -41,6 +42,11 @@ async function loadWorkspaceLintRules(
   if (typeof lintRules !== 'object' || lintRules === null) return undefined;
   return lintRules as WorkspaceLintRules;
 }
+
+/** OpenAPI schema map for this module's 1 route (T16, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /diagrams/:id/lint': { params: diagramIdParamsSchema },
+};
 
 /** Registers the lint module's route (LNT-01/02/03): `GET /diagrams/:id/lint` — always 200, never blocks on warnings. */
 export function registerLintModule(app: FastifyInstance, deps: LintModuleDeps): void {

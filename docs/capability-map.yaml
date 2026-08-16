@@ -172,3 +172,9 @@ capabilities:
     requirements: [A11Y-01]
     backend_evidence: apps/web/src/a11y/shell.a11y.spec.tsx
     ui_surface: apps/web/src/app-shell/AppShell.tsx
+
+  - capability: Servidor MCP — diagramas como contexto
+    requirements: [MCP-01, MCP-02, MCP-03, MCP-04, MCP-05, MCP-06, MCP-07, MCP-08]
+    backend_evidence: apps/server/src/modules/mcp/routes.ts
+    ui_surface: null
+    status: backend-only

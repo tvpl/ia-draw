@@ -4,6 +4,7 @@ import { and, eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -86,6 +87,18 @@ const updateBodySchema = z.object({
   capabilitiesJson: z.record(z.string(), z.unknown()).optional(),
   enabled: z.boolean().optional(),
 });
+
+/**
+ * OpenAPI schema map for this module's 5 routes (T3, API-01) — points at the
+ * same Zod objects the handlers below already `.parse()` against, so the
+ * generated document has real fidelity without changing any route's behavior.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /admin/ai-providers': { query: listQuerySchema },
+  'POST /admin/ai-providers': { body: createBodySchema },
+  'PATCH /admin/ai-providers/:id': { params: idParamsSchema, body: updateBodySchema },
+  'POST /admin/ai-providers/:id(^[^:]+):test': { params: idParamsSchema },
+};
 
 /**
  * Registers the AI provider admin module (T42): CRUD for

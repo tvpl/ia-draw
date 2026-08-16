@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -48,6 +49,15 @@ const initiateBodySchema = z.object({
 function objectKeyFor(diagramId: string, assetId: string): string {
   return `diagrams/${diagramId}/assets/${assetId}`;
 }
+
+/** OpenAPI schema map for this module's 2 routes (T7, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'POST /diagrams/:id/assets:initiate': {
+    params: diagramIdParamsSchema,
+    body: initiateBodySchema,
+  },
+  'POST /diagrams/:id/assets/:assetId(^[^:]+):complete': { params: assetParamsSchema },
+};
 
 /** Registers the asset module's routes — two-phase upload (EDT-06). */
 export function registerAssetModule(app: FastifyInstance, deps: AssetModuleDeps): void {

@@ -2,6 +2,7 @@ import { can } from '@arch-canvas/auth';
 import { recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -31,6 +32,17 @@ const metadataBodySchema = z.object({
   metadataJson: z.record(z.string(), z.unknown()).optional(),
 });
 const inventoryQuerySchema = z.object({ format: z.enum(['csv', 'json']).default('json') });
+
+/** OpenAPI schema map for this module's 4 routes (T15, API-01). */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /libraries': { query: librariesQuerySchema },
+  'GET /diagrams/:id/elements/:elementId/metadata': { params: elementParamsSchema },
+  'PATCH /diagrams/:id/elements/:elementId/metadata': {
+    params: elementParamsSchema,
+    body: metadataBodySchema,
+  },
+  'GET /diagrams/:id/inventory': { params: diagramIdParamsSchema, query: inventoryQuerySchema },
+};
 
 /**
  * Registers the library module's routes (T39): library listing, semantic
