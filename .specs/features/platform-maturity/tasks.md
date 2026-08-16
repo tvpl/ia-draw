@@ -646,9 +646,9 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] `## Handoffs` substitui `## Handoff`, com `### platform-maturity (branch: feature/improvements-2)` como única subseção hoje
-- [ ] Conteúdo migrado sem perda (branch, fase, entregas de F8, próximo passo, armadilhas, lições)
-- [ ] `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py platform-maturity` continua saindo 0 (o script não depende do formato exato do Handoff, só do `validation.md`)
+- [x] `## Handoffs` substitui `## Handoff`, com `### platform-maturity (branch: feature/improvements-2)` como única subseção hoje
+- [x] Conteúdo migrado sem perda (branch, fase, entregas de F8, próximo passo, armadilhas, lições)
+- [x] `python3 .claude/skills/tlc-spec-driven/scripts/validate_state.py platform-maturity` continua saindo 0 (o script não depende do formato exato do Handoff, só do `validation.md`)
 
 **Tests**: none
 **Gate**: build
