@@ -193,7 +193,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | TRU-04 | P1: Documentação honesta | F6 | Pending |
 | CIQ-01 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-02 | P1: CI que prova o sistema | F6 | Implementing |
-| CIQ-03 | P1: CI que prova o sistema | F6 | Pending |
+| CIQ-03 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-04 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-05 | P1: CI que prova o sistema | F6 | Implementing |
 | CIQ-06 | P1: CI que prova o sistema | F6 | Implementing |

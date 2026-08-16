@@ -130,6 +130,58 @@ jobs:
               .catch((error) => { console.error(error); process.exit(1); });
           "
 
+  e2e:
+    name: End-to-end tests (Playwright)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Resolve the pinned Playwright version
+        id: playwright
+        run: |
+          set -euo pipefail
+          version="$(node -p "require('./apps/web/package.json').devDependencies['@playwright/test']")"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Restore the browser binaries
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          # Keyed on the pinned Playwright version: a bump invalidates the
+          # cache, which is exactly when the binaries have to change.
+          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}
+      - name: Install Chromium
+        # Cheap on a cache hit (nothing to download), and --with-deps still has
+        # to run: the cache carries the browser, not the system libraries.
+        run: pnpm --filter @arch-canvas/web exec playwright install --with-deps chromium
+      - name: Build the workspace the dev server resolves against
+        # playwright.config.ts boots `pnpm dev` and a vite-node apps/server;
+        # both resolve workspace packages through their built entrypoints.
+        run: pnpm -w build
+      - name: Run the Playwright suite
+        env:
+          PLAYWRIGHT_HTML_OPEN: never
+        # Called directly rather than through `turbo run test:e2e` so the html
+        # reporter can be added for the artifact below without editing
+        # playwright.config.ts, whose default reporter stays `list`.
+        run: pnpm --filter @arch-canvas/web exec playwright test --reporter=list,html
+      - name: Publish the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          # test-results carries the traces `use.trace: retain-on-failure`
+          # writes, which is the half of the report that explains a failure.
+          path: |
+            apps/web/playwright-report
+            apps/web/test-results
+          if-no-files-found: warn
+
   compose-smoke:
     name: Compose stack smoke (real boot + public health)
     runs-on: ubuntu-latest

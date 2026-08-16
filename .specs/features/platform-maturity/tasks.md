@@ -460,12 +460,20 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Os binários de browser são instalados e cacheados entre execuções
-- [ ] `crash-recovery.spec.ts` roda no CI e passa
-- [ ] Falha de teste publica o relatório do Playwright como artefato
-- [ ] Reprodução local: `make test-e2e-browsers && make test-e2e` passa antes de o job ser escrito
-- [ ] Gate check passa: `make test && make test-e2e`
-- [ ] Test count: 1 teste e2e passa (sem deleção silenciosa)
+- [x] Os binários de browser são instalados e cacheados entre execuções
+- [x] `crash-recovery.spec.ts` roda no CI e passa
+- [x] Falha de teste publica o relatório do Playwright como artefato
+- [x] Reprodução local: `make test-e2e-browsers && make test-e2e` passa antes de o job ser escrito
+- [x] Gate check passa: `make test && make test-e2e` — `test-integration` substituído, ver nota de ambiente em T1
+- [x] Test count: 1 teste e2e passa (sem deleção silenciosa)
+
+> **Reprodução local antes de escrever o job.** `make test-e2e-browsers` baixou o Chromium Headless Shell 141.0.7390.37 e `CI=true NODE_ENV=test make test-e2e` passou: `1 passed (30.8s)`, `crash-recovery.spec.ts:38`. `CI=true` importa — é o que desliga o `reuseExistingServer` do `playwright.config.ts` e faz os dois `webServer` subirem do zero, como no runner. `NODE_ENV=test` reproduz o `env` global do workflow, que de outro modo só apareceria no CI.
+>
+> **O job não passa por `turbo run test:e2e`.** Chama `playwright test --reporter=list,html` direto, porque o repórter padrão do `playwright.config.ts` é só `list` e não produz artefato nenhum. Adicionar `html` pelo config sairia do `Where` desta task; pela linha de comando o config fica intacto e o artefato existe. Os blocos `run` extraídos do YAML foram executados nesta máquina na ordem do job (`pnpm install --frozen-lockfile` → `pnpm -w build` → `playwright test --reporter=list,html`): saem 0 e escrevem `apps/web/playwright-report/index.html`. O `install --frozen-lockfile` também confirma que o lockfile que T8 alterou está consistente.
+>
+> **Não verificável localmente:** o `actions/cache@v4` de `~/.cache/ms-playwright` (não dá para provar cache hit entre execuções fora do runner), o `--with-deps` instalando bibliotecas de sistema do Ubuntu, e o `if: failure()` publicando o relatório. Só o primeiro pull request confirma.
+
+**Status**: ✅ Complete
 
 **Tests**: e2e
 **Gate**: full
