@@ -41,7 +41,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ## Execution Plan
 
-Phases are ordered and run sequentially — each phase completes before the next begins, and tasks within a phase execute in order. **Every task's `Depends on` is exactly its immediate predecessor in this ordering** (or `None` for the two genuine starting points, T1 and T23) — this wave has no non-adjacent dependencies, so the execution order and the dependency graph are the same thing, kept deliberately simple to avoid drift between the two.
+Phases are ordered and run sequentially — each phase completes before the next begins, and tasks within a phase execute in order. **Every task's `Depends on` is exactly its immediate predecessor in this ordering** (or `None` for the two genuine starting points, T1 and T26) — this wave has no non-adjacent dependencies, so the execution order and the dependency graph are the same thing, kept deliberately simple to avoid drift between the two.
 
 ### Phase 1: Fundação do gerador OpenAPI (API-01)
 
@@ -67,29 +67,37 @@ T10 → T11 → T12 → T13 → T14 → T15 → T16
 T16 → T17 → T18 → T19 → T20
 ```
 
+### Phase 2d: `routeSchemas` — lote 4, arquivos fora do padrão `routes.ts` (3 arquivos)
+
+Descoberta durante o Batch 1 (ver nota em T21–T23) — fecha o gap de escopo do `design.md` antes que a Phase 3 tropece nele.
+
+```
+T20 → T21 → T22 → T23
+```
+
 ### Phase 3: Portão de CI do OpenAPI (API-02)
-
-```
-T20 → T21 → T22
-```
-
-### Phase 4: Limiar de sucesso dos evals de IA (API-03)
-
-Independente de Phase 1-3 (domínio isolado — evals não depende do gerador OpenAPI), mas roda
-depois por ordem de execução, não por necessidade real. `T23` começa sem dependência.
 
 ```
 T23 → T24 → T25
 ```
 
+### Phase 4: Limiar de sucesso dos evals de IA (API-03)
+
+Independente de Phase 1-3 (domínio isolado — evals não depende do gerador OpenAPI), mas roda
+depois por ordem de execução, não por necessidade real. `T26` começa sem dependência.
+
+```
+T26 → T27 → T28
+```
+
 ### Phase 5: Governança (GOV-01..06)
 
 Cada task é independente das outras (docs/config sem sobreposição de arquivo), executadas em
-sequência só por ordem de fase. `T32` (fechamento do handoff) é a única com dependência real —
+sequência só por ordem de fase. `T35` (fechamento do handoff) é a única com dependência real —
 roda por último porque resume tudo que a onda entregou.
 
 ```
-T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
+T28 → T29 → T30 → T31 → T32 → T33 → T34 → T35
 ```
 
 ---
@@ -277,11 +285,33 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T21: extensão do `repo-tools audit` — paridade de rotas do OpenAPI
+### T21–T23: `routeSchemas` — lote 4, arquivos de rota fora do padrão `routes.ts` (Phase 2d)
+
+**Descoberto durante a execução do Batch 1** (T6): `extractServerRoutes` (o extrator que o F6 já usa e que a Phase 3 desta onda reusa em T24) escaneia **toda** a árvore de `apps/server/src`, não só arquivos chamados `routes.ts` — o commit `2757437` (F6) já fixou isso de propósito. `design.md` tinha escopado F8 aos "17 `routes.ts`", o que ficou incompleto: existem 3 arquivos a mais que registram rotas reais fora desse padrão de nome, encontrados só quando o Batch 1 leu `workspace/routes.ts` por completo e notou que o módulo tinha rotas a mais do que as 9 documentadas ali. Sem esta fase, T25 (Phase 3, paridade de auditoria) falharia citando essas rotas como "sem entrada no OpenAPI" — mais barato fechar o gap agora do que descobrir isso como um "bug" na Phase 3.
+
+Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src/openapi/registry.ts` + regenerar `docs/openapi.json`). **Tests: none**. **Gate: build**.
+
+| Task | Arquivo | Rotas | Chave no registry | Where | Depends on |
+| ---- | ------- | ----- | ------------------ | ----- | ---------- |
+| T21 | `apps/server/src/core/server.ts` | 3 (`/health/live`, `/health/ready`, `/metrics` — sem query/body, entradas vazias em `routeSchemas`) | `core` | `apps/server/src/core/server.ts` (modify) | T20 |
+| T22 | `apps/server/src/modules/presentation/publishRoutes.ts` | 3 | `presentation-publish` (distinta de `presentation`, já coberta em T17) | `apps/server/src/modules/presentation/publishRoutes.ts` (modify) | T21 |
+| T23 | `apps/server/src/modules/workspace/project-diagram-routes.ts` | 10 | `workspace-project-diagram` (distinta de `workspace`, já coberta em T6) | `apps/server/src/modules/workspace/project-diagram-routes.ts` (modify) | T22 |
+
+**Requirement**: API-01 (cada task)
+
+**Done when** (cada task):
+- [ ] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`)
+- [ ] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave listada acima (não colide com a chave do módulo `routes.ts` irmão)
+- [ ] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
+- [ ] Gate check passes: `make lint && make typecheck`
+
+---
+
+### T24: extensão do `repo-tools audit` — paridade de rotas do OpenAPI
 
 **What**: Nova função `checkOpenApiParity(sourceRoot)` em `tools/repo-tools`, chamada por `runAudit` junto de `checkCapabilityMap`/`checkCoverageFloors`: lê `docs/openapi.json`, cruza suas chaves de rota contra `extractServerRoutes(sourceRoot)` (já existe) e retorna uma violação nomeada pra cada rota real sem entrada no OpenAPI e pra cada entrada do OpenAPI sem rota real correspondente.
 **Where**: `tools/repo-tools/src/openApiParity.ts`
-**Depends on**: T20
+**Depends on**: T23
 **Reuses**: `extractServerRoutes` (já existe, `tools/repo-tools/src/serverRoutes.ts`)
 **Requirement**: API-02
 
@@ -302,11 +332,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T22: job de CI — regenerar e comparar `docs/openapi.json`
+### T25: job de CI — regenerar e comparar `docs/openapi.json`
 
-**What**: Adiciona um step ao job `capability-audit` existente (`.github/workflows/ci.yaml`): roda `make openapi`, depois `git diff --exit-code docs/openapi.json` (falha nomeando o arquivo se divergir do commitado — mesmo padrão de erro que TRU-03 já usa pro `route-inventory.md`), depois `pnpm --filter @arch-canvas/repo-tools run audit` (agora cobre a paridade de T21).
+**What**: Adiciona um step ao job `capability-audit` existente (`.github/workflows/ci.yaml`): roda `make openapi`, depois `git diff --exit-code docs/openapi.json` (falha nomeando o arquivo se divergir do commitado — mesmo padrão de erro que TRU-03 já usa pro `route-inventory.md`), depois `pnpm --filter @arch-canvas/repo-tools run audit` (agora cobre a paridade de T24).
 **Where**: `.github/workflows/ci.yaml` (modify — um step novo dentro do job `capability-audit`)
-**Depends on**: T21
+**Depends on**: T24
 **Reuses**: job `capability-audit` já existente (F6)
 **Requirement**: API-02
 
@@ -325,7 +355,7 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T23: checker de limiar de sucesso dos evals
+### T26: checker de limiar de sucesso dos evals
 
 **What**: Função pura `checkEvalThreshold(results: { passed: boolean }[], threshold: number): { rate: number; ok: boolean }` — calcula `passed.length / results.length`, compara contra `threshold`. Constante `EVAL_SUCCESS_THRESHOLD = 1.0` (100% — a suíte é 100% determinística hoje, ver `design.md`).
 **Where**: `apps/server/src/modules/ai-engine/evals/threshold.ts`
@@ -348,12 +378,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T24: script `runThresholdCheck` sobre a suíte de evals existente
+### T27: script `runThresholdCheck` sobre a suíte de evals existente
 
-**What**: Script CLI fino que roda `evals.spec.ts` via Vitest com reporter JSON, lê o resultado e chama `checkEvalThreshold` (T23), imprimindo "X/Y evals passed, limiar Z%" e saindo com código não-zero se `ok` for falso. Não reescreve a suíte existente (`evals.spec.ts`, T57) — só a envolve.
+**What**: Script CLI fino que roda `evals.spec.ts` via Vitest com reporter JSON, lê o resultado e chama `checkEvalThreshold` (T26), imprimindo "X/Y evals passed, limiar Z%" e saindo com código não-zero se `ok` for falso. Não reescreve a suíte existente (`evals.spec.ts`, T57) — só a envolve.
 **Where**: `apps/server/src/modules/ai-engine/evals/runThresholdCheck.ts`
-**Depends on**: T23
-**Reuses**: `checkEvalThreshold` (T23), suíte `evals.spec.ts` já existente (T57)
+**Depends on**: T26
+**Reuses**: `checkEvalThreshold` (T26), suíte `evals.spec.ts` já existente (T57)
 **Requirement**: API-03
 
 **Tools**:
@@ -371,12 +401,12 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T25: job de CI dedicado "AI evals"
+### T28: job de CI dedicado "AI evals"
 
-**What**: Novo job `ai-evals` em `.github/workflows/ci.yaml`, rodando `runThresholdCheck` (T24) isolado dos outros testes unitários — nome próprio no CI, distinguível de uma falha genérica de `test:unit`.
+**What**: Novo job `ai-evals` em `.github/workflows/ci.yaml`, rodando `runThresholdCheck` (T27) isolado dos outros testes unitários — nome próprio no CI, distinguível de uma falha genérica de `test:unit`.
 **Where**: `.github/workflows/ci.yaml` (modify — job novo)
-**Depends on**: T24
-**Reuses**: `runThresholdCheck.ts` (T24)
+**Depends on**: T27
+**Reuses**: `runThresholdCheck.ts` (T27)
 **Requirement**: API-03
 
 **Tools**:
@@ -393,11 +423,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T26: `CODEOWNERS`
+### T29: `CODEOWNERS`
 
 **What**: Declara dono (`@tvpl` — único colaborador real do repo hoje, confirmado via `gh api repos/tvpl/ia-draw/collaborators`; troca por time real quando squads existirem, decisão já registrada no `spec.md`) pra cada domínio de primeiro nível: `apps/server/`, `apps/web/`, `packages/`, `infra/`, `.github/`, `docs/`, `.specs/`.
 **Where**: `CODEOWNERS` (raiz)
-**Depends on**: T25
+**Depends on**: T28
 **Reuses**: nenhum
 **Requirement**: GOV-01
 
@@ -414,11 +444,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T27: template de Pull Request
+### T30: template de Pull Request
 
 **What**: `.github/PULL_REQUEST_TEMPLATE.md` com campos obrigatórios: IDs de requisito afetados, link pra spec correspondente, checklist confirmando que `/gate` (F7) rodou antes do PR.
 **Where**: `.github/PULL_REQUEST_TEMPLATE.md`
-**Depends on**: T26
+**Depends on**: T29
 **Reuses**: `.claude/commands/gate.md` (F7, referenciado no checklist)
 **Requirement**: GOV-02
 
@@ -436,11 +466,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T28: Changesets — config
+### T31: Changesets — config
 
 **What**: `@changesets/cli` como devDependency da raiz; `.changeset/config.json` com `"access": "restricted"` (nunca publica no npm — todo `packages/*` já é `"private": true`, ver `design.md`).
 **Where**: `.changeset/config.json`
-**Depends on**: T27
+**Depends on**: T30
 **Reuses**: nenhum
 **Requirement**: GOV-03
 
@@ -458,11 +488,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T29: portão de CI — changeset obrigatório
+### T32: portão de CI — changeset obrigatório
 
 **What**: Job novo `changeset-check` em `.github/workflows/ci.yaml` (só roda em `pull_request`, mesmo padrão do job `commit-lint` já existente — usa `BASE_SHA`/`HEAD_SHA` de `github.event.pull_request`): falha nomeando o package se `packages/<nome>/src/**` mudou sem um arquivo novo em `.changeset/`.
 **Where**: `.github/workflows/ci.yaml` (modify — job `changeset-check`)
-**Depends on**: T28
+**Depends on**: T31
 **Reuses**: padrão do job `commit-lint` já existente
 **Requirement**: GOV-03
 
@@ -480,11 +510,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T30: template de ADR
+### T33: template de ADR
 
 **What**: `docs/adr/TEMPLATE.md` extraindo o formato já usado por `0001..0009` (Status/Contexto/Decisão/Consequências) — não inventa um formato novo, documenta o existente.
 **Where**: `docs/adr/TEMPLATE.md`
-**Depends on**: T29
+**Depends on**: T32
 **Reuses**: `docs/adr/0001-server-first-op-log-lww.md` como referência de formato
 **Requirement**: GOV-05
 
@@ -501,11 +531,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T31: nota GOV-04 (uma spec por domínio) no `CLAUDE.md`
+### T34: nota GOV-04 (uma spec por domínio) no `CLAUDE.md`
 
 **What**: Uma linha no `CLAUDE.md` (seção "Requisitos e progresso rastreável") confirmando explicitamente o padrão já em uso desde F6 (`ai-dock/spec.md` como exemplar): uma spec por domínio em `.specs/features/`, nunca uma spec monolítica pra múltiplos domínios.
 **Where**: `CLAUDE.md` (modify)
-**Depends on**: T30
+**Depends on**: T33
 **Reuses**: `ai-dock/spec.md` (F6) como exemplar citado
 **Requirement**: GOV-04
 
@@ -522,11 +552,11 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ---
 
-### T32: `STATE.md` — `Handoff` vira `Handoffs` por frente (GOV-06)
+### T35: `STATE.md` — `Handoff` vira `Handoffs` por frente (GOV-06)
 
 **What**: Reestrutura a seção `## Handoff` de `.specs/STATE.md` pra `## Handoffs` (plural), com uma subseção `### <feature-slug> (branch: ...)` por frente ativa — migra o handoff atual (só `platform-maturity`) pro novo formato, provando que funciona com 1 frente e comporta N sem colisão de merge (Edge Case do spec.md). Esta é também a task que fecha a onda F8 — o handoff final de F8 já nasce no formato novo, resumindo tudo entregue nas Phases 1-5.
 **Where**: `.specs/STATE.md` (modify)
-**Depends on**: T31
+**Depends on**: T34
 **Reuses**: estrutura de `## Decisions` (formato AD-NNN) como referência de "uma entrada versionável por vez" que já funciona bem em merges
 **Requirement**: GOV-06
 
@@ -546,30 +576,31 @@ Mesmo padrão, com uma exceção anotada: **T19 (`ws-gateway`)** tem uma única 
 
 ## Phase Execution Map
 
-Visual representation of task ordering. Every arrow below has a matching `Depends on` in the task body above, and every `Depends on` above has a matching arrow here — this wave's dependency graph is a single line, split into phase-labeled rows for readability (the boundary task repeats at the start of the next phase's row to show the connecting arrow explicitly; Phase 4 starts a fresh line at T23 because it has no real dependency on Phase 3):
+Visual representation of task ordering. Every arrow below has a matching `Depends on` in the task body above, and every `Depends on` above has a matching arrow here — this wave's dependency graph is a single line, split into phase-labeled rows for readability (the boundary task repeats at the start of the next phase's row to show the connecting arrow explicitly; Phase 4 starts a fresh line at T26 because it has no real dependency on Phase 3):
 
 ```
 Phase 1:   T1 → T2 → T3 → T4
 Phase 2a:            T4 → T5 → T6 → T7 → T8 → T9 → T10
 Phase 2b:                                        T10 → T11 → T12 → T13 → T14 → T15 → T16
 Phase 2c:                                                                    T16 → T17 → T18 → T19 → T20
-Phase 3:                                                                                        T20 → T21 → T22
-Phase 4 (independent):                                                                                 T23 → T24 → T25
-Phase 5:                                                                                                      T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
+Phase 2d:                                                                                        T20 → T21 → T22 → T23
+Phase 3:                                                                                                          T23 → T24 → T25
+Phase 4 (independent):                                                                                                   T26 → T27 → T28
+Phase 5:                                                                                                                        T28 → T29 → T30 → T31 → T32 → T33 → T34 → T35
 ```
 
 Execution is strictly sequential - there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.
 
 **How phase-based execution works:**
 
-At Execute, the agent counts total tasks and packs phases into **task-budgeted batches** (~7 tasks per worker, whole phases). This wave has **32 tasks across 7 phases** — well above the ~8-task single-batch threshold, so the sub-agent offer is mandatory here (see [sub-agents.md](../../../.claude/skills/tlc-spec-driven/references/sub-agents.md)). A natural packing:
+At Execute, the agent counts total tasks and packs phases into **task-budgeted batches** (~7 tasks per worker, whole phases). This wave has **35 tasks across 8 phases** (grew from 32/7 mid-execution — Phase 2d was added after Batch 1 found 3 route-registering files outside the `routes.ts` naming pattern; see the note on T21–T23) — well above the ~8-task single-batch threshold, so the sub-agent offer is mandatory here (see [sub-agents.md](../../../.claude/skills/tlc-spec-driven/references/sub-agents.md)). Packing, updated after the addition (Batches 1-2 already dispatched under the original numbering, unaffected since T1-T20 didn't shift):
 
 | Batch | Phases | Tasks | Count |
 | ----- | ------ | ----- | ----- |
-| 1 | Phase 1 + Phase 2a | T1–T10 | 10 |
+| 1 | Phase 1 + Phase 2a | T1–T10 | 10 — done |
 | 2 | Phase 2b + Phase 2c | T11–T20 | 10 |
-| 3 | Phase 3 + Phase 4 | T21–T25 | 5 |
-| 4 | Phase 5 | T26–T32 | 7 |
+| 3 | Phase 2d + Phase 3 + Phase 4 | T21–T28 | 8 |
+| 4 | Phase 5 | T29–T35 | 7 |
 
 Batches run sequentially: each worker executes ALL its tasks in order, then reports a compact summary before the next batch starts.
 
@@ -589,10 +620,11 @@ Batches run sequentially: each worker executes ALL its tasks in order, then repo
 | ---- | ------ | ------ |
 | T1–T2 | 1 arquivo cada (tipo, depois builder) | ✅ Granular |
 | T3–T20 | 1 módulo/arquivo por task (export + registro) | ✅ Granular — 18 tasks quase idênticas, mas cada uma é literalmente "1 file change" (a definição própria de task atômica), e módulos diferentes não podem ser cohesivamente fundidos numa task só sem violar "Where nomeia 1 arquivo" |
-| T21 | 1 arquivo novo (`openApiParity.ts`) + wiring de 2 linhas no `cli.ts` já existente | ✅ Granular (cohesivo — o wiring é parte do mesmo commit da função que ele chama, não um arquivo novo) |
-| T22, T25, T29 | 1 arquivo YAML modificado (job/step novo) cada | ✅ Granular |
-| T23, T24 | 1 arquivo novo cada (função pura, depois o script que a usa) | ✅ Granular |
-| T26, T27, T28, T30, T31, T32 | 1 arquivo cada | ✅ Granular |
+| T21–T23 | 1 arquivo por task (mesmo padrão de T3–T20, aplicado aos 3 arquivos de rota fora do padrão `routes.ts` encontrados no Batch 1) | ✅ Granular |
+| T24 | 1 arquivo novo (`openApiParity.ts`) + wiring de 2 linhas no `cli.ts` já existente | ✅ Granular (cohesivo — o wiring é parte do mesmo commit da função que ele chama, não um arquivo novo) |
+| T25, T28, T32 | 1 arquivo YAML modificado (job/step novo) cada | ✅ Granular |
+| T26, T27 | 1 arquivo novo cada (função pura, depois o script que a usa) | ✅ Granular |
+| T29, T30, T31, T33, T34, T35 | 1 arquivo cada | ✅ Granular |
 
 ---
 
@@ -622,16 +654,19 @@ Batches run sequentially: each worker executes ALL its tasks in order, then repo
 | T20 | T19 | T19 → T20 | ✅ Match |
 | T21 | T20 | T20 → T21 | ✅ Match |
 | T22 | T21 | T21 → T22 | ✅ Match |
-| T23 | None | — (Phase 4 inicia sozinha, sem arco de entrada) | ✅ Match |
+| T23 | T22 | T22 → T23 | ✅ Match |
 | T24 | T23 | T23 → T24 | ✅ Match |
 | T25 | T24 | T24 → T25 | ✅ Match |
-| T26 | T25 | T25 → T26 | ✅ Match |
+| T26 | None | — (Phase 4 inicia sozinha, sem arco de entrada) | ✅ Match |
 | T27 | T26 | T26 → T27 | ✅ Match |
 | T28 | T27 | T27 → T28 | ✅ Match |
 | T29 | T28 | T28 → T29 | ✅ Match |
 | T30 | T29 | T29 → T30 | ✅ Match |
 | T31 | T30 | T30 → T31 | ✅ Match |
 | T32 | T31 | T31 → T32 | ✅ Match |
+| T33 | T32 | T32 → T33 | ✅ Match |
+| T34 | T33 | T33 → T34 | ✅ Match |
+| T35 | T34 | T34 → T35 | ✅ Match |
 
 Nenhuma task depende de uma fase posterior. Nenhum arco no diagrama fica sem `Depends on`
 correspondente, e nenhum `Depends on` fica sem arco correspondente.
@@ -647,15 +682,16 @@ correspondente, e nenhum `Depends on` fica sem arco correspondente.
 | T3 | `routeSchemas` export (metadata) + `registry.ts` | none / n/a | none — mas `registry.ts` ganha 1 teste próprio dentro da task | ✅ OK |
 | T4 | Script/CLI entrypoint, sem lógica própria | none | none | ✅ OK |
 | T5–T20 | `routeSchemas` exports (metadata only) | none | none | ✅ OK |
-| T21 | `tools/repo-tools` audit logic | unit | unit | ✅ OK |
-| T22, T25, T29 | CI YAML | none | none | ✅ OK |
-| T23 | `checkEvalThreshold` pure function | unit | unit | ✅ OK |
-| T24 | `runThresholdCheck` script (wraps T23 + existing suite) | unit | unit | ✅ OK |
-| T26, T27, T28, T30, T31, T32 | Docs/config | none | none | ✅ OK |
+| T21–T23 | `routeSchemas` exports (metadata only, non-`routes.ts` files) | none | none | ✅ OK |
+| T24 | `tools/repo-tools` audit logic | unit | unit | ✅ OK |
+| T25, T28, T32 | CI YAML | none | none | ✅ OK |
+| T26 | `checkEvalThreshold` pure function | unit | unit | ✅ OK |
+| T27 | `runThresholdCheck` script (wraps T26 + existing suite) | unit | unit | ✅ OK |
+| T29, T30, T31, T33, T34, T35 | Docs/config | none | none | ✅ OK |
 
 Nenhuma violação — nenhuma task com `Tests: none` cria uma camada de domínio/lógica que a matriz
 exige testar (a única lógica real desta onda — o builder OpenAPI, a paridade de auditoria, o
-checker de limiar e seu script — está em T2/T21/T23/T24, todas `Tests: unit`).
+checker de limiar e seu script — está em T2/T24/T26/T27, todas `Tests: unit`).
 
 ---
 
