@@ -15,6 +15,11 @@ COPY . .
 RUN pnpm dlx turbo prune @arch-canvas/database --docker
 
 FROM base AS installer
+# @arch-canvas/database is devDependended-on by @arch-canvas/server (which pulls
+# in `canvas`), so it rides along in this pruned install too — no prebuilt
+# binary for musl/Alpine, needs Python + a C++ toolchain + Cairo/Pango/JPEG/GIF
+# headers to compile from source. Build-only: this image never runs canvas.
+RUN apk add --no-cache python3 make g++ pkgconfig cairo-dev pango-dev jpeg-dev giflib-dev
 COPY --from=pruner /repo/out/json/ .
 RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .

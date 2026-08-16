@@ -7,6 +7,14 @@
 		reverse_proxy server:3000
 	}
 
+	# Without this, /health/* falls through to the catch-all below and `web`'s
+	# SPA fallback (try_files ... /index.html) answers 200 with the frontend
+	# HTML instead of the server's real liveness/readiness JSON — a false
+	# positive for anyone pointing an external health check at this path.
+	handle /health/* {
+		reverse_proxy server:3000
+	}
+
 	handle {
 		reverse_proxy web:80
 	}
