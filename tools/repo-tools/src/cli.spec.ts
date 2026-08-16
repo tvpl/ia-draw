@@ -99,6 +99,25 @@ describe('repo-tools audit (TRU-03, UIX-01)', () => {
     expect(readFileSync(join(root, INVENTORY_PATH), 'utf8')).toContain('# Inventário de rotas');
   });
 
+  it('exits non-zero naming the package when a workspace package declares no coverage floor', () => {
+    const root = fakeRepo(CLEAN_MAP);
+    for (const [relative, contents] of Object.entries({
+      'pnpm-workspace.yaml': 'packages:\n  - "packages/*"\n',
+      'packages/newcomer/package.json':
+        '{"name":"@x/newcomer","scripts":{"test:unit":"vitest run"}}',
+      'packages/newcomer/vitest.config.ts': 'export default { test: {} };\n',
+    })) {
+      const absolute = join(root, relative);
+      mkdirSync(dirname(absolute), { recursive: true });
+      writeFileSync(absolute, contents, 'utf8');
+    }
+
+    const result = runAudit(root);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output.some((line) => line.includes('packages/newcomer'))).toBe(true);
+  });
+
   it('fails with an explicit message on an invalid repository path, never a stack trace', () => {
     const result = runAudit(join(tmpdir(), 'repo-tools-does-not-exist'));
 

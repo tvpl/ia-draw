@@ -812,14 +812,25 @@ T22  (independente)
 
 **Done when**:
 
-- [ ] Todo package do workspace com script `test:unit` e sem bloco `coverage.thresholds` é reportado nomeando o package
-- [ ] Package sem `test:unit` não é exigido — `packages/database` continua legítimo
-- [ ] Edge case coberto: package com `test:unit` e nenhum `vitest.config.ts` falha exigindo a declaração, em vez de passar em silêncio
-- [ ] `runAudit` sai diferente de zero quando existe qualquer package sem piso, imprimindo cada um
-- [ ] Executado contra o repositório real, nenhum package viola — os 12 já declaram piso
-- [ ] Gate check passa: `make test-unit`
+- [x] Todo package do workspace com script `test:unit` e sem bloco `coverage.thresholds` é reportado nomeando o package
+- [x] Package sem `test:unit` não é exigido — `packages/database` continua legítimo
+- [x] Edge case coberto: package com `test:unit` e nenhum `vitest.config.ts` falha exigindo a declaração, em vez de passar em silêncio
+- [x] `runAudit` sai diferente de zero quando existe qualquer package sem piso, imprimindo cada um
+- [x] Executado contra o repositório real, nenhum package viola — os 12 já declaram piso
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 7 testes novos em `coverageFloors.spec.ts` + 1 em `cli.spec.ts`, 45 no package (era 37) — sem deleção silenciosa
 
-**Status**: ⬜ Pending
+> **Fecha o edge case que a spec pedia e ninguém checava.** `IF um package novo entrar no monorepo sem piso de cobertura declarado THEN o CI SHALL falhar exigindo a declaração` não tinha nenhum portão: `validation.md` marca esse item como não tratado. `checkCoverageFloors` expande os globs de `pnpm-workspace.yaml` (`apps/*`, `packages/*`, `tools/*`, `infra/backup`), e para todo diretório cujo `package.json` tem script `test:unit` exige `coverage.thresholds` com pelo menos um número em `vitest.config.ts`.
+>
+> **Três formas de burlar, três fechadas:** config sem bloco `coverage`, package sem `vitest.config.ts` nenhum, e `thresholds: {}` vazio — a casca que declara o campo sem declarar piso. As três viram violação nomeando o diretório do package.
+>
+> **`packages/database` continua legítimo:** não tem `test:unit`, então nada lhe é exigido — é o mesmo critério que T8 aplicou ao deixá-lo de fora.
+>
+> **Ligado ao `audit`,** que é o que coloca a checagem no job `capability-audit` sem tocar em `ci.yaml`: `runAudit` soma as violações de mapa e de piso e sai 1 se qualquer uma existir.
+>
+> **Achado não corrigido (fora do `Where`):** o portão exige `thresholds`, não `coverage.enabled: true`. Um package que declarasse piso sem `enabled` teria limiar decorativo no `test:unit` normal. Os 12 de hoje declaram os dois.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick

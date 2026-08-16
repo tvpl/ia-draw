@@ -11,6 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { parse } from 'yaml';
 import { checkCapabilityMap } from './capabilityMap.js';
+import { checkCoverageFloors } from './coverageFloors.js';
 import { buildRouteInventory, type RouteInventory } from './routeInventory.js';
 import { extractServerRoutes } from './serverRoutes.js';
 import { extractWebConsumers } from './webConsumers.js';
@@ -72,7 +73,9 @@ function renderInventory(inventory: RouteInventory): string {
 
 /**
  * Runs the repository audit against `sourceRoot`: writes the route inventory
- * artifact, then checks the capability map against the code (TRU-03, UIX-01).
+ * artifact, checks the capability map against the code (TRU-03, UIX-01), then
+ * checks that every unit-tested workspace package declares a coverage floor
+ * (CIQ-04).
  *
  * A repository path that cannot be audited comes back as an explicit message
  * and a non-zero exit code, never as a raw stack trace.
@@ -118,7 +121,12 @@ export function runAudit(sourceRoot: string): AuditResult {
     output.push(`repo-tools audit: ${violation.entry} — ${violation.problem}`);
   }
 
-  return { exitCode: violations.length > 0 ? 1 : 0, output };
+  const floorViolations = checkCoverageFloors(sourceRoot);
+  for (const violation of floorViolations) {
+    output.push(`repo-tools audit: ${violation.package} — ${violation.problem}`);
+  }
+
+  return { exitCode: violations.length + floorViolations.length > 0 ? 1 : 0, output };
 }
 
 /** Repo root, derived from this file's location rather than the cwd. */
