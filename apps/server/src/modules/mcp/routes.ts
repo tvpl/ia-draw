@@ -1,15 +1,21 @@
+import { randomUUID } from 'node:crypto';
+import type { AbstractPatch } from '@arch-canvas/ai-tools';
 import { can, type Role } from '@arch-canvas/auth';
 import { decompile } from '@arch-canvas/diagram-ir';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { RouteSchemaMap } from '../../openapi/types.js';
+import { applyMetadataOps, patchToDeltas } from '../ai-engine/applyPatch.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import { generateOpaqueToken, hashToken } from '../auth/tokens.js';
 import '../auth/types.js';
+import { appendOperation, type BatchResult } from '../diagram-sync/operations.js';
 import { loadDiagramScene } from '../diagram-sync/scene.js';
 import { listElementMetadata } from '../library/metadata.js';
 import { isRoleWithinCeiling } from '../share/shareLinks.js';
+import { createSnapshot } from '../snapshot/index.js';
+import type { StorageClient } from '../storage/index.js';
 import {
   type Diagram,
   listDiagramsForProject,
@@ -19,10 +25,23 @@ import {
 } from '../workspace/index.js';
 import { requireMcpToken } from './auth.js';
 import { expandComponentRelations, findElementsByComponentKey } from './componentLookup.js';
-import { createMcpToken, findMcpTokenById, type McpTokenRow, revokeMcpToken } from './mcpTokens.js';
+import {
+  createMcpToken,
+  findMcpTokenByHash,
+  findMcpTokenById,
+  type McpTokenRow,
+  revokeMcpToken,
+} from './mcpTokens.js';
 
 export interface McpModuleDeps {
   db: Db;
+  /**
+   * Required only when `MCP_WRITE_ENABLED=true` (MCP-07's `POST
+   * /diagrams/:id/mcp-patch`, T14) — reused verbatim by `createSnapshot`,
+   * exactly like `ai-engine`'s `approveAiRun`. Read-only deployments never
+   * need it.
+   */
+  storage?: StorageClient;
 }
 
 function notFound(): never {
@@ -31,6 +50,28 @@ function notFound(): never {
 
 function forbidden(): never {
   throw Object.assign(new Error('Forbidden'), { statusCode: 403 });
+}
+
+/** Same shape/statusCode convention as `ai-engine/errors.ts`'s `StaleRevisionError` — the revision moved between the caller's read and this write. */
+function staleRevision(): never {
+  throw Object.assign(new Error('Stale Revision'), { statusCode: 409 });
+}
+
+/**
+ * Re-extracts the raw bearer token already validated by `requireMcpToken`'s
+ * preHandler — mirrors `auth.ts`'s own private `bearerToken` helper exactly.
+ * `POST /diagrams/:id/mcp-patch` (T14) needs the token row's `createdBy` (a
+ * real `users.id`, FK-required by `createSnapshot`/`appendOperation`) which
+ * `request.mcpContext` doesn't carry, so it re-resolves the same token by
+ * hash instead of duplicating `mcp_tokens` lookup logic inline.
+ */
+function bearerTokenFromRequest(request: {
+  headers: { authorization?: string };
+}): string | undefined {
+  const header = request.headers.authorization;
+  if (!header?.startsWith('Bearer ')) return undefined;
+  const token = header.slice('Bearer '.length).trim();
+  return token.length > 0 ? token : undefined;
 }
 
 const roleSchema = z.enum(['org_admin', 'workspace_admin', 'editor', 'reviewer', 'viewer']);
@@ -42,6 +83,20 @@ const createMcpTokenBodySchema = z.object({
   role: roleSchema,
   label: z.string().min(1),
   expiresAt: z.coerce.date().optional(),
+});
+/**
+ * MCP-07: a single `setMetadata` op — the same shape `ai-tools`/
+ * `applyPatch.ts` already applies. `sourceRevision` is the diagram revision
+ * the caller read before proposing this patch (same staleness contract as
+ * `AiRunRow.sourceRevision` in `approveAiRun`).
+ */
+const mcpPatchBodySchema = z.object({
+  sourceRevision: z.number().int().nonnegative(),
+  op: z.object({
+    op: z.literal('setMetadata'),
+    elementId: z.string().min(1),
+    metadata: z.record(z.string(), z.unknown()),
+  }),
 });
 
 /**
@@ -99,7 +154,13 @@ async function requireMembership(db: Db, workspaceId: string, userId: string): P
  * `share/routes.ts`'s one-shot reveal.
  */
 export function registerMcpModule(app: FastifyInstance, deps: McpModuleDeps): void {
-  const { db } = deps;
+  const { db, storage } = deps;
+  const mcpWriteEnabled = process.env.MCP_WRITE_ENABLED === 'true';
+  if (mcpWriteEnabled && !storage) {
+    throw new Error(
+      'MCP_WRITE_ENABLED=true requires deps.storage to be provided to registerMcpModule',
+    );
+  }
 
   app.post(
     '/workspaces/:id/mcp-tokens',
@@ -253,4 +314,59 @@ export function registerMcpModule(app: FastifyInstance, deps: McpModuleDeps): vo
       };
     },
   );
+
+  // ---- MCP-07 write-behind-flag route: only registered when the server
+  // boots with MCP_WRITE_ENABLED=true — with the flag off, this route never
+  // exists (a request to it 404s the same way any unmatched route does,
+  // never a route that exists and denies).
+  if (mcpWriteEnabled && storage) {
+    app.post('/diagrams/:id/mcp-patch', { preHandler: requireMcpToken(db) }, async (request) => {
+      const { id: diagramId } = diagramIdParamsSchema.parse(request.params);
+      const body = mcpPatchBodySchema.parse(request.body);
+      const mcpContext = request.mcpContext;
+      if (!mcpContext) notFound();
+
+      const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
+      if (!workspaceId) notFound();
+      if (workspaceId !== mcpContext.workspaceId) notFound();
+
+      const decision = can({ role: mcpContext.role }, 'diagram:mutate', { workspaceId });
+      if (!decision.allowed) notFound();
+
+      const rawToken = bearerTokenFromRequest(request);
+      if (!rawToken) notFound();
+      const tokenRow = await findMcpTokenByHash(db, hashToken(rawToken));
+      if (!tokenRow) notFound();
+      const actorId = tokenRow.createdBy;
+
+      const { scene, revision } = await loadDiagramScene(db, diagramId);
+      if (revision !== body.sourceRevision) staleRevision();
+
+      // The undo point: the scene exactly as it stood right before this
+      // patch lands — same `pre_ai` kind/ordering as `approveAiRun`
+      // (`ai-engine/applyPatch.ts`), reused verbatim, never duplicated.
+      const snapshot = await createSnapshot(db, storage, {
+        diagramId,
+        kind: 'pre_ai',
+        name: `pre-mcp-patch ${diagramId}`,
+        createdBy: actorId,
+      });
+
+      const patch: AbstractPatch = { operations: [body.op] };
+      const deltas = patchToDeltas(scene, patch);
+      const batch: BatchResult =
+        deltas.length > 0
+          ? await appendOperation(db, diagramId, actorId, {
+              clientMutationId: randomUUID(),
+              baseRevision: revision,
+              actorId,
+              deltas,
+            })
+          : { acks: [], rejected: [], currentRevision: revision, missingOperations: [] };
+
+      await applyMetadataOps(db, diagramId, patch, batch.currentRevision);
+
+      return { snapshotId: snapshot.id, revision: batch.currentRevision };
+    });
+  }
 }

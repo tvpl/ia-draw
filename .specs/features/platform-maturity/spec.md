@@ -223,7 +223,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | MCP-04 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
 | MCP-05 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
 | MCP-06 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | Pending |
+| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
 | MCP-08 | P1: Diagramas como contexto (MCP) | F9 | Pending |
 
 **ID format:** `[CATEGORY]-[NUMBER]`

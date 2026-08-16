@@ -424,14 +424,26 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Com a flag ligada: escreve o metadado, cria snapshot `pre_ai`, aplica via op-log, cheque de staleness funciona (409 correto)
-- [ ] Com a flag desligada: rota não existe (404 genérico, sem vazar que a feature existe)
-- [ ] Autorização: `can({role},'diagram:mutate',{workspaceId})`, nunca checagem paralela
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
-- [ ] Test count: 5 novos testes integration (escrita com sucesso + snapshot criado; staleness 409; sem permissão de escrita nega; flag desligada = rota ausente; snapshot `pre_ai` reconstituível como undo point)
+- [x] Com a flag ligada: escreve o metadado, cria snapshot `pre_ai`, aplica via op-log, cheque de staleness funciona (409 correto)
+- [x] Com a flag desligada: rota não existe (404 genérico, sem vazar que a feature existe)
+- [x] Autorização: `can({role},'diagram:mutate',{workspaceId})`, nunca checagem paralela
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Test count: 5 novos testes integration (escrita com sucesso + snapshot criado; staleness 409; sem permissão de escrita nega; flag desligada = rota ausente; snapshot `pre_ai` reconstituível como undo point)
 
-**Tests**: integration
-**Gate**: full
+  SPEC_DEVIATION: duas mudanças forçadas fora do arquivo listado em `Where`, ambas mínimas e
+  necessárias, não escolhidas por conveniência:
+  1. `ai-engine/applyPatch.ts`'s `applyMetadataOps` ganhou `export` (era privada) — é a única forma
+     de reusar exatamente a mesma função em vez de duplicar a lógica de aplicar `setMetadata`, que é
+     o que esta task pede literalmente ("reusa exatamente").
+  2. `core/registerModules.ts`'s chamada a `registerMcpModule` passou a incluir `storage` (já
+     resolvido ali para todo outro módulo) — sem isso a rota nunca teria um `StorageClient` real no
+     boot de produção, e `registerMcpModule` agora falha alto e cedo (erro na própria chamada de
+     registro, não um 500 silencioso na primeira requisição) se `MCP_WRITE_ENABLED=true` sem
+     `storage`.
+
+  Autorização usa o mesmo convênio uniform-404 (AUTH-04/MCP-05) das rotas de leitura deste módulo
+  (T5/T7), não um 403 de sessão — a rota é autenticada por token MCP, não por sessão, então negar
+  sem revelar existência é o convênio certo aqui, igual às outras rotas token-autenticadas.
 
 ---
 

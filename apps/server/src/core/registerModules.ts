@@ -152,7 +152,11 @@ export async function registerAllModules(
   });
   registerDocgenModule(app, { db, storage, jobs: deps.jobs });
   registerLintModule(app, { db });
-  registerMcpModule(app, { db });
+  // T14/MCP-07: `storage` is only actually used when the server boots with
+  // MCP_WRITE_ENABLED=true (registerMcpModule itself throws at registration
+  // time if that flag is set without a storage client) — passed here
+  // unconditionally since it's already resolved above for every other module.
+  registerMcpModule(app, { db, storage });
   registerPresentationModule(app, { db });
   registerPresentationPublishModule(app, { db, storage, jobs: deps.jobs });
   registerCommentModule(app, { db, jobs: deps.jobs });
