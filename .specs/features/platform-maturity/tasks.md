@@ -109,9 +109,9 @@ T25 → T26 → T27 → T28 → T29 → T30 → T31 → T32
 - Skill: NONE
 
 **Done when**:
-- [ ] `RouteSchemaMap` exportado com os 5 campos opcionais
-- [ ] `websocket?: true` documentado como alternativa a `response` pra rotas de upgrade WS (ws-gateway, T19)
-- [ ] Sem erros de TypeScript
+- [x] `RouteSchemaMap` exportado com os 5 campos opcionais
+- [x] `websocket?: true` documentado como alternativa a `response` pra rotas de upgrade WS (ws-gateway, T19)
+- [x] Sem erros de TypeScript
 
 **Tests**: none
 **Gate**: build
