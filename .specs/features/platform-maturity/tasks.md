@@ -495,9 +495,9 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Job `ai-evals` roda `runThresholdCheck` e falha citando a taxa/limiar se abaixo, nunca só "testes falharam"
-- [ ] `make lint` confirma o YAML bem formado
-- [ ] Verificado manualmente rodando o job localmente (`act` não disponível neste ambiente — rodar o comando do step diretamente, mesma limitação de evento real de PR já registrada)
+- [x] Job `ai-evals` roda `runThresholdCheck` e falha citando a taxa/limiar se abaixo, nunca só "testes falharam"
+- [x] `make lint` confirma o YAML bem formado
+- [x] Verificado manualmente rodando o job localmente (`act` não disponível neste ambiente — rodar o comando do step diretamente, mesma limitação de evento real de PR já registrada): `pnpm --filter @arch-canvas/server exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts` a partir da raiz do repo imprime "5/5 evals passed, limiar 100%" e sai 0
 
 **Tests**: none
 **Gate**: build

@@ -86,6 +86,24 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm -w test:unit
 
+  ai-evals:
+    name: AI evals (success threshold)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Run the deterministic eval suite against its success threshold (API-03)
+        # A dedicated, named job — a threshold miss is distinguishable in CI
+        # from an unrelated `test:unit` failure. runThresholdCheck (T27)
+        # prints "X/Y evals passed, limiar Z%" and exits non-zero on a miss,
+        # never a generic "tests failed".
+        run: pnpm --filter @arch-canvas/server exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts
+
   integration:
     name: Integration tests (real Postgres)
     runs-on: ubuntu-latest
