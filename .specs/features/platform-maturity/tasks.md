@@ -219,10 +219,10 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] `findElementsByComponentKey` resolve o(s) elemento(s) certo(s) por `stableKey`, vazio quando não existe
-- [ ] `expandComponentRelations` devolve edges de entrada e saída corretos pro elemento resolvido
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 5 novos testes unit (componente existe com relações; componente sem relações; `stableKey` não resolve nada; múltiplos elementos com o mesmo `componentKey` na mesma diagram; edge direction correta inbound vs outbound)
+- [x] `findElementsByComponentKey` resolve o(s) elemento(s) certo(s) por `stableKey`, vazio quando não existe
+- [x] `expandComponentRelations` devolve edges de entrada e saída corretos pro elemento resolvido
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [x] Test count: 5 novos testes unit (componente existe com relações; componente sem relações; `stableKey` não resolve nada; múltiplos elementos com o mesmo `componentKey` na mesma diagram; edge direction correta inbound vs outbound)
 
 **Tests**: unit
 **Gate**: quick
