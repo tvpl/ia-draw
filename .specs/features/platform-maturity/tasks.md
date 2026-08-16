@@ -168,12 +168,16 @@ T16 → T17
 
 **Done when**:
 
-- [ ] Reconhece tanto `fetch('/literal')` quanto template literal com interpolação, normalizando `${...}` para o segmento de parâmetro correspondente
-- [ ] Edge case coberto: chamada montada por concatenação de variável é reportada como não resolvível, nunca descartada em silêncio
-- [ ] Edge case coberto: arquivo de teste do frontend não conta como consumidor de produção
-- [ ] Executado contra o repositório real, encontra exatamente os 4 endpoints hoje consumidos (`/me`, bootstrap, `operations:batch`, catch-up de operações)
-- [ ] Gate check passa: `make test-unit`
-- [ ] Test count: 6 testes passam (sem deleção silenciosa)
+- [x] Reconhece tanto `fetch('/literal')` quanto template literal com interpolação, normalizando `${...}` para o segmento de parâmetro correspondente
+- [x] Edge case coberto: chamada montada por concatenação de variável é reportada como não resolvível, nunca descartada em silêncio
+- [x] Edge case coberto: arquivo de teste do frontend não conta como consumidor de produção
+- [x] Executado contra o repositório real, encontra exatamente os 4 endpoints hoje consumidos (`/me`, bootstrap, `operations:batch`, catch-up de operações)
+- [x] Gate check passa: `make test-unit`
+- [x] Test count: 6 testes passam (sem deleção silenciosa)
+
+> **Nota.** Os consumidores reais passam por `this.fetchImpl(...)`, não por `fetch(` direto, e a chamada de catch-up quebra em várias linhas. O extrator cobre as duas formas e apaga comentários antes de varrer — sem isso, a menção em prosa a `this.fetchImpl(...)` no JSDoc de `syncClient.ts` virava um quinto endpoint fantasma. `${...}` é normalizado para `:param` e a query string sai do `path` (fica no `expression`), que é o que faz o catch-up casar com `/diagrams/:id/operations` em T4.
+
+**Status**: ✅ Complete
 
 **Tests**: unit
 **Gate**: quick
