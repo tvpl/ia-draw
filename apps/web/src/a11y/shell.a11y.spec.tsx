@@ -39,7 +39,8 @@
 //     component's OWN loading/missing-id chrome can be scanned deterministically, which
 //     also means Excalidraw's internal markup is never reached here. (Excalidraw's own
 //     accessibility is upstream's responsibility, not this codebase's, in any case.)
-//   - the AI generation dock (AIC-01..03) — no React component exists for it yet.
+//   - the AI generation dock (AIC-01..03) — has its own component now (`AiDock`, T7) and
+//     its own dedicated a11y coverage in `../ai-dock/AiDock.a11y.spec.tsx` (T8), not here.
 //   - presentation/presenter mode (PRS-01..05) — no React component exists for it yet.
 //   - the comments UI (CMT-01/02) — no React component exists for it yet.
 // When any of those surfaces gain real UI, they need their own `*.a11y.spec.tsx` file —

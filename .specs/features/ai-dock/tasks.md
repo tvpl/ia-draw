@@ -267,10 +267,10 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] `jest-axe` run against `AiDock` rendered in at least 3 states (idle/collapsed, awaiting_approval with a non-trivial preview, error with an `errorCode`)
-- [ ] Zero serious/critical violations in every state
-- [ ] `shell.a11y.spec.tsx`'s header comment (noting the dock has no component yet) updated to remove that now-stale note
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` run against `AiDock` rendered in at least 3 states (idle/collapsed, awaiting_approval with a non-trivial preview, error with an `errorCode`)
+- [x] Zero serious/critical violations in every state
+- [x] `shell.a11y.spec.tsx`'s header comment (noting the dock has no component yet) updated to remove that now-stale note
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
