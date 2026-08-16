@@ -4,7 +4,7 @@ Programa de melhorias que torna o Architecture Canvas **profissional** (o que a 
 
 ## Problem Statement
 
-O roadmap F0–F5 entregou um backend profundo e bem testado — 21 módulos, 251 arquivos-fonte, 48 rotas REST, 124 arquivos de teste — mas o produto não é utilizável por um usuário final: `apps/web` tem 5 componentes React, 2 rotas, e consome 4 endpoints. O `AppShell` é `<main />` vazio com o comentário `"nav/search/admin land here in F1+"`, e F1 a F5 fecharam sem que isso acontecesse. O dock de IA — o diferencial declarado do produto — não tem nenhum componente. Mesmo assim, o README e a landing afirmam "roadmap completo — 92/92 requisitos verificados"; a qualificação honesta ("contrato de backend verificado; metade de UI pendente") existe dentro de `validation.md`, mas não sobreviveu até a documentação que as pessoas leem.
+O roadmap F0–F5 entregou um backend profundo e bem testado — 21 módulos, 251 arquivos-fonte, 79 rotas REST, 124 arquivos de teste — mas o produto não é utilizável por um usuário final: `apps/web` tem 5 componentes React, 2 rotas, e consome 4 endpoints. O inventário gerado por `repo-tools` mede a distância exata: **4 rotas consumidas, 75 sem superfície de produto**. O `AppShell` é `<main />` vazio com o comentário `"nav/search/admin land here in F1+"`, e F1 a F5 fecharam sem que isso acontecesse. O dock de IA — o diferencial declarado do produto — não tem nenhum componente. Mesmo assim, o README e a landing afirmam "roadmap completo — 92/92 requisitos verificados"; a qualificação honesta ("contrato de backend verificado; metade de UI pendente") existe dentro de `validation.md`, mas não sobreviveu até a documentação que as pessoas leem.
 
 O mesmo padrão aparece na infraestrutura: o CI builda as três imagens Docker mas nunca sobe o stack nem roda o Playwright — foi por isso que três bugs reais (dependências nativas do `canvas` em Alpine, healthchecks resolvendo `localhost` para IPv6, `/health/*` roteado para o SPA em vez do servidor) chegaram até uma verificação manual em vez de falhar num pull request. E o repositório, construído por agentes de ponta a ponta, não tem `CLAUDE.md`, `settings.json`, subagents ou comandos versionados: cada sessão redescobre as mesmas armadilhas.
 
@@ -229,7 +229,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 37 total, 0 mapped to tasks, 37 unmapped (nenhuma onda iniciada).
+**Coverage:** 37 total, 15 mapeados a tasks (F6, em `tasks.md`), 22 não mapeados (ondas F7–F9, ainda sem breakdown).
 
 ---
 
