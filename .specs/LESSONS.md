@@ -164,6 +164,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: design.md:34 (F8, corrected by tasks.md T21-T23/Phase 2d) (repo-tooling)
 - last seen: 2026-08-16T13:25:59Z
 
+### L-026 - When a task plan adds a new route module, task it to explicitly wire that module's routeSchemas into every cross-cutting registry file (module registration AND the OpenAPI schema registry) in the same task that creates the routes — a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `task-planning` · harmful: 0
+- features: platform-maturity
+- evidence: tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)
+- last seen: 2026-08-16T17:46:09Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

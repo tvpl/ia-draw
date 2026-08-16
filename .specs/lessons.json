@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 26,
+  "next_id": 27,
   "lessons": [
     {
       "id": "L-001",
@@ -456,6 +456,24 @@
       ],
       "created": "2026-08-16T13:25:59Z",
       "last_seen": "2026-08-16T13:25:59Z"
+    },
+    {
+      "id": "L-026",
+      "key": "spec_deviation::when a task plan adds a new route module task it to explicitly wire that module s routeschemas into every cross cutting registry file module registration and the openapi schema registry in the same task that creates the routes a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it",
+      "text": "When a task plan adds a new route module, task it to explicitly wire that module's routeSchemas into every cross-cutting registry file (module registration AND the OpenAPI schema registry) in the same task that creates the routes — a plan that names only one wiring point lets the other go silently unwired until an audit tool catches it.",
+      "signal": "spec_deviation",
+      "scope": "task-planning",
+      "status": "candidate",
+      "features": [
+        "platform-maturity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)"
+      ],
+      "created": "2026-08-16T17:46:09Z",
+      "last_seen": "2026-08-16T17:46:09Z"
     }
   ]
 }

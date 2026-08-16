@@ -217,20 +217,20 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | API-01 | P2: Contrato de API | F8 | ✅ Verified |
 | API-02 | P2: Contrato de API | F8 | ✅ Verified |
 | API-03 | P2: Contrato de API | F8 | ✅ Verified |
-| MCP-01 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-03 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-04 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-05 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-06 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | Implementing |
-| MCP-08 | P1: Diagramas como contexto (MCP) | F9 | Pending |
+| MCP-01 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-02 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-03 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-04 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-05 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-06 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-07 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
+| MCP-08 | P1: Diagramas como contexto (MCP) | F9 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 37 total, 29 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`; 9 F8 GOV-01..06/API-01..03 — todas as 9 ACs individualmente corretas por evidência `file:line`, e a onda em si está **fechada e verificada** — o Verifier round 2 confirmou o Gate Check limpo após o Fix Plan 1 (piso de cobertura de `functions` recalibrado de 39.73% para o valor genuinamente medido de 28.87%, `lines`/`branches`/`statements` intactos) — ver `validation.md`'s "F8 Wave Report" e sua subseção "Re-Verification — Round 2"), 8 não mapeados (onda F9, ainda sem breakdown).
+**Coverage:** 37 total, 37 verificados (15 F6 em `tasks.md`, 5 F7 AGT-01..05 executados inline — wave pequena o bastante para pular Tasks formal, ver `validation.md`; 9 F8 GOV-01..06/API-01..03 — todas as 9 ACs individualmente corretas por evidência `file:line`, e a onda em si está **fechada e verificada** — o Verifier round 2 confirmou o Gate Check limpo após o Fix Plan 1 (piso de cobertura de `functions` recalibrado de 39.73% para o valor genuinamente medido de 28.87%, `lines`/`branches`/`statements` intactos) — ver `validation.md`'s "F8 Wave Report" e sua subseção "Re-Verification — Round 2"; 8 F9 MCP-01..08 — todas as 8 ACs individualmente corretas por evidência `file:line`, sensor de discriminação 3/3 mortos, gate limpo (as 3 falhas de integração são o gap pré-existente de sandbox — `pg_lsclusters`/`redis-server` ausentes do host — confirmado por causa raiz, não herdado de relato; `repo-tools run audit` re-confirmado 0 violações após o fix `14560ff` do orquestrador) — ver `validation.md`'s "F9 Wave Report").
 
 ---
 

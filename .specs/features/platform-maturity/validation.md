@@ -694,3 +694,170 @@ Checked deliberately skeptically, per the verification brief — a lowered ratch
 
 **Lessons**: none recorded for this round. This is a clean gate-fix confirmation: no new AC gap, no new surviving mutant, no new spec-precision gap, no new `// SPEC_DEVIATION`. The grounded signal that produced this fix (L-024, mis-isolated pre-existing-vs-regression claim) was already distilled by round 1; confirming the fix landed cleanly is not itself a new signal.
 
+
+---
+
+## F9 Wave Report (MCP — diagramas como contexto para agentes) — PASS ✅
+
+**Date**: 2026-08-16
+**Spec**: `.specs/features/platform-maturity/spec.md` (F9 section, line 123 — MCP-01..08)
+**Design**: `.specs/features/platform-maturity/design.md` (F9-only; F8's design lives separately in `design-f8.md`)
+**Tasks**: `.specs/features/platform-maturity/tasks.md` (T1–T17)
+**Diff range**: `7d6c78d..HEAD` (20 commits, branch `feature/improvements-2`)
+**Scope**: F9 only — MCP-01..08 (8 requirements). F6/F7/F8 sections above are unmodified and not re-verified.
+**Verifier**: independent sub-agent (author ≠ verifier), fresh session with no prior context on this wave.
+
+---
+
+### Task Completion
+
+| Task | Status | Notes |
+| --- | --- | --- |
+| T1 | ✅ Done | `packages/diagram-ir/src/decompile.ts` — reverse compiler, 8 tests |
+| T2 | ✅ Done | `mcp_tokens` table + migration `0011_aspiring_professor_monster.sql` |
+| T3 | ✅ Done | `requireMcpToken` middleware, `mcpTokens.ts` data access |
+| T4 | ✅ Done | token issuance/revocation routes |
+| T5 | ✅ Done | `GET /diagrams/:id/ir`, plus the un-tasked `GET /workspaces/:id/diagrams` (SPEC_DEVIATION, disclosed inline in `routes.ts:220-232` and `tasks.md:202`) |
+| T6 | ✅ Done | `findElementsByComponentKey` + `expandComponentRelations` |
+| T7 | ✅ Done | `GET /diagrams/:id/components/:stableKey` |
+| T8 | ✅ Done | `registerMcpModule` wired into `registerModules.ts`, `registerModules.int.spec.ts` extended (not replaced) |
+| T9 | ✅ Done | `apps/mcp` scaffold |
+| T10 | ✅ Done | `apps/mcp/src/client.ts` HTTP client |
+| T11 | ✅ Done | `listDiagrams` resource |
+| T12 | ✅ Done | `readDiagram`/`readComponent` resources |
+| T13 | ✅ Done | `cli.ts` stdio entrypoint |
+| T14 | ✅ Done | `POST /diagrams/:id/mcp-patch`, behind `MCP_WRITE_ENABLED` |
+| T15 | ✅ Done | `set_component_metadata` tool, behind the mirrored client-side flag |
+| T16 | ✅ Done | `apps/mcp/README.md` |
+| T17 | ✅ Done | `docs/capability-map.yaml` entry — **the batch worker correctly stopped at a red `repo-tools audit`** (missing OpenAPI registry wiring) instead of forcing the commit; the orchestrator applied the fix in `14560ff`, independently re-verified below |
+
+All 17 tasks done. No partial/blocked tasks.
+
+---
+
+### Spec-Anchored Acceptance Criteria
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| MCP-01: expor servidor MCP que permita a agente autenticado buscar diagramas de um workspace e ler um diagrama específico | `GET /workspaces/:id/diagrams` lists diagrams; `GET /diagrams/:id/ir` reads one | `apps/server/src/modules/mcp/routes.ts:241-256` (`GET /workspaces/:id/diagrams`), `:266-281` (`GET /diagrams/:id/ir`) — both `requireMcpToken`-gated. Ran live: `apps/server/src/modules/mcp/diagramIr.int.spec.ts` (6 tests, all pass, executed directly not just read) proves both routes end-to-end against a real PGlite-backed server (`app.inject`) | ✅ PASS |
+| MCP-02: WHEN um agente ler um diagrama pelo MCP THEN o servidor responde com `diagram-ir/v1` (nós, containers, edges, metadados), nunca só uma imagem | Response body is a structurally-valid `IrDocument` per `irDocumentSchema`, no image field | `apps/server/src/modules/mcp/routes.ts:280` (`return decompile(scene, metadata)`); `packages/diagram-ir/src/decompile.spec.ts:189` (`expect(() => validateIr(decompiled)).not.toThrow()` — validates against the REAL `irDocumentSchema`, run directly, not assumed); `apps/server/src/modules/mcp/diagramIr.int.spec.ts:146-154` (`expect(body.version).toBe('v1')`, `expect(body).not.toHaveProperty('image')`, `expect(body).not.toHaveProperty('png')`) | ✅ PASS |
+| MCP-03: WHEN um agente consultar um componente pelo `stable_key` THEN o servidor retorna metadados + relações de entrada/saída | `{ metadata, inbound, outbound }` for every element matching the key | `apps/server/src/modules/mcp/routes.ts:294-321`; `apps/server/src/modules/mcp/componentLookup.ts:34-41` (`findElementsByComponentKey`), `:89-112` (`expandComponentRelations`); `apps/server/src/modules/mcp/component.int.spec.ts` (4 tests, run live) | ✅ PASS |
+| MCP-04: toda autorização do MCP resolve por `can(actor, action, resource)`, nunca checagem paralela | Every route calls `can()`, none reimplements a permission decision | Grepped every route in `apps/server/src/modules/mcp/routes.ts` — 5 call sites, all `can({role: ...}, action, {workspaceId})` from `@arch-canvas/auth` (lines 180, 208, 251, 275, 306, 338 — token issuance uses `workspace:manage_members`, reads/write use `diagram:read`/`diagram:mutate`). Zero parallel/ad-hoc permission logic found | ✅ PASS |
+| MCP-05: IF o token não tiver permissão THEN nega sem revelar existência | Every denial path (missing workspace membership, wrong workspace, `can()` denies, resource not found) returns the identical 404 | `apps/server/src/modules/mcp/auth.ts:26-28` (`mcpTokenDenied()`, single 404 shape for missing/invalid/revoked/expired token); `routes.ts:244,249,252,269,273,276,300,304,307,310` — every denial path in every read/write route calls the same `notFound()` (line 47-49), never `forbidden()`, for token-authenticated routes. Independently verified live: `diagramIr.int.spec.ts:157-173` (cross-workspace token → 404) and `:175-187` (nonexistent diagram → 404, same status) | ✅ PASS |
+| MCP-06: todo texto do canvas é dado não-confiável, nunca instrução | Every MCP response opens with a fixed, non-conditional disclaimer; canvas text never lands in free-text `content` outside the structured payload | `apps/mcp/src/untrustedContent.ts:12-13` (fixed `UNTRUSTED_CONTENT_DISCLAIMER`, non-conditional), `:26-36` (`wrapUntrustedResourceContent` — disclaimer as its own `contents` entry, payload as a separate JSON-serialized entry, never spliced together), `:45-52` (`wrapUntrustedToolContent`). Used unconditionally by all 3 resources (`listDiagrams.ts:30`, `readDiagram.ts:29`, `readComponent.ts:31`) and the write tool (`setComponentMetadata.ts:55`). SPEC_DEVIATION disclosed in `tasks.md:368-373`: the SDK's `ReadResourceResult` has no `structuredContent` field (only `CallToolResult` does) — resources instead keep the JSON payload in its own `contents` entry, satisfied in spirit, never mixed into the disclaimer prose | ✅ PASS |
+| MCP-07: WHERE escrita via MCP habilitada, a mutação passa pelo mesmo limiar de aprovação e snapshot `pre_ai` | `POST /diagrams/:id/mcp-patch` reuses `createSnapshot(kind:'pre_ai')` + `appendOperation` + `applyMetadataOps` verbatim from `ai-engine/applyPatch.ts`, gated at route-registration time by `MCP_WRITE_ENABLED` on both server and `apps/mcp` sides | `apps/server/src/modules/mcp/routes.ts:327-376` (registration-level `if (mcpWriteEnabled && storage) { app.post(...) }`, never an in-handler check); `:353-372` calls the exact same `createSnapshot`/`appendOperation`/`applyMetadataOps` trio `approveAiRun` uses (`ai-engine/applyPatch.ts:162-180`), confirmed by diff comparison, not just doc claim; `applyMetadataOps` was exported (not duplicated) via `git diff 7d6c78d..HEAD -- apps/server/src/modules/ai-engine/applyPatch.ts` (a 6-line, 1-symbol change). Client side: `apps/mcp/src/cli.ts:33-35` (`if (process.env.MCP_WRITE_ENABLED === 'true') registerSetComponentMetadataTool(...)`, registration-level, mirrors server flag). Live-verified: `apps/server/src/modules/mcp/mcpPatch.int.spec.ts:281-303` (flag off → generic 404 from a separately-registered app instance, not an in-handler deny) | ✅ PASS |
+| MCP-08: WHEN o servidor MCP for distribuído THEN a documentação traz config pronta para Claude Code e Cursor | Valid, copy-pasteable JSON for both clients, real env var names | `apps/mcp/README.md:18-54` — both `claude_desktop_config.json`- and Cursor `mcp.json`-shaped snippets, hand-parsed as valid JSON; env vars `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` match exactly what `apps/mcp/src/client.ts:135-141` reads from `process.env` (not invented names) | ✅ PASS |
+
+**Status**: ✅ All 8 ACs covered with `file:line` evidence, no spec-precision gaps.
+
+---
+
+### Edge Cases (spec.md, general Edge Cases section)
+
+Only one of the 6 listed edge cases applies to F9's scope:
+
+- [x] "IF o servidor MCP receber um token válido de outro workspace THEN ele SHALL negar sem distinguir 'não existe' de 'sem permissão'" — actually tested live, not just read: `apps/server/src/modules/mcp/diagramIr.int.spec.ts:157-173` mints a real token for workspace B via a real session, then hits workspace A's diagram with it — asserts `404`, identical to the nonexistent-diagram case in the very next test (`:175-187`). `mcp.int.spec.ts:173-207` independently confirms the same non-crossover at the `requireMcpToken` resolution level (a token scoped to workspace A never resolves `mcpContext.workspaceId` to workspace B, and vice versa). Both cases pass on live execution.
+
+The other 5 edge cases (capability-map/UI drift, CI healthcheck flapping, empty OpenAPI doc, concurrent `STATE.md` edits, uncovered new package) belong to F6/F8's scope, not F9, and were already verified in those waves' sections above.
+
+---
+
+### Discrimination Sensor
+
+Isolated in a temporary `git worktree` (`git worktree add <scratch> HEAD`), never `git stash`. Baseline `git status --porcelain` on the real tree was empty before the sensor ran and confirmed empty again after `git worktree remove --force`.
+
+| # | File:line | Description | Killed? |
+| --- | --- | --- | --- |
+| 1 | `packages/diagram-ir/src/decompile.ts:112` | `inferDirectParents`: flipped `area(other) < area(best)` → `area(other) > area(best)` — picks the outermost ancestor as a box's direct parent instead of the innermost, breaking nested-container attribution | ✅ Killed — `decompile.spec.ts`: "infers nested containers..." (`expected length 2, got 1`) and the round-trip test (`expected Set{n1,n2,n3}, got Set{c1,n1,n2,n3}`) both fail |
+| 2 | `apps/server/src/modules/mcp/componentLookup.ts:107-108` | `expandComponentRelations`: swapped `inbound`/`outbound` push targets | ✅ Killed — `componentLookup.spec.ts`: "returns correct inbound/outbound edges..." fails (`expected [{from:'n1',to:'n2',...}], got []`) |
+| 3 | `apps/server/src/modules/mcp/auth.ts:53` | `requireMcpToken`: removed the `if (!isMcpTokenActive(row)) mcpTokenDenied();` guard — a revoked or expired token would now authenticate | ✅ Killed — `auth.spec.ts`: "a revoked token is denied..." and "an expired token is denied..." both fail (`promise resolved "undefined" instead of rejecting`) |
+
+**Sensor depth**: lightweight (3 mutations, targeting the wave's highest-risk new logic — the reverse compiler's geometric inference, the relation-expansion direction logic, and the new external-facing auth-decision path)
+**Result**: 3/3 killed — PASS ✅
+
+---
+
+### Interactive UAT
+
+Not performed — F9 is backend/infrastructure (a new stdio MCP server + REST surface), no UI-facing behavior to walk through interactively, consistent with this project's own convention ("backend-only or infrastructure work, automated checks are sufficient").
+
+---
+
+### Code Quality
+
+| Principle | Status |
+| --- | --- |
+| No features beyond what was asked | ✅ — `set_component_metadata` stays deliberately minimal (`setMetadata` only, no create/delete), as `design.md`'s "Riscos e limites" discloses |
+| No abstractions for single-use code | ✅ |
+| No unnecessary "flexibility" added | ✅ |
+| Only touched files required for task | ⚠️ — T14 forced two out-of-scope-but-necessary changes (`applyMetadataOps` export, `registerModules.ts`'s `storage` wiring), both disclosed inline as SPEC_DEVIATION in `tasks.md:433-442`, both minimal and correct on inspection |
+| Didn't "improve" unrelated code | ✅ |
+| Matches existing patterns/style | ✅ — `mcp_tokens` mirrors `shareLinks` almost exactly (confirmed by direct schema comparison); `requireMcpToken` mirrors `requireSession`; token issuance mirrors `share/routes.ts`'s one-shot reveal |
+| Would senior engineer approve? | ✅ |
+| Tests map to acceptance criteria and are non-shallow (spot-check one story) | ✅ — spot-checked `decompile.spec.ts`'s round-trip test: it asserts real structural equality (node/edge ids as `Set`, container parent-child associations by id), backed by `validateIr()`, not a "doesn't throw" placeholder |
+| Spec-anchored outcome check (asserted values match spec) | ✅ |
+| Per-layer Coverage Expectation met (domain 1:1 ACs; routes happy+edge+error) | ✅ — decompiler has 8 tests incl. round-trip; every MCP route has happy path + 404-denied + not-found integration coverage |
+| Every test maps to a spec requirement — no unclaimed tests | ✅ |
+| Documented guidelines followed | ✅ — Test Coverage Matrix in `tasks.md:16-30` (unit for pure/data-access logic, `.int.spec.ts` PGlite-backed for routes, per ADR-0007) |
+| `apps/mcp` never imports domain packages (design.md hard rule) | ✅ — `grep -rn "@arch-canvas/diagram-domain\|@arch-canvas/diagram-ir\|@arch-canvas/ai-tools\|@arch-canvas/database\|@arch-canvas/editor-adapter" apps/mcp/src apps/mcp/package.json` returns zero import statements (the only 2 hits are doc-comment prose in `client.ts:3-4` stating the rule, not violating it) |
+
+---
+
+### Gate Check
+
+Node: v22.23.2 (`eval "$(fnm env)" && fnm use 22 && corepack enable`).
+
+| Step | Result |
+| --- | --- |
+| `make lint` | ✅ exit 0 — 471 files checked, 0 errors, 6 pre-existing warnings (`tools/repo-tools/src/webConsumers.spec.ts`, `noTemplateCurlyInString`, unrelated to this wave's diff surface) |
+| `make typecheck` | ✅ exit 0 — 25/25 Turbo tasks successful |
+| `make test-unit` | ✅ exit 0 — 24/24 Turbo tasks successful. F9-relevant: `@arch-canvas/diagram-ir` 68/68 (incl. 8 new `decompile.spec.ts`), `@arch-canvas/mcp` 20/20 (`client.spec.ts` 8, `listDiagrams.spec.ts` 3, `readDiagram.spec.ts` 2, `readComponent.spec.ts` 3, `setComponentMetadata.spec.ts` 4), `@arch-canvas/server` 395/395 (incl. `mcp/auth.spec.ts` 5, `mcp/componentLookup.spec.ts` 5, `mcp/mcpTokens.spec.ts` 1) |
+| `make test-integration` | ⚠️ exit 2 via `make` (Turbo halts the pipeline on the first task failure — a Turbo scheduling artifact, not a real wave failure); re-ran `apps/server`'s `test:integration` standalone to get the true picture (see below) |
+| `apps/server` `pnpm run test:integration` (standalone) | ❌ nominal exit 1 — **3 failed test files, 339 passed / 13 skipped (352 total)**. F9-relevant suites all pass: `mcp/diagramIr.int.spec.ts` 6/6, `mcp/component.int.spec.ts` 4/4, `mcp/mcp.int.spec.ts` 5/5, `mcp/mcpPatch.int.spec.ts` 5/5, `core/registerModules.int.spec.ts` 10/10 (extended, not replaced). The 3 failing files (`backup/restoreTest.int.spec.ts`, `ws-gateway/crossInstancePresence.int.spec.ts`, `ws-gateway/presenceBroadcaster.int.spec.ts`) are the documented pre-existing sandbox gap — **independently confirmed the root cause myself**, not trusted from any batch's self-report: `which pg_lsclusters` and `which redis-server` both report "not found" on this host, and the actual test failures are `Error: spawnSync pg_lsclusters ENOENT` and `Error: spawn redis-server ENOENT` / `redis-server on port ... did not answer PING`. None of these 3 files, or anything they depend on, is touched by this wave's diff (`git diff 7d6c78d..HEAD --stat` — zero overlap with `backup/` or `ws-gateway/`). Not counted against F9 |
+| `pnpm --filter @arch-canvas/repo-tools run audit` | ✅ exit 0 — **88 routes, 0 violations** (rebuilt `repo-tools` fresh first, not relying on a stale `dist/`; `docs/route-inventory.md`/`docs/openapi.json` unchanged after re-run — no drift) |
+| **Test count before this wave** | N/A — new module, all MCP tests are new |
+| **Test count after this wave** | diagram-ir 68 (+8), server unit 395 (+11: `auth.spec.ts` 5, `componentLookup.spec.ts` 5, `mcpTokens.spec.ts` 1), server integration 352 total incl. +20 MCP-specific + 1 `registerModules.int.spec.ts` extension, `apps/mcp` (new package) 20 |
+| **Skipped tests** | 4 in `backup/incremental.int.spec.ts` (same `pg_lsclusters`-missing root cause as the failed `restoreTest` file — pre-existing, unrelated) |
+
+#### The orchestrator-applied fix (`14560ff`) — independently re-verified
+
+`tasks.md:525-535` documents that T16-T17's batch worker correctly stopped at a red `repo-tools audit` instead of forcing a commit through it — the real gap was `mcp/routes.ts`'s `routeSchemas` never being imported into `openapi/registry.ts` (no task in `tasks.md` explicitly named that file, the same class of planning gap F8's Phase 2d hit). I independently re-ran, from scratch, rather than trusting the commit message's claim:
+
+- `git show 14560ff --stat`: touches exactly `apps/server/src/modules/mcp/routes.ts` (+1 missing `routeSchemas` entry for `POST /diagrams/:id/mcp-patch`, which had also never been backfilled after T14), `apps/server/src/openapi/registry.ts` (+2, the `mcp` import + registry entry), `docs/openapi.json` (regenerated), `docs/route-inventory.md` (regenerated) — no unrelated files touched.
+- Rebuilt `repo-tools` fresh and re-ran the audit myself: **exit 0, 88 routes, 0 violations** — matches the commit's claim, not merely repeated from it.
+- `make lint`/`make typecheck` both clean (see gate results above), confirming the fix didn't introduce any new violation elsewhere.
+
+The fix is correct and complete.
+
+---
+
+### Requirement Traceability Update
+
+| Requirement | Previous | New |
+| --- | --- | --- |
+| MCP-01 | Implementing | ✅ Verified |
+| MCP-02 | Implementing | ✅ Verified |
+| MCP-03 | Implementing | ✅ Verified |
+| MCP-04 | Implementing | ✅ Verified |
+| MCP-05 | Implementing | ✅ Verified |
+| MCP-06 | Implementing | ✅ Verified |
+| MCP-07 | Implementing | ✅ Verified |
+| MCP-08 | Pending | ✅ Verified |
+
+All 8 ACs are individually grounded and correct on their literal text, backed by live-executed tests (not just read), and the wave's one real gap (the OpenAPI registry wiring) was already caught and fixed before this verification, then independently re-confirmed here. The 3 integration-suite failures are a pre-existing, host-environment gap unrelated to this wave's diff, confirmed by root-cause inspection, not by trusting the documented claim.
+
+---
+
+### Summary
+
+**Overall**: ✅ Ready
+
+**Spec-anchored check**: 8/8 ACs matched spec outcome with `file:line` evidence, no spec-precision gaps
+**Sensor**: 3/3 mutations killed (lightweight tier — reverse-compiler container inference, relation-expansion direction, MCP auth-decision path)
+**Gate**: `make lint` ✅ · `make typecheck` ✅ (25/25) · `make test-unit` ✅ (24/24 Turbo tasks) · `apps/server test:integration` 339/352 passed, 3 failed files (pre-existing sandbox gap, root-cause-confirmed, unrelated to this diff) · `repo-tools run audit` ✅ (88 routes, 0 violations, re-verified fresh after the orchestrator's `14560ff` fix)
+
+**What works**: The reverse compiler (`decompile()`) is a genuine, first-of-its-kind scene→IR conversion — geometric bounding-box containment inference (confirmed by direct code read, not summary), nested-container attribution by innermost-parent, a disclosed-not-hidden `kind: 'group'` limitation, and a real round-trip test that asserts structural equality by id (not a "doesn't throw" placeholder), all validated against the actual `irDocumentSchema` via `validateIr()`. The MCP token auth model faithfully mirrors `shareLinks`' one-shot-reveal/hashed-storage/role-ceiling discipline. Every route in the module resolves authorization through `can()`, with zero parallel permission logic. The uniform-404 AUTH-04/MCP-05 convention is followed by every read path, verified both by direct code inspection and by live cross-workspace-token integration tests. MCP-06's untrusted-content wrapper is applied unconditionally by every resource and the write tool. MCP-07's write path genuinely reuses (not reimplements) `createSnapshot`/`appendOperation`/`applyMetadataOps`, gated at route-registration time on both the server and `apps/mcp` sides. `apps/mcp` holds the architectural line — zero imports of any server-side domain package, confirmed by direct grep. The orchestrator's OpenAPI-registry fix is correct and complete on independent re-verification.
+
+**Issues found**: None blocking. One process-level observation, not a code gap: this is the second time in this project that a task plan omitted a cross-cutting registry-wiring file from any task's explicit scope (F8's Phase 2d hit the same class with route-file naming conventions; F9 hit it with the OpenAPI registry import) — distilled as lesson `L-026` (candidate).
+
+**Next steps**: None required to close F9. `L-026` will promote to `confirmed` if the same class of gap recurs in a future wave; if it doesn't recur across 2 features, no further action needed.
