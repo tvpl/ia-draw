@@ -216,6 +216,12 @@ Mesmo padrão de T3 (export `routeSchemas` apontando pros schemas Zod já existe
 - [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
 - [x] Gate check passes: `make lint && make typecheck`
 
+**T7 (`asset`)**:
+- [x] `routeSchemas` cobre as 2 rotas reais do módulo (two-phase upload: `:initiate`, `:complete`)
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo as rotas deste módulo, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T11–T16: `routeSchemas` — lote 2 (Phase 2b)
