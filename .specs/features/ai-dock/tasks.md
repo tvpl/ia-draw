@@ -292,13 +292,13 @@ T7 → T9
 - Skill: NONE
 
 **Done when**:
-- [ ] Layout is a row; canvas sizing behavior (the `flex:1, minHeight:0` trick documented at the current line 75-76) is unchanged/still verified
-- [ ] `canMutate` read from `bootstrapResult.mutatePermissions.allowed` and passed to `AiDock`
-- [ ] `selection` state updated from `EditorSurface`'s `onSelectionChange`, passed to `AiDock`
-- [ ] `onApproved` (and the undo success path) calls `refreshScene()` then `applyRemoteScene(scene)` via the `EditorSurface` ref — never applies a patch before the corresponding HTTP call resolves 200 (DOCK-13)
-- [ ] New integration test file `DiagramEditorPage.spec.tsx`: mounts the full page with a mocked `fetch` covering bootstrap + a full ai-run + approve sequence, asserts `applyRemoteScene`'s effect is visible (via a rendered element from the merged scene, or a spy on the exposed ref) only after the approve response resolves; asserts the dock is entirely absent when the mocked bootstrap returns `mutatePermissions.allowed: false`
-- [ ] `repo-tools run audit` still exits 0 (no new route was added, so no new audit gap is expected — run it anyway to confirm)
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] Layout is a row; canvas sizing behavior (the `flex:1, minHeight:0` trick documented at the current line 75-76) is unchanged/still verified
+- [x] `canMutate` read from `bootstrapResult.mutatePermissions.allowed` and passed to `AiDock`
+- [x] `selection` state updated from `EditorSurface`'s `onSelectionChange`, passed to `AiDock`
+- [x] `onApproved` (and the undo success path) calls `refreshScene()` then `applyRemoteScene(scene)` via the `EditorSurface` ref — never applies a patch before the corresponding HTTP call resolves 200 (DOCK-13)
+- [x] New integration test file `DiagramEditorPage.spec.tsx`: mounts the full page with a mocked `fetch` covering bootstrap + a full ai-run + approve sequence, asserts `applyRemoteScene`'s effect is visible (via a rendered element from the merged scene, or a spy on the exposed ref) only after the approve response resolves; asserts the dock is entirely absent when the mocked bootstrap returns `mutatePermissions.allowed: false`
+- [x] `repo-tools run audit` still exits 0 (no new route was added, so no new audit gap is expected — run it anyway to confirm) — DEVIATION: the audit does NOT exit 0 on this branch, but the single reported gap (`GET /auth/oidc/status` missing from `docs/openapi.json`) predates this feature entirely (introduced by commit `44c7ff9`, an unrelated auth feature; confirmed via `git log -- docs/openapi.json` that the doc wasn't regenerated since before that commit). The audit output does confirm this task's own goal: both `ai-engine` routes and the snapshot `:restore` route now show as `consumed` by `apps/web/src/ai-dock/aiDockClient.ts` in the regenerated `docs/route-inventory.md`, no new gap introduced by T9. Flagged separately for a follow-up fix (not ai-dock's scope).
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit (integration-style RTL, per matrix)
 **Gate**: full

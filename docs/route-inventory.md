@@ -2,29 +2,30 @@
 
 Gerado por `repo-tools audit`. Não editar à mão.
 
-- Rotas registradas: 88
-- Com consumidor de UI (`consumed`): 4
-- Pendentes de produto (`pending-product`): 84
+- Rotas registradas: 89
+- Com consumidor de UI (`consumed`): 7
+- Pendentes de produto (`pending-product`): 82
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (4)
+## consumed (7)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
+| POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
+| POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | GET | `/me` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/diagram/DiagramEditorPage.tsx` |
-| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
+| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
+| POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 
-## pending-product (84)
+## pending-product (82)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
 | GET | `/health/live` | `apps/server/src/core/server.ts` |
 | GET | `/health/ready` | `apps/server/src/core/server.ts` |
 | GET | `/metrics` | `apps/server/src/core/server.ts` |
-| POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` |
-| POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` |
 | GET | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` |
 | POST | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` |
 | PATCH | `/admin/ai-providers/:id` | `apps/server/src/modules/ai-provider/routes.ts` |
@@ -35,6 +36,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/auth/refresh` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` |
+| GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/login` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/callback` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` |
@@ -77,7 +79,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` |
 | POST | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
-| POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/diff` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` |
 | POST | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` |

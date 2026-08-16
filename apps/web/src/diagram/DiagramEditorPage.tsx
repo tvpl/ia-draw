@@ -1,7 +1,12 @@
-import { EditorSurface, type SceneElement } from '@arch-canvas/editor-adapter';
-import { type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  EditorSurface,
+  type EditorSurfaceHandle,
+  type SceneElement,
+} from '@arch-canvas/editor-adapter';
+import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { AiDock } from '../ai-dock/AiDock.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -18,6 +23,17 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  *
  * `<EditorSurface/>` only mounts once bootstrap has resolved, so Excalidraw's
  * (non-reactive) `initialData` is correct on its one and only mount.
+ *
+ * T9: the layout is a row — this column (status + canvas) as a `flex:1, minHeight:0`
+ * child, `<AiDock/>` as its sibling. `canMutate` comes from bootstrap's
+ * `mutatePermissions.allowed` (T1); `selection` comes from `EditorSurface`'s
+ * `onSelectionChange` (T2). `AiDock`'s `onApproved` (reused for its undo-success path,
+ * design.md) re-runs the SAME `DiagramSyncClient.bootstrap()` already used for the
+ * initial load — same `GET .../bootstrap` call `AiDockClient.refreshScene()` would make,
+ * with the added benefit of re-syncing the mutation queue's `baseRevision`/save-status to
+ * the new server revision the AI patch just produced — then fuses the result onto the
+ * canvas via `EditorSurface`'s imperative `applyRemoteScene` handle (T3), never before the
+ * approve/restore call itself has resolved (DOCK-13/18).
  */
 export function DiagramEditorPage(): JSX.Element {
   const { diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
@@ -25,6 +41,7 @@ export function DiagramEditorPage(): JSX.Element {
 
   const status = useMemo(() => createSaveStatusStore(), []);
   const clientRef = useRef<DiagramSyncClient | null>(null);
+  const editorSurfaceRef = useRef<EditorSurfaceHandle>(null);
   const queue = useMemo(
     () =>
       createMutationQueue({
@@ -36,6 +53,8 @@ export function DiagramEditorPage(): JSX.Element {
   );
 
   const [initialElements, setInitialElements] = useState<readonly SceneElement[] | null>(null);
+  const [canMutate, setCanMutate] = useState(false);
+  const [selection, setSelection] = useState<readonly string[]>([]);
 
   useEffect(() => wireForcedFlush(queue), [queue]);
 
@@ -55,6 +74,7 @@ export function DiagramEditorPage(): JSX.Element {
       const bootstrapResult = await client.bootstrap();
       if (cancelled) return;
       setInitialElements(bootstrapResult.scene);
+      setCanMutate(bootstrapResult.mutatePermissions.allowed);
     })();
 
     return () => {
@@ -63,26 +83,47 @@ export function DiagramEditorPage(): JSX.Element {
     };
   }, [diagramId, queue, status]);
 
+  // DOCK-13/18: never applies anything before the approve/restore HTTP call itself has
+  // already resolved 200 — this only ever runs from AiDock's post-resolution callback.
+  const handleApproved = useCallback(async () => {
+    const client = clientRef.current;
+    if (!client) return;
+    const refreshed = await client.bootstrap();
+    editorSurfaceRef.current?.applyRemoteScene(refreshed.scene);
+  }, []);
+
   const kind = status((s) => s.kind);
   const pendingCount = status((s) => s.pendingCount);
 
   if (!diagramId) return <p>Missing diagram id.</p>;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100vh' }}>
-      <p data-testid="save-status">{t(saveStatusTranslationKey(kind), { count: pendingCount })}</p>
-      {initialElements ? (
-        // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
-        // concrete height it needs (an unstyled ancestor chain collapses to 0 height).
-        <div style={{ flex: 1, minHeight: 0 }}>
-          <EditorSurface
-            initialElements={initialElements}
-            onDeltas={(deltas) => queue.getState().enqueue(deltas)}
-          />
-        </div>
-      ) : (
-        <p>{t('diagram.loading')}</p>
-      )}
+    <div style={{ display: 'flex', flexDirection: 'row', height: '100vh' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+        <p data-testid="save-status">
+          {t(saveStatusTranslationKey(kind), { count: pendingCount })}
+        </p>
+        {initialElements ? (
+          // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
+          // concrete height it needs (an unstyled ancestor chain collapses to 0 height).
+          <div style={{ flex: 1, minHeight: 0 }}>
+            <EditorSurface
+              ref={editorSurfaceRef}
+              initialElements={initialElements}
+              onDeltas={(deltas) => queue.getState().enqueue(deltas)}
+              onSelectionChange={setSelection}
+            />
+          </div>
+        ) : (
+          <p>{t('diagram.loading')}</p>
+        )}
+      </div>
+      <AiDock
+        diagramId={diagramId}
+        canMutate={canMutate}
+        selection={selection}
+        onApproved={handleApproved}
+      />
     </div>
   );
 }
