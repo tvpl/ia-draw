@@ -365,6 +365,12 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - [ ] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
 - [ ] Gate check passes: `make lint && make typecheck`
 
+**T21 (`core`)**:
+- [x] `routeSchemas` cobre toda rota real do arquivo (conferir contra `app.get/post/patch/put/delete`) — 3 rotas (`GET /health/live`, `GET /health/ready`, `GET /metrics`), todas sem query/params/body
+- [x] Entrada adicionada em `apps/server/src/openapi/registry.ts` com a chave `core`
+- [x] `make openapi` regenera `docs/openapi.json` incluindo estas rotas, sem erro
+- [x] Gate check passes: `make lint && make typecheck`
+
 ---
 
 ### T24: extensão do `repo-tools audit` — paridade de rotas do OpenAPI

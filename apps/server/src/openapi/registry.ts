@@ -1,3 +1,4 @@
+import { routeSchemas as coreRouteSchemas } from '../core/server.js';
 import { routeSchemas as aiEngineRouteSchemas } from '../modules/ai-engine/routes.js';
 import { routeSchemas as aiProviderRouteSchemas } from '../modules/ai-provider/routes.js';
 import { routeSchemas as assetRouteSchemas } from '../modules/asset/routes.js';
@@ -28,6 +29,7 @@ export const registry: Record<string, RouteSchemaMap> = {
   asset: assetRouteSchemas,
   auth: authRouteSchemas,
   comment: commentRouteSchemas,
+  core: coreRouteSchemas,
   'diagram-sync': diagramSyncRouteSchemas,
   docgen: docgenRouteSchemas,
   export: exportRouteSchemas,
