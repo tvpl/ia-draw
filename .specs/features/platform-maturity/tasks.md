@@ -497,10 +497,20 @@ T16 → T17
 
 **Done when**:
 
-- [ ] O job falha quando o mapa de capacidades diverge do código
-- [ ] O inventário gerado é publicado como artefato do build
-- [ ] Sensor de discriminação: apontar uma entrada do mapa para um componente inexistente faz o job falhar nomeando a entrada; a alteração é desfeita ao final
-- [ ] Gate check passa: `make ci`
+- [x] O job falha quando o mapa de capacidades diverge do código
+- [x] O inventário gerado é publicado como artefato do build
+- [x] Sensor de discriminação: apontar uma entrada do mapa para um componente inexistente faz o job falhar nomeando a entrada; a alteração é desfeita ao final
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1
+
+> **Job reproduzido inteiro nesta máquina.** Os passos extraídos do YAML (`pnpm install --frozen-lockfile` → `pnpm --filter @arch-canvas/repo-tools build` → `pnpm --filter @arch-canvas/repo-tools run audit`) saem 0 e imprimem `repo-tools audit: wrote docs/route-inventory.md — 79 routes, 4 consumed, 75 pending-product`, que é a linha de base de T4/T7.
+>
+> A forma `run audit` foi escolhida por causa do achado de T7: num checkout limpo o `bin` não está linkado porque `dist/cli.js` ainda não existe na hora do install, então `exec repo-tools audit` só funcionaria com install → build → install. O script depende apenas do passo de build, que o job já tem.
+>
+> **Sensor de discriminação executado.** A entrada `Recuperação após crash do navegador` foi apontada para `apps/web/src/sync/GhostSyncClient.ts`, que não existe. O job sai 1 com `repo-tools audit: Recuperação após crash do navegador — ui_surface 'apps/web/src/sync/GhostSyncClient.ts' does not exist` — nomeia a capacidade e o caminho, que é o Independent Test da TRU-01 no nível do job e não mais no nível da função. Restaurado com `git checkout HEAD -- docs/capability-map.yaml`; `git status --porcelain` voltou a mostrar só `.github/workflows/ci.yaml`.
+>
+> **Não verificável localmente:** `actions/upload-artifact@v4` publicando `docs/route-inventory.md`. O `if: always()` é deliberado — o inventário é escrito mesmo quando a auditoria falha, e é justamente no build vermelho que ele serve para diagnóstico.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build

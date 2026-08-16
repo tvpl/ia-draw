@@ -260,6 +260,33 @@ jobs:
         working-directory: infra/compose
         run: docker compose down -v
 
+  capability-audit:
+    name: Capability audit (documented claims vs. code)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build the audit tool
+        run: pnpm --filter @arch-canvas/repo-tools build
+      - name: Audit the capability map against the code
+        # `run audit`, not `exec repo-tools audit`: on a clean checkout the bin
+        # cannot be linked at install time (dist/cli.js does not exist yet), so
+        # the exec form would need install -> build -> install. The script form
+        # only needs the build step above.
+        run: pnpm --filter @arch-canvas/repo-tools run audit
+      - name: Publish the generated route inventory
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: route-inventory
+          path: docs/route-inventory.md
+          if-no-files-found: error
+
   build-images:
     name: Build Docker images
     runs-on: ubuntu-latest
