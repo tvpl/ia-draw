@@ -289,9 +289,9 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] `pnpm install` resolve o package novo sem erro
-- [ ] `pnpm-workspace.yaml` já cobre `apps/*` — nenhuma mudança de config de workspace necessária, confirmado
-- [ ] Gate check passes: `make lint && make typecheck` (package vazio, só scaffold, ainda compila)
+- [x] `pnpm install` resolve o package novo sem erro
+- [x] `pnpm-workspace.yaml` já cobre `apps/*` — nenhuma mudança de config de workspace necessária, confirmado
+- [x] Gate check passes: `make lint && make typecheck` (package vazio, só scaffold, ainda compila — `src/index.ts` é um placeholder mínimo, `export {}`, só pra satisfazer `tsc` num `src/` que ainda não tem módulo real, `client.ts` chega em T10)
 
 **Tests**: none
 **Gate**: build
