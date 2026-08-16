@@ -2,6 +2,7 @@ import { can } from '@arch-canvas/auth';
 import { diagramStatus, recordAuditEvent } from '@arch-canvas/database';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import type { RouteSchemaMap } from '../../openapi/types.js';
 import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
@@ -74,6 +75,26 @@ const updateDiagramBodySchema = z.object({
   status: diagramStatusSchema.optional(),
   ownerId: z.string().min(1).optional(),
 });
+
+/**
+ * OpenAPI schema map for this file's 10 routes (T23, API-01) — points at
+ * the same Zod objects the handlers below already `.parse()` against.
+ * Registered under the `workspace-project-diagram` key (`openapi/registry.ts`),
+ * distinct from `workspace` (T6, this module's sibling `routes.ts`), since
+ * this file is not named `routes.ts`.
+ */
+export const routeSchemas: RouteSchemaMap = {
+  'GET /projects': { query: workspaceIdQuerySchema },
+  'POST /projects': { body: createProjectBodySchema },
+  'GET /projects/:id': { params: idParamsSchema },
+  'PATCH /projects/:id': { params: idParamsSchema, body: updateProjectBodySchema },
+  'DELETE /projects/:id': { params: idParamsSchema },
+  'GET /diagrams': { query: projectIdQuerySchema },
+  'POST /diagrams': { body: createDiagramBodySchema },
+  'GET /diagrams/:id': { params: idParamsSchema },
+  'PATCH /diagrams/:id': { params: idParamsSchema, body: updateDiagramBodySchema },
+  'DELETE /diagrams/:id': { params: idParamsSchema },
+};
 
 /** Registers project + diagram metadata CRUD, RBAC-gated and workspace-scoped (T17). */
 export function registerProjectAndDiagramRoutes(

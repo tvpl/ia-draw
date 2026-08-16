@@ -15,6 +15,7 @@ import { routeSchemas as presentationRouteSchemas } from '../modules/presentatio
 import { routeSchemas as shareRouteSchemas } from '../modules/share/routes.js';
 import { routeSchemas as snapshotRouteSchemas } from '../modules/snapshot/routes.js';
 import { routeSchemas as webhookRouteSchemas } from '../modules/webhook/routes.js';
+import { routeSchemas as workspaceProjectDiagramRouteSchemas } from '../modules/workspace/project-diagram-routes.js';
 import { routeSchemas as workspaceRouteSchemas } from '../modules/workspace/routes.js';
 import { routeSchemas as wsGatewayRouteSchemas } from '../modules/ws-gateway/routes.js';
 import type { RouteSchemaMap } from './types.js';
@@ -43,5 +44,6 @@ export const registry: Record<string, RouteSchemaMap> = {
   snapshot: snapshotRouteSchemas,
   webhook: webhookRouteSchemas,
   workspace: workspaceRouteSchemas,
+  'workspace-project-diagram': workspaceProjectDiagramRouteSchemas,
   'ws-gateway': wsGatewayRouteSchemas,
 };
