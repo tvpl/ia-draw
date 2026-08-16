@@ -471,10 +471,11 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Rodar o script localmente contra a suíte real imprime "10/10 evals passed, limiar 100%" e sai 0
-- [ ] Um cenário simulado abaixo do limiar (teste unitário injetando um resultado fake) sai não-zero com a mesma mensagem citando a taxa real
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 2 novos testes (saída 0 com resultado 100%; saída não-zero com resultado abaixo do limiar, mensagem cita taxa e limiar)
+- [x] Rodar o script localmente contra a suíte real imprime "X/Y evals passed, limiar 100%" e sai 0 — nota (spec-precision gap): a suíte real (`evals.spec.ts`) tem 5 casos hoje, não 10 (`design.md`'s "10 casos determinísticos" está desatualizado — o próprio cabeçalho de `evals.spec.ts` já documenta que só 5 dos 11 casos do product-spec.md §8.6 estão no escopo construído); rodado manualmente com `pnpm exec tsx src/modules/ai-engine/evals/runThresholdCheck.ts` a partir de `apps/server`, saída real "5/5 evals passed, limiar 100%", sai 0
+- [x] Um cenário simulado abaixo do limiar (teste unitário injetando um resultado fake) sai não-zero com a mesma mensagem citando a taxa real
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit` — 380/380 testes passam (0 falhas); o comando sai 1 só pelo mesmo piso de cobertura global pré-existente já registrado na nota de T26
+- [x] Test count: 2 novos testes (saída 0 com resultado 100%; saída não-zero com resultado abaixo do limiar, mensagem cita taxa e limiar)
+- Nota (achado durante a implementação): a resolução de `apps/server`'s package root via `new URL('../../../../', import.meta.url)` quebra sob o ambiente `jsdom` deste pacote quando o módulo é importado por um teste (o `URL` global do jsdom não resolve a base relativa corretamente) — corrigido computando isso preguiçosamente dentro de `runEvalsSpec()`, nunca no topo do módulo; como os 2 testes injetam `runEvals`, essa função (e a resolução) nunca roda sob os testes, só na execução real via Node puro.
 
 **Tests**: unit
 **Gate**: quick
