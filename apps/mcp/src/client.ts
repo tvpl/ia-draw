@@ -77,6 +77,18 @@ export interface ComponentLookupResult {
   outbound: ComponentRelationEdgeLike[];
 }
 
+/** Mirrors `POST /diagrams/:id/mcp-patch`'s response shape (`mcp/routes.ts`, T14). */
+export interface SetComponentMetadataResult {
+  snapshotId: string;
+  revision: number;
+}
+
+export interface SetComponentMetadataInput {
+  sourceRevision: number;
+  elementId: string;
+  metadata: Record<string, unknown>;
+}
+
 /**
  * Thrown for any non-2xx response — the request never resolves to a
  * partial/best-effort object on failure, only ever this typed error or a
@@ -131,10 +143,18 @@ export class McpClient {
     this.fetchImpl = config.fetchImpl ?? fetch;
   }
 
-  private async request<T>(path: string): Promise<T> {
+  private async request<T>(
+    path: string,
+    options: { method?: string; body?: string } = {},
+  ): Promise<T> {
     const url = `${this.apiUrl}${path}`;
     const response = await this.fetchImpl(url, {
-      headers: { Authorization: `Bearer ${this.token}` },
+      method: options.method,
+      body: options.body,
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      },
     });
     if (!response.ok) {
       const body = await response.text().catch(() => '');
@@ -160,6 +180,28 @@ export class McpClient {
   async getComponent(diagramId: string, stableKey: string): Promise<ComponentLookupResult> {
     return this.request<ComponentLookupResult>(
       `/diagrams/${encodeURIComponent(diagramId)}/components/${encodeURIComponent(stableKey)}`,
+    );
+  }
+
+  /**
+   * `POST /diagrams/:id/mcp-patch` (MCP-07, T14) — only reachable when the
+   * server booted with `MCP_WRITE_ENABLED=true`; a disabled server responds
+   * 404 the same way a nonexistent route does, surfaced here as the same
+   * typed `McpApiError` every other non-2xx response produces.
+   */
+  async setComponentMetadata(
+    diagramId: string,
+    input: SetComponentMetadataInput,
+  ): Promise<SetComponentMetadataResult> {
+    return this.request<SetComponentMetadataResult>(
+      `/diagrams/${encodeURIComponent(diagramId)}/mcp-patch`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          sourceRevision: input.sourceRevision,
+          op: { op: 'setMetadata', elementId: input.elementId, metadata: input.metadata },
+        }),
+      },
     );
   }
 }

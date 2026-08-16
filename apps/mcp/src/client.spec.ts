@@ -59,6 +59,34 @@ describe('McpClient', () => {
     );
   });
 
+  it('setComponentMetadata POSTs sourceRevision/op and resolves { snapshotId, revision }', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(200, { snapshotId: 'snap-1', revision: 3 }));
+    const client = makeClient(fetchImpl as unknown as typeof fetch);
+
+    const result = await client.setComponentMetadata('diagram-1', {
+      sourceRevision: 2,
+      elementId: 'n1',
+      metadata: { componentKey: 'generic.compute.server' },
+    });
+
+    expect(result).toEqual({ snapshotId: 'snap-1', revision: 3 });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('https://api.example.test/diagrams/diagram-1/mcp-patch');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toEqual({
+      sourceRevision: 2,
+      op: {
+        op: 'setMetadata',
+        elementId: 'n1',
+        metadata: { componentKey: 'generic.compute.server' },
+      },
+    });
+    const headers = init.headers as Record<string, string>;
+    expect(headers.Authorization).toBe('Bearer test-token');
+    expect(headers['Content-Type']).toBe('application/json');
+  });
+
   it('a non-2xx response (404) throws a typed McpApiError, never a partial object', async () => {
     const fetchImpl = vi.fn(async () => new Response('not found', { status: 404 }));
     const client = makeClient(fetchImpl as unknown as typeof fetch);

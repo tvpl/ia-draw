@@ -5,6 +5,7 @@ import { McpClient } from './client.js';
 import { registerListDiagramsResource } from './resources/listDiagrams.js';
 import { registerReadComponentResource } from './resources/readComponent.js';
 import { registerReadDiagramResource } from './resources/readDiagram.js';
+import { registerSetComponentMetadataTool } from './tools/setComponentMetadata.js';
 
 /**
  * Stdio entrypoint (MCP-01) — the `bin` `package.json` points `npx
@@ -14,6 +15,12 @@ import { registerReadDiagramResource } from './resources/readDiagram.js';
  * (design.md, "Onde vive o servidor MCP?"). `McpClient` reads
  * `ARCH_CANVAS_API_URL`/`ARCH_CANVAS_MCP_TOKEN` from the environment itself
  * (`client.ts`, T10) — this file never touches those env vars directly.
+ *
+ * `set_component_metadata` (T15, MCP-07) is only registered when
+ * `MCP_WRITE_ENABLED=true` in THIS process's own environment — mirroring
+ * the server-side flag (T14) rather than trusting it. With the flag off,
+ * the tool never appears in this server's capability list at all, so a
+ * connected client never sees a write capability the backend would reject.
  */
 export async function main(): Promise<void> {
   const client = new McpClient();
@@ -22,6 +29,10 @@ export async function main(): Promise<void> {
   registerListDiagramsResource(server, client);
   registerReadDiagramResource(server, client);
   registerReadComponentResource(server, client);
+
+  if (process.env.MCP_WRITE_ENABLED === 'true') {
+    registerSetComponentMetadataTool(server, client);
+  }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);

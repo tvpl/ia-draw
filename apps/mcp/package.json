@@ -12,7 +12,8 @@
     "test:unit": "vitest run"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.30.0"
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.1.12"
   },
   "devDependencies": {
     "@types/node": "^22.20.1",

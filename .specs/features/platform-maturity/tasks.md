@@ -460,10 +460,25 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Com a flag ligada, a tool aparece na lista de capacidades do servidor e funciona
-- [ ] Com a flag desligada, a tool nem é registrada — cliente nunca vê a capacidade
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
-- [ ] Test count: 3 novos testes (tool registra só com flag ligada; chamada bem-sucedida; erro do servidor vira resposta de erro estruturada, não exceção)
+- [x] Com a flag ligada, a tool aparece na lista de capacidades do servidor e funciona
+- [x] Com a flag desligada, a tool nem é registrada — cliente nunca vê a capacidade
+- [x] Gate check passes: `pnpm --filter @arch-canvas/mcp run test:unit`
+- [x] Test count: 4 novos testes em `tools/setComponentMetadata.spec.ts` (tool registra e aparece em
+  `listTools` sobre um transporte real — `InMemoryTransport`; chamada bem-sucedida envolve o
+  resultado em `structuredContent` atrás do aviso MCP-06; erro do servidor — `McpApiError` — vira
+  resposta estruturada `isError: true`, não exceção; um erro não-`McpApiError` também vira resposta
+  estruturada, fechando o branch de erro pro ratchet de 100% de `apps/mcp` — 1 além do planejado,
+  mesmo motivo do "+2" de T10) — mais 1 novo teste em `client.spec.ts` cobrindo `setComponentMetadata`
+  (método POST novo, T15's "ganha o método novo no mesmo commit")
+
+  A segunda metade do primeiro Done-when ("com a flag desligada, a tool nem é registrada") é
+  verificada por inspeção de código + verificação manual (mesmo padrão que T13 já estabeleceu pra
+  `cli.ts`, que segue não-unit-testado por ser o entrypoint stdio): `cli.ts`'s `if
+  (process.env.MCP_WRITE_ENABLED === 'true') registerSetComponentMetadataTool(...)` só chama a
+  função de registro sob a flag — o teste unitário acima já prova que a função, quando chamada,
+  registra a tool corretamente em `listTools()`; a ausência de chamada quando a flag está desligada
+  é trivial por inspeção do `if` guard. Build manual + boot com `MCP_WRITE_ENABLED=true` confirmado
+  sem erro (mesma verificação de T13, repetida com a flag ligada desta vez).
 
 **Tests**: unit
 **Gate**: quick
