@@ -9,7 +9,7 @@
 Duas, e só duas:
 
 - `docs/capability-map.yaml` — 26 capacidades, 22 marcadas `backend-only`. Toda entrada deste roadmap sai de uma dessas 22.
-- `docs/route-inventory.md` — 79 rotas REST registradas, 4 consumidas pela UI, 75 `pending-product`. As rotas citadas em cada entrada saem dessa lista, sem exceção.
+- `docs/route-inventory.md` — 82 rotas REST registradas, 4 consumidas pela UI, 78 `pending-product`. As rotas citadas em cada entrada saem dessa lista, sem exceção.
 
 Os dois arquivos são regenerados e checados por `repo-tools audit`, que roda no CI. Se uma capacidade ganhar superfície, ela sai do mapa como `backend-only` e a entrada correspondente aqui perde a razão de existir.
 
@@ -215,7 +215,7 @@ Se em algum momento uma delas ganhar tela — um painel de status de backup, por
 
 R1 cobre duas capacidades (geração e edição por IA) porque as duas vivem no mesmo dock e a segunda não tem sentido sozinha. R3 e R4 partem uma capacidade em duas entradas para caber no orçamento de uma onda. Fora esses dois casos, é um para um.
 
-Rotas: 73 das 75 `pending-product` estão atribuídas a uma entrada. As 2 restantes — `POST /diagrams/:id/assets:initiate` e `POST /diagrams/:id/assets/:assetId:complete` — pertencem a `Edição server-first do canvas`, que **já tem superfície** (`DiagramEditorPage.tsx`) e por isso não é `backend-only` e não gera entrada. O upload de imagem no canvas continua sem fio ligado; isso entra como escopo da spec de R5, que é onde o painel de elemento aparece.
+Rotas: 73 das 78 `pending-product` estão atribuídas a uma entrada. As 5 restantes se dividem em dois casos, nenhum deles trabalho de produto. Dois são de asset — `POST /diagrams/:id/assets:initiate` e `POST /diagrams/:id/assets/:assetId:complete` — e pertencem a `Edição server-first do canvas`, que **já tem superfície** (`DiagramEditorPage.tsx`) e por isso não é `backend-only` e não gera entrada; o upload de imagem no canvas continua sem fio ligado e entra como escopo da spec de R5, que é onde o painel de elemento aparece. Os outros três — `GET /health/live`, `GET /health/ready` e `GET /metrics` — são endpoints operacionais registrados em `apps/server/src/core/server.ts`, consumidos por compose, CI e Prometheus; superfície deles é painel de operação, nunca tela de produto.
 
 ## Checagem de ordem
 

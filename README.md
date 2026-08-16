@@ -4,7 +4,7 @@ Plataforma self-hosted de diagramação de arquitetura sobre o [Excalidraw](http
 
 > **Status:** os 92 requisitos de F0–F5 estão implementados como **contrato de backend verificado**: cada um foi checado onda a onda por um Verifier independente, com evidência em `file:line`. Ver [`.specs/STATE.md`](.specs/STATE.md) (marco final) e [`.specs/features/architecture-canvas/validation.md`](.specs/features/architecture-canvas/validation.md).
 >
-> A **superfície de produto é rastreada à parte** e está atrás do backend. Das 26 capacidades do [mapa de capacidades](docs/capability-map.yaml), 4 têm tela hoje e **22 são `backend-only`** — API verificada, sem nenhum componente em `apps/web` que as exponha ao usuário final. Em rotas: das 79 rotas REST registradas, 4 são consumidas pela interface e 75 não têm consumidor ([inventário](docs/route-inventory.md)). O CI roda `repo-tools audit` a cada pull request, então esta distinção não depende de disciplina de quem escreve documentação.
+> A **superfície de produto é rastreada à parte** e está atrás do backend. Das 26 capacidades do [mapa de capacidades](docs/capability-map.yaml), 4 têm tela hoje e **22 são `backend-only`** — API verificada, sem nenhum componente em `apps/web` que as exponha ao usuário final. Em rotas: das 82 rotas REST registradas, 4 são consumidas pela interface e 78 não têm consumidor ([inventário](docs/route-inventory.md)). O CI roda `repo-tools audit` a cada pull request, então esta distinção não depende de disciplina de quem escreve documentação.
 
 ## O que é
 

@@ -2,9 +2,9 @@
 
 Gerado por `repo-tools audit`. Não editar à mão.
 
-- Rotas registradas: 79
+- Rotas registradas: 82
 - Com consumidor de UI (`consumed`): 4
-- Pendentes de produto (`pending-product`): 75
+- Pendentes de produto (`pending-product`): 78
 - Consumidores órfãos (`orphan-consumer`): 0
 
 ## consumed (4)
@@ -16,10 +16,13 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 
-## pending-product (75)
+## pending-product (78)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
+| GET | `/health/live` | `apps/server/src/core/server.ts` |
+| GET | `/health/ready` | `apps/server/src/core/server.ts` |
+| GET | `/metrics` | `apps/server/src/core/server.ts` |
 | POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` |
 | POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` |
 | GET | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` |

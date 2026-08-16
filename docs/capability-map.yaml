@@ -14,8 +14,8 @@
 # `backend-only` significa: o contrato de backend está verificado, o usuário
 # final não tem por onde acessar. Não descreva essas capacidades como entregues.
 #
-# Verificado por `repo-tools audit` (TRU-03). Estado hoje: 4 das 79 rotas REST
-# registradas têm consumidor de UI.
+# Verificado por `repo-tools audit` (TRU-03). Estado hoje: 4 das 82 rotas REST
+# registradas têm consumidor de UI, e 78 não têm — 4 + 78 = 82.
 
 capabilities:
   - capability: Instalação self-hosted com stack completo

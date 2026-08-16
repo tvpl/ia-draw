@@ -842,7 +842,7 @@ T22  (independente)
 #### T21: Propagar a contagem corrigida de rotas
 
 **What**: Regerar o inventário com o extrator corrigido e atualizar o número publicado em toda superfície de documentação que o repetia.
-**Where**: `docs/route-inventory.md`, `docs/capability-map.yaml`, `README.md`, `docs/architecture-overview.html`
+**Where**: `docs/route-inventory.md`, `docs/capability-map.yaml`, `README.md`, `docs/architecture-overview.html`, `.specs/features/platform-maturity/spec.md` (Problem Statement), `.specs/features/platform-maturity/ui-roadmap.md`
 **Depends on**: T18
 **Reuses**: `pnpm --filter @arch-canvas/repo-tools run audit` como única fonte dos números
 **Requirement**: TRU-04, UIX-01, UIX-04
@@ -854,13 +854,19 @@ T22  (independente)
 
 **Done when**:
 
-- [ ] `docs/route-inventory.md` regenerado pela CLI, sem edição à mão
-- [ ] `README.md`, `docs/architecture-overview.html` e o cabeçalho de `docs/capability-map.yaml` trazem a contagem corrigida
-- [ ] O invariante `consumidas + pendentes == total` é visivelmente verdadeiro em cada lugar onde os três números aparecem
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai zero
-- [ ] Gate check passa: `make ci` — ver nota de ambiente em T1
+- [x] `docs/route-inventory.md` regenerado pela CLI, sem edição à mão
+- [x] `README.md`, `docs/architecture-overview.html` e o cabeçalho de `docs/capability-map.yaml` trazem a contagem corrigida
+- [x] O invariante `consumidas + pendentes == total` é visivelmente verdadeiro em cada lugar onde os três números aparecem
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` sai zero
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
 
-**Status**: ⬜ Pending
+> **O número novo é 82, e o invariante fecha:** `repo-tools audit` imprime `82 routes, 4 consumed, 78 pending-product` e sai 0. `4 + 78 = 82` aparece por extenso no README, na landing e no cabeçalho de `docs/capability-map.yaml`, que passou a somar a conta explicitamente em vez de citar só o total.
+>
+> **Duas superfícies fora da lista original da task foram incluídas,** porque publicavam o mesmo número errado e ficariam obsoletas em silêncio: o Problem Statement de `spec.md` (79→82, 75→78) e `ui-roadmap.md` (fonte e fechamento de contagem). O fechamento do roadmap passou de "73 das 75, 2 restantes de asset" para "73 das 78, 5 restantes" — as 3 novas são `GET /health/live`, `GET /health/ready` e `GET /metrics`, operacionais, com consumidor em compose, CI e Prometheus e sem tela de produto possível. Nenhuma entrada R1–R16 muda de escopo.
+>
+> **Varredura de resíduo:** `grep -n '\b79\b\|\b75\b'` no README, na landing, no mapa, no inventário, no roadmap e na spec não devolve mais nenhuma ocorrência dos números antigos.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
