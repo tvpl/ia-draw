@@ -200,7 +200,7 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 | CIQ-07 | P1: CI que prova o sistema | F6 | Pending |
 | UIX-01 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-02 | P1: Inventário do gap de produto | F6 | Implementing |
-| UIX-03 | P1: Inventário do gap de produto | F6 | Pending |
+| UIX-03 | P1: Inventário do gap de produto | F6 | Implementing |
 | UIX-04 | P1: Inventário do gap de produto | F6 | Implementing |
 | AGT-01 | P1: Onboarding e loop agêntico | F7 | Pending |
 | AGT-02 | P1: Onboarding e loop agêntico | F7 | Pending |

@@ -680,11 +680,23 @@ T16 → T17
 
 **Done when**:
 
-- [ ] A spec cobre o fluxo declarado do produto: pedido em linguagem natural, prévia, aprovação explícita e undo
-- [ ] Toda AC está em notação EARS, com valores concretos em vez de qualificadores vagos
-- [ ] Os IDs de requisito não colidem com nenhum prefixo já usado no repositório
-- [ ] `python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py .specs/features/ai-dock/spec.md` sai zero
-- [ ] Gate check passa: `make ci`
+- [x] A spec cobre o fluxo declarado do produto: pedido em linguagem natural, prévia, aprovação explícita e undo
+- [x] Toda AC está em notação EARS, com valores concretos em vez de qualificadores vagos
+- [x] Os IDs de requisito não colidem com nenhum prefixo já usado no repositório
+- [x] `python3 .claude/skills/tlc-spec-driven/scripts/validate_spec.py .specs/features/ai-dock/spec.md` sai zero
+- [x] Gate check passa: `make ci` — ver nota de ambiente em T1; aplicado `make lint && make typecheck && make test-unit`
+
+> **Prefixo `DOCK`,** conferido contra os 30 já usados (A11Y, AAC, AIC, AIE, AIG, API, AUTH, CIQ, CLB, CMT, DOC, DR, EDT, EXP, EXT, FND, GOV, LIB, LNT, MCP, OBS, OIDC, OPS, PERF, PRS, REC, SEC, TRU, UIX, VER). 23 requisitos, um por AC, em cinco histórias: pedido (5), prévia (5), aprovação (6), undo (4), teclado e idioma (3). `validate_spec.py` sai **0, com 0 erros e 0 avisos**.
+>
+> **Os valores concretos saíram do código, não de suposição.** O limite de 20 pedidos por minuto é o `DEFAULT_AI_RUN_RATE_LIMIT` de `routes.ts`; as quatro listas do diff (`added`, `removed`, `moved`, `modified`) mais `metadataChanged` são o `PreviewSummary` real; o 409 é o `StaleRevisionError` de `applyPatch.ts`; os motivos do limiar (`removal`, `element_count`, `outside_selection`) e a fronteira estrita de 50 elementos são o `computeApprovalThreshold` de `preview.ts`; o `snapshot.id` do undo é o `pre_ai` que `approveAiRun` devolve.
+>
+> **Duas decisões de produto registradas como assumption, não escondidas na prosa:** (1) o dock exige clique de aprovação em **todo** run, inclusive quando `requiresExplicitApproval` vem `false` — o limiar do servidor e o consentimento do usuário passam a ser duas travas independentes; (2) o run não sobrevive a recarregar a página, porque o patch pendente vive no `RunStore` em memória e só a linha do run está em Postgres. A segunda virou edge case explícito: run em `awaiting_approval` sem patch no servidor é tratado como expirado, nunca como aprovável.
+>
+> **Achado — inconsistência de atribuição com o roadmap de T16.** O undo precisa de `POST /diagrams/{id}/snapshots/{snapshotId}:restore`, que `ui-roadmap.md` atribui a R6, enquanto a entrada R1 lá declara 2 rotas. A spec do dock resolve declarando a atribuição do roadmap como **dono primário e não exclusividade**, e lista as 4 rotas que consome de fato. Não foi corrigido em `ui-roadmap.md` porque isso está fora do `Where` desta task.
+>
+> **Achado — `reasons` não trafega.** `computeApprovalThreshold` calcula os três motivos e `attachPreview` os devolve, mas o handler de `POST /diagrams/{id}/ai/runs` só coloca `requiresExplicitApproval` no corpo. O dock exibe o aviso sem detalhar o motivo, e expor `reasons` ficou declarado como escopo de R15 em vez de virar mudança de servidor nesta fatia.
+
+**Status**: ✅ Complete
 
 **Tests**: none
 **Gate**: build
