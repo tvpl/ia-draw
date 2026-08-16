@@ -604,8 +604,8 @@ Mesmo padrão de T5–T10 (export `routeSchemas` + registrar em `apps/server/src
 - Skill: NONE
 
 **Done when**:
-- [ ] Template tem as mesmas seções que `0001..0009` usam
-- [ ] `CLAUDE.md` ganha uma linha referenciando o template
+- [x] Template tem as mesmas seções que `0001..0009` usam
+- [x] `CLAUDE.md` ganha uma linha referenciando o template
 
 **Tests**: none
 **Gate**: build

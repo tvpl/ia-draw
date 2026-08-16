@@ -55,7 +55,8 @@ ver ADR-0007).
 ## Invariantes de arquitetura (não óbvios lendo o código isolado)
 
 Resumo executivo; a decisão completa (contexto, trade-off, escopo) está em `docs/adr/000N-*.md` e
-`.specs/STATE.md` (seção Decisions, AD-001..AD-009).
+`.specs/STATE.md` (seção Decisions, AD-001..AD-009). Nova ADR: copie `docs/adr/TEMPLATE.md`
+(formato Status/Data/Contexto/Decisão/Consequências já usado por `0001..0009`).
 
 - **AD-003 — Monólito modular.** `apps/server` é um único processo Node (REST + WebSocket + jobs).
   Não crie `apps/api`, `apps/worker` ou `apps/realtime` separados — as fronteiras de domínio já
