@@ -182,6 +182,8 @@ describe('LoginPage (T6, SSO-01..08/10/12)', () => {
     fireEvent.click(submit);
     await waitFor(() => expect(submit.disabled).toBe(true));
     expect(screen.getByText('Signing in…')).toBeTruthy();
+    // SSO-20: the status change must be announced in an aria-live region, not just rendered as text.
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe('Signing in…');
 
     await act(async () => {
       resolveLogin(jsonResponse(200, {}));
@@ -223,6 +225,10 @@ describe('LoginPage (T6, SSO-01..08/10/12)', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
 
     await waitFor(() => expect(screen.getByText('Invalid email or password.')).toBeTruthy());
+    // SSO-20: the error must be announced in an aria-live region, not just rendered as text.
+    expect(document.querySelector('[aria-live="polite"]')?.textContent).toBe(
+      'Invalid email or password.',
+    );
     expect((screen.getByLabelText('Email') as HTMLInputElement).value).toBe('a@b.com');
     expect((screen.getByLabelText('Password') as HTMLInputElement).value).toBe('');
     // Password is empty again post-clear, so the submit button re-disables —
