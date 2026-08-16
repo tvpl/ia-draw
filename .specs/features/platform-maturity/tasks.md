@@ -242,11 +242,11 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Componente existente com permissão devolve metadados + relações corretos
-- [ ] `stableKey` sem correspondência devolve 404
-- [ ] Sem permissão devolve o mesmo 404 (não distingue)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
-- [ ] Test count: 4 novos testes integration (componente com relações; sem correspondência 404; sem permissão 404; múltiplos módulos MCP-01/02/03 juntos numa mesma diagram real)
+- [x] Componente existente com permissão devolve metadados + relações corretos
+- [x] `stableKey` sem correspondência devolve 404
+- [x] Sem permissão devolve o mesmo 404 (não distingue)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Test count: 4 novos testes integration (componente com relações; sem correspondência 404; sem permissão 404; múltiplos módulos MCP-01/02/03 juntos numa mesma diagram real)
 
 **Tests**: integration
 **Gate**: full

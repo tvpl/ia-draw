@@ -18,6 +18,7 @@ import {
   resolveWorkspaceRole,
 } from '../workspace/index.js';
 import { requireMcpToken } from './auth.js';
+import { expandComponentRelations, findElementsByComponentKey } from './componentLookup.js';
 import { createMcpToken, findMcpTokenById, type McpTokenRow, revokeMcpToken } from './mcpTokens.js';
 
 export interface McpModuleDeps {
@@ -36,6 +37,7 @@ const roleSchema = z.enum(['org_admin', 'workspace_admin', 'editor', 'reviewer',
 const workspaceIdParamsSchema = z.object({ id: z.string().min(1) });
 const mcpTokenIdParamsSchema = z.object({ id: z.string().min(1) });
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
+const componentParamsSchema = z.object({ id: z.string().min(1), stableKey: z.string().min(1) });
 const createMcpTokenBodySchema = z.object({
   role: roleSchema,
   label: z.string().min(1),
@@ -56,6 +58,7 @@ export const routeSchemas: RouteSchemaMap = {
   'DELETE /mcp-tokens/:id': { params: mcpTokenIdParamsSchema },
   'GET /workspaces/:id/diagrams': { params: workspaceIdParamsSchema },
   'GET /diagrams/:id/ir': { params: diagramIdParamsSchema },
+  'GET /diagrams/:id/components/:stableKey': { params: componentParamsSchema },
 };
 
 /** Never includes `tokenHash` — same one-shot-reveal discipline as `share/routes.ts`'s `toPublicShareLink`. */
@@ -210,4 +213,44 @@ export function registerMcpModule(app: FastifyInstance, deps: McpModuleDeps): vo
     const metadata = await listElementMetadata(db, diagramId);
     return decompile(scene, metadata);
   });
+
+  /**
+   * MCP-03: resolves every diagram element carrying `stableKey` as its
+   * `componentKey`, returning their semantic metadata plus the direct
+   * in/out relations for each (T6's `findElementsByComponentKey` +
+   * `expandComponentRelations`). A `stableKey` can legitimately match more
+   * than one element in a diagram (the same library component placed
+   * twice), so `metadata` is the full array of matches, never just the
+   * first — `inbound`/`outbound` are the union of every matched element's
+   * own relations. Same AUTH-04/MCP-05 uniform-404 convention as
+   * `/diagrams/:id/ir` above, including for a `stableKey` with zero matches.
+   */
+  app.get(
+    '/diagrams/:id/components/:stableKey',
+    { preHandler: requireMcpToken(db) },
+    async (request) => {
+      const { id: diagramId, stableKey } = componentParamsSchema.parse(request.params);
+      const mcpContext = request.mcpContext;
+      if (!mcpContext) notFound();
+
+      const workspaceId = await resolveDiagramWorkspaceId(db, diagramId);
+      if (!workspaceId) notFound();
+      if (workspaceId !== mcpContext.workspaceId) notFound();
+
+      const decision = can({ role: mcpContext.role }, 'diagram:read', { workspaceId });
+      if (!decision.allowed) notFound();
+
+      const metadata = await findElementsByComponentKey(db, diagramId, stableKey);
+      if (metadata.length === 0) notFound();
+
+      const { scene } = await loadDiagramScene(db, diagramId);
+      const relations = metadata.map((row) => expandComponentRelations(scene, row.elementId));
+
+      return {
+        metadata,
+        inbound: relations.flatMap((relation) => relation.inbound),
+        outbound: relations.flatMap((relation) => relation.outbound),
+      };
+    },
+  );
 }
