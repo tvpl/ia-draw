@@ -8,7 +8,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 ---
 
-**Design**: `.specs/features/platform-maturity/design.md` (F8 section — OpenAPI generation approach, evals threshold, GOV decisions)
+**Design**: `.specs/features/platform-maturity/design-f8.md` (archived under its wave name once F9 needed a fresh `design.md` — OpenAPI generation approach, evals threshold, GOV decisions)
 **Status**: Approved
 
 ---
