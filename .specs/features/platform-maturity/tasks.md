@@ -519,8 +519,20 @@ T15 → T16 → T17
 - Skill: NONE
 
 **Done when**:
-- [ ] Entrada nova passa no `checkCapabilityMap` sem violação
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
+- [x] Entrada nova passa no `checkCapabilityMap` sem violação
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
+
+  **Resolvido pelo orquestrador** (fora do escopo do batch worker de T16-T17, que
+  corretamente parou no gate vermelho em vez de forçar o commit): o gap real era
+  `apps/server/src/modules/mcp/routes.ts`'s `routeSchemas` nunca ter sido importado em
+  `apps/server/src/openapi/registry.ts` — nem pela wiring de `registerModules.ts` (T8)
+  nem por nenhuma outra task, porque nenhuma task desta onda listava esse arquivo
+  explicitamente (lacuna do próprio planejamento de tasks.md, mesma classe de erro do
+  Phase 2d do F8). Corrigido: `registry.ts` ganhou a entrada `mcp`, `routes.ts` ganhou
+  a entrada faltante `POST /diagrams/:id/mcp-patch` em `routeSchemas` (também nunca
+  tinha sido adicionada, mesmo depois de T14 criar a rota), `docs/openapi.json`
+  regenerado (67 paths), `pnpm --filter @arch-canvas/repo-tools run audit` confirmado
+  saindo 0 (88 rotas, 0 violações).
 
 **Tests**: none
 **Gate**: build
