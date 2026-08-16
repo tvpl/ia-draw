@@ -74,6 +74,22 @@
 - **Date**: 2026-08-12
 - **Status**: active
 
+### AD-010
+- **Decision**: Aplicação de patches/deltas remotos ao canvas do editor (`apps/web`) passa por um handle imperativo exposto por `EditorSurface` (`forwardRef` + `useImperativeHandle`, método `applyRemoteScene(remote: readonly SceneElement[])`), que internamente chama `applyRemote` (`packages/editor-adapter/src/applyRemote.ts`, wrapper de `reconcileElements` do Excalidraw) para fundir a cena remota com a cena local por elemento (LWW, mesma regra de AD-001), antes de `excalidrawAPI.updateScene(...)`. Nenhum consumidor deve descartar a cena local inteira (ex. remount por `key`) para refletir uma mudança de origem remota.
+- **Reason**: `applyRemote` existia desde F4 mas nunca tinha um caller real em `apps/web`; a alternativa mais simples (remontar `<EditorSurface>` com uma nova `key` para forçar `initialData` a reaplicar) descarta silenciosamente qualquer edição local ainda não sincronizada — violação direta de AD-001 e do próprio requisito funcional que motivou a decisão (o dock de IA precisa continuar permitindo edição manual do canvas enquanto um run está em andamento).
+- **Trade-off**: Uma extensão pequena e aditiva na API de `EditorSurface` (props/handle novos, assinatura existente inalterada) em vez de uma solução mais simples porém com perda de dados; todo consumidor futuro que precisar refletir estado remoto no canvas (colaboração em tempo real, undo de IA, etc.) deve reusar este mesmo handle, não inventar um caminho próprio.
+- **Scope**: `packages/editor-adapter` (`EditorSurface`, `applyRemote`), `apps/web` (qualquer feature que precise refletir mudança remota no canvas — `ai-dock` é o primeiro caller, `realtime-presence`/R10 é o próximo).
+- **Date**: 2026-08-16
+- **Status**: active
+
+### AD-011
+- **Decision**: `apps/web/src/auth/AuthProvider.tsx` (`useAuth()`) é a única fonte de verdade de sessão no frontend. Toda feature de `apps/web` que precisa saber quem é o usuário logado consome `useAuth()` — nenhuma chama `GET /me` por conta própria. `ProtectedRoute` (mesmo diretório) é o único guard de rota; uma sessão sem resposta válida de `GET /me` tenta `POST /auth/refresh` uma vez antes de redirecionar para `/login?next=<rota>`.
+- **Reason**: antes desta feature (`sso-sign-in`, R2), nada em `apps/web` reagia a um `401` de `/me` — `DiagramEditorPage.tsx` chamava `/me` direto e seguia adiante com `user.id` `undefined` numa sessão morta. Centralizar evita que cada feature futura (R3 workspace-navigation em diante) reimplemente o mesmo boot-check e o mesmo retry de refresh com variações sutis.
+- **Trade-off**: um ponto de acoplamento novo — toda rota protegida depende de `AuthProvider` estar montado acima dela em `App.tsx`; em troca, nenhuma feature futura precisa decidir de novo "o que fazer num 401 no boot".
+- **Scope**: `apps/web` inteiro, a partir de R2; toda feature subsequente do roadmap de produto que precisa de identidade do usuário logado.
+- **Date**: 2026-08-16
+- **Status**: active
+
 ## Handoffs
 
 Uma subseção por frente ativa (GOV-06). Hoje só há uma frente (`platform-maturity`); o formato
