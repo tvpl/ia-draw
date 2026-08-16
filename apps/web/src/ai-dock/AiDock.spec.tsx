@@ -494,6 +494,29 @@ describe('AiDock (T7)', () => {
     expect(screen.getByText('Error: unknown')).not.toBeNull();
   });
 
+  // DOCK-10: the fallback i18n key is literally named `aiDock.error.unknown`, so any test
+  // whose errorCode also happens to be the string `'unknown'` cannot prove the `{{code}}`
+  // interpolation is really wired up versus the component hardcoding the word "unknown".
+  // This drives a run that reaches 201 without a `preview` (DOCK-09's path) carrying a
+  // distinctive, made-up `errorCode` straight from the response body, and asserts the
+  // rendered text contains that exact literal — provable only if interpolation is real.
+  it('renders the server-supplied errorCode verbatim, proving real {{code}} interpolation (DOCK-10)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(201, {
+          run: { id: 'run-precision', status: 'failed', errorCode: 'some_totally_unmapped_code' },
+          patch: {},
+        }),
+      ),
+    ) as unknown as typeof fetch;
+    renderDock({ fetchImpl });
+
+    await submitRequest('draw three services');
+
+    expect(screen.getByText('Error: some_totally_unmapped_code')).not.toBeNull();
+    expect(screen.queryByText('Error: unknown')).toBeNull();
+  });
+
   it('provider-not-configured edge case: 424 on submit shows the dedicated message, offers no approve', async () => {
     const fetchImpl = vi.fn(() =>
       Promise.resolve(jsonResponse(424, {})),
