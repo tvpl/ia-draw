@@ -145,14 +145,14 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Lists members from `GET /workspaces/:id/members` for any role (read is universal)
-- [ ] Invite/role-change/remove actions shown only when the caller's role grants `workspace:manage_members`
-- [ ] Invite flow: lookup first; 404 → "no account found", no `POST` emitted; found + already-a-member (cross-checked against the already-loaded list) → "already a member" message, no `POST` emitted; found + not-a-member → `POST` with the resolved `userId`; `409` on `POST` → conflict message
-- [ ] Role change: `PATCH`, reflects new value only after `200`; blocks (no request emitted) when the target is the logged-in user AND they are the workspace's sole `org_admin`/`workspace_admin` AND the new role is non-admin
-- [ ] Remove: `ConfirmArchiveDialog` with the member's display name; blocks (dialog never opens) when the target is the logged-in user AND they are the sole admin; on `204`, removes from the list
-- [ ] `aria-live="polite"` region announces invite/role-change/remove outcomes
-- [ ] Unit tests cover every bullet above, including the sole-admin-is-someone-else-being-removed-by-a-second-admin case (must NOT be blocked)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lists members from `GET /workspaces/:id/members` for any role (read is universal)
+- [x] Invite/role-change/remove actions shown only when the caller's role grants `workspace:manage_members`
+- [x] Invite flow: lookup first; 404 → "no account found", no `POST` emitted; found + already-a-member (cross-checked against the already-loaded list) → "already a member" message, no `POST` emitted; found + not-a-member → `POST` with the resolved `userId`; `409` on `POST` → conflict message
+- [x] Role change: `PATCH`, reflects new value only after `200`; blocks (no request emitted) when the target is the logged-in user AND they are the workspace's sole `org_admin`/`workspace_admin` AND the new role is non-admin
+- [x] Remove: `ConfirmArchiveDialog` with the member's display name; blocks (dialog never opens) when the target is the logged-in user AND they are the sole admin; on `204`, removes from the list
+- [x] `aria-live="polite"` region announces invite/role-change/remove outcomes
+- [x] Unit tests cover every bullet above, including the sole-admin-is-someone-else-being-removed-by-a-second-admin case (must NOT be blocked)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
