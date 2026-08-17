@@ -273,12 +273,12 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Zero violação `serious`/`critical` no estado de diagrama, no de link inválido e no de apresentação
-- [ ] Todo controle interativo da página é focável por teclado
-- [ ] A página renderiza no locale `en` além do `pt-BR`
-- [ ] Todo render deste arquivo acontece sem `AuthProvider` no topo (contexto novo, diferente de toda onda anterior)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 5 testes novos passam
+- [x] Zero violação `serious`/`critical` no estado de diagrama, no de link inválido e no de apresentação
+- [x] Todo controle interativo da página é focável por teclado
+- [x] A página renderiza no locale `en` além do `pt-BR`
+- [x] Todo render deste arquivo acontece sem `AuthProvider` no topo (contexto novo, diferente de toda onda anterior)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 5 testes novos passam
 
 **Tests**: unit
 **Gate**: quick
