@@ -208,6 +208,9 @@ importers:
       '@arch-canvas/editor-adapter':
         specifier: workspace:*
         version: link:../../packages/editor-adapter
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../../packages/library-content
       '@arch-canvas/shared-contracts':
         specifier: workspace:*
         version: link:../../packages/shared-contracts

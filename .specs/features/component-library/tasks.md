@@ -166,12 +166,12 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] Lista agrupada por categoria a partir de `libraryClient.list`
-- [ ] Busca client-side por `name`/`aliases`/`tags`, sem nova chamada de rede
-- [ ] Botão "inserir" chama `insertLibraryItem` via o `ref` de `EditorSurface`
-- [ ] Modo somente-leitura quando `role` não concede `diagram:write` (sem botão de inserir)
-- [ ] Estados de loading e erro-com-retry cobertos
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lista agrupada por categoria a partir de `libraryClient.list`
+- [x] Busca client-side por `name`/`aliases`/`tags`, sem nova chamada de rede
+- [x] Botão "inserir" chama `insertLibraryItem` via o `ref` de `EditorSurface` (`onInsert` prop — `DiagramEditorPage`/T8 wires it to the ref, same indirection `AiDock`'s `onApproved` already uses so `LibraryPanel` never touches the canvas ref directly)
+- [x] Modo somente-leitura quando `role` não concede `diagram:write` (sem botão de inserir)
+- [x] Estados de loading e erro-com-retry cobertos
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
