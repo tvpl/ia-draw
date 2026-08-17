@@ -200,18 +200,18 @@ ordering/dedup, orphan-eligible id list, overview-never-lists-references)
 - Skill: NONE
 
 **Done when**:
-- [ ] `parseSpecSections(markdown: string): Record<SectionName, string>` splits on the 4 fixed
+- [x] `parseSpecSections(markdown: string): Record<SectionName, string>` splits on the 4 fixed
       `## <Título>` headings, tolerant of a missing/reordered heading (Edge Cases: never throws on
       a malformed document — a missing section becomes an empty string).
-- [ ] `extractReferencedElementIds(sectionBody: string): string[]` returns every distinct
+- [x] `extractReferencedElementIds(sectionBody: string): string[]` returns every distinct
       backtick-quoted token, in first-appearance order, no duplicates.
-- [ ] `overview`'s extracted list is always empty by construction (no backticks ever appear in that
+- [x] `overview`'s extracted list is always empty by construction (no backticks ever appear in that
       section per `buildOverviewSection`) — asserted by a test, not special-cased in code.
-- [ ] Unit tests cover: normal 4-section document; a document missing one heading; a section with
+- [x] Unit tests cover: normal 4-section document; a document missing one heading; a section with
       duplicate/re-referenced ids across two bullets; a section with zero backtick tokens (e.g. the
       `pergunta aberta`/`não especificado` placeholder bodies).
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `feat(web): add parseSpecMarkdown for section/element-reference parsing`
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `feat(web): add parseSpecMarkdown for section/element-reference parsing`
 
 ---
 
