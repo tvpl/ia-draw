@@ -226,39 +226,39 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| WHK-01 | P1: Ver webhooks | F10 | Implementing |
-| WHK-02 | P1: Ver webhooks | F10 | Implementing |
-| WHK-03 | P1: Ver webhooks | F10 | Implementing |
-| WHK-04 | P1: Ver webhooks | F10 | Implementing |
-| WHK-05 | P1: Cadastrar | F10 | Implementing |
-| WHK-06 | P1: Cadastrar | F10 | Implementing |
-| WHK-07 | P1: Cadastrar | F10 | Implementing |
-| WHK-08 | P1: Cadastrar | F10 | Implementing |
-| WHK-09 | P1: Cadastrar | F10 | Implementing |
-| WHK-10 | P1: Cadastrar | F10 | Implementing |
-| WHK-11 | P1: Revelação única | F10 | Implementing |
-| WHK-12 | P1: Revelação única | F10 | Implementing |
-| WHK-13 | P1: Revelação única | F10 | Implementing |
-| WHK-14 | P1: Revelação única | F10 | Implementing |
-| WHK-15 | P1: Revelação única | F10 | Implementing |
-| WHK-16 | P1: Revelação única | F10 | Implementing |
-| WHK-17 | P1: Revelação única | F10 | Implementing |
-| WHK-18 | P1: Editar | F10 | Implementing |
-| WHK-19 | P1: Editar | F10 | Implementing |
-| WHK-20 | P1: Editar | F10 | Implementing |
-| WHK-21 | P1: Editar | F10 | Implementing |
-| WHK-22 | P1: Editar | F10 | Implementing |
-| WHK-23 | P1: Rotacionar | F10 | Implementing |
-| WHK-24 | P1: Rotacionar | F10 | Implementing |
-| WHK-25 | P1: Rotacionar | F10 | Implementing |
-| WHK-26 | P1: Rotacionar | F10 | Implementing |
-| WHK-27 | P1: Rotacionar | F10 | Implementing |
-| WHK-28 | P1: Remover | F10 | Implementing |
-| WHK-29 | P1: Remover | F10 | Implementing |
-| WHK-30 | P1: Remover | F10 | Implementing |
-| WHK-31 | P2: Teclado e idioma | F10 | Implementing |
-| WHK-32 | P2: Teclado e idioma | F10 | Implementing |
-| WHK-33 | P2: Teclado e idioma | F10 | Implementing |
+| WHK-01 | P1: Ver webhooks | F10 | ✅ Verified |
+| WHK-02 | P1: Ver webhooks | F10 | ✅ Verified |
+| WHK-03 | P1: Ver webhooks | F10 | ✅ Verified |
+| WHK-04 | P1: Ver webhooks | F10 | ✅ Verified |
+| WHK-05 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-06 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-07 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-08 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-09 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-10 | P1: Cadastrar | F10 | ✅ Verified |
+| WHK-11 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-12 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-13 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-14 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-15 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-16 | P1: Revelação única | F10 | ✅ Verified |
+| WHK-17 | P1: Revelação única | F10 | ❌ Needs Fix |
+| WHK-18 | P1: Editar | F10 | ✅ Verified |
+| WHK-19 | P1: Editar | F10 | ✅ Verified |
+| WHK-20 | P1: Editar | F10 | ✅ Verified |
+| WHK-21 | P1: Editar | F10 | ✅ Verified |
+| WHK-22 | P1: Editar | F10 | ✅ Verified |
+| WHK-23 | P1: Rotacionar | F10 | ✅ Verified |
+| WHK-24 | P1: Rotacionar | F10 | ✅ Verified |
+| WHK-25 | P1: Rotacionar | F10 | ✅ Verified |
+| WHK-26 | P1: Rotacionar | F10 | ✅ Verified |
+| WHK-27 | P1: Rotacionar | F10 | ✅ Verified |
+| WHK-28 | P1: Remover | F10 | ✅ Verified |
+| WHK-29 | P1: Remover | F10 | ✅ Verified |
+| WHK-30 | P1: Remover | F10 | ✅ Verified |
+| WHK-31 | P2: Teclado e idioma | F10 | ✅ Verified |
+| WHK-32 | P2: Teclado e idioma | F10 | ✅ Verified |
+| WHK-33 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

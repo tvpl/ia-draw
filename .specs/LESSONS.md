@@ -230,6 +230,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: CLIB-18 (web/a11y-keyboard)
 - last seen: 2026-08-17T02:31:49Z
 
+### L-037 - Trace an acceptance criterion phrased about the screen to a screen-level test; a child component's callback assertion does not cover it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: workspace-webhooks
+- evidence: WHK-17 - WorkspaceWebhooksPage.tsx:246 (no screen-level evidence) (apps/web)
+- last seen: 2026-08-17T03:41:31Z
+
+### L-038 - Assert that dismissing a one-time reveal removes the sensitive value from the document, not just that the dismiss callback fired.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: workspace-webhooks
+- evidence: Sensor M2 - WorkspaceWebhooksPage.tsx:246 onDismiss no-op survived (apps/web)
+- last seen: 2026-08-17T03:41:31Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

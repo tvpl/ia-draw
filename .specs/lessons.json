@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 37,
+  "next_id": 39,
   "lessons": [
     {
       "id": "L-001",
@@ -654,6 +654,42 @@
       ],
       "created": "2026-08-17T02:31:49Z",
       "last_seen": "2026-08-17T02:31:49Z"
+    },
+    {
+      "id": "L-037",
+      "key": "ac_gap::trace an acceptance criterion phrased about the screen to a screen level test a child component s callback assertion does not cover it",
+      "text": "Trace an acceptance criterion phrased about the screen to a screen-level test; a child component's callback assertion does not cover it.",
+      "signal": "ac_gap",
+      "scope": "apps/web",
+      "status": "candidate",
+      "features": [
+        "workspace-webhooks"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "WHK-17 - WorkspaceWebhooksPage.tsx:246 (no screen-level evidence) (apps/web)"
+      ],
+      "created": "2026-08-17T03:41:31Z",
+      "last_seen": "2026-08-17T03:41:31Z"
+    },
+    {
+      "id": "L-038",
+      "key": "surviving_mutant::assert that dismissing a one time reveal removes the sensitive value from the document not just that the dismiss callback fired",
+      "text": "Assert that dismissing a one-time reveal removes the sensitive value from the document, not just that the dismiss callback fired.",
+      "signal": "surviving_mutant",
+      "scope": "apps/web",
+      "status": "candidate",
+      "features": [
+        "workspace-webhooks"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "Sensor M2 - WorkspaceWebhooksPage.tsx:246 onDismiss no-op survived (apps/web)"
+      ],
+      "created": "2026-08-17T03:41:31Z",
+      "last_seen": "2026-08-17T03:41:31Z"
     }
   ]
 }
