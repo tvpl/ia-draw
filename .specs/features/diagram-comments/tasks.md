@@ -82,13 +82,13 @@ T7 → T8
 
 **Done when**:
 
-- [ ] `list(diagramId)` → `{status:'ok', comments}` (200), `{status:'not_found'}` (404), `{status:'error'}` (qualquer outro status ou falha de rede)
-- [ ] `create(diagramId, {body, elementId?, parentId?})` → `{status:'created', comment}` (201), `{status:'not_found'}` (404), `{status:'error'}`
-- [ ] `create` omite `elementId`/`parentId` do corpo JSON quando não informados (nunca envia `null`/`undefined` explícito)
-- [ ] `setStatus(diagramId, commentId, status)` → `{status:'ok', comment}` (200), `{status:'forbidden'}` (403), `{status:'error'}`
-- [ ] Todo call site escreve `fetchImpl(` literalmente, com a URL em template literal
-- [ ] Testes unitários cobrem cada ramificação acima e asseriram o corpo enviado no `create` (com e sem âncora, com e sem `parentId`)
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `list(diagramId)` → `{status:'ok', comments}` (200), `{status:'not_found'}` (404), `{status:'error'}` (qualquer outro status ou falha de rede)
+- [x] `create(diagramId, {body, elementId?, parentId?})` → `{status:'created', comment}` (201), `{status:'not_found'}` (404), `{status:'error'}`
+- [x] `create` omite `elementId`/`parentId` do corpo JSON quando não informados (nunca envia `null`/`undefined` explícito)
+- [x] `setStatus(diagramId, commentId, status)` → `{status:'ok', comment}` (200), `{status:'forbidden'}` (403), `{status:'error'}`
+- [x] Todo call site escreve `fetchImpl(` literalmente, com a URL em template literal
+- [x] Testes unitários cobrem cada ramificação acima e asseriram o corpo enviado no `create` (com e sem âncora, com e sem `parentId`)
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
