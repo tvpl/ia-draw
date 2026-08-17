@@ -164,7 +164,7 @@ nesta frente.
 | SNAP-13 | P2: Comparar | T4 | Pending |
 | SNAP-14 | P2: Teclado e idioma | T6 | Pending |
 | SNAP-15 | P2: Teclado e idioma | T6 | Pending |
-| SNAP-16 | P2: Teclado e idioma | T5/T6 | Pending |
+| SNAP-16 | P2: Teclado e idioma | T5/T6 | Implementing |
 
 **ID format:** `SNAP-NN` (fatia de frontend distinta de `VER-NN`, que já nomeia os requisitos de
 backend em `architecture-canvas/spec.md`).

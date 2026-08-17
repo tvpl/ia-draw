@@ -191,8 +191,8 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Ambos os locales têm o mesmo conjunto de chaves sob `history`
-- [ ] `make lint` passes
+- [x] Ambos os locales têm o mesmo conjunto de chaves sob `history`
+- [x] `make lint` passes
 
 **Tests**: none
 **Gate**: quick
