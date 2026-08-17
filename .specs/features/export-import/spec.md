@@ -172,31 +172,31 @@ importar sem mouse.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| XPRT-01 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-02 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-03 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-04 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-05 | P1: Bundle de diagrama | Tasks | Pending |
-| XPRT-06 | P1: Bundle de diagrama | Tasks | Pending |
-| XPRT-07 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-08 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-09 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-10 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-11 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-12 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-13 | P2: Bundle de workspace | Tasks | Pending |
-| XPRT-14 | P2: Bundle de workspace | Tasks | Pending |
-| XPRT-15 | P2: Bundle de workspace | Tasks | Pending |
-| XPRT-16 | P2: Teclado e idioma | Tasks | Pending |
-| XPRT-17 | P2: Teclado e idioma | Tasks | Pending |
-| XPRT-18 | P2: Teclado e idioma | Tasks | Pending |
+| XPRT-01 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-02 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-03 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-04 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-05 | P1: Bundle de diagrama | Tasks | ✅ Verified |
+| XPRT-06 | P1: Bundle de diagrama | Tasks | ✅ Verified |
+| XPRT-07 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-08 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-09 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-10 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-11 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-12 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-13 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-14 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-15 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-16 | P2: Teclado e idioma | Tasks | ✅ Verified |
+| XPRT-17 | P2: Teclado e idioma | Tasks | ✅ Verified |
+| XPRT-18 | P2: Teclado e idioma | Tasks | ✅ Verified |
 
 **ID format:** `XPRT-NN` (fatia de frontend distinta de `EXP-NN`, que já nomeia os requisitos de
 backend em `architecture-canvas/spec.md`).
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 18 total, 0 mapped to tasks yet, 18 unmapped ⚠️ (aguardando Tasks)
+**Coverage:** 18 total, 18 mapped to tasks (T1-T7), 0 unmapped
 
 ---
 

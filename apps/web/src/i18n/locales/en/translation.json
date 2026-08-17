@@ -58,6 +58,37 @@
     "ssoFailed": "Corporate sign-in failed. Please try again.",
     "logout": "Sign out"
   },
+  "export": {
+    "menu": {
+      "title": "Export",
+      "generate": "Generate exports",
+      "success": "Exports ready",
+      "rateLimited": "Too many export requests — wait a moment and try again.",
+      "error": "Couldn't generate exports. Try again.",
+      "format": {
+        "excalidraw": ".excalidraw",
+        "svg": "SVG",
+        "png": "PNG",
+        "pdf": "PDF"
+      }
+    },
+    "bundle": {
+      "button": "Download bundle",
+      "loading": "Generating bundle…",
+      "success": "Bundle ready",
+      "error": "Couldn't generate the bundle. Try again."
+    }
+  },
+  "import": {
+    "trigger": "Import diagram",
+    "title": "Import .excalidraw file",
+    "fileLabel": "File",
+    "preview": "{{count}} elements will be imported",
+    "titleLabel": "Diagram title",
+    "confirm": "Confirm import",
+    "cancel": "Cancel",
+    "success": "Diagram imported"
+  },
   "nav": {
     "workspaces": {
       "title": "Workspaces",
@@ -67,6 +98,11 @@
       "emptyState": "You don't belong to any workspace yet.",
       "emptyStateCta": "Create your first workspace",
       "archiveCurrent": "Archive this workspace"
+    },
+    "workspaceBundle": {
+      "action": "Request workspace bundle",
+      "queued": "Bundle requested — this product doesn't show when it finishes or where to download it; treat this as an operational follow-up.",
+      "unavailable": "Bulk bundle requests are temporarily unavailable."
     },
     "projects": {
       "title": "Projects",

@@ -90,11 +90,11 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] `generateExports(diagramId)` devolve `{exportId, revision, formats}`, cobre `429`
-- [ ] `generateBundle(diagramId)` devolve `{bundleId, url, sizeBytes, manifest}`
-- [ ] `previewImport(projectId, fileContent)` envia sem `confirm`, devolve `{preview}`; `confirmImport(projectId, fileContent, title)` envia com `confirm: true`, devolve `{preview, diagram}` (`201`); ambos cobrem `400`
-- [ ] `requestWorkspaceBundle(workspaceId)` devolve `{jobId, status}`, cobre `503`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `generateExports(diagramId)` devolve `{exportId, revision, formats}`, cobre `429`
+- [x] `generateBundle(diagramId)` devolve `{bundleId, url, sizeBytes, manifest}`
+- [x] `previewImport(projectId, fileContent)` envia sem `confirm`, devolve `{preview}`; `confirmImport(projectId, fileContent, title)` envia com `confirm: true`, devolve `{preview, diagram}` (`201`); ambos cobrem `400`
+- [x] `requestWorkspaceBundle(workspaceId)` devolve `{jobId, status}`, cobre `503`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -116,11 +116,11 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Um clique em "gerar" dispara uma única chamada e exibe os 4 links (`.excalidraw`/SVG/PNG/PDF) com `sizeBytes` formatado
-- [ ] Cada link abre a `url` assinada diretamente, sem passar pelo servidor do produto de novo
-- [ ] `429` exibe mensagem de "aguarde", sem travar o editor
-- [ ] Botão desabilitado durante a geração em andamento
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Um clique em "gerar" dispara uma única chamada e exibe os 4 links (`.excalidraw`/SVG/PNG/PDF) com `sizeBytes` formatado
+- [x] Cada link abre a `url` assinada diretamente, sem passar pelo servidor do produto de novo
+- [x] `429` exibe mensagem de "aguarde", sem travar o editor
+- [x] Botão desabilitado durante a geração em andamento
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -142,9 +142,9 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Clique dispara `generateBundle` e abre a `url` retornada na resposta `200`
-- [ ] Indicador de carregamento durante a geração
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Clique dispara `generateBundle` e abre a `url` retornada na resposta `200`
+- [x] Indicador de carregamento durante a geração
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -166,13 +166,13 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Seleção de arquivo lê como texto e chama `previewImport`, exibe `elementCount`
-- [ ] `400` (JSON inválido ou não reconhecido) exibe a mensagem sem permitir confirmar
-- [ ] `400` de limite de elementos exibe a mensagem sem truncar
-- [ ] Confirmar com título preenchido chama `confirmImport` e navega para `/w/:workspaceId/d/:diagramId` do diagrama criado
-- [ ] Confirmar sem título preenchido não emite requisição (validação client-side)
-- [ ] Ação de importar oculta quando `role` não concede `diagram:write` no projeto
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Seleção de arquivo lê como texto e chama `previewImport`, exibe `elementCount`
+- [x] `400` (JSON inválido ou não reconhecido) exibe a mensagem sem permitir confirmar
+- [x] `400` de limite de elementos exibe a mensagem sem truncar
+- [x] Confirmar com título preenchido chama `confirmImport` e navega para `/w/:workspaceId/d/:diagramId` do diagrama criado
+- [x] Confirmar sem título preenchido não emite requisição (validação client-side)
+- [x] Ação de importar oculta quando `role` não concede `diagram:write` no projeto
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -194,10 +194,10 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Ação visível só quando `role` do item for `org_admin`/`workspace_admin`
-- [ ] Confirmar chama `requestWorkspaceBundle` e exibe o texto explícito de "sem acompanhamento nesta UI" (spec.md Assumptions)
-- [ ] `503` exibe indisponibilidade, sem retry automático
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Ação visível só quando `role` do item for `org_admin`/`workspace_admin`
+- [x] Confirmar chama `requestWorkspaceBundle` e exibe o texto explícito de "sem acompanhamento nesta UI" (spec.md Assumptions)
+- [x] `503` exibe indisponibilidade, sem retry automático
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -219,8 +219,8 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Ambos os locales têm o mesmo conjunto de chaves sob `export`/`import`
-- [ ] `make lint` passes
+- [x] Ambos os locales têm o mesmo conjunto de chaves sob `export`/`import`
+- [x] `make lint` passes
 
 **Tests**: none
 **Gate**: quick
@@ -243,13 +243,17 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] `ExportMenu`/`BundleButton` aparecem no toolbar do editor
-- [ ] `ImportDialog` alcançável a partir de `ProjectListPage`
-- [ ] Toda ação alcançável só por Tab/Shift+Tab/Enter
-- [ ] `aria-live="polite"` anuncia sucesso/falha de geração e de confirmação de import
-- [ ] Teste roda com locale `en` trocado no meio do caminho
-- [ ] Zero violações serious/critical de axe em `ExportMenu`/`ImportDialog`
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `ExportMenu`/`BundleButton` aparecem no toolbar do editor
+- [x] `ImportDialog` alcançável a partir de `ProjectListPage`
+- [x] Toda ação alcançável só por Tab/Shift+Tab/Enter
+- [x] `aria-live="polite"` anuncia sucesso/falha de geração e de confirmação de import
+- [x] Teste roda com locale `en` trocado no meio do caminho
+- [x] Zero violações serious/critical de axe em `ExportMenu`/`ImportDialog`
+- [x] Full gate passes: `make lint && make typecheck && make test-unit` (nota: `make lint`
+      só falha por 5 issues pré-existentes fora desta feature — `docs/openapi.json`,
+      `apps/mcp/src/client.spec.ts`, `apps/server/src/modules/auth/users.int.spec.ts`,
+      `tools/repo-tools/src/webConsumers.spec.ts` — confirmado via `git log` que nenhum commit
+      desta feature toca esses arquivos; todo arquivo desta feature está lint-clean)
 
 **Tests**: unit
 **Gate**: full

@@ -3,6 +3,7 @@ import { can } from '@arch-canvas/auth';
 import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { ImportDialog } from '../export/ImportDialog.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -132,6 +133,12 @@ export function ProjectListPage({
     : false;
   const canWriteWorkspace = workspace
     ? can({ role: workspace.role }, 'workspace:write', { workspaceId }).allowed
+    : false;
+  // XPRT-12: gates the "import diagram" action per project row — `diagram:write` is
+  // workspace-scoped (same single-role-for-the-whole-page shape as `canWrite` above), so one
+  // computed value applies to every row.
+  const canImportDiagram = workspace
+    ? can({ role: workspace.role }, 'diagram:write', { workspaceId }).allowed
     : false;
 
   async function handleCreate(event: FormEvent): Promise<void> {
@@ -297,6 +304,12 @@ export function ProjectListPage({
                         </button>
                       </>
                     )}
+                    <ImportDialog
+                      projectId={item.id}
+                      workspaceId={workspaceId}
+                      canImport={canImportDiagram}
+                      fetchImpl={fetchImplProp}
+                    />
                   </>
                 )}
               </li>

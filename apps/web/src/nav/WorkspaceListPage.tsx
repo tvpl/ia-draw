@@ -3,6 +3,7 @@ import { can } from '@arch-canvas/auth';
 import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
+import { createExportClient } from '../export/exportClient.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -54,6 +55,9 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
 
   const store = useMemo(() => createResourceListStore<WorkspaceItem>(), []);
   const client = useMemo(() => createResourceClient<WorkspaceItem>(CONFIG, fetchImpl), [fetchImpl]);
+  // XPRT-13..15: fire-and-forget workspace bundle request — same `exportClient.ts` (T1) the
+  // diagram editor's `ExportMenu`/`BundleButton` use.
+  const exportClient = useMemo(() => createExportClient(fetchImpl), [fetchImpl]);
 
   const items = store((s) => s.items);
   const status = store((s) => s.status);
@@ -73,6 +77,8 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
 
   const [archiveTarget, setArchiveTarget] = useState<WorkspaceItem | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  const [bundleRequestingId, setBundleRequestingId] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -173,6 +179,21 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
     closeDialog();
   }
 
+  /** XPRT-14/15: fires the fire-and-forget queue request — never promises progress or a result this UI cannot deliver (spec.md Problem Statement item 3). */
+  async function requestBundle(item: WorkspaceItem): Promise<void> {
+    setBundleRequestingId(item.id);
+    const result = await exportClient.requestWorkspaceBundle(item.id);
+
+    if (result.status === 'ok') {
+      setAnnouncement(t('nav.workspaceBundle.queued'));
+    } else if (result.status === 'unavailable') {
+      setAnnouncement(t('nav.workspaceBundle.unavailable'));
+    } else {
+      setAnnouncement(t('nav.error.generic'));
+    }
+    setBundleRequestingId(null);
+  }
+
   const showEmptyState = status === 'ready' && items.length === 0;
 
   return (
@@ -190,6 +211,11 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
         <ul>
           {items.map((item) => {
             const canWrite = can({ role: item.role }, 'workspace:write', {
+              workspaceId: item.id,
+            }).allowed;
+            // XPRT-13: same `workspace:manage_members` gate the server route itself checks
+            // (R4's role-management precedent) — only `org_admin`/`workspace_admin` hold it.
+            const canManageMembers = can({ role: item.role }, 'workspace:manage_members', {
               workspaceId: item.id,
             }).allowed;
             const isRenaming = renamingId === item.id;
@@ -228,6 +254,15 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
                           {t('nav.archive')}
                         </button>
                       </>
+                    )}
+                    {canManageMembers && (
+                      <button
+                        type="button"
+                        onClick={() => void requestBundle(item)}
+                        disabled={bundleRequestingId === item.id}
+                      >
+                        {t('nav.workspaceBundle.action')}
+                      </button>
                     )}
                   </>
                 )}

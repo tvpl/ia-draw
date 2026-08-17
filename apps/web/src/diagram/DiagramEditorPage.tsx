@@ -9,6 +9,8 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
 import { useAuth } from '../auth/AuthProvider.js';
+import { BundleButton } from '../export/BundleButton.js';
+import { ExportMenu } from '../export/ExportMenu.js';
 import { DiffView } from '../history/DiffView.js';
 import { HistoryPanel } from '../history/HistoryPanel.js';
 import { LibraryPanel } from '../library/LibraryPanel.js';
@@ -61,6 +63,11 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * `HistoryPanel`'s `onRestored` reuses the exact same `handleApproved` callback as
  * `AiDock`'s own approve/undo flow — one place calls `applyRemoteScene`, regardless of
  * which action produced the new revision.
+ *
+ * XPRT-01..06 (export-import): `ExportMenu`/`BundleButton` sit in a small toolbar row at
+ * the top of the canvas column, above the canvas itself — both only need `diagram:read`,
+ * which reaching this route already implies (bootstrap's own read-permission check), so
+ * neither needs an extra role gate here.
  */
 export function DiagramEditorPage(): JSX.Element {
   const { workspaceId, diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
@@ -138,6 +145,13 @@ export function DiagramEditorPage(): JSX.Element {
           <p data-testid="save-status">
             {t(saveStatusTranslationKey(kind), { count: pendingCount })}
           </p>
+          {/* XPRT-01..06: export/bundle actions — both only need diagram:read, which reaching
+              this route already implies (bootstrap's own read-permission check), so no extra
+              role gate here. */}
+          <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+            <ExportMenu diagramId={diagramId} />
+            <BundleButton diagramId={diagramId} />
+          </div>
           {initialElements ? (
             // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
             // concrete height it needs (an unstyled ancestor chain collapses to 0 height).

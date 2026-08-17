@@ -492,8 +492,82 @@ describe('DiagramEditorPage (T9, integration)', () => {
     // it always renders when mounted (`AiDock.tsx`), no longer a generic <details>
     // lookup: LibraryPanel/MetadataPanel now render their own <details> too, still
     // read-only rather than absent (CLIB-05/CLIB-11 — a different, intentional
-    // behavior from AiDock's own "vanish entirely" rule, DOCK-02).
+    // behavior from AiDock's own "vanish entirely" rule, DOCK-02). ExportMenu
+    // (XPRT-01) is a third, unrelated `<details>` that stays mounted regardless of
+    // mutatePermissions (export only needs diagram:read).
     expect(screen.queryByText('Dock de IA')).toBeNull();
+  });
+
+  it('ExportMenu and BundleButton mount in the toolbar, keyboard-focusable, and render in the en locale too (XPRT-01/05, T7)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    await i18n.changeLanguage('en');
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    const exportSummary = screen.getByText('Export');
+    expect(exportSummary).not.toBeNull();
+    const bundleButton = screen.getByRole('button', { name: 'Download bundle' });
+    expect(bundleButton).not.toBeNull();
+
+    // Keyboard-focusable (XPRT-16), same `.focus()` convention as NAV-24's own assertions.
+    bundleButton.focus();
+    expect(document.activeElement).toBe(bundleButton);
+  });
+
+  it('a bundle generation failure is announced in an aria-live=polite region (XPRT-06/17)', async () => {
+    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/bundle' && init?.method === 'POST') {
+        return Promise.resolve(jsonResponse(500, { title: 'boom' }));
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    const liveRegion = screen.getByTestId('bundle-button-announcement');
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Baixar bundle' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(liveRegion.textContent).toBe('Não foi possível gerar o bundle. Tente novamente.'),
+    );
   });
 
   it('T8: LibraryPanel/MetadataPanel are read-only (no insert/save buttons) but still rendered when mutatePermissions.allowed is false', async () => {
