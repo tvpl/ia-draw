@@ -351,12 +351,12 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Renderiza um texto distinto para `connecting`, `connected` e `disconnected`
-- [ ] O elemento carrega `aria-live="polite"` e um `data-testid` estável
-- [ ] O texto muda quando o store muda de fase, sem remontar
-- [ ] Testes unitários afirmam o texto de cada uma das três fases e o atributo `aria-live`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 4 casos passam
+- [x] Renderiza um texto distinto para `connecting`, `connected` e `disconnected`
+- [x] O elemento carrega `aria-live="polite"` e um `data-testid` estável
+- [x] O texto muda quando o store muda de fase, sem remontar
+- [x] Testes unitários afirmam o texto de cada uma das três fases e o atributo `aria-live`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 4 casos passam
 
 **Tests**: unit
 **Gate**: quick
