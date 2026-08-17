@@ -113,12 +113,12 @@ formatos do R7.
 - Skill: NONE
 
 **Done when**:
-- [ ] Clicar "Exportar Mermaid"/"Exportar Structurizr" chama a rota correspondente exatamente uma vez e dispara o download de `diagram-<id>.mmd`/`.dsl` no `200`
-- [ ] `limitations` não-vazio aparece como texto visível junto ao botão daquele formato; vazio mostra confirmação explícita de "nenhuma limitação"
-- [ ] Resposta não-`200` mostra erro genérico na região `aria-live` existente, sem travar o resto da página
-- [ ] Cada botão desabilita independentemente enquanto sua própria chamada está em andamento
-- [ ] Botões e textos são alcançáveis por teclado; toda string nova vem de `translation.json` (pt-BR e en)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Clicar "Exportar Mermaid"/"Exportar Structurizr" chama a rota correspondente exatamente uma vez e dispara o download de `diagram-<id>.mmd`/`.dsl` no `200`
+- [x] `limitations` não-vazio aparece como texto visível junto ao botão daquele formato; vazio mostra confirmação explícita de "nenhuma limitação"
+- [x] Resposta não-`200` mostra erro genérico na região `aria-live` existente, sem travar o resto da página
+- [x] Cada botão desabilita independentemente enquanto sua própria chamada está em andamento
+- [x] Botões e textos são alcançáveis por teclado; toda string nova vem de `translation.json` (pt-BR e en)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

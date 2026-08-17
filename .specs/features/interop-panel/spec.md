@@ -153,11 +153,11 @@ frente.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| INT-01 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1 client done, T2 UI pending) |
-| INT-02 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1 client done, T2 UI pending) |
-| INT-03 | P1: Exportar Mermaid/Structurizr | Tasks | Pending |
-| INT-04 | P1: Exportar Mermaid/Structurizr | Tasks | Pending |
-| INT-05 | P1: Exportar Mermaid/Structurizr | Tasks | Pending |
+| INT-01 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
+| INT-02 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
+| INT-03 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
+| INT-04 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
+| INT-05 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
 | INT-06 | P1: Importar com prévia | Tasks | Pending |
 | INT-07 | P1: Importar com prévia | Tasks | Pending |
 | INT-08 | P1: Importar com prévia | Tasks | Pending |
