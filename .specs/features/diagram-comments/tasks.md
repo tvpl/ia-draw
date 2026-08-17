@@ -138,12 +138,12 @@ T7 → T8
 
 **Done when**:
 
-- [ ] `buildThreads(comments, liveElementIds)` devolve uma thread por comentário com `parentId` nulo, na ordem em que apareceram na entrada
-- [ ] Todo comentário cuja cadeia de `parentId` alcança uma raiz entra em `replies` daquela raiz, preservando a ordem de entrada — inclusive quando a cadeia tem mais de um nível
-- [ ] Um comentário cujo `parentId` aponta para um id ausente da entrada vira raiz de thread própria, nunca é descartado (edge case da spec)
-- [ ] A âncora da raiz é classificada em três estados: sem `elementId`; `elementId` presente em `liveElementIds`; `elementId` ausente de `liveElementIds` (âncora removida)
-- [ ] Testes unitários cobrem 1:1 CMT2-06/09/10 e o edge case do `parentId` órfão
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `buildThreads(comments, liveElementIds)` devolve uma thread por comentário com `parentId` nulo, na ordem em que apareceram na entrada
+- [x] Todo comentário cuja cadeia de `parentId` alcança uma raiz entra em `replies` daquela raiz, preservando a ordem de entrada — inclusive quando a cadeia tem mais de um nível
+- [x] Um comentário cujo `parentId` aponta para um id ausente da entrada vira raiz de thread própria, nunca é descartado (edge case da spec)
+- [x] A âncora da raiz é classificada em três estados: sem `elementId`; `elementId` presente em `liveElementIds`; `elementId` ausente de `liveElementIds` (âncora removida)
+- [x] Testes unitários cobrem 1:1 CMT2-06/09/10 e o edge case do `parentId` órfão
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
