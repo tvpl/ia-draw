@@ -1303,7 +1303,6 @@ describe('DiagramEditorPage reconnect catch-up (T13, LIVE-20..22)', () => {
   });
 });
 
-
 /**
  * Top-level, with its own setup: `capturedViewModeEnabled` must be reset per test
  * here, otherwise a stale value left by an earlier test could make an assertion
