@@ -67,11 +67,11 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /users:lookup?email=<email>` returns `200 {user: {id, email, displayName}}` for an existing account, `404` for a non-existent one
-- [ ] Requires only a valid session (`requireSession`) — no workspace/role check, since resolving an email to an identity reveals nothing more sensitive than what workspace-member lists already expose
-- [ ] Registered in the module's `routeSchemas` (OpenAPI wiring) alongside its Zod query schema
-- [ ] Integration tests cover both branches
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] `GET /users:lookup?email=<email>` returns `200 {user: {id, email, displayName}}` for an existing account, `404` for a non-existent one
+- [x] Requires only a valid session (`requireSession`) — no workspace/role check, since resolving an email to an identity reveals nothing more sensitive than what workspace-member lists already expose
+- [x] Registered in the module's `routeSchemas` (OpenAPI wiring) alongside its Zod query schema
+- [x] Integration tests cover both branches
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
 
 **Tests**: integration
 **Gate**: full

@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
-import { recordAuditEvent } from '@arch-canvas/database';
+import { recordAuditEvent, users } from '@arch-canvas/database';
 import fastifyCookie from '@fastify/cookie';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import * as client from 'openid-client';
 import { z } from 'zod';
@@ -71,10 +72,13 @@ function badOidcCallback(message: string): never {
   throw Object.assign(new Error(message), { statusCode: 400 });
 }
 
+const userLookupQuerySchema = z.object({ email: z.string().min(1) });
+
 /**
- * OpenAPI schema map for this module's 8 routes (T5, API-01). `/auth/logout`,
- * `/auth/refresh`, `/me` and the three OIDC routes take no query/params/body —
- * they act on the session cookie, never a Zod-validated payload.
+ * OpenAPI schema map for this module's 9 routes (T5, API-01; MEM-04..06 adds
+ * `GET /users:lookup`). `/auth/logout`, `/auth/refresh`, `/me` and the three
+ * OIDC routes take no query/params/body — they act on the session cookie,
+ * never a Zod-validated payload.
  */
 export const routeSchemas: RouteSchemaMap = {
   'POST /auth/login': { body: loginBodySchema },
@@ -85,6 +89,7 @@ export const routeSchemas: RouteSchemaMap = {
   'GET /auth/oidc/login': {},
   'GET /auth/oidc/callback': {},
   'GET /auth/oidc/status': {},
+  'GET /users:lookup': { query: userLookupQuerySchema },
 };
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
@@ -164,6 +169,23 @@ export async function registerAuthModule(
 
   app.get('/me', { preHandler: requireSession(db) }, async (request) => {
     return { user: request.authContext?.user };
+  });
+
+  // T1 (MEM-04..06): resolves an email to the account identity that owns
+  // it, so the workspace-members "invite by email" flow never needs the
+  // caller to already know a UUID. Session-gated only, no workspace/role
+  // check — knowing "this email has an account" is no more sensitive than
+  // what any login form already leaks indirectly (spec.md's Assumptions
+  // table), and the caller still needs `workspace:manage_members` to
+  // actually add the resolved id to a workspace.
+  app.get('/users:lookup', { preHandler: requireSession(db) }, async (request) => {
+    const { email } = userLookupQuerySchema.parse(request.query);
+    const [user] = await db
+      .select({ id: users.id, email: users.email, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.email, email));
+    if (!user) notFound();
+    return { user };
   });
 
   // Emission stub only (T15) — the WebSocket gateway that consumes these
