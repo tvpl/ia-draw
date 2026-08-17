@@ -194,10 +194,10 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Ação visível só quando `role` do item for `org_admin`/`workspace_admin`
-- [ ] Confirmar chama `requestWorkspaceBundle` e exibe o texto explícito de "sem acompanhamento nesta UI" (spec.md Assumptions)
-- [ ] `503` exibe indisponibilidade, sem retry automático
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Ação visível só quando `role` do item for `org_admin`/`workspace_admin`
+- [x] Confirmar chama `requestWorkspaceBundle` e exibe o texto explícito de "sem acompanhamento nesta UI" (spec.md Assumptions)
+- [x] `503` exibe indisponibilidade, sem retry automático
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
