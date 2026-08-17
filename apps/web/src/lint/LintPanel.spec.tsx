@@ -43,7 +43,7 @@ describe('LintPanel (ALNT-01..07: ver os avisos)', () => {
     await waitFor(() => expect(fetchImpl).toHaveBeenCalledWith('/diagrams/diagram-1/lint'));
   });
 
-  it('ALNT-02: lists each warning with its message verbatim from the server', async () => {
+  it('ALNT-02: lists each warning with its rule AND its message verbatim from the server', async () => {
     const fetchImpl = vi.fn(async () =>
       jsonResponse(200, { warnings: [ORPHAN_WARNING] }),
     ) as unknown as typeof fetch;
@@ -59,6 +59,7 @@ describe('LintPanel (ALNT-01..07: ver os avisos)', () => {
     await waitFor(() =>
       expect(screen.getByText('1 componente(s) sem nenhum edge conectado.')).not.toBeNull(),
     );
+    expect(screen.getByTestId('lint-warning-rule').textContent).toBe('orphan-component');
   });
 
   it('ALNT-03: an empty warnings array shows an explicit success state, not an ambiguous empty list', async () => {

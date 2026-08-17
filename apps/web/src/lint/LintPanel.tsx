@@ -90,6 +90,10 @@ export function LintPanel({
           {warnings.map((warning, index) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: LintWarning has no stable id of its own — the list is replaced wholesale on every load/refresh, never reordered in place.
             <li key={`${warning.rule}-${index}`} data-testid="lint-warning">
+              {/* ALNT-02: shows the rule AND the message, not the message alone — `rule` is the
+                  stable machine-readable category (e.g. "orphan-component"); `message` is the
+                  human-readable, already-pluralized sentence `engine.ts` composes. */}
+              <p data-testid="lint-warning-rule">{warning.rule}</p>
               <p>{warning.message}</p>
               <ul>
                 {warning.elementIds.map((elementId) =>
