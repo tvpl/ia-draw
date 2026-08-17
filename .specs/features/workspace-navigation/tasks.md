@@ -215,9 +215,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Both locale files have an identical key set under `nav`
-- [ ] Includes at minimum: `nav.workspaces.title/create/emptyState/emptyStateCta`, `nav.projects.title/create`, `nav.diagrams.title/create/empty`, `nav.rename`, `nav.archive`, `nav.archiveConfirm.{title,body,confirm,cancel}`, `nav.notFound`
-- [ ] `make lint` passes
+- [x] Both locale files have an identical key set under `nav`
+- [x] Includes at minimum: `nav.workspaces.title/create/emptyState/emptyStateCta`, `nav.projects.title/create`, `nav.diagrams.title/create/empty`, `nav.rename`, `nav.archive`, `nav.archiveConfirm.{title,body,confirm,cancel}`, `nav.notFound`
+- [x] `make lint` passes
 
 **Tests**: none (build gate only)
 **Gate**: quick (`make lint`)

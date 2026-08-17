@@ -57,5 +57,44 @@
     "ssoButton": "Sign in with SSO",
     "ssoFailed": "Corporate sign-in failed. Please try again.",
     "logout": "Sign out"
+  },
+  "nav": {
+    "workspaces": {
+      "title": "Workspaces",
+      "nameLabel": "Workspace name",
+      "create": "Create workspace",
+      "conflict": "A workspace with that name already exists.",
+      "emptyState": "You don't belong to any workspace yet.",
+      "emptyStateCta": "Create your first workspace"
+    },
+    "projects": {
+      "title": "Projects",
+      "nameLabel": "Project name",
+      "create": "Create project",
+      "empty": "This workspace has no projects yet."
+    },
+    "diagrams": {
+      "title": "Diagrams",
+      "nameLabel": "Diagram title",
+      "create": "Create diagram",
+      "empty": "This project has no diagrams yet."
+    },
+    "rename": "Rename",
+    "renameSave": "Save",
+    "renameCancel": "Cancel",
+    "archive": "Archive",
+    "archiveConfirm": {
+      "title": "Archive this item?",
+      "body": "This cannot be undone.",
+      "confirm": "Archive",
+      "cancel": "Cancel"
+    },
+    "back": "Back",
+    "notFound": "This item doesn't exist or you don't have access to it.",
+    "error": {
+      "conflict": "That name is already taken.",
+      "forbidden": "You don't have permission to do that.",
+      "generic": "Something went wrong. Try again."
+    }
   }
 }

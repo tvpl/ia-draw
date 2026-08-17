@@ -57,5 +57,44 @@
     "ssoButton": "Entrar com SSO",
     "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
     "logout": "Sair"
+  },
+  "nav": {
+    "workspaces": {
+      "title": "Workspaces",
+      "nameLabel": "Nome do workspace",
+      "create": "Criar workspace",
+      "conflict": "Já existe um workspace com esse nome.",
+      "emptyState": "Você ainda não pertence a nenhum workspace.",
+      "emptyStateCta": "Criar seu primeiro workspace"
+    },
+    "projects": {
+      "title": "Projetos",
+      "nameLabel": "Nome do projeto",
+      "create": "Criar projeto",
+      "empty": "Este workspace ainda não tem projetos."
+    },
+    "diagrams": {
+      "title": "Diagramas",
+      "nameLabel": "Título do diagrama",
+      "create": "Criar diagrama",
+      "empty": "Este projeto ainda não tem diagramas."
+    },
+    "rename": "Renomear",
+    "renameSave": "Salvar",
+    "renameCancel": "Cancelar",
+    "archive": "Arquivar",
+    "archiveConfirm": {
+      "title": "Arquivar este item?",
+      "body": "Essa ação não pode ser desfeita.",
+      "confirm": "Arquivar",
+      "cancel": "Cancelar"
+    },
+    "back": "Voltar",
+    "notFound": "Este item não existe ou você não tem acesso a ele.",
+    "error": {
+      "conflict": "Esse nome já está em uso.",
+      "forbidden": "Você não tem permissão para fazer isso.",
+      "generic": "Algo deu errado. Tente novamente."
+    }
   }
 }
