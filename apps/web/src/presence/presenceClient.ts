@@ -1,4 +1,4 @@
-import { parseWsMessage } from '@arch-canvas/shared-contracts';
+import { parseWsMessage, WS_PROTOCOL_VERSION } from '@arch-canvas/shared-contracts';
 import type { StoreApi, UseBoundStore } from 'zustand';
 import type { PresenceState } from './presenceStore.js';
 
@@ -24,6 +24,23 @@ export type PresenceSocketConstructor = new (url: string) => PresenceSocket;
 /** RFC 6455 readyState 1 == OPEN — compared as a plain number, same convention as the server's ws-gateway. */
 export const SOCKET_OPEN = 1;
 
+/**
+ * Trailing throttle window for outgoing cursor updates (LIVE-09). The server
+ * applies no throttle of its own — every message published here fans out to
+ * every other subscriber of the diagram — so 20 Hz is a deliberate network
+ * budget, not a rendering choice.
+ */
+export const CURSOR_THROTTLE_MS = 50;
+
+/** No local pointer movement for this long reports `status: 'idle'` once (LIVE-12). */
+export const IDLE_AFTER_MS = 60_000;
+
+/** A remote with no message for this long is dropped — covers a peer whose tab closed without ever reporting idle. */
+export const STALE_REMOTE_AFTER_MS = 90_000;
+
+/** One timer drives both time-based sweeps above. */
+export const SWEEP_INTERVAL_MS = 15_000;
+
 export interface PresenceClientOptions {
   diagramId: string;
   /** From `useAuth()` (AD-011) — used only to filter this user's own relayed presence out of the remote map. */
@@ -35,6 +52,9 @@ export interface PresenceClientOptions {
   WebSocketImpl?: PresenceSocketConstructor;
   /** Injectable clock for tests; defaults to `Date.now`. */
   now?: () => number;
+  /** Injectable timers for tests; default to the global ones (same seam as `DiagramSyncClient.scheduleRetryTimer`). */
+  setTimeoutImpl?: (callback: () => void, delayMs: number) => unknown;
+  clearTimeoutImpl?: (handle: unknown) => void;
 }
 
 function defaultWebSocketImpl(): PresenceSocketConstructor | undefined {
@@ -61,10 +81,18 @@ export class PresenceClient {
   private readonly fetchImpl: typeof fetch;
   private readonly WebSocketImpl?: PresenceSocketConstructor;
   private readonly now: () => number;
+  private readonly setTimeoutImpl: (callback: () => void, delayMs: number) => unknown;
+  private readonly clearTimeoutImpl: (handle: unknown) => void;
 
   private socket: PresenceSocket | null = null;
   /** Set by `close()` — every asynchronous continuation checks it so nothing reopens after teardown. */
   private disposed = false;
+
+  private pendingCursor: { x: number; y: number } | null = null;
+  private throttleHandle: unknown;
+  private sweepHandle: unknown;
+  private lastPointerMoveAt = 0;
+  private localStatus: 'active' | 'idle' = 'active';
 
   constructor(options: PresenceClientOptions) {
     this.diagramId = options.diagramId;
@@ -75,6 +103,8 @@ export class PresenceClient {
     this.fetchImpl = options.fetchImpl ?? fetch.bind(globalThis);
     this.WebSocketImpl = options.WebSocketImpl ?? defaultWebSocketImpl();
     this.now = options.now ?? (() => Date.now());
+    this.setTimeoutImpl = options.setTimeoutImpl ?? ((cb, ms) => setTimeout(cb, ms));
+    this.clearTimeoutImpl = options.clearTimeoutImpl ?? ((handle) => clearTimeout(handle as number));
   }
 
   /** LIVE-06: mints a ticket and opens the socket. */
@@ -84,14 +114,96 @@ export class PresenceClient {
     void this.openSocket();
   }
 
-  /** LIVE-08: closes the socket and blocks any later reopen. */
+  /** LIVE-08: closes the socket, stops every timer, and blocks any later reopen. */
   close(): void {
     this.disposed = true;
+    this.stopTimers();
     const socket = this.socket;
     this.socket = null;
     socket?.close();
     this.store.getState().setConnection('disconnected');
     this.store.getState().clearRemotes();
+  }
+
+  /**
+   * LIVE-09: the local pointer position. Trailing-throttled — repeated calls
+   * inside one window collapse into a single message carrying the most recent
+   * position, never the first one.
+   */
+  sendCursor(cursor: { x: number; y: number }): void {
+    if (this.disposed) return;
+    this.pendingCursor = cursor;
+    this.lastPointerMoveAt = this.now();
+    this.localStatus = 'active';
+    if (this.throttleHandle !== undefined) return;
+    this.throttleHandle = this.setTimeoutImpl(() => {
+      this.throttleHandle = undefined;
+      const pending = this.pendingCursor;
+      this.pendingCursor = null;
+      if (pending) this.publish({ cursor: pending, status: 'active' });
+    }, CURSOR_THROTTLE_MS);
+  }
+
+  /** LIVE-10: selection changes are rare and meaningful — sent immediately, never throttled. */
+  sendSelection(selection: readonly string[]): void {
+    if (this.disposed) return;
+    this.publish({ selection: [...selection], status: this.localStatus });
+  }
+
+  private stopTimers(): void {
+    if (this.throttleHandle !== undefined) {
+      this.clearTimeoutImpl(this.throttleHandle);
+      this.throttleHandle = undefined;
+    }
+    if (this.sweepHandle !== undefined) {
+      this.clearTimeoutImpl(this.sweepHandle);
+      this.sweepHandle = undefined;
+    }
+    this.pendingCursor = null;
+  }
+
+  private scheduleSweep(): void {
+    if (this.disposed || this.sweepHandle !== undefined) return;
+    this.sweepHandle = this.setTimeoutImpl(() => {
+      this.sweepHandle = undefined;
+      this.sweep();
+      this.scheduleSweep();
+    }, SWEEP_INTERVAL_MS);
+  }
+
+  private sweep(): void {
+    if (this.disposed) return;
+    const nowMs = this.now();
+
+    // LIVE-12: announce idleness exactly once per stretch of inactivity.
+    if (this.localStatus === 'active' && nowMs - this.lastPointerMoveAt >= IDLE_AFTER_MS) {
+      this.localStatus = 'idle';
+      this.publish({ status: 'idle' });
+    }
+
+    // A peer whose tab closed never sends `idle`; without this its cursor would
+    // sit on the canvas forever.
+    this.store.getState().pruneRemotes(nowMs - STALE_REMOTE_AFTER_MS);
+  }
+
+  /** LIVE-11: nothing leaves this client unless the socket is genuinely open. */
+  private publish(payload: {
+    cursor?: { x: number; y: number };
+    selection?: string[];
+    status: 'active' | 'idle';
+  }): void {
+    const socket = this.socket;
+    if (!socket || socket.readyState !== SOCKET_OPEN) return;
+    socket.send(
+      JSON.stringify({
+        protocolVersion: WS_PROTOCOL_VERSION,
+        diagramId: this.diagramId,
+        messageId: crypto.randomUUID(),
+        sentAt: new Date(this.now()).toISOString(),
+        type: 'presence',
+        payload,
+      }),
+    );
   }
 
   private async openSocket(): Promise<void> {
@@ -129,6 +241,9 @@ export class PresenceClient {
     socket.onopen = () => {
       if (this.disposed) return;
       this.store.getState().setConnection('connected');
+      this.lastPointerMoveAt = this.now();
+      this.localStatus = 'active';
+      this.scheduleSweep();
     };
 
     socket.onmessage = (event) => {
@@ -149,6 +264,7 @@ export class PresenceClient {
 
   private markDisconnected(): void {
     if (this.disposed) return;
+    this.stopTimers();
     this.store.getState().setConnection('disconnected');
     // LIVE-23: a disconnected client shows no remote cursors — every one of
     // them is now stale by definition.

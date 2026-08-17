@@ -223,10 +223,10 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 | LIVE-06 | P1: Sessão de presença | F10 | Implementing |
 | LIVE-07 | P1: Sessão de presença | F10 | Implementing |
 | LIVE-08 | P1: Sessão de presença | F10 | Implementing |
-| LIVE-09 | P1: Transmitir presença | F10 | Pending |
-| LIVE-10 | P1: Transmitir presença | F10 | Pending |
-| LIVE-11 | P1: Transmitir presença | F10 | Pending |
-| LIVE-12 | P1: Transmitir presença | F10 | Pending |
+| LIVE-09 | P1: Transmitir presença | F10 | Implementing |
+| LIVE-10 | P1: Transmitir presença | F10 | Implementing |
+| LIVE-11 | P1: Transmitir presença | F10 | Implementing |
+| LIVE-12 | P1: Transmitir presença | F10 | Implementing |
 | LIVE-13 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-14 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-15 | P1: Renderizar presença remota | F10 | Implementing |

@@ -295,13 +295,13 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] 10 chamadas de `sendCursor` dentro de 30 ms produzem exatamente 1 mensagem, com as coordenadas da última chamada
-- [ ] `sendSelection` envia imediatamente, com a lista de ids recebida
-- [ ] Nenhuma mensagem é enviada enquanto o socket não estiver aberto
-- [ ] Após 60 s sem movimento, exatamente uma mensagem com `status:'idle'` é enviada; o movimento seguinte volta a `status:'active'`
-- [ ] Um remoto sem mensagem há mais de 90 s é removido do mapa pela varredura periódica
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 6 casos passam
+- [x] 10 chamadas de `sendCursor` dentro de 30 ms produzem exatamente 1 mensagem, com as coordenadas da última chamada
+- [x] `sendSelection` envia imediatamente, com a lista de ids recebida
+- [x] Nenhuma mensagem é enviada enquanto o socket não estiver aberto
+- [x] Após 60 s sem movimento, exatamente uma mensagem com `status:'idle'` é enviada; o movimento seguinte volta a `status:'active'`
+- [x] Um remoto sem mensagem há mais de 90 s é removido do mapa pela varredura periódica
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 6 casos passam
 
 **Tests**: unit
 **Gate**: quick
