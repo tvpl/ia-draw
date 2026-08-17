@@ -2,11 +2,11 @@ import type { SceneElement } from '@arch-canvas/editor-adapter';
 import { allFixtures } from '@arch-canvas/test-fixtures';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../auth/AuthProvider.js';
 // Initializes the shared i18next singleton `useTranslation()` reads from. Default
 // language is pt-BR (`DEFAULT_LANGUAGE`), so assertions below query the pt-BR strings
-// ("Enviar", "Aprovar", ...) unless a test explicitly switches locale (T8/CLIB-18).
+// ("Enviar", "Aprovar", ...) unless a test explicitly switches locale (T8/CLIB-18/SNAP-16).
 import i18n from '../i18n/index.js';
 import { DiagramEditorPage } from './DiagramEditorPage.js';
 
@@ -601,5 +601,184 @@ describe('DiagramEditorPage (T9, integration)', () => {
     const inventoryLink = screen.getByRole('link', { name: 'Ver inventário' });
     inventoryLink.focus();
     expect(document.activeElement).toBe(inventoryLink);
+  });
+});
+
+describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
+  // jsdom 30.0.1's `HTMLDialogElement` has no `showModal()`/`close()` — same shim as
+  // `ConfirmArchiveDialog.spec.tsx`/`RestoreConfirmDialog.spec.tsx`.
+  beforeAll(() => {
+    const proto = HTMLDialogElement.prototype as unknown as {
+      showModal?: () => void;
+      close?: () => void;
+    };
+    if (!proto.showModal) {
+      proto.showModal = function showModal(this: HTMLDialogElement) {
+        this.setAttribute('open', '');
+      };
+    }
+    if (!proto.close) {
+      proto.close = function close(this: HTMLDialogElement) {
+        this.removeAttribute('open');
+        this.dispatchEvent(new Event('close'));
+      };
+    }
+  });
+
+  beforeEach(() => {
+    capturedOnChange = undefined;
+    updateSceneSpy = vi.fn();
+  });
+
+  afterEach(async () => {
+    cleanup();
+    vi.unstubAllGlobals();
+    await i18n.changeLanguage('pt-BR');
+  });
+
+  it('the history panel is collapsed by default and never renders inside the canvas row', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/snapshots') {
+        return Promise.resolve(jsonResponse(200, { snapshots: [] }));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    const { container } = renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    // Collapsed: no history content mounted anywhere, and the canvas row itself is untouched
+    // (still exactly the pre-existing 2 children: canvas column + AiDock).
+    expect(screen.queryByTestId('history-item')).toBeNull();
+    const row = container.firstElementChild as HTMLElement;
+    expect(row.children).toHaveLength(2);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Histórico' }));
+
+    expect(
+      await screen.findByText(
+        'Nenhum snapshot ainda. Snapshots automáticos aparecem conforme você edita o diagrama.',
+      ),
+    ).toBeTruthy();
+    expect(screen.getByText('Comparar revisões')).toBeTruthy();
+    // Opening the history section still never touches the canvas row's own children.
+    expect(row.children).toHaveLength(2);
+  });
+
+  it('SNAP-08: restoring a snapshot from the open history panel reflects on the canvas via applyRemoteScene', async () => {
+    const restoredElement: SceneElement = {
+      ...baseElement,
+      id: 'el-restored',
+      version: 1,
+      versionNonce: 1,
+    };
+    let bootstrapCalls = 0;
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        bootstrapCalls += 1;
+        const scene = bootstrapCalls === 1 ? [baseElement] : [restoredElement];
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene,
+            revision: bootstrapCalls,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/snapshots') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            snapshots: [
+              {
+                id: 'snap-1',
+                revision: 1,
+                kind: 'named',
+                name: 'checkpoint',
+                createdAt: '2026-08-16T09:00:00.000Z',
+              },
+            ],
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/snapshots/snap-1:restore') {
+        return Promise.resolve(
+          jsonResponse(200, { currentRevision: 2, restoredFromSnapshotId: 'snap-1' }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+    expect(updateSceneSpy).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Histórico' }));
+    await screen.findByText('checkpoint');
+
+    fireEvent.click(screen.getByText('Restaurar'));
+    fireEvent.click(await screen.findByTestId('restore-confirm-confirm'));
+
+    await waitFor(() => expect(updateSceneSpy).toHaveBeenCalledTimes(1));
+    const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+    expect(sceneData.elements.map((el) => el.id)).toContain('el-restored');
+    // The bootstrap call that fed applyRemoteScene is the post-restore refresh, not the
+    // initial load — same reused flow AiDock's approve/undo already goes through.
+    expect(bootstrapCalls).toBe(2);
+  });
+
+  it('SNAP-16: the history toggle and empty-state text switch to English mid-session', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/snapshots') {
+        return Promise.resolve(jsonResponse(200, { snapshots: [] }));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    await i18n.changeLanguage('pt-BR');
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+    expect(screen.getByRole('button', { name: 'Histórico' })).not.toBeNull();
+    cleanup();
+
+    await i18n.changeLanguage('en');
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+    const toggle = screen.getByRole('button', { name: 'History' });
+    fireEvent.click(toggle);
+    expect(
+      await screen.findByText(
+        'No snapshots yet. Automatic snapshots appear as you edit the diagram.',
+      ),
+    ).toBeTruthy();
   });
 });

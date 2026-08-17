@@ -157,5 +157,49 @@
       "revision": "Revisão"
     },
     "error": "Não foi possível carregar o inventário."
+  },
+  "history": {
+    "panelToggle": "Histórico",
+    "loading": "Carregando histórico…",
+    "error": "Não foi possível carregar o histórico.",
+    "emptyState": "Nenhum snapshot ainda. Snapshots automáticos aparecem conforme você edita o diagrama.",
+    "kind": {
+      "auto": "Automático",
+      "published": "Publicado",
+      "pre_ai": "Antes da edição por IA",
+      "restore_point": "Ponto de restauração"
+    },
+    "unnamedSnapshot": "Snapshot sem nome",
+    "create": {
+      "nameLabel": "Nome do snapshot (opcional)",
+      "submit": "Criar snapshot",
+      "success": "Snapshot criado.",
+      "error": "Não foi possível criar o snapshot."
+    },
+    "restoreAction": "Restaurar",
+    "restoreConfirm": {
+      "title": "Restaurar este snapshot?",
+      "body": "Restaurar cria uma revisão nova a partir deste snapshot — nenhuma revisão intermediária é apagada, tudo continua na linha do tempo.",
+      "confirm": "Restaurar",
+      "cancel": "Cancelar"
+    },
+    "restore": {
+      "success": "Restaurado. Nova revisão: {{revision}}.",
+      "notFound": "Esse snapshot não existe mais. A lista foi atualizada.",
+      "error": "Não foi possível restaurar o snapshot."
+    },
+    "diff": {
+      "title": "Comparar revisões",
+      "fromLabel": "De",
+      "toLabel": "Para",
+      "compare": "Comparar",
+      "disabledExplanation": "É preciso pelo menos dois pontos na linha do tempo para comparar.",
+      "noChanges": "Nenhuma mudança estrutural entre essas duas revisões.",
+      "added": "Adicionados ({{count}})",
+      "removed": "Removidos ({{count}})",
+      "moved": "Movidos ({{count}})",
+      "modified": "Modificados ({{count}})",
+      "error": "Não foi possível comparar essas revisões."
+    }
   }
 }

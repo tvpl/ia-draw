@@ -149,30 +149,30 @@ nesta frente.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| SNAP-01 | P1: Linha do tempo e criar | Tasks | Pending |
-| SNAP-02 | P1: Linha do tempo e criar | Tasks | Pending |
-| SNAP-03 | P1: Linha do tempo e criar | Tasks | Pending |
-| SNAP-04 | P1: Linha do tempo e criar | Tasks | Pending |
-| SNAP-05 | P1: Linha do tempo e criar | Tasks | Pending |
-| SNAP-06 | P1: Restaurar | Tasks | Pending |
-| SNAP-07 | P1: Restaurar | Tasks | Pending |
-| SNAP-08 | P1: Restaurar | Tasks | Pending |
-| SNAP-09 | P1: Restaurar | Tasks | Pending |
-| SNAP-10 | P1: Restaurar | Tasks | Pending |
-| SNAP-11 | P2: Comparar | Tasks | Pending |
-| SNAP-12 | P2: Comparar | Tasks | Pending |
-| SNAP-13 | P2: Comparar | Tasks | Pending |
-| SNAP-14 | P2: Teclado e idioma | Tasks | Pending |
-| SNAP-15 | P2: Teclado e idioma | Tasks | Pending |
-| SNAP-16 | P2: Teclado e idioma | Tasks | Pending |
+| SNAP-01 | P1: Linha do tempo e criar | T1/T2 | ✅ Verified |
+| SNAP-02 | P1: Linha do tempo e criar | T2 | ✅ Verified |
+| SNAP-03 | P1: Linha do tempo e criar | T1/T2 | ✅ Verified |
+| SNAP-04 | P1: Linha do tempo e criar | T2 | ✅ Verified |
+| SNAP-05 | P1: Linha do tempo e criar | T2 | ✅ Verified |
+| SNAP-06 | P1: Restaurar | T1/T3 | ✅ Verified |
+| SNAP-07 | P1: Restaurar | T3 | ✅ Verified |
+| SNAP-08 | P1: Restaurar | T3 | ✅ Verified |
+| SNAP-09 | P1: Restaurar | T3 | ✅ Verified |
+| SNAP-10 | P1: Restaurar | T3 | ✅ Verified |
+| SNAP-11 | P2: Comparar | T1/T4 | ✅ Verified |
+| SNAP-12 | P2: Comparar | T4 | ✅ Verified |
+| SNAP-13 | P2: Comparar | T4 | ✅ Verified |
+| SNAP-14 | P2: Teclado e idioma | T6 | ✅ Verified |
+| SNAP-15 | P2: Teclado e idioma | T6 | ✅ Verified |
+| SNAP-16 | P2: Teclado e idioma | T5/T6 | ✅ Verified |
 
 **ID format:** `SNAP-NN` (fatia de frontend distinta de `VER-NN`, que já nomeia os requisitos de
 backend em `architecture-canvas/spec.md`).
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 16 total, 0 mapped to tasks yet, 16 unmapped ⚠️ (aguardando Tasks — Design inline,
-ver `tasks.md`)
+**Coverage:** 16 total, 16 mapped to tasks (`tasks.md` T1..T6), 0 unmapped. Verifier PASS
+(`validation.md`), 16/16 acceptance criteria with `file:line` evidence.
 
 ---
 

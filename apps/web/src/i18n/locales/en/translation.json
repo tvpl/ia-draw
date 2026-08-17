@@ -157,5 +157,49 @@
       "revision": "Revision"
     },
     "error": "Couldn't load the inventory."
+  },
+  "history": {
+    "panelToggle": "History",
+    "loading": "Loading history…",
+    "error": "Couldn't load the history.",
+    "emptyState": "No snapshots yet. Automatic snapshots appear as you edit the diagram.",
+    "kind": {
+      "auto": "Automatic",
+      "published": "Published",
+      "pre_ai": "Before AI edit",
+      "restore_point": "Restore point"
+    },
+    "unnamedSnapshot": "Unnamed snapshot",
+    "create": {
+      "nameLabel": "Snapshot name (optional)",
+      "submit": "Create snapshot",
+      "success": "Snapshot created.",
+      "error": "Couldn't create the snapshot."
+    },
+    "restoreAction": "Restore",
+    "restoreConfirm": {
+      "title": "Restore this snapshot?",
+      "body": "Restoring creates a new revision from this snapshot — no revision in between is deleted, everything stays on the timeline.",
+      "confirm": "Restore",
+      "cancel": "Cancel"
+    },
+    "restore": {
+      "success": "Restored. New revision: {{revision}}.",
+      "notFound": "That snapshot no longer exists. The list was refreshed.",
+      "error": "Couldn't restore the snapshot."
+    },
+    "diff": {
+      "title": "Compare revisions",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "compare": "Compare",
+      "disabledExplanation": "You need at least two points on the timeline to compare.",
+      "noChanges": "No structural changes between these two revisions.",
+      "added": "Added ({{count}})",
+      "removed": "Removed ({{count}})",
+      "moved": "Moved ({{count}})",
+      "modified": "Modified ({{count}})",
+      "error": "Couldn't compare those revisions."
+    }
   }
 }

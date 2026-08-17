@@ -83,11 +83,11 @@ T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `list(diagramId)` devolve `SnapshotRow[]` tal como o servidor devolve (`kind`/`name`/`createdAt`)
-- [ ] `create(diagramId, name?)` envia `POST` com/sem `name`, devolve o snapshot criado (`201`)
-- [ ] `restore(diagramId, snapshotId, clientMutationId)` cobre `200`/`404`/`403`
-- [ ] `diff(diagramId, from, to)` devolve `{added, removed, moved, modified}`, cobre `404`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `list(diagramId)` devolve `SnapshotRow[]` tal como o servidor devolve (`kind`/`name`/`createdAt`)
+- [x] `create(diagramId, name?)` envia `POST` com/sem `name`, devolve o snapshot criado (`201`)
+- [x] `restore(diagramId, snapshotId, clientMutationId)` cobre `200`/`404`/`403`
+- [x] `diff(diagramId, from, to)` devolve `{added, removed, moved, modified}`, cobre `404`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -110,12 +110,12 @@ T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Lista ordenada do mais recente pro mais antigo, cada item com rótulo de `kind` traduzido
-- [ ] Ação "criar snapshot nomeado" visível só quando `role` concede `diagram:mutate`
-- [ ] Criar com nome insere no topo a partir da resposta `201`, sem novo `GET`
-- [ ] Criar sem nome envia sem o campo `name`
-- [ ] Estado vazio quando não há nenhum snapshot ainda
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lista ordenada do mais recente pro mais antigo, cada item com rótulo de `kind` traduzido
+- [x] Ação "criar snapshot nomeado" visível só quando `role` concede `diagram:mutate`
+- [x] Criar com nome insere no topo a partir da resposta `201`, sem novo `GET`
+- [x] Criar sem nome envia sem o campo `name`
+- [x] Estado vazio quando não há nenhum snapshot ainda
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -139,12 +139,12 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Diálogo nomeia explicitamente "cria uma revisão nova, nunca apaga revisões intermediárias"
-- [ ] Confirmar gera um `clientMutationId` (`crypto.randomUUID()`) e chama `snapshotClient.restore`
-- [ ] `200` aplica a cena via `applyRemoteScene` (recebido como prop/ref de `DiagramEditorPage`) e exibe a nova `currentRevision`
-- [ ] `404` informa que o snapshot não existe mais e relista
-- [ ] Ação de restaurar oculta quando `role` não concede `diagram:mutate`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Diálogo nomeia explicitamente "cria uma revisão nova, nunca apaga revisões intermediárias"
+- [x] Confirmar gera um `clientMutationId` (`crypto.randomUUID()`) e chama `snapshotClient.restore`
+- [x] `200` aplica a cena via `applyRemoteScene` (recebido como prop/ref de `DiagramEditorPage`) e exibe a nova `currentRevision`
+- [x] `404` informa que o snapshot não existe mais e relista
+- [x] Ação de restaurar oculta quando `role` não concede `diagram:mutate`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -166,10 +166,10 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Seleção de dois pontos da linha do tempo chama `snapshotClient.diff` e exibe as 4 listas (`added`/`removed`/`moved`/`modified`) por `elementId`
-- [ ] 4 listas vazias exibe "nenhuma mudança estrutural", nunca tela em branco
-- [ ] `404` exibe a mensagem de erro sem quebrar o painel
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Seleção de dois pontos da linha do tempo chama `snapshotClient.diff` e exibe as 4 listas (`added`/`removed`/`moved`/`modified`) por `elementId`
+- [x] 4 listas vazias exibe "nenhuma mudança estrutural", nunca tela em branco
+- [x] `404` exibe a mensagem de erro sem quebrar o painel
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -191,8 +191,8 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Ambos os locales têm o mesmo conjunto de chaves sob `history`
-- [ ] `make lint` passes
+- [x] Ambos os locales têm o mesmo conjunto de chaves sob `history`
+- [x] `make lint` passes
 
 **Tests**: none
 **Gate**: quick
@@ -215,13 +215,13 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Painel monta sem interferir no canvas quando fechado
-- [ ] `role` efetivo resolvido uma vez e passado como prop (mesma fonte usada pelas demais fatias)
-- [ ] Toda ação alcançável só por Tab/Shift+Tab/Enter
-- [ ] `aria-live="polite"` anuncia sucesso/falha de criação e de restauração
-- [ ] Teste roda com locale `en` trocado no meio do caminho
-- [ ] Zero violações serious/critical de axe em `HistoryPanel`/`DiffView`
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] Painel monta sem interferir no canvas quando fechado
+- [x] `role` efetivo resolvido uma vez e passado como prop (mesma fonte usada pelas demais fatias)
+- [x] Toda ação alcançável só por Tab/Shift+Tab/Enter
+- [x] `aria-live="polite"` anuncia sucesso/falha de criação e de restauração
+- [x] Teste roda com locale `en` trocado no meio do caminho
+- [x] Zero violações serious/critical de axe em `HistoryPanel`/`DiffView`
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
