@@ -211,15 +211,15 @@ arquivar sem mouse.
 | NAV-15 | P1: Renomear | F10 | ✅ Verified |
 | NAV-16 | P1: Renomear | F10 | ✅ Verified |
 | NAV-17 | P1: Arquivar | F10 | ✅ Verified |
-| NAV-18 | P1: Arquivar | F10 | ✅ Verified (⚠️ parcial) |
+| NAV-18 | P1: Arquivar | F10 | ✅ Verified |
 | NAV-19 | P1: Arquivar | F10 | ✅ Verified |
 | NAV-20 | P1: Arquivar | F10 | ✅ Verified |
-| NAV-21 | P1: Arquivar | F10 | ❌ Needs Fix |
+| NAV-21 | P1: Arquivar | F10 | ✅ Verified |
 | NAV-22 | P1: Primeiro acesso | F10 | ✅ Verified |
 | NAV-23 | P1: Primeiro acesso | F10 | ✅ Verified |
-| NAV-24 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
-| NAV-25 | P2: Teclado e idioma | F10 | ✅ Verified (⚠️ parcial) |
-| NAV-26 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
+| NAV-24 | P2: Teclado e idioma | F10 | ✅ Verified |
+| NAV-25 | P2: Teclado e idioma | F10 | ✅ Verified |
+| NAV-26 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
