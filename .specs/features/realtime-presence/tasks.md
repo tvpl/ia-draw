@@ -185,9 +185,9 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `presence.status.connecting`, `presence.status.connected` e `presence.status.disconnected` existem nos dois locales
-- [ ] Os dois arquivos têm exatamente o mesmo conjunto de chaves sob `presence`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `presence.status.connecting`, `presence.status.connected` e `presence.status.disconnected` existem nos dois locales
+- [x] Os dois arquivos têm exatamente o mesmo conjunto de chaves sob `presence`
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build

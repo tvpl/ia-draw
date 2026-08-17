@@ -316,5 +316,12 @@
       "modified": "Modificados ({{count}})",
       "error": "Não foi possível comparar essas revisões."
     }
+  },
+  "presence": {
+    "status": {
+      "connecting": "Conectando à presença ao vivo…",
+      "connected": "Presença ao vivo conectada",
+      "disconnected": "Presença ao vivo desconectada"
+    }
   }
 }

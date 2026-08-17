@@ -316,5 +316,12 @@
       "modified": "Modified ({{count}})",
       "error": "Couldn't compare those revisions."
     }
+  },
+  "presence": {
+    "status": {
+      "connecting": "Connecting to live presence…",
+      "connected": "Live presence connected",
+      "disconnected": "Live presence disconnected"
+    }
   }
 }
