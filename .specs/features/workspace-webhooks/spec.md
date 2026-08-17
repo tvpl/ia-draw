@@ -226,16 +226,16 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| WHK-01 | P1: Ver webhooks | F10 | Pending |
+| WHK-01 | P1: Ver webhooks | F10 | Implementing |
 | WHK-02 | P1: Ver webhooks | F10 | Pending |
-| WHK-03 | P1: Ver webhooks | F10 | Pending |
+| WHK-03 | P1: Ver webhooks | F10 | Implementing |
 | WHK-04 | P1: Ver webhooks | F10 | Pending |
-| WHK-05 | P1: Cadastrar | F10 | Pending |
+| WHK-05 | P1: Cadastrar | F10 | Implementing |
 | WHK-06 | P1: Cadastrar | F10 | Pending |
 | WHK-07 | P1: Cadastrar | F10 | Pending |
-| WHK-08 | P1: Cadastrar | F10 | Pending |
-| WHK-09 | P1: Cadastrar | F10 | Pending |
-| WHK-10 | P1: Cadastrar | F10 | Pending |
+| WHK-08 | P1: Cadastrar | F10 | Implementing |
+| WHK-09 | P1: Cadastrar | F10 | Implementing |
+| WHK-10 | P1: Cadastrar | F10 | Implementing |
 | WHK-11 | P1: Revelação única | F10 | Pending |
 | WHK-12 | P1: Revelação única | F10 | Pending |
 | WHK-13 | P1: Revelação única | F10 | Pending |
@@ -243,19 +243,19 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | WHK-15 | P1: Revelação única | F10 | Pending |
 | WHK-16 | P1: Revelação única | F10 | Pending |
 | WHK-17 | P1: Revelação única | F10 | Pending |
-| WHK-18 | P1: Editar | F10 | Pending |
+| WHK-18 | P1: Editar | F10 | Implementing |
 | WHK-19 | P1: Editar | F10 | Pending |
-| WHK-20 | P1: Editar | F10 | Pending |
-| WHK-21 | P1: Editar | F10 | Pending |
-| WHK-22 | P1: Editar | F10 | Pending |
+| WHK-20 | P1: Editar | F10 | Implementing |
+| WHK-21 | P1: Editar | F10 | Implementing |
+| WHK-22 | P1: Editar | F10 | Implementing |
 | WHK-23 | P1: Rotacionar | F10 | Pending |
-| WHK-24 | P1: Rotacionar | F10 | Pending |
-| WHK-25 | P1: Rotacionar | F10 | Pending |
-| WHK-26 | P1: Rotacionar | F10 | Pending |
+| WHK-24 | P1: Rotacionar | F10 | Implementing |
+| WHK-25 | P1: Rotacionar | F10 | Implementing |
+| WHK-26 | P1: Rotacionar | F10 | Implementing |
 | WHK-27 | P1: Rotacionar | F10 | Pending |
 | WHK-28 | P1: Remover | F10 | Pending |
-| WHK-29 | P1: Remover | F10 | Pending |
-| WHK-30 | P1: Remover | F10 | Pending |
+| WHK-29 | P1: Remover | F10 | Implementing |
+| WHK-30 | P1: Remover | F10 | Implementing |
 | WHK-31 | P2: Teclado e idioma | F10 | Pending |
 | WHK-32 | P2: Teclado e idioma | F10 | Pending |
 | WHK-33 | P2: Teclado e idioma | F10 | Pending |

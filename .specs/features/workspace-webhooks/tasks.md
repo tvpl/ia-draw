@@ -67,16 +67,16 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `WebhookEndpoint` type mirrors the server's `toPublicWebhookEndpoint` projection exactly (`id`, `workspaceId`, `url`, `events`, `enabled`, `createdBy`, `createdAt`, `updatedAt`) — no invented fields, no `secret` field
-- [ ] `WEBHOOK_EVENT_TYPES` mirrors the server's 5 values in the same order
-- [ ] `list(workspaceId)` → `WebhookEndpoint[]` from `GET /workspaces/:id/webhooks`'s `{items}`; throws on non-2xx
-- [ ] `create(workspaceId, {url, events})` → `{status: 'created', webhook, secret}` on 201 | `{status: 'error'}` otherwise
-- [ ] `update(workspaceId, webhookId, patch)` → `{status: 'ok', webhook}` on 200 | `{status: 'error'}` otherwise
-- [ ] `remove(workspaceId, webhookId)` → `{status: 'removed'}` on 204 | `{status: 'error'}` otherwise
-- [ ] `rotateSecret(workspaceId, webhookId)` → `{status: 'rotated', webhook, secret}` on 200 | `{status: 'error'}` otherwise, calling `PATCH /workspaces/:id/webhooks/:webhookId:rotate-secret`
-- [ ] Every call site reads `fetchImpl(...)` literally
-- [ ] Unit tests cover every branch above plus a rejected `fetchImpl` per mutating method
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `WebhookEndpoint` type mirrors the server's `toPublicWebhookEndpoint` projection exactly (`id`, `workspaceId`, `url`, `events`, `enabled`, `createdBy`, `createdAt`, `updatedAt`) — no invented fields, no `secret` field
+- [x] `WEBHOOK_EVENT_TYPES` mirrors the server's 5 values in the same order
+- [x] `list(workspaceId)` → `WebhookEndpoint[]` from `GET /workspaces/:id/webhooks`'s `{items}`; throws on non-2xx
+- [x] `create(workspaceId, {url, events})` → `{status: 'created', webhook, secret}` on 201 | `{status: 'error'}` otherwise
+- [x] `update(workspaceId, webhookId, patch)` → `{status: 'ok', webhook}` on 200 | `{status: 'error'}` otherwise
+- [x] `remove(workspaceId, webhookId)` → `{status: 'removed'}` on 204 | `{status: 'error'}` otherwise
+- [x] `rotateSecret(workspaceId, webhookId)` → `{status: 'rotated', webhook, secret}` on 200 | `{status: 'error'}` otherwise, calling `PATCH /workspaces/:id/webhooks/:webhookId:rotate-secret`
+- [x] Every call site reads `fetchImpl(...)` literally
+- [x] Unit tests cover every branch above plus a rejected `fetchImpl` per mutating method
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
