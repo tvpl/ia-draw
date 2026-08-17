@@ -388,5 +388,106 @@
       "presentationTitle": "Presentation: {{name}}",
       "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
     }
+  },
+  "presentation": {
+    "list": {
+      "title": "Presentations",
+      "backToDiagram": "Back to diagram",
+      "createTitle": "New presentation",
+      "nameLabel": "Presentation name",
+      "create": "Create presentation",
+      "empty": "No presentations yet.",
+      "frameCount": "{{count}} frame(s)",
+      "open": "Open",
+      "error": {
+        "generic": "Something went wrong. Try again."
+      },
+      "announcement": {
+        "created": "Presentation created."
+      }
+    },
+    "editor": {
+      "title": "Presentation editor: {{name}}",
+      "backToList": "Back to presentations",
+      "framesTitle": "Frames",
+      "addFrameTitle": "Add frame",
+      "sourceCanvasLabel": "Canvas frame",
+      "sourceCanvasSelectPlaceholder": "Choose a canvas frame",
+      "sourceLogicalLabel": "Or a logical label (no canvas frame)",
+      "addFrame": "Add frame",
+      "notesLabel": "Presenter notes (private)",
+      "saveNotes": "Save notes",
+      "deleteFrame": "Remove frame",
+      "deleteFrameConfirm": "Remove this frame from the presentation?",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "navLinksTitle": "Navigation links (prototype)",
+      "navLinksTargetLabel": "Go to frame",
+      "navLinksSave": "Save links",
+      "publish": "Publish",
+      "republish": "Republish",
+      "republishWarning": "Republishing replaces what any already-distributed link to this presentation shows — anyone who already has the link will see the new version.",
+      "republishConfirm": "Republish anyway?",
+      "publishedBadge": "Published",
+      "notPublishedBadge": "Not published yet",
+      "presentButton": "Present",
+      "presentDisabledNoFrames": "Add at least one frame to present.",
+      "exportPdf": "Export PDF",
+      "exportPdfLoading": "Generating PDF…",
+      "exportPdfDisabledNoFrames": "Add at least one frame to export.",
+      "exportPdfDisabledNotPublished": "Publish the presentation before exporting.",
+      "exportPdfResultLink": "Open PDF ({{pageCount}} page(s))",
+      "error": {
+        "missingSource": "Choose a canvas frame or type a logical label.",
+        "generic": "Something went wrong. Try again.",
+        "invalidNavLink": "One of the links points to a frame that no longer exists.",
+        "noFrames": "This presentation has no frames to export.",
+        "notPublished": "Publish the presentation before exporting."
+      },
+      "announcement": {
+        "frameAdded": "Frame added.",
+        "frameUpdated": "Frame updated.",
+        "frameDeleted": "Frame removed.",
+        "framesReordered": "Frame order updated.",
+        "navLinksSaved": "Navigation links saved.",
+        "published": "Presentation published.",
+        "exported": "PDF generated."
+      }
+    },
+    "sharePanel": {
+      "title": "Public presentation link",
+      "disabledBeforePublish": "Publish the presentation before creating a public link.",
+      "roleLabel": "Role granted by the link",
+      "roleSelectPlaceholder": "Choose a role",
+      "expiresAtLabel": "Expires at",
+      "create": "Create link",
+      "createdListTitle": "Links created in this session",
+      "sessionOnlyNotice": "Only links you created on this screen appear here. Reloading the page clears the list, and the URL cannot be recovered afterwards.",
+      "oneShotNotice": "Copy this URL now. It is shown exactly once and cannot be recovered.",
+      "urlLabel": "Share URL",
+      "revoke": "Revoke",
+      "revokedBadge": "Revoked",
+      "created": "Share link created.",
+      "revoked": "Share link revoked.",
+      "error": {
+        "roleCeiling": "You cannot grant a role above your own.",
+        "generic": "Something went wrong. Try again."
+      }
+    },
+    "frame": {
+      "label": "Frame {{position}}",
+      "labelWithId": "Frame {{position}} ({{frameId}})"
+    },
+    "viewer": {
+      "position": "Frame {{current}} of {{total}}",
+      "prev": "Previous",
+      "next": "Next",
+      "navLinkTo": "Go to: {{label}}"
+    },
+    "presenter": {
+      "loading": "Loading presentation…",
+      "exit": "Exit (Esc)",
+      "exitLabel": "Exit presenter mode"
+    }
   }
 }

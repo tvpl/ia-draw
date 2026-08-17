@@ -388,5 +388,106 @@
       "presentationTitle": "Apresentação: {{name}}",
       "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
     }
+  },
+  "presentation": {
+    "list": {
+      "title": "Apresentações",
+      "backToDiagram": "Voltar ao diagrama",
+      "createTitle": "Nova apresentação",
+      "nameLabel": "Nome da apresentação",
+      "create": "Criar apresentação",
+      "empty": "Nenhuma apresentação ainda.",
+      "frameCount": "{{count}} frame(s)",
+      "open": "Abrir",
+      "error": {
+        "generic": "Algo deu errado. Tente de novo."
+      },
+      "announcement": {
+        "created": "Apresentação criada."
+      }
+    },
+    "editor": {
+      "title": "Editor de apresentação: {{name}}",
+      "backToList": "Voltar às apresentações",
+      "framesTitle": "Frames",
+      "addFrameTitle": "Adicionar frame",
+      "sourceCanvasLabel": "Frame do canvas",
+      "sourceCanvasSelectPlaceholder": "Escolha um frame do canvas",
+      "sourceLogicalLabel": "Ou um rótulo lógico (sem frame no canvas)",
+      "addFrame": "Adicionar frame",
+      "notesLabel": "Notas do apresentador (privadas)",
+      "saveNotes": "Salvar notas",
+      "deleteFrame": "Remover frame",
+      "deleteFrameConfirm": "Remover este frame da apresentação?",
+      "moveUp": "Mover para cima",
+      "moveDown": "Mover para baixo",
+      "navLinksTitle": "Links de navegação (protótipo)",
+      "navLinksTargetLabel": "Ir para o frame",
+      "navLinksSave": "Salvar links",
+      "publish": "Publicar",
+      "republish": "Republicar",
+      "republishWarning": "Republicar substitui o conteúdo mostrado por qualquer link já distribuído desta apresentação — quem já tem o link passa a ver a versão nova.",
+      "republishConfirm": "Republicar mesmo assim?",
+      "publishedBadge": "Publicada",
+      "notPublishedBadge": "Ainda não publicada",
+      "presentButton": "Apresentar",
+      "presentDisabledNoFrames": "Adicione ao menos um frame para apresentar.",
+      "exportPdf": "Exportar PDF",
+      "exportPdfLoading": "Gerando PDF…",
+      "exportPdfDisabledNoFrames": "Adicione ao menos um frame para exportar.",
+      "exportPdfDisabledNotPublished": "Publique a apresentação antes de exportar.",
+      "exportPdfResultLink": "Abrir PDF ({{pageCount}} página(s))",
+      "error": {
+        "missingSource": "Escolha um frame do canvas ou digite um rótulo lógico.",
+        "generic": "Algo deu errado. Tente de novo.",
+        "invalidNavLink": "Um dos links aponta para um frame que não existe mais.",
+        "noFrames": "Esta apresentação não tem frames para exportar.",
+        "notPublished": "Publique a apresentação antes de exportar."
+      },
+      "announcement": {
+        "frameAdded": "Frame adicionado.",
+        "frameUpdated": "Frame atualizado.",
+        "frameDeleted": "Frame removido.",
+        "framesReordered": "Ordem dos frames atualizada.",
+        "navLinksSaved": "Links de navegação salvos.",
+        "published": "Apresentação publicada.",
+        "exported": "PDF gerado."
+      }
+    },
+    "sharePanel": {
+      "title": "Link público de apresentação",
+      "disabledBeforePublish": "Publique a apresentação antes de criar um link público.",
+      "roleLabel": "Papel concedido pelo link",
+      "roleSelectPlaceholder": "Escolha um papel",
+      "expiresAtLabel": "Expira em",
+      "create": "Criar link",
+      "createdListTitle": "Links criados nesta sessão",
+      "sessionOnlyNotice": "Só aparecem aqui os links que você criou nesta tela. Recarregar a página limpa a lista, e a URL não pode ser recuperada depois.",
+      "oneShotNotice": "Copie esta URL agora. Ela é exibida uma única vez e não pode ser recuperada.",
+      "urlLabel": "URL de compartilhamento",
+      "revoke": "Revogar",
+      "revokedBadge": "Revogado",
+      "created": "Link de compartilhamento criado.",
+      "revoked": "Link de compartilhamento revogado.",
+      "error": {
+        "roleCeiling": "Você não pode conceder um papel acima do seu.",
+        "generic": "Algo deu errado. Tente de novo."
+      }
+    },
+    "frame": {
+      "label": "Frame {{position}}",
+      "labelWithId": "Frame {{position}} ({{frameId}})"
+    },
+    "viewer": {
+      "position": "Frame {{current}} de {{total}}",
+      "prev": "Anterior",
+      "next": "Próximo",
+      "navLinkTo": "Ir para: {{label}}"
+    },
+    "presenter": {
+      "loading": "Carregando apresentação…",
+      "exit": "Sair (Esc)",
+      "exitLabel": "Sair do modo apresentador"
+    }
   }
 }
