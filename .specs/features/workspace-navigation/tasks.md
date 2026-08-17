@@ -189,11 +189,11 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders the item's name in the confirmation message
-- [ ] Confirm click calls `onConfirm`; cancel click (or native Esc-to-close) calls `onCancel`, never both
-- [ ] Uses `<dialog>`'s `showModal()`/`close()` imperatively (React 19 ref pattern), not a custom overlay div
-- [ ] Unit tests cover confirm, cancel, and Esc-dismiss
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Renders the item's name in the confirmation message
+- [x] Confirm click calls `onConfirm`; cancel click (or native Esc-to-close) calls `onCancel`, never both
+- [x] Uses `<dialog>`'s `showModal()`/`close()` imperatively (React 19 ref pattern), not a custom overlay div
+- [x] Unit tests cover confirm, cancel, and Esc-dismiss
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
