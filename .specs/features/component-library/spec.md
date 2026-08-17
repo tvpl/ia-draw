@@ -163,8 +163,8 @@ inserir um item, classificar um elemento e ver o inventário sem mouse.
 | --------------- | ----- | ----- | ------ |
 | CLIB-01 | P1: Navegar e inserir | Design | Pending |
 | CLIB-02 | P1: Navegar e inserir | Design | Pending |
-| CLIB-03 | P1: Navegar e inserir | Design | Pending |
-| CLIB-04 | P1: Navegar e inserir | Design | Pending |
+| CLIB-03 | P1: Navegar e inserir | Tasks | Implementing |
+| CLIB-04 | P1: Navegar e inserir | Tasks | Implementing |
 | CLIB-05 | P1: Navegar e inserir | Design | Pending |
 | CLIB-06 | P1: Navegar e inserir | Design | Pending |
 | CLIB-07 | P1: Navegar e inserir | Design | Pending |

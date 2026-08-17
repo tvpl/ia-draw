@@ -91,11 +91,11 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] `insertLibraryItem` adicionado à interface `EditorSurfaceHandle` e implementado, sem quebrar `applyRemoteScene` existente
-- [ ] `icon.kind === 'inline'`: chama `addFiles` com um `fileId` determinístico por inserção e cria um elemento `image` + texto vinculado com `item.name`
-- [ ] `icon.kind === 'external'`: cria retângulo + texto vinculado, sem nenhuma chamada de rede/`fetch` para `sourceUrl`
-- [ ] Ambos os casos posicionam no centro do viewport visível (`scrollX`/`scrollY`/`zoom` da `appState` mockada no teste)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
+- [x] `insertLibraryItem` adicionado à interface `EditorSurfaceHandle` e implementado, sem quebrar `applyRemoteScene` existente
+- [x] `icon.kind === 'inline'`: chama `addFiles` com um `fileId` determinístico por inserção e cria um elemento `image` + texto vinculado com `item.name`
+- [x] `icon.kind === 'external'`: cria retângulo + texto vinculado, sem nenhuma chamada de rede/`fetch` para `sourceUrl`
+- [x] Ambos os casos posicionam no centro do viewport visível (`scrollX`/`scrollY`/`zoom` da `appState` mockada no teste)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
 
 **Tests**: unit
 **Gate**: quick
