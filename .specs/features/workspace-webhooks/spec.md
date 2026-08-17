@@ -236,13 +236,13 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | WHK-08 | P1: Cadastrar | F10 | Implementing |
 | WHK-09 | P1: Cadastrar | F10 | Implementing |
 | WHK-10 | P1: Cadastrar | F10 | Implementing |
-| WHK-11 | P1: Revelação única | F10 | Pending |
-| WHK-12 | P1: Revelação única | F10 | Pending |
-| WHK-13 | P1: Revelação única | F10 | Pending |
-| WHK-14 | P1: Revelação única | F10 | Pending |
-| WHK-15 | P1: Revelação única | F10 | Pending |
-| WHK-16 | P1: Revelação única | F10 | Pending |
-| WHK-17 | P1: Revelação única | F10 | Pending |
+| WHK-11 | P1: Revelação única | F10 | Implementing |
+| WHK-12 | P1: Revelação única | F10 | Implementing |
+| WHK-13 | P1: Revelação única | F10 | Implementing |
+| WHK-14 | P1: Revelação única | F10 | Implementing |
+| WHK-15 | P1: Revelação única | F10 | Implementing |
+| WHK-16 | P1: Revelação única | F10 | Implementing |
+| WHK-17 | P1: Revelação única | F10 | Implementing |
 | WHK-18 | P1: Editar | F10 | Implementing |
 | WHK-19 | P1: Editar | F10 | Pending |
 | WHK-20 | P1: Editar | F10 | Implementing |

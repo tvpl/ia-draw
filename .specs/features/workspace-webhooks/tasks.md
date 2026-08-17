@@ -123,14 +123,14 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders the secret as selectable read-only text, always present in the DOM independent of the copy button (WHK-11, WHK-13)
-- [ ] Renders the explicit one-time warning from `nav.webhooks.secret.warning` (WHK-12)
-- [ ] Copy button calls `navigator.clipboard.writeText(secret)` and reports success (WHK-14)
-- [ ] When `navigator.clipboard` is absent OR `writeText` rejects, reports the manual-copy message and keeps the secret rendered (WHK-15)
-- [ ] Has no timer, no auto-close, and survives an unrelated re-render with the same props (WHK-16)
-- [ ] Dismiss button invokes `onDismiss`; the component owns no dismissal state of its own, so the parent controls unmounting (WHK-17)
-- [ ] Unit tests cover each bullet above, including a re-render assertion that fails if an auto-close is ever introduced
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Renders the secret as selectable read-only text, always present in the DOM independent of the copy button (WHK-11, WHK-13)
+- [x] Renders the explicit one-time warning from `nav.webhooks.secret.warning` (WHK-12)
+- [x] Copy button calls `navigator.clipboard.writeText(secret)` and reports success (WHK-14)
+- [x] When `navigator.clipboard` is absent OR `writeText` rejects, reports the manual-copy message and keeps the secret rendered (WHK-15)
+- [x] Has no timer, no auto-close, and survives an unrelated re-render with the same props (WHK-16)
+- [x] Dismiss button invokes `onDismiss`; the component owns no dismissal state of its own, so the parent controls unmounting (WHK-17)
+- [x] Unit tests cover each bullet above, including a re-render assertion that fails if an auto-close is ever introduced
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
