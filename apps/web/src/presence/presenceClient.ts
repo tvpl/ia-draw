@@ -120,7 +120,8 @@ export class PresenceClient {
     this.WebSocketImpl = options.WebSocketImpl ?? defaultWebSocketImpl();
     this.now = options.now ?? (() => Date.now());
     this.setTimeoutImpl = options.setTimeoutImpl ?? ((cb, ms) => setTimeout(cb, ms));
-    this.clearTimeoutImpl = options.clearTimeoutImpl ?? ((handle) => clearTimeout(handle as number));
+    this.clearTimeoutImpl =
+      options.clearTimeoutImpl ?? ((handle) => clearTimeout(handle as number));
     this.onReconnected = options.onReconnected;
   }
 

@@ -1144,3 +1144,153 @@ describe('DiagramEditorPage realtime presence (T12, LIVE-06..14/24)', () => {
     expect(socket?.readyState).toBe(3);
   });
 });
+
+describe('DiagramEditorPage reconnect catch-up (T13, LIVE-20..22)', () => {
+  beforeEach(() => {
+    capturedOnChange = undefined;
+    capturedOnPointerUpdate = undefined;
+    updateSceneSpy = vi.fn();
+    FakeSocket.reset();
+    vi.stubGlobal('WebSocket', FakeSocket);
+  });
+
+  afterEach(async () => {
+    cleanup();
+    vi.unstubAllGlobals();
+    await i18n.changeLanguage('pt-BR');
+  });
+
+  const freshElement: SceneElement = {
+    ...baseElement,
+    id: 'el-from-catch-up',
+    version: 1,
+    versionNonce: 1,
+  };
+
+  /**
+   * `operations` answers whatever the test wants `GET .../operations?afterSequence=` to
+   * report; `catchUpFails` turns that same route into a 500 instead.
+   */
+  function catchUpFetchImpl(options: {
+    operations: Array<{ sequence: number; clientMutationId: string }>;
+    catchUpFails?: boolean;
+  }) {
+    let bootstrapCalls = 0;
+    const impl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        bootstrapCalls += 1;
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: bootstrapCalls === 1 ? [baseElement] : [freshElement],
+            revision: bootstrapCalls,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/ws-ticket' && init?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse(200, { ticket: 'ws-ticket-1', expiresAt: '2026-08-17T12:00:30.000Z' }),
+        );
+      }
+      if (url.startsWith('/diagrams/diagram-1/operations?afterSequence=')) {
+        if (options.catchUpFails) return Promise.resolve(jsonResponse(500, {}));
+        return Promise.resolve(jsonResponse(200, { operations: options.operations }));
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === `/diagrams/diagram-1/elements/${baseElement.id}/metadata`) {
+        return Promise.resolve(jsonResponse(404, {}));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    return { impl, bootstrapCallCount: () => bootstrapCalls };
+  }
+
+  /** Drops the open socket and drives the client through one full reconnect. */
+  async function reconnect(): Promise<void> {
+    const firstSocket = FakeSocket.last;
+    act(() => {
+      firstSocket?.emitClose(1006);
+    });
+    await waitFor(() => expect(FakeSocket.instances.length).toBeGreaterThan(1), { timeout: 4000 });
+    act(() => {
+      FakeSocket.last?.open();
+    });
+  }
+
+  async function renderConnected(fetchImpl: typeof fetch) {
+    vi.stubGlobal('fetch', fetchImpl);
+    renderPage();
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+  }
+
+  it('calls catchUp on the sync client once the socket comes back (LIVE-20)', async () => {
+    const { impl } = catchUpFetchImpl({ operations: [] });
+    await renderConnected(impl);
+
+    await reconnect();
+
+    await waitFor(() =>
+      expect(impl).toHaveBeenCalledWith('/diagrams/diagram-1/operations?afterSequence=1'),
+    );
+  });
+
+  it('repaints the canvas through applyRemoteScene when catch-up reports missed operations (LIVE-21)', async () => {
+    const { impl, bootstrapCallCount } = catchUpFetchImpl({
+      operations: [{ sequence: 2, clientMutationId: 'cm-1' }],
+    });
+    await renderConnected(impl);
+    updateSceneSpy.mockClear();
+
+    await reconnect();
+
+    await waitFor(() => expect(bootstrapCallCount()).toBe(2));
+    await waitFor(() => {
+      const sceneCall = updateSceneSpy.mock.calls.find(
+        (call) => (call[0] as { elements?: unknown[] }).elements !== undefined,
+      );
+      if (!sceneCall) throw new Error('expected an updateScene call carrying elements');
+      const { elements } = sceneCall[0] as { elements: SceneElement[] };
+      expect(elements.some((element) => element.id === freshElement.id)).toBe(true);
+    });
+  });
+
+  it('leaves the canvas alone when catch-up reports nothing was missed (LIVE-22)', async () => {
+    const { impl, bootstrapCallCount } = catchUpFetchImpl({ operations: [] });
+    await renderConnected(impl);
+    updateSceneSpy.mockClear();
+
+    await reconnect();
+    await waitFor(() =>
+      expect(impl).toHaveBeenCalledWith('/diagrams/diagram-1/operations?afterSequence=1'),
+    );
+
+    expect(bootstrapCallCount()).toBe(1);
+    expect(
+      updateSceneSpy.mock.calls.filter(
+        (call) => (call[0] as { elements?: unknown[] }).elements !== undefined,
+      ),
+    ).toEqual([]);
+  });
+
+  it('survives a failing catch-up without touching the canvas or the connection (LIVE-20)', async () => {
+    const { impl, bootstrapCallCount } = catchUpFetchImpl({ operations: [], catchUpFails: true });
+    await renderConnected(impl);
+    updateSceneSpy.mockClear();
+
+    await reconnect();
+    await waitFor(() =>
+      expect(impl).toHaveBeenCalledWith('/diagrams/diagram-1/operations?afterSequence=1'),
+    );
+
+    expect(bootstrapCallCount()).toBe(1);
+    expect(screen.getByTestId('presence-connection-status').textContent).toBe(
+      'Presença ao vivo conectada',
+    );
+  });
+});

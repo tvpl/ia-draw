@@ -435,13 +435,13 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `onReconnected` do `PresenceClient` chama `DiagramSyncClient.catchUp()`
-- [ ] Um catch-up com `appliedCount > 0` busca a cena por `bootstrap()` e a aplica por `applyRemoteScene`
-- [ ] Um catch-up com `appliedCount === 0` não busca cena nenhuma e não toca no canvas
-- [ ] O `<EditorSurface/>` nunca é remontado para refletir a cena remota (AD-010)
-- [ ] Uma falha de `catchUp()` ou de `bootstrap()` é capturada, sem propagar para a árvore React
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 4 novos casos passam
+- [x] `onReconnected` do `PresenceClient` chama `DiagramSyncClient.catchUp()`
+- [x] Um catch-up com `appliedCount > 0` busca a cena por `bootstrap()` e a aplica por `applyRemoteScene`
+- [x] Um catch-up com `appliedCount === 0` não busca cena nenhuma e não toca no canvas
+- [x] O `<EditorSurface/>` nunca é remontado para refletir a cena remota (AD-010)
+- [x] Uma falha de `catchUp()` ou de `bootstrap()` é capturada, sem propagar para a árvore React
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 4 novos casos passam
 
 **Tests**: unit
 **Gate**: quick

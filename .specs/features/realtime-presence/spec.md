@@ -234,9 +234,9 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 | LIVE-17 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-18 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-19 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-20 | P1: Reconexão com catch-up | F10 | Pending |
-| LIVE-21 | P1: Reconexão com catch-up | F10 | Pending |
-| LIVE-22 | P1: Reconexão com catch-up | F10 | Pending |
+| LIVE-20 | P1: Reconexão com catch-up | F10 | Implementing |
+| LIVE-21 | P1: Reconexão com catch-up | F10 | Implementing |
+| LIVE-22 | P1: Reconexão com catch-up | F10 | Implementing |
 | LIVE-23 | P1: Reconexão com catch-up | F10 | Implementing |
 | LIVE-24 | P2: Estado da conexão | F10 | Implementing |
 | LIVE-25 | P2: Estado da conexão | F10 | Implementing |

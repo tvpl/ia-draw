@@ -124,6 +124,16 @@ export function DiagramEditorPage(): JSX.Element {
 
   const bootstrapped = initialElements !== null;
 
+  // LIVE-20: the presence socket coming back up is the signal that this client may have
+  // missed operations while it was away. `catchUp()` shipped with `DiagramSyncClient` in
+  // F4 and had no caller anywhere in `apps/web` until here.
+  const handleReconnected = useCallback(() => {
+    void clientRef.current?.catchUp().catch(() => {
+      // Catch-up is best effort: a failure leaves the canvas exactly as it is and
+      // the connection intact, and the next reconnect tries again.
+    });
+  }, []);
+
   // LIVE-06/08: the presence session opens only once bootstrap has resolved, and is torn
   // down (socket + every timer) when the editor unmounts.
   useEffect(() => {
@@ -132,6 +142,7 @@ export function DiagramEditorPage(): JSX.Element {
       diagramId,
       selfUserId: user.id,
       store: presence,
+      onReconnected: handleReconnected,
     });
     presenceClientRef.current = client;
     client.connect();
@@ -140,7 +151,7 @@ export function DiagramEditorPage(): JSX.Element {
       client.close();
       presenceClientRef.current = null;
     };
-  }, [bootstrapped, diagramId, presence, user]);
+  }, [bootstrapped, diagramId, handleReconnected, presence, user]);
 
   // LIVE-10: the same `selection` state `AiDock`/`MetadataPanel` already consume — the
   // outgoing broadcast reuses it rather than adding a second `onSelectionChange` path.
@@ -178,7 +189,29 @@ export function DiagramEditorPage(): JSX.Element {
 
   useEffect(() => {
     if (!diagramId || !user) return;
-    const client = new DiagramSyncClient({ diagramId, queue, status });
+    const client = new DiagramSyncClient({
+      diagramId,
+      queue,
+      status,
+      // LIVE-21/22: `catchUp()` only reports HOW MANY operations the client had
+      // missed — its `operations` are `{sequence, clientMutationId}`, not scene
+      // elements, so nothing there can be applied to the canvas directly. When
+      // it reports at least one, the scene is refetched (the same `bootstrap()`
+      // the approve/restore path already reuses) and fused in through the AD-010
+      // handle. Zero missed operations means nothing to repaint.
+      onReconcile: (report) => {
+        if (report.appliedCount <= 0) return;
+        void (async () => {
+          try {
+            const refreshed = await clientRef.current?.bootstrap();
+            if (refreshed) editorSurfaceRef.current?.applyRemoteScene(refreshed.scene);
+          } catch {
+            // The canvas keeps its current revision; the next reconnect retries.
+            // Never propagates into the React tree.
+          }
+        })();
+      },
+    });
     clientRef.current = client;
     client.setActorId(user.id);
 
