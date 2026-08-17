@@ -294,13 +294,13 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Resolves and displays the current project's name via `GET /projects/:id`; resolves role via `GET /workspaces/:workspaceId`; a 404 on either renders the "not found or no access" message
-- [ ] Lists diagrams from `GET /diagrams?projectId=`, each linking to `/w/:workspaceId/d/:diagramId` (the existing, unmodified editor route)
-- [ ] Create/rename/archive shown only when `role` grants `diagram:write`; creating navigates straight into the new diagram's editor on `201`
-- [ ] Empty project (zero diagrams) renders a simple empty state with the create action, not an error
-- [ ] Back-navigation to `/w/:workspaceId` present
-- [ ] Unit tests cover all bullets above
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Resolves and displays the current project's name via `GET /projects/:id`; resolves role via `GET /workspaces/:workspaceId`; a 404 on either renders the "not found or no access" message
+- [x] Lists diagrams from `GET /diagrams?projectId=`, each linking to `/w/:workspaceId/d/:diagramId` (the existing, unmodified editor route)
+- [x] Create/rename/archive shown only when `role` grants `diagram:write`; creating navigates straight into the new diagram's editor on `201`
+- [x] Empty project (zero diagrams) renders a simple empty state with the create action, not an error
+- [x] Back-navigation to `/w/:workspaceId` present
+- [x] Unit tests cover all bullets above
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
