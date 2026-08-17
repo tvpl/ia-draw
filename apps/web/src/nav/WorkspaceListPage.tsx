@@ -196,12 +196,26 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
 
   const showEmptyState = status === 'ready' && items.length === 0;
 
+  /**
+   * PROV-05/06: the global provider scope is administered by anyone holding
+   * `org_admin` in ANY workspace — exactly the rule the server's
+   * `assertProviderAdmin` applies for `scope === "global"` (this codebase has no
+   * separate org-membership table). `GET /workspaces` already returns the
+   * caller's `role` per workspace, so that answer is derivable here with no new
+   * backend surface.
+   */
+  const canAdministerGlobalProviders = items.some((item) => item.role === 'org_admin');
+
   return (
     <div>
       <h2>{t('nav.workspaces.title')}</h2>
       <div aria-live="polite" data-testid="workspace-announcement">
         {announcement}
       </div>
+
+      {canAdministerGlobalProviders && (
+        <Link to="/admin/ai-providers">{t('adminProviders.globalLink')}</Link>
+      )}
 
       {status === 'error' && <p>{t('nav.error.generic')}</p>}
 

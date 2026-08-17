@@ -372,10 +372,10 @@ T13
 
 **Done when**:
 
-- [ ] Com pelo menos um item `role === 'org_admin'`, o link aparece
-- [ ] Sem nenhum item `role === 'org_admin'`, o link não existe no DOM (asserção de ausência, não de invisibilidade)
-- [ ] Testes em `apps/web/src/nav/WorkspaceListPage.spec.tsx` cobrem PROV-05 e PROV-06
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Com pelo menos um item `role === 'org_admin'`, o link aparece
+- [x] Sem nenhum item `role === 'org_admin'`, o link não existe no DOM (asserção de ausência, não de invisibilidade)
+- [x] Testes em `apps/web/src/nav/WorkspaceListPage.spec.tsx` cobrem PROV-05 e PROV-06
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

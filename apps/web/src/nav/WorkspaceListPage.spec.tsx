@@ -486,3 +486,40 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(bundleCalls).toHaveLength(1);
   });
 });
+
+describe('WorkspaceListPage — global AI provider admin link (PROV-05/06)', () => {
+  it('shows the link when at least one workspace grants org_admin (PROV-05)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        items: [
+          workspaceFixture({ id: 'ws-1', name: 'Alpha', role: 'editor' }),
+          workspaceFixture({ id: 'ws-2', name: 'Beta', role: 'org_admin' }),
+        ],
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Alpha' });
+
+    expect(screen.getByRole('link', { name: 'Providers de IA (global)' })).toHaveProperty(
+      'href',
+      expect.stringContaining('/admin/ai-providers'),
+    );
+  });
+
+  it('omits the link entirely when no workspace grants org_admin (PROV-06)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        items: [
+          workspaceFixture({ id: 'ws-1', name: 'Alpha', role: 'workspace_admin' }),
+          workspaceFixture({ id: 'ws-2', name: 'Beta', role: 'viewer' }),
+        ],
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Alpha' });
+
+    expect(screen.queryByRole('link', { name: 'Providers de IA (global)' })).toBeNull();
+  });
+});
