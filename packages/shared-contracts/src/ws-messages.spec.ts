@@ -49,6 +49,47 @@ describe('ws-messages: per-message-type payload schemas (T72, CLB-01/02)', () =>
     expect(parsed.payload.cursor).toBeNull();
   });
 
+  // LIVE-05 (realtime-presence): `senderId`/`displayName` are populated by the
+  // server on the relay only. The same schema validates both directions, so a
+  // client-sent payload must still parse without them.
+  it('parses a client-sent presence message that carries no senderId or displayName (LIVE-05)', () => {
+    const raw = JSON.stringify(envelope('presence', { status: 'active' }));
+    const parsed = parseWsMessage(raw);
+    if (parsed.type !== 'presence') throw new Error('unreachable');
+    expect(parsed.payload).toEqual({ status: 'active' });
+    expect(parsed.payload.senderId).toBeUndefined();
+    expect(parsed.payload.displayName).toBeUndefined();
+  });
+
+  it('preserves the senderId and displayName the server stamps on a relayed presence message (LIVE-05)', () => {
+    const raw = JSON.stringify(
+      envelope('presence', {
+        cursor: { x: 4, y: 5 },
+        selection: ['el-9'],
+        status: 'active',
+        senderId: USER_ID,
+        displayName: 'Ana',
+      }),
+    );
+    const parsed = parseWsMessage(raw);
+    if (parsed.type !== 'presence') throw new Error('unreachable');
+    expect(parsed.payload.senderId).toBe(USER_ID);
+    expect(parsed.payload.displayName).toBe('Ana');
+  });
+
+  it('rejects a presence senderId that is not a uuid, pointing at the field (LIVE-05)', () => {
+    const raw = JSON.stringify(envelope('presence', { status: 'active', senderId: 'not-a-uuid' }));
+    try {
+      parseWsMessage(raw);
+      throw new Error('expected parseWsMessage to throw');
+    } catch (error) {
+      expect(error).toBeInstanceOf(WsMessageParseError);
+      const parseError = error as WsMessageParseError;
+      expect(parseError.code).toBe('invalid_payload');
+      expect(parseError.field).toBe('payload.senderId');
+    }
+  });
+
   it('rejects a mutation message missing clientMutationId with a structured error pointing at the field', () => {
     const raw = JSON.stringify(
       envelope('mutation', { baseRevision: 3, deltas: [{ elementId: 'a' }] }),

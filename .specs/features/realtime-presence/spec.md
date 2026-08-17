@@ -219,7 +219,7 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 | LIVE-02 | P1: Identidade na retransmissão | F10 | Pending |
 | LIVE-03 | P1: Identidade na retransmissão | F10 | Pending |
 | LIVE-04 | P1: Identidade na retransmissão | F10 | Pending |
-| LIVE-05 | P1: Identidade na retransmissão | F10 | Pending |
+| LIVE-05 | P1: Identidade na retransmissão | F10 | Implementing |
 | LIVE-06 | P1: Sessão de presença | F10 | Pending |
 | LIVE-07 | P1: Sessão de presença | F10 | Pending |
 | LIVE-08 | P1: Sessão de presença | F10 | Pending |

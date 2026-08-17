@@ -101,12 +101,12 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `presencePayloadSchema` aceita `{status:'active'}` sem `senderId`/`displayName` (direção cliente→servidor)
-- [ ] `presencePayloadSchema` aceita e preserva `senderId`/`displayName` quando presentes (direção servidor→cliente)
-- [ ] Um `senderId` que não é UUID é rejeitado com `invalid_payload` por `parseWsMessage`
-- [ ] Comentário no arquivo registra que os campos são preenchidos só pelo servidor e ignorados quando vêm do cliente
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/shared-contracts run test:unit`
-- [ ] Test count: 3 novos casos passam (nenhum existente removido)
+- [x] `presencePayloadSchema` aceita `{status:'active'}` sem `senderId`/`displayName` (direção cliente→servidor)
+- [x] `presencePayloadSchema` aceita e preserva `senderId`/`displayName` quando presentes (direção servidor→cliente)
+- [x] Um `senderId` que não é UUID é rejeitado com `invalid_payload` por `parseWsMessage`
+- [x] Comentário no arquivo registra que os campos são preenchidos só pelo servidor e ignorados quando vêm do cliente
+- [x] Gate check passes: `pnpm --filter @arch-canvas/shared-contracts run test:unit`
+- [x] Test count: 3 novos casos passam (nenhum existente removido)
 
 **Tests**: unit
 **Gate**: quick

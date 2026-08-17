@@ -60,10 +60,24 @@ export type MutationRejectedPayload = z.infer<typeof mutationRejectedPayloadSche
 
 export const presenceStatusSchema = z.enum(['active', 'idle']);
 
+/**
+ * One schema validates BOTH directions of the `presence` message
+ * (`wsPayloadSchemaByType` has one entry per message type, not one per
+ * direction), so `senderId`/`displayName` are optional: a client sends
+ * neither. The server stamps both on every relayed copy (LIVE-01..03) — it
+ * resolves them from the ticket-authenticated connection and NEVER reads
+ * them off an inbound payload, exactly like it already refuses to trust an
+ * `actorId` from the wire on `mutation`. A `senderId` arriving from a client
+ * is therefore ignored, not honored (LIVE-04).
+ */
 export const presencePayloadSchema = z.object({
   cursor: z.object({ x: z.number(), y: z.number() }).nullable().optional(),
   selection: z.array(z.string()).optional(),
   status: presenceStatusSchema,
+  /** Server-populated on relay; ignored when it arrives from a client. */
+  senderId: uuidSchema.optional(),
+  /** Server-populated on relay (`users.display_name`); ignored when it arrives from a client. */
+  displayName: z.string().min(1).optional(),
 });
 export type PresencePayload = z.infer<typeof presencePayloadSchema>;
 
