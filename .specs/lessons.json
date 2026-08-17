@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 31,
+  "next_id": 35,
   "lessons": [
     {
       "id": "L-001",
@@ -546,6 +546,78 @@
       ],
       "created": "2026-08-16T22:27:30Z",
       "last_seen": "2026-08-16T22:27:30Z"
+    },
+    {
+      "id": "L-031",
+      "key": "ac_gap::when an acceptance criterion describes an action on the resource currently being viewed scope a page level action for it per row actions on that resource s children never satisfy it",
+      "text": "When an acceptance criterion describes an action on the resource currently being viewed, scope a page-level action for it - per-row actions on that resource's children never satisfy it.",
+      "signal": "ac_gap",
+      "scope": "ui",
+      "status": "candidate",
+      "features": [
+        "workspace-navigation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "NAV-21 (.specs/features/workspace-navigation/validation.md, P1 Arquivar table) (ui)"
+      ],
+      "created": "2026-08-17T00:45:57Z",
+      "last_seen": "2026-08-17T00:45:57Z"
+    },
+    {
+      "id": "L-032",
+      "key": "ac_gap::keyboard reachability criteria need an explicit tab enter test an axe violations check evidences static accessibility properties only never reachability",
+      "text": "Keyboard-reachability criteria need an explicit Tab/Enter test - an axe violations check evidences static accessibility properties only, never reachability.",
+      "signal": "ac_gap",
+      "scope": "a11y",
+      "status": "candidate",
+      "features": [
+        "workspace-navigation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "NAV-24 (.specs/features/workspace-navigation/validation.md, P2 table) (a11y)"
+      ],
+      "created": "2026-08-17T00:45:57Z",
+      "last_seen": "2026-08-17T00:45:57Z"
+    },
+    {
+      "id": "L-033",
+      "key": "ac_gap::a criterion covering two locales needs a test that renders in the non default locale asserting only the default locale s strings leaves it uncovered",
+      "text": "A criterion covering two locales needs a test that renders in the non-default locale - asserting only the default locale's strings leaves it uncovered.",
+      "signal": "ac_gap",
+      "scope": "i18n",
+      "status": "candidate",
+      "features": [
+        "workspace-navigation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "NAV-26 (.specs/features/workspace-navigation/validation.md, P2 table) (i18n)"
+      ],
+      "created": "2026-08-17T00:45:58Z",
+      "last_seen": "2026-08-17T00:45:58Z"
+    },
+    {
+      "id": "L-034",
+      "key": "spec_precision_gap::when a criterion names two required outcomes assert both a test covering only the first half leaves the criterion partly unevidenced",
+      "text": "When a criterion names two required outcomes, assert both - a test covering only the first half leaves the criterion partly unevidenced.",
+      "signal": "spec_precision_gap",
+      "scope": "tests",
+      "status": "candidate",
+      "features": [
+        "workspace-navigation"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "NAV-18, NAV-25 (.specs/features/workspace-navigation/validation.md) (tests)"
+      ],
+      "created": "2026-08-17T00:45:58Z",
+      "last_seen": "2026-08-17T00:45:58Z"
     }
   ]
 }

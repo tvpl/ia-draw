@@ -194,32 +194,32 @@ arquivar sem mouse.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| NAV-01 | P1: Navegar | F10 | Pending |
-| NAV-02 | P1: Navegar | F10 | Pending |
-| NAV-03 | P1: Navegar | F10 | Pending |
-| NAV-04 | P1: Navegar | F10 | Pending |
-| NAV-05 | P1: Navegar | F10 | Pending |
-| NAV-06 | P1: Criar | F10 | Pending |
-| NAV-07 | P1: Criar | F10 | Pending |
-| NAV-08 | P1: Criar | F10 | Pending |
-| NAV-09 | P1: Criar | F10 | Pending |
-| NAV-10 | P1: Criar | F10 | Pending |
-| NAV-11 | P1: Criar | F10 | Pending |
-| NAV-12 | P1: Criar | F10 | Pending |
-| NAV-13 | P1: Renomear | F10 | Pending |
-| NAV-14 | P1: Renomear | F10 | Pending |
-| NAV-15 | P1: Renomear | F10 | Pending |
-| NAV-16 | P1: Renomear | F10 | Pending |
-| NAV-17 | P1: Arquivar | F10 | Pending |
-| NAV-18 | P1: Arquivar | F10 | Pending |
-| NAV-19 | P1: Arquivar | F10 | Pending |
-| NAV-20 | P1: Arquivar | F10 | Pending |
-| NAV-21 | P1: Arquivar | F10 | Pending |
-| NAV-22 | P1: Primeiro acesso | F10 | Pending |
-| NAV-23 | P1: Primeiro acesso | F10 | Pending |
-| NAV-24 | P2: Teclado e idioma | F10 | Pending |
-| NAV-25 | P2: Teclado e idioma | F10 | Pending |
-| NAV-26 | P2: Teclado e idioma | F10 | Pending |
+| NAV-01 | P1: Navegar | F10 | ✅ Verified |
+| NAV-02 | P1: Navegar | F10 | ✅ Verified |
+| NAV-03 | P1: Navegar | F10 | ✅ Verified |
+| NAV-04 | P1: Navegar | F10 | ✅ Verified |
+| NAV-05 | P1: Navegar | F10 | ✅ Verified |
+| NAV-06 | P1: Criar | F10 | ✅ Verified |
+| NAV-07 | P1: Criar | F10 | ✅ Verified |
+| NAV-08 | P1: Criar | F10 | ✅ Verified |
+| NAV-09 | P1: Criar | F10 | ✅ Verified |
+| NAV-10 | P1: Criar | F10 | ✅ Verified |
+| NAV-11 | P1: Criar | F10 | ✅ Verified |
+| NAV-12 | P1: Criar | F10 | ✅ Verified |
+| NAV-13 | P1: Renomear | F10 | ✅ Verified |
+| NAV-14 | P1: Renomear | F10 | ✅ Verified |
+| NAV-15 | P1: Renomear | F10 | ✅ Verified |
+| NAV-16 | P1: Renomear | F10 | ✅ Verified |
+| NAV-17 | P1: Arquivar | F10 | ✅ Verified |
+| NAV-18 | P1: Arquivar | F10 | ✅ Verified (⚠️ parcial) |
+| NAV-19 | P1: Arquivar | F10 | ✅ Verified |
+| NAV-20 | P1: Arquivar | F10 | ✅ Verified |
+| NAV-21 | P1: Arquivar | F10 | ❌ Needs Fix |
+| NAV-22 | P1: Primeiro acesso | F10 | ✅ Verified |
+| NAV-23 | P1: Primeiro acesso | F10 | ✅ Verified |
+| NAV-24 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
+| NAV-25 | P2: Teclado e idioma | F10 | ✅ Verified (⚠️ parcial) |
+| NAV-26 | P2: Teclado e idioma | F10 | ❌ Needs Fix |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

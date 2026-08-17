@@ -194,6 +194,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/web/src/auth/LoginPage.tsx:115 (mutant M5, SSO-20) (a11y)
 - last seen: 2026-08-16T22:27:30Z
 
+### L-031 - When an acceptance criterion describes an action on the resource currently being viewed, scope a page-level action for it - per-row actions on that resource's children never satisfy it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-21 (.specs/features/workspace-navigation/validation.md, P1 Arquivar table) (ui)
+- last seen: 2026-08-17T00:45:57Z
+
+### L-032 - Keyboard-reachability criteria need an explicit Tab/Enter test - an axe violations check evidences static accessibility properties only, never reachability.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `a11y` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-24 (.specs/features/workspace-navigation/validation.md, P2 table) (a11y)
+- last seen: 2026-08-17T00:45:57Z
+
+### L-033 - A criterion covering two locales needs a test that renders in the non-default locale - asserting only the default locale's strings leaves it uncovered.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `i18n` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-26 (.specs/features/workspace-navigation/validation.md, P2 table) (i18n)
+- last seen: 2026-08-17T00:45:58Z
+
+### L-034 - When a criterion names two required outcomes, assert both - a test covering only the first half leaves the criterion partly unevidenced.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `tests` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-18, NAV-25 (.specs/features/workspace-navigation/validation.md) (tests)
+- last seen: 2026-08-17T00:45:58Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
