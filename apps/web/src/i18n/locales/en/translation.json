@@ -388,5 +388,17 @@
       "presentationTitle": "Presentation: {{name}}",
       "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
     }
+  },
+  "lint": {
+    "title": "Lint",
+    "refresh": "Refresh",
+    "loading": "Loading warnings…",
+    "error": "Couldn't load the lint warnings.",
+    "empty": "No warnings for this diagram.",
+    "jumpToElement": "Jump to element",
+    "elementUnavailable": "removed from canvas",
+    "announce": {
+      "jumped": "Moved focus to element {{elementId}}."
+    }
   }
 }

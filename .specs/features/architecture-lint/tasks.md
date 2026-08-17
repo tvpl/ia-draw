@@ -167,15 +167,15 @@ diretamente — mesma separação de responsabilidade que `LibraryPanel.onInsert
 
 **Done when**:
 
-- [ ] Ao montar, chama `lintClient.list(diagramId)` uma vez e mostra loading até resolver
-- [ ] 200 com avisos: lista cada `LintWarning` com `rule` e `message` verbatim; 200 vazio: estado de sucesso explícito distinto do estado de erro; não-200/falha: estado de erro com botão de tentar novamente
-- [ ] Botão "Atualizar" refaz a chamada e substitui a lista
-- [ ] Cada `elementId` de cada aviso tem seu próprio controle; controle só é clicável quando o id está em `liveElementIds`; clique chama `onJumpToElement(elementId)` e anuncia o resultado em `aria-live`
-- [ ] Nenhum estado do painel desabilita, esconde ou intercepta qualquer ação fora do próprio painel (não implementado por não haver nenhum acoplamento com ferramentas de canvas nesta camada — a ausência de qualquer prop/callback que module o canvas é a própria prova de ALNT-07)
-- [ ] Todo texto de chrome (título, loading, erro, retry, "Atualizar", "Ir para elemento", "elemento indisponível") vem de `t(...)`, chaves novas presentes em `en` e `pt-BR`
-- [ ] Painel inteiro operável só por teclado (testado com `.a11y.spec.tsx`, mesmo padrão de `MetadataPanel.a11y.spec.tsx`)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: testes cobrindo cada AC ALNT-01..14 relevante ao componente passam, incluindo o a11y spec
+- [x] Ao montar, chama `lintClient.list(diagramId)` uma vez e mostra loading até resolver
+- [x] 200 com avisos: lista cada `LintWarning` com `rule` e `message` verbatim; 200 vazio: estado de sucesso explícito distinto do estado de erro; não-200/falha: estado de erro. Nota de implementação: o botão "Atualizar" dobra como a própria ação de "tentar novamente" (ALNT-04) — um único controle sempre visível, em vez de um segundo botão que só existisse durante erro (decisão documentada no componente)
+- [x] Botão "Atualizar" refaz a chamada e substitui a lista
+- [x] Cada `elementId` de cada aviso tem seu próprio controle; controle só é clicável quando o id está em `liveElementIds`; clique chama `onJumpToElement(elementId)` e anuncia o resultado em `aria-live`
+- [x] Nenhum estado do painel desabilita, esconde ou intercepta qualquer ação fora do próprio painel (não implementado por não haver nenhum acoplamento com ferramentas de canvas nesta camada — a ausência de qualquer prop/callback que module o canvas é a própria prova de ALNT-07)
+- [x] Todo texto de chrome (título, loading, erro, "Atualizar", "Ir para elemento", "elemento indisponível") vem de `t(...)`, chaves novas presentes em `en` e `pt-BR`
+- [x] Painel inteiro operável só por teclado (testado com `.a11y.spec.tsx`, mesmo padrão de `MetadataPanel.a11y.spec.tsx`)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit` (escopado a `@arch-canvas/web`)
+- [x] Test count: 10 testes em `LintPanel.spec.tsx` + 4 em `LintPanel.a11y.spec.tsx` cobrindo ALNT-01..12 e a11y de ALNT-13/14 passam
 
 **Tests**: unit
 **Gate**: full

@@ -388,5 +388,17 @@
       "presentationTitle": "Apresentação: {{name}}",
       "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
     }
+  },
+  "lint": {
+    "title": "Lint",
+    "refresh": "Atualizar",
+    "loading": "Carregando avisos…",
+    "error": "Não foi possível carregar os avisos de lint.",
+    "empty": "Nenhum aviso para este diagrama.",
+    "jumpToElement": "Ir para o elemento",
+    "elementUnavailable": "removido do canvas",
+    "announce": {
+      "jumped": "Foco movido para o elemento {{elementId}}."
+    }
   }
 }
