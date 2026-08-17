@@ -3,11 +3,11 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 32
-- Pendentes de produto (`pending-product`): 58
+- Com consumidor de UI (`consumed`): 35
+- Pendentes de produto (`pending-product`): 55
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (32)
+## consumed (35)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -27,6 +27,9 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
+| POST | `/diagrams/:id/share-links` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
+| GET | `/share/:token` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
+| POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | GET | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` | `apps/web/src/nav/webhookClient.ts` |
 | POST | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` | `apps/web/src/nav/webhookClient.ts` |
@@ -44,7 +47,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (58)
+## pending-product (55)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -89,10 +92,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/presentations/:id/frames` | `apps/server/src/modules/presentation/routes.ts` |
 | PATCH | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` |
 | DELETE | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` |
-| POST | `/diagrams/:id/share-links` | `apps/server/src/modules/share/routes.ts` |
 | POST | `/presentations/:id/share-links` | `apps/server/src/modules/share/routes.ts` |
-| GET | `/share/:token` | `apps/server/src/modules/share/routes.ts` |
-| POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` |
 | POST | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/diff` | `apps/server/src/modules/snapshot/routes.ts` |

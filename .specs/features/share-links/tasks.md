@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/share-links/design.md`
-**Status**: Approved
+**Status**: Done
 
 ---
 
@@ -462,10 +462,10 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
-- [ ] `POST /diagrams/:id/share-links`, `GET /share/:token` e `POST /share-links/:id:revoke` deixam de aparecer como `pending-product` no inventário regenerado
-- [ ] A entrada R11 de `.specs/features/platform-maturity/ui-roadmap.md` registra que `POST /presentations/:id/share-links` fica com R12, com a justificativa
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
+- [x] `POST /diagrams/:id/share-links`, `GET /share/:token` e `POST /share-links/:id:revoke` deixam de aparecer como `pending-product` no inventário regenerado
+- [x] A entrada R11 de `.specs/features/platform-maturity/ui-roadmap.md` registra que `POST /presentations/:id/share-links` fica com R12, com a justificativa
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build
