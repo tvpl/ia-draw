@@ -167,18 +167,18 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Emite `GET /diagrams/:id/comments` uma única vez ao montar e exibe as threads devolvidas
-- [ ] Exibe a mensagem de carregando enquanto o `GET` inicial está em voo, e o estado vazio quando a resposta não tem comentário nenhum
-- [ ] Qualquer status diferente de 200 no `GET` deixa a lista vazia e exibe a mensagem de erro genérica
-- [ ] Cada thread exibe a âncora nos três estados de T3 (sem âncora, âncora viva com o `elementId`, âncora removida), sem nunca ocultar um comentário órfão
-- [ ] O campo de novo comentário aparece independentemente de `canMutate`
-- [ ] Enviar fica desabilitado com corpo vazio ou só de espaços
-- [ ] `POST` carrega `elementId` quando há exatamente 1 selecionado; não carrega `elementId` com 0 selecionados; não carrega `elementId` com 2+ selecionados e o painel exibe o aviso de não-ancorado
-- [ ] `201` acrescenta o comentário devolvido à lista, limpa o campo e não dispara um segundo `GET`; `404` exibe a mensagem de "não existe ou sem acesso"; outra falha exibe o erro genérico — nos dois casos de falha nada entra na lista
-- [ ] Um segundo envio durante um envio em voo não emite segunda requisição
-- [ ] Texto já digitado sobrevive a uma mudança de seleção (edge case da spec)
-- [ ] Testes RTL cobrem 1:1 cada bullet acima
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Emite `GET /diagrams/:id/comments` uma única vez ao montar e exibe as threads devolvidas
+- [x] Exibe a mensagem de carregando enquanto o `GET` inicial está em voo, e o estado vazio quando a resposta não tem comentário nenhum
+- [x] Qualquer status diferente de 200 no `GET` deixa a lista vazia e exibe a mensagem de erro genérica
+- [x] Cada thread exibe a âncora nos três estados de T3 (sem âncora, âncora viva com o `elementId`, âncora removida), sem nunca ocultar um comentário órfão
+- [x] O campo de novo comentário aparece independentemente de `canMutate`
+- [x] Enviar fica desabilitado com corpo vazio ou só de espaços
+- [x] `POST` carrega `elementId` quando há exatamente 1 selecionado; não carrega `elementId` com 0 selecionados; não carrega `elementId` com 2+ selecionados e o painel exibe o aviso de não-ancorado
+- [x] `201` acrescenta o comentário devolvido à lista, limpa o campo e não dispara um segundo `GET`; `404` exibe a mensagem de "não existe ou sem acesso"; outra falha exibe o erro genérico — nos dois casos de falha nada entra na lista
+- [x] Um segundo envio durante um envio em voo não emite segunda requisição
+- [x] Texto já digitado sobrevive a uma mudança de seleção (edge case da spec)
+- [x] Testes RTL cobrem 1:1 cada bullet acima
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
