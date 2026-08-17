@@ -11,6 +11,7 @@ import { Link, useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
 import { useAuth } from '../auth/AuthProvider.js';
 import { CommentsSidebar } from '../comments/CommentsSidebar.js';
+import { DocsPanel } from '../docs/DocsPanel.js';
 import { BundleButton } from '../export/BundleButton.js';
 import { ExportMenu } from '../export/ExportMenu.js';
 import { DiffView } from '../history/DiffView.js';
@@ -325,6 +326,18 @@ export function DiagramEditorPage(): JSX.Element {
           <details>
             <summary>{t('metadata.title')}</summary>
             <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
+          </details>
+          {/* living-docs (LDC-01): visible to anyone who reaches this route (`diagram:read` is
+              already implied), same `<details>` convention as Library/Metadata above — generate
+              and per-section regenerate are gated inside DocsPanel itself via `canMutate`, not by
+              hiding the whole panel (unlike ShareLinkPanel below, which IS fully canMutate-gated). */}
+          <details>
+            <summary>{t('docs.title')}</summary>
+            <DocsPanel
+              diagramId={diagramId}
+              canMutate={canMutate}
+              liveElementIds={liveElementIds}
+            />
           </details>
           {/* SHR-01: share-link management is gated on the same `diagram:mutate`
               decision as `AiDock` — the server requires it to create a link at

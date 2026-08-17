@@ -3,11 +3,11 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 35
-- Pendentes de produto (`pending-product`): 55
+- Com consumidor de UI (`consumed`): 38
+- Pendentes de produto (`pending-product`): 52
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (35)
+## consumed (38)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -27,6 +27,9 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
+| POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
+| GET | `/diagrams/:id/specs` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
+| POST | `/diagrams/:id/specs/:version(^[^:]+):regenerate-section` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
 | POST | `/diagrams/:id/share-links` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | GET | `/share/:token` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
@@ -47,7 +50,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (55)
+## pending-product (52)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -61,9 +64,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/me` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/login` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/callback` | `apps/server/src/modules/auth/routes.ts` |
-| POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` |
-| GET | `/diagrams/:id/specs` | `apps/server/src/modules/docgen/routes.ts` |
-| POST | `/diagrams/:id/specs/:version(^[^:]+):regenerate-section` | `apps/server/src/modules/docgen/routes.ts` |
 | POST | `/diagrams/:id/exports` | `apps/server/src/modules/export/routes.ts` |
 | POST | `/diagrams/:id/bundle` | `apps/server/src/modules/export/routes.ts` |
 | POST | `/projects/:id/import` | `apps/server/src/modules/export/routes.ts` |

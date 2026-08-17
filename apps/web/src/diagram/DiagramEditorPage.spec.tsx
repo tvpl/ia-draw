@@ -121,6 +121,11 @@ describe('DiagramEditorPage (T9, integration)', () => {
       if (url === '/diagrams/diagram-1/comments') {
         return Promise.resolve(jsonResponse(200, { comments: [] }));
       }
+      // living-docs (T6): DocsPanel always fetches its version list on mount now that it's
+      // wired in — every test's fetchImpl needs to answer this URL too.
+      if (url === '/diagrams/diagram-1/specs') {
+        return Promise.resolve(jsonResponse(200, { specs: [], nextCursor: null }));
+      }
       if (url === '/diagrams/diagram-1/bootstrap') {
         return Promise.resolve(
           jsonResponse(200, {
@@ -161,12 +166,13 @@ describe('DiagramEditorPage (T9, integration)', () => {
     expect(sidebar.querySelector('[role="tablist"]')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-ai details')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-comments')).not.toBeNull();
-    // T12 (share-links): the library/metadata panels are joined by a third direct
-    // <details> sibling — the share-link panel, gated on the same `canMutate` this
-    // test's bootstrap grants — alongside (not inside) the tabbed panel.
-    expect(sidebar.querySelectorAll(':scope > details')).toHaveLength(3);
-    // A fourth `<details>` overall: AiDock's own internal one, inside the tabbed panel.
-    expect(sidebar.querySelectorAll('details')).toHaveLength(4);
+    // T12 (share-links) + living-docs (T6): the library/metadata panels are joined by two
+    // more direct <details> siblings — DocsPanel (visible to everyone) and the share-link
+    // panel (gated on the same `canMutate` this test's bootstrap grants) — alongside (not
+    // inside) the tabbed panel.
+    expect(sidebar.querySelectorAll(':scope > details')).toHaveLength(4);
+    // A fifth `<details>` overall: AiDock's own internal one, inside the tabbed panel.
+    expect(sidebar.querySelectorAll('details')).toHaveLength(5);
   });
 
   it('full flow: bootstrap -> ai run -> approve -> applyRemoteScene fires only after the approve response resolves (DOCK-13)', async () => {

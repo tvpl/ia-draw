@@ -332,17 +332,28 @@ AC reachable in the real product, not a new AC of its own)
 - Skill: NONE
 
 **Done when**:
-- [ ] `<DocsPanel/>` is mounted inside a new `<details>` block, receiving `diagramId`, `canMutate`,
+- [x] `<DocsPanel/>` is mounted inside a new `<details>` block, receiving `diagramId`, `canMutate`,
       and the same `liveElementIds` memo already computed for `CommentsSidebar`.
-- [ ] Every `basicFetchImpl`/inline fetch mock in `DiagramEditorPage.spec.tsx` that renders far
+- [x] Every `basicFetchImpl`/inline fetch mock in `DiagramEditorPage.spec.tsx` that renders far
       enough for the new `<details>` to mount gains a `GET /diagrams/:id/specs` branch (empty list
       is sufficient unless a specific test needs otherwise) — no test starts throwing "unexpected
-      fetch".
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` is run from the worktree root; its diff to
+      fetch". In practice `docgenClient`'s `list()` never throws (catches internally), so only the
+      one test asserting exact `<details>` counts needed the branch; the rest kept passing
+      unmodified (verified: full `DiagramEditorPage.spec.tsx` suite, 31/31 green).
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` is run from the worktree root; its diff to
       `docs/route-inventory.md` shows only the 3 docgen rows' classification changing (or the file
-      is otherwise regenerated verbatim by the tool, never hand-edited).
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `feat(web): mount DocsPanel in the diagram editor and refresh route inventory`
+      is otherwise regenerated verbatim by the tool, never hand-edited). SPEC_DEVIATION found and
+      fixed here: the first audit run left all 3 routes `pending-product` because `docgenClient.ts`
+      named its local fetch binding `doFetch` — the extractor only recognizes the literal
+      identifiers `fetch(`/`fetchImpl(` (`memberClient.ts` documents this exact constraint).
+      Renamed to `fetchImpl` (T2's own commit predates this discovery, fixed in this task's diff)
+      and restructured `list()`'s cursor branch into two literal template call sites instead of
+      one with a conditionally-empty interpolated suffix, so the extractor's static path-matching
+      resolves both to `/diagrams/:param/specs` correctly. `snapshotClient.ts` has the identical
+      `doFetch` gap and was left untouched (out of scope for this task; noted for whoever picks up
+      route-inventory hygiene next).
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `feat(web): mount DocsPanel in the diagram editor and refresh route inventory`
 
 ---
 
