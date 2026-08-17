@@ -160,8 +160,8 @@ nesta frente.
 | SNAP-09 | P1: Restaurar | T3 | Implementing |
 | SNAP-10 | P1: Restaurar | T3 | Implementing |
 | SNAP-11 | P2: Comparar | T1/T4 | Implementing |
-| SNAP-12 | P2: Comparar | T4 | Pending |
-| SNAP-13 | P2: Comparar | T4 | Pending |
+| SNAP-12 | P2: Comparar | T4 | Implementing |
+| SNAP-13 | P2: Comparar | T4 | Implementing |
 | SNAP-14 | P2: Teclado e idioma | T6 | Pending |
 | SNAP-15 | P2: Teclado e idioma | T6 | Pending |
 | SNAP-16 | P2: Teclado e idioma | T5/T6 | Implementing |

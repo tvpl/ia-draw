@@ -166,10 +166,10 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Seleção de dois pontos da linha do tempo chama `snapshotClient.diff` e exibe as 4 listas (`added`/`removed`/`moved`/`modified`) por `elementId`
-- [ ] 4 listas vazias exibe "nenhuma mudança estrutural", nunca tela em branco
-- [ ] `404` exibe a mensagem de erro sem quebrar o painel
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Seleção de dois pontos da linha do tempo chama `snapshotClient.diff` e exibe as 4 listas (`added`/`removed`/`moved`/`modified`) por `elementId`
+- [x] 4 listas vazias exibe "nenhuma mudança estrutural", nunca tela em branco
+- [x] `404` exibe a mensagem de erro sem quebrar o painel
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
