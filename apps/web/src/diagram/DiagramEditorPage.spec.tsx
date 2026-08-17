@@ -161,9 +161,12 @@ describe('DiagramEditorPage (T9, integration)', () => {
     expect(sidebar.querySelector('[role="tablist"]')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-ai details')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-comments')).not.toBeNull();
-    // The two component-library panels are still direct <details> siblings, alongside
-    // (not inside) the tabbed panel.
-    expect(sidebar.querySelectorAll(':scope > details')).toHaveLength(2);
+    // T12 (share-links): the library/metadata panels are joined by a third direct
+    // <details> sibling — the share-link panel, gated on the same `canMutate` this
+    // test's bootstrap grants — alongside (not inside) the tabbed panel.
+    expect(sidebar.querySelectorAll(':scope > details')).toHaveLength(3);
+    // A fourth `<details>` overall: AiDock's own internal one, inside the tabbed panel.
+    expect(sidebar.querySelectorAll('details')).toHaveLength(4);
   });
 
   it('full flow: bootstrap -> ai run -> approve -> applyRemoteScene fires only after the approve response resolves (DOCK-13)', async () => {
@@ -1351,5 +1354,24 @@ describe('T11 (share-links): the canvas honours the role (SHR-22)', () => {
     renderPage();
 
     await waitFor(() => expect(capturedViewModeEnabled).toBe(false));
+  });
+
+  it('mounts the share-link panel when the role can mutate (T12, SHR-01)', async () => {
+    vi.stubGlobal('fetch', bootstrapWithMutate(true));
+
+    renderPage();
+
+    expect(await screen.findByText('Link de compartilhamento')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Criar link' })).toBeTruthy();
+  });
+
+  it('renders no share-link panel at all when the role cannot mutate (T12, SHR-01)', async () => {
+    vi.stubGlobal('fetch', bootstrapWithMutate(false));
+
+    renderPage();
+
+    await waitFor(() => expect(capturedViewModeEnabled).toBe(true));
+    expect(screen.queryByText('Link de compartilhamento')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Criar link' })).toBeNull();
   });
 });

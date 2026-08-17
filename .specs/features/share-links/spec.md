@@ -239,7 +239,7 @@ abrir a visão pública no mesmo locale.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SHR-01 | P1: Criar link | F10 | Pending |
+| SHR-01 | P1: Criar link | F10 | Implementing |
 | SHR-02 | P1: Criar link | F10 | Implementing |
 | SHR-03 | P1: Criar link | F10 | Implementing |
 | SHR-04 | P1: Criar link | F10 | Implementing |

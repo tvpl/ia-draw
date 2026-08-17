@@ -413,11 +413,11 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Com `mutatePermissions.allowed === true`, o painel de compartilhamento aparece na página
-- [ ] Com `mutatePermissions.allowed === false`, o painel não é renderizado de forma nenhuma
-- [ ] Nenhum painel existente muda de posição ou some (testes existentes continuam passando)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: 2 testes novos passam
+- [x] Com `mutatePermissions.allowed === true`, o painel de compartilhamento aparece na página
+- [x] Com `mutatePermissions.allowed === false`, o painel não é renderizado de forma nenhuma
+- [x] Nenhum painel existente muda de posição ou some (testes existentes continuam passando)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Test count: 2 testes novos passam
 
 **Tests**: unit
 **Gate**: full

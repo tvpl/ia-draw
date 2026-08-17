@@ -21,6 +21,7 @@ import { ConnectionStatus } from '../presence/ConnectionStatus.js';
 import { collaboratorColor } from '../presence/collaboratorColor.js';
 import { PresenceClient } from '../presence/presenceClient.js';
 import { createPresenceStore } from '../presence/presenceStore.js';
+import { ShareLinkPanel } from '../share/ShareLinkPanel.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -325,6 +326,15 @@ export function DiagramEditorPage(): JSX.Element {
             <summary>{t('metadata.title')}</summary>
             <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
           </details>
+          {/* SHR-01: share-link management is gated on the same `diagram:mutate`
+              decision as `AiDock` — the server requires it to create a link at
+              all, so a role that cannot mutate gets no panel, not a disabled one. */}
+          {canMutate && (
+            <details>
+              <summary>{t('share.panelTitle')}</summary>
+              <ShareLinkPanel diagramId={diagramId} canMutate={canMutate} />
+            </details>
+          )}
           {workspaceId && (
             <Link to={`/w/${workspaceId}/d/${diagramId}/inventory`}>{t('inventory.open')}</Link>
           )}
