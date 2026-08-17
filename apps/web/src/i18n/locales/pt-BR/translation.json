@@ -117,7 +117,7 @@
     "save": "Salvar",
     "saved": "Metadados salvos",
     "invalidJson": "Os metadados precisam ser um JSON válido.",
-    "error": "Não foi possível salvar os metadados. Tente novamente."
+    "error": "Não foi possível carregar ou salvar os metadados. Tente novamente."
   },
   "inventory": {
     "title": "Inventário",

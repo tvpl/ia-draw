@@ -193,13 +193,13 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] Busca metadata ao selecionar um único elemento; `404` vira formulário vazio, não erro
-- [ ] Salvar envia `PATCH` e reflete só o valor devolvido pelo servidor
-- [ ] Formulário oculto (só leitura) quando `role` não concede `diagram:write`
-- [ ] Estado "selecione um elemento" quando nada ou múltiplos selecionados
-- [ ] Troca de seleção com edição não salva descarta sem confirmação
-- [ ] Validação client-side de `metadataJson` antes de enviar (JSON inválido nunca chama a rota)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Busca metadata ao selecionar um único elemento; `404` vira formulário vazio, não erro
+- [x] Salvar envia `PATCH` e reflete só o valor devolvido pelo servidor
+- [x] Formulário oculto (só leitura) quando `role` não concede `diagram:write`
+- [x] Estado "selecione um elemento" quando nada ou múltiplos selecionados
+- [x] Troca de seleção com edição não salva descarta sem confirmação
+- [x] Validação client-side de `metadataJson` antes de enviar (JSON inválido nunca chama a rota)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

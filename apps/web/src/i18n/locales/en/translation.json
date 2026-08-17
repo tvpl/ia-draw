@@ -117,7 +117,7 @@
     "save": "Save",
     "saved": "Metadata saved",
     "invalidJson": "Metadata must be valid JSON.",
-    "error": "Couldn't save the metadata. Try again."
+    "error": "Couldn't load or save the metadata. Try again."
   },
   "inventory": {
     "title": "Inventory",
