@@ -133,6 +133,19 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     expect(screen.queryByRole('button', { name: 'Criar projeto' })).toBeNull();
   });
 
+  it('shows a "Membros" link to /w/:workspaceId/members for a viewer, who gets none of the write actions above (MEM-02, T6)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('viewer');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    const membersLink = await screen.findByRole('link', { name: 'Membros' });
+    expect(membersLink).toHaveProperty('href', expect.stringContaining('/w/ws-1/members'));
+  });
+
   it('an empty project list renders a simple empty message, not an error', async () => {
     const fetchImpl = vi.fn(async (url: string) => {
       if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');

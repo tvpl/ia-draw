@@ -2,18 +2,19 @@
 
 Gerado por `repo-tools audit`. Não editar à mão.
 
-- Rotas registradas: 89
-- Com consumidor de UI (`consumed`): 14
-- Pendentes de produto (`pending-product`): 75
+- Rotas registradas: 90
+- Com consumidor de UI (`consumed`): 19
+- Pendentes de produto (`pending-product`): 71
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (14)
+## consumed (19)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
 | POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
+| GET | `/users:lookup` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
 | GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
@@ -25,8 +26,12 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
 | PATCH | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
 | DELETE | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
+| GET | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
+| POST | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
+| PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
+| DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (75)
+## pending-product (71)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -100,10 +105,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | DELETE | `/diagrams/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | GET | `/workspaces` | `apps/server/src/modules/workspace/routes.ts` |
 | POST | `/workspaces` | `apps/server/src/modules/workspace/routes.ts` |
-| GET | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` |
-| POST | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` |
-| PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` |
-| DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` |
 | GET | `/ws/diagrams/:diagramId` | `apps/server/src/modules/ws-gateway/routes.ts` |
 
 ## orphan-consumer (0)

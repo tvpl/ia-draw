@@ -249,6 +249,36 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     expect(screen.getByRole('link', { name: 'Project One' })).toBeTruthy();
   });
 
+  it('/w/:workspaceId/members renders WorkspaceMembersPage inside AppShell chrome (MEM-01, T6)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/workspaces/ws-1/members')
+          return Promise.resolve(
+            jsonResponse(200, {
+              items: [
+                {
+                  userId: 'user-1',
+                  workspaceId: 'ws-1',
+                  role: 'viewer',
+                  email: 'a@b.com',
+                  displayName: 'A',
+                },
+              ],
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/members');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Membros' })).toBeTruthy();
+    expect(screen.getByText('a@b.com')).toBeTruthy();
+  });
+
   it('/w/:workspaceId/p/:projectId renders DiagramListPage inside AppShell chrome', async () => {
     vi.stubGlobal(
       'fetch',

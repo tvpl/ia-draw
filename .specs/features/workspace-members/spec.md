@@ -160,27 +160,27 @@ remover e readicionar.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| MEM-01 | P1: Ver membros | F10 | Pending |
-| MEM-02 | P1: Ver membros | F10 | Pending |
-| MEM-03 | P1: Ver membros | F10 | Pending |
-| MEM-04 | P1: Convidar | F10 | Pending |
-| MEM-05 | P1: Convidar | F10 | Pending |
-| MEM-06 | P1: Convidar | F10 | Pending |
-| MEM-07 | P1: Convidar | F10 | Pending |
-| MEM-08 | P1: Convidar | F10 | Pending |
-| MEM-09 | P1: Convidar | F10 | Pending |
-| MEM-10 | P1: Trocar papel | F10 | Pending |
-| MEM-11 | P1: Trocar papel | F10 | Pending |
-| MEM-12 | P1: Trocar papel | F10 | Pending |
-| MEM-13 | P1: Trocar papel | F10 | Pending |
-| MEM-14 | P1: Remover | F10 | Pending |
-| MEM-15 | P1: Remover | F10 | Pending |
-| MEM-16 | P1: Remover | F10 | Pending |
-| MEM-17 | P1: Remover | F10 | Pending |
-| MEM-18 | P1: Remover | F10 | Pending |
-| MEM-19 | P2: Teclado e idioma | F10 | Pending |
-| MEM-20 | P2: Teclado e idioma | F10 | Pending |
-| MEM-21 | P2: Teclado e idioma | F10 | Pending |
+| MEM-01 | P1: Ver membros | F10 | Implementing |
+| MEM-02 | P1: Ver membros | F10 | Implementing |
+| MEM-03 | P1: Ver membros | F10 | Implementing |
+| MEM-04 | P1: Convidar | F10 | Implementing |
+| MEM-05 | P1: Convidar | F10 | Implementing |
+| MEM-06 | P1: Convidar | F10 | Implementing |
+| MEM-07 | P1: Convidar | F10 | Implementing |
+| MEM-08 | P1: Convidar | F10 | Implementing |
+| MEM-09 | P1: Convidar | F10 | Implementing |
+| MEM-10 | P1: Trocar papel | F10 | Implementing |
+| MEM-11 | P1: Trocar papel | F10 | Implementing |
+| MEM-12 | P1: Trocar papel | F10 | Implementing |
+| MEM-13 | P1: Trocar papel | F10 | Implementing |
+| MEM-14 | P1: Remover | F10 | Implementing |
+| MEM-15 | P1: Remover | F10 | Implementing |
+| MEM-16 | P1: Remover | F10 | Implementing |
+| MEM-17 | P1: Remover | F10 | Implementing |
+| MEM-18 | P1: Remover | F10 | Implementing |
+| MEM-19 | P2: Teclado e idioma | F10 | Implementing |
+| MEM-20 | P2: Teclado e idioma | F10 | Implementing |
+| MEM-21 | P2: Teclado e idioma | F10 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

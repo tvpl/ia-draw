@@ -243,6 +243,7 @@ export function ProjectListPage({
     <div>
       <Link to="/">{t('nav.back')}</Link>
       <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
+      <Link to={`/w/${workspaceId}/members`}>{t('nav.members.link')}</Link>
       {canWriteWorkspace && (
         <button type="button" onClick={requestArchiveWorkspace}>
           {t('nav.workspaces.archiveCurrent')}

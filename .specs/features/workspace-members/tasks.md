@@ -198,10 +198,10 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `/w/:workspaceId/members` renders `WorkspaceMembersPage` inside the same `ProtectedRoute`/`AppShell` chrome as the other nav pages
-- [ ] `ProjectListPage` shows a "Members" link for every role, not just admins
-- [ ] `repo-tools run audit` reflects the 4 original member routes plus the new lookup route as consumed
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `/w/:workspaceId/members` renders `WorkspaceMembersPage` inside the same `ProtectedRoute`/`AppShell` chrome as the other nav pages
+- [x] `ProjectListPage` shows a "Members" link for every role, not just admins
+- [x] `repo-tools run audit` reflects the 4 original member routes plus the new lookup route as consumed
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit (integration-style RTL)
 **Gate**: full
