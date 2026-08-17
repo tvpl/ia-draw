@@ -439,8 +439,8 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Existe um changeset nomeando `@arch-canvas/editor-adapter` com bump `patch` e descrição da prop nova
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Existe um changeset nomeando `@arch-canvas/editor-adapter` com bump `patch` e descrição da prop nova
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build
