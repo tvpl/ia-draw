@@ -33,6 +33,17 @@ export interface EditorSurfaceProps {
    * client-to-scene conversion, since scroll and zoom live inside this component.
    */
   onPointerMove?: (pointer: { x: number; y: number }) => void;
+  /**
+   * Passed straight through to `<Excalidraw viewModeEnabled/>` (SHR-18): `true`
+   * disables local editing entirely — no drawing, dragging or deleting on the
+   * canvas. Omit it to keep Excalidraw's own default (editable), which is what
+   * every consumer predating this prop gets.
+   *
+   * Only the USER's interaction is disabled. The programmatic paths
+   * (`applyRemoteScene`, `insertLibraryItem`) still work; a caller that wants a
+   * strictly read-only surface simply does not call them.
+   */
+  viewModeEnabled?: boolean;
 }
 
 /**
@@ -137,7 +148,13 @@ interface ExcalidrawSceneApi {
  */
 export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>(
   function EditorSurface(
-    { initialElements = [], onDeltas, onSelectionChange, onPointerMove }: EditorSurfaceProps,
+    {
+      initialElements = [],
+      onDeltas,
+      onSelectionChange,
+      onPointerMove,
+      viewModeEnabled,
+    }: EditorSurfaceProps,
     ref,
   ): JSX.Element {
     const previousSceneRef = useRef(buildSceneIndex(initialElements));
@@ -225,6 +242,7 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
 
     return (
       <Excalidraw
+        viewModeEnabled={viewModeEnabled}
         // biome-ignore lint/suspicious/noExplicitAny: bridging SceneElement (this package's structural type) into Excalidraw's branded ExcalidrawInitialDataState without an internal subpath import — see the doc comment above.
         initialData={{ elements: initialElements as any }}
         // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own imperative API type is branded and only importable via an internal subpath.

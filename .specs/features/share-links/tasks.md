@@ -135,12 +135,12 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `<EditorSurface viewModeEnabled />` renderiza `<Excalidraw/>` recebendo `viewModeEnabled === true`
-- [ ] `<EditorSurface viewModeEnabled={false} />` repassa `false`
-- [ ] `<EditorSurface />` sem a prop repassa `undefined` (compatibilidade: nenhum consumidor existente muda de comportamento)
-- [ ] `onDeltas`/`onSelectionChange`/`applyRemoteScene` seguem funcionando (nenhum teste existente de `EditorSurface.spec.tsx` foi tocado)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
-- [ ] Test count: 3 testes novos passam, todos os existentes continuam passando
+- [x] `<EditorSurface viewModeEnabled />` renderiza `<Excalidraw/>` recebendo `viewModeEnabled === true`
+- [x] `<EditorSurface viewModeEnabled={false} />` repassa `false`
+- [x] `<EditorSurface />` sem a prop repassa `undefined` (compatibilidade: nenhum consumidor existente muda de comportamento)
+- [x] `onDeltas`/`onSelectionChange`/`applyRemoteScene` seguem funcionando (nenhum teste existente de `EditorSurface.spec.tsx` foi tocado)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
+- [x] Test count: 3 testes novos passam, todos os existentes continuam passando
 
 **Tests**: unit
 **Gate**: quick
