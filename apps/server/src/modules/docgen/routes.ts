@@ -6,14 +6,14 @@ import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import type { JobQueue } from '../jobs/index.js';
-import type { StorageClient } from '../storage/index.js';
+import { EXPORT_BUCKET, type StorageClient } from '../storage/index.js';
 import { enqueueWebhookEvent } from '../webhook/deliver.js';
 import {
   getDiagramById,
   resolveDiagramWorkspaceId,
   resolveWorkspaceRole,
 } from '../workspace/index.js';
-import { generateSpecDocument, listSpecDocuments } from './generate.js';
+import { generateSpecDocument, listSpecDocuments, type SpecDocumentRow } from './generate.js';
 import { isSectionName, regenerateSpecSection } from './regenerateSection.js';
 
 export interface DocgenModuleDeps {
@@ -33,6 +33,32 @@ function forbidden(): never {
 
 function badRequest(message: string): never {
   throw Object.assign(new Error(message), { statusCode: 400 });
+}
+
+/**
+ * Read URL TTL for a generated spec document's Markdown object (seconds) — same value and same
+ * rationale as `export/routes.ts`'s `EXPORT_URL_TTL_SECONDS`: long enough for a client to fetch
+ * right after the response, short enough not to leak a durable public link.
+ */
+const SPEC_URL_TTL_SECONDS = 3600;
+
+/**
+ * living-docs (LDC-12): none of this module's 3 routes ever returned the generated Markdown
+ * itself, only the `spec_documents` row (`markdownKey` is an internal object-store key, not a
+ * fetchable URL). This attaches a signed, time-limited read URL per row — additive field only,
+ * computed per request, never persisted — mirroring `POST /diagrams/:id/exports`'s exact existing
+ * `formats[...].url` pattern for the same bucket.
+ */
+async function withMarkdownUrl(
+  storage: StorageClient,
+  spec: SpecDocumentRow,
+): Promise<SpecDocumentRow & { markdownUrl: string }> {
+  const markdownUrl = await storage.getSignedUrl(
+    EXPORT_BUCKET,
+    spec.markdownKey,
+    SPEC_URL_TTL_SECONDS,
+  );
+  return { ...spec, markdownUrl };
 }
 
 const diagramIdParamsSchema = z.object({ id: z.string().min(1) });
@@ -103,7 +129,7 @@ export function registerDocgenModule(app: FastifyInstance, deps: DocgenModuleDep
       });
 
       reply.code(201);
-      return { spec };
+      return { spec: await withMarkdownUrl(storage, spec) };
     },
   );
 
@@ -123,7 +149,8 @@ export function registerDocgenModule(app: FastifyInstance, deps: DocgenModuleDep
     if (!decision.allowed) notFound();
 
     const result = await listSpecDocuments(db, diagramId, { cursor, limit });
-    return result;
+    const specs = await Promise.all(result.specs.map((spec) => withMarkdownUrl(storage, spec)));
+    return { specs, nextCursor: result.nextCursor };
   });
 
   app.post(
@@ -163,7 +190,7 @@ export function registerDocgenModule(app: FastifyInstance, deps: DocgenModuleDep
       });
 
       reply.code(201);
-      return { spec };
+      return { spec: await withMarkdownUrl(storage, spec) };
     },
   );
 }

@@ -159,6 +159,10 @@ describe('docgen module — spec generation and listing (T62)', () => {
     const { spec } = response.json();
     expect(spec.status).toBe('current');
     expect(spec.version).toBe(1);
+    // living-docs (LDC-12): every route attaches a signed read URL for the Markdown object —
+    // additive field, computed from the same `markdownKey`/bucket the storage object was written
+    // under.
+    expect(spec.markdownUrl).toBe(`https://fake-storage.test/${EXPORT_BUCKET}/${spec.markdownKey}`);
 
     const markdown = storage.objects.get(`${EXPORT_BUCKET}/${spec.markdownKey}`);
     expect(markdown).toBeDefined();
@@ -214,6 +218,11 @@ describe('docgen module — spec generation and listing (T62)', () => {
     expect(specs[0].status).toBe('current');
     expect(specs[1].version).toBe(1);
     expect(specs[1].status).toBe('superseded');
+    // living-docs (LDC-12): the list route attaches `markdownUrl` to every row, not just the
+    // single-spec `:generate`/`:regenerate-section` responses.
+    for (const row of specs) {
+      expect(row.markdownUrl).toBe(`https://fake-storage.test/${EXPORT_BUCKET}/${row.markdownKey}`);
+    }
   });
 
   it('reviewer gets 403 on :generate but 200 on GET /specs', async () => {
