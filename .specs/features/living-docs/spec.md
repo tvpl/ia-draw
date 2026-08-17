@@ -192,35 +192,35 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| LDC-01 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-02 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-03 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-04 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-05 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-06 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-07 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-08 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-09 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-10 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-11 | P1: Ver versões e gerar | R13 | Pending |
-| LDC-12 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-13 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-14 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-15 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-16 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-17 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-18 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-19 | P1: Ler conteúdo e referências | R13 | Pending |
-| LDC-20 | P1: Regenerar seção | R13 | Pending |
-| LDC-21 | P1: Regenerar seção | R13 | Pending |
-| LDC-22 | P1: Regenerar seção | R13 | Pending |
-| LDC-23 | P1: Regenerar seção | R13 | Pending |
-| LDC-24 | P1: Regenerar seção | R13 | Pending |
-| LDC-25 | P1: Regenerar seção | R13 | Pending |
-| LDC-26 | P1: Regenerar seção | R13 | Pending |
-| LDC-27 | P1: Regenerar seção | R13 | Pending |
-| LDC-28 | P2: Teclado e idioma | R13 | Pending |
-| LDC-29 | P2: Teclado e idioma | R13 | Pending |
+| LDC-01 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-02 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-03 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-04 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-05 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-06 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-07 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-08 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-09 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-10 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-11 | P1: Ver versões e gerar | R13 | Implementing |
+| LDC-12 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-13 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-14 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-15 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-16 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-17 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-18 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-19 | P1: Ler conteúdo e referências | R13 | Implementing |
+| LDC-20 | P1: Regenerar seção | R13 | Implementing |
+| LDC-21 | P1: Regenerar seção | R13 | Implementing |
+| LDC-22 | P1: Regenerar seção | R13 | Implementing |
+| LDC-23 | P1: Regenerar seção | R13 | Implementing |
+| LDC-24 | P1: Regenerar seção | R13 | Implementing |
+| LDC-25 | P1: Regenerar seção | R13 | Implementing |
+| LDC-26 | P1: Regenerar seção | R13 | Implementing |
+| LDC-27 | P1: Regenerar seção | R13 | Implementing |
+| LDC-28 | P2: Teclado e idioma | R13 | Implementing |
+| LDC-29 | P2: Teclado e idioma | R13 | Implementing |
 | LDC-30 | P2: Teclado e idioma | R13 | Pending |
 
 **ID format:** `LDC-NN`. O prefixo é `LDC` (não `DOC`) porque `DOC-01..04` já nomeia os requisitos

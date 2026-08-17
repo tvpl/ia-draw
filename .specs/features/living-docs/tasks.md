@@ -281,28 +281,31 @@ LDC-12, LDC-18, LDC-19, LDC-22, LDC-23, LDC-24, LDC-25, LDC-26, LDC-27, LDC-28, 
 - Skill: NONE
 
 **Done when**:
-- [ ] Mount effect emits exactly one `GET` (`docgenClient.list`); loading/error/empty states are
+- [x] Mount effect emits exactly one `GET` (`docgenClient.list`); loading/error/empty states are
       distinct (LDC-01..04).
-- [ ] "Carregar mais" appears only when `nextCursor !== null`; clicking appends the next page
+- [x] "Carregar mais" appears only when `nextCursor !== null`; clicking appends the next page
       (LDC-05).
-- [ ] "Gerar documento" appears only under `canMutate`; a `201` prepends+selects without a refetch;
+- [x] "Gerar documento" appears only under `canMutate`; a `201` prepends+selects without a refetch;
       concurrent double-submit is guarded; `403`/other errors are distinguished (LDC-06..11).
-- [ ] Selecting a version fetches `markdownUrl` via plain `fetch`; a later selection's response
+- [x] Selecting a version fetches `markdownUrl` via plain `fetch`; a later selection's response
       always wins over an earlier still-pending one (LDC-12, LDC-18, LDC-19).
-- [ ] `SpecViewer`'s `onRegenerateSection` triggers `docgenClient.regenerateSection` against the
+- [x] `SpecViewer`'s `onRegenerateSection` triggers `docgenClient.regenerateSection` against the
       currently-displayed `current` version; `201` reconciles the list and auto-selects the new
       version; `403`/`404`/other errors leave the displayed version unchanged (LDC-22..27).
-- [ ] All actions keyboard-reachable; every outcome announced in `aria-live="polite"`; new `docs.*`
-      chrome strings added to both locales (LDC-28/29).
-- [ ] Unit tests cover every "Done when" bullet above, including the two race-condition guards
+- [x] All actions keyboard-reachable (plain `<button>`/native focus order — no custom widget);
+      every outcome announced in `aria-live="polite"`; new `docs.*` chrome strings added to both
+      locales (LDC-28/29). Dedicated axe sweep + explicit keyboard-only walkthrough deferred to T7
+      per tasks.md's own split, not re-litigated here.
+- [x] Unit tests cover every "Done when" bullet above, including the two race-condition guards
       (stale content fetch, double-submit) via React Testing Library + mocked `fetchImpl`.
-- [ ] `spec.md`'s Requirement Traceability table: every `LDC-NN` row this task (plus T1-T4) closes
+- [x] `spec.md`'s Requirement Traceability table: every `LDC-NN` row this task (plus T1-T4) closes
       is updated from `Pending` to `Verified` — deferred to the Verifier's pass per this skill's
       convention (`CMT2`/`SNAP` precedent marks `Verified` only after the independent Verifier
       confirms, not by the implementing task itself); this task instead updates `Status` to
-      `Implementing` for every row it closes.
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `feat(web): add DocsPanel — version list, generate, and regenerate wiring`
+      `Implementing` for every row it closes (LDC-01..29; LDC-30 stays `Pending`, exclusive to
+      T7's locale-switch keyboard sweep).
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `feat(web): add DocsPanel — version list, generate, and regenerate wiring`
 
 ---
 
