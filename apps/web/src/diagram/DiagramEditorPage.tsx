@@ -1,6 +1,7 @@
 import {
   EditorSurface,
   type EditorSurfaceHandle,
+  type RemoteCollaborator,
   type SceneElement,
 } from '@arch-canvas/editor-adapter';
 import type { LibraryItem } from '@arch-canvas/library-content';
@@ -16,6 +17,10 @@ import { DiffView } from '../history/DiffView.js';
 import { HistoryPanel } from '../history/HistoryPanel.js';
 import { LibraryPanel } from '../library/LibraryPanel.js';
 import { MetadataPanel } from '../library/MetadataPanel.js';
+import { ConnectionStatus } from '../presence/ConnectionStatus.js';
+import { collaboratorColor } from '../presence/collaboratorColor.js';
+import { PresenceClient } from '../presence/presenceClient.js';
+import { createPresenceStore } from '../presence/presenceStore.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -73,6 +78,15 @@ import { EditorSidePanel } from './EditorSidePanel.js';
  * `AiDock`'s own approve/undo flow — one place calls `applyRemoteScene`, regardless of
  * which action produced the new revision.
  *
+ * LIVE-06..14/24 (realtime-presence): once bootstrap resolves, a `PresenceClient` mints a
+ * ws-ticket and opens `/ws/diagrams/:id`. The local pointer reaches it through
+ * `EditorSurface`'s `onPointerMove` (scene coordinates, from Excalidraw's own
+ * `onPointerUpdate`) and the local selection through the SAME `selection` state
+ * `onSelectionChange` already lifts for `AiDock`/`MetadataPanel` — no second wiring.
+ * Remote cursors go back onto the canvas through `applyCollaborators`, the second method on
+ * the AD-010 imperative handle, never a prop that would re-render `<Excalidraw/>` per cursor
+ * move. `<ConnectionStatus/>` sits next to the existing save-status line.
+ *
  * XPRT-01..06 (export-import): `ExportMenu`/`BundleButton` sit in a small toolbar row at
  * the top of the canvas column, above the canvas itself — both only need `diagram:read`,
  * which reaching this route already implies (bootstrap's own read-permission check), so
@@ -87,6 +101,8 @@ export function DiagramEditorPage(): JSX.Element {
   const { user } = useAuth();
 
   const status = useMemo(() => createSaveStatusStore(), []);
+  const presence = useMemo(() => createPresenceStore(), []);
+  const presenceClientRef = useRef<PresenceClient | null>(null);
   const clientRef = useRef<DiagramSyncClient | null>(null);
   const editorSurfaceRef = useRef<EditorSurfaceHandle>(null);
   const queue = useMemo(
@@ -105,6 +121,60 @@ export function DiagramEditorPage(): JSX.Element {
   const [historyOpen, setHistoryOpen] = useState(false);
 
   useEffect(() => wireForcedFlush(queue), [queue]);
+
+  const bootstrapped = initialElements !== null;
+
+  // LIVE-06/08: the presence session opens only once bootstrap has resolved, and is torn
+  // down (socket + every timer) when the editor unmounts.
+  useEffect(() => {
+    if (!diagramId || !user || !bootstrapped) return;
+    const client = new PresenceClient({
+      diagramId,
+      selfUserId: user.id,
+      store: presence,
+    });
+    presenceClientRef.current = client;
+    client.connect();
+
+    return () => {
+      client.close();
+      presenceClientRef.current = null;
+    };
+  }, [bootstrapped, diagramId, presence, user]);
+
+  // LIVE-10: the same `selection` state `AiDock`/`MetadataPanel` already consume — the
+  // outgoing broadcast reuses it rather than adding a second `onSelectionChange` path.
+  useEffect(() => {
+    presenceClientRef.current?.sendSelection(selection);
+  }, [selection]);
+
+  const remotes = presence((state) => state.remotes);
+
+  // LIVE-13/14: remote presence reaches the canvas through the AD-010 handle only.
+  const hadCollaboratorsRef = useRef(false);
+  useEffect(() => {
+    const entries = Object.values(remotes);
+    // Nobody here and nobody a moment ago: pushing an empty map would be a
+    // pointless `updateScene` on every editor that is simply alone in a diagram.
+    if (entries.length === 0 && !hadCollaboratorsRef.current) return;
+    hadCollaboratorsRef.current = entries.length > 0;
+
+    const collaborators = new Map<string, RemoteCollaborator>(
+      entries.map((entry) => [
+        entry.senderId,
+        {
+          id: entry.senderId,
+          username: entry.displayName,
+          color: collaboratorColor(entry.senderId),
+          ...(entry.cursor
+            ? { pointer: { x: entry.cursor.x, y: entry.cursor.y, tool: 'pointer' as const } }
+            : {}),
+          selectedElementIds: Object.fromEntries(entry.selection.map((id) => [id, true as const])),
+        },
+      ]),
+    );
+    editorSurfaceRef.current?.applyCollaborators(collaborators);
+  }, [remotes]);
 
   useEffect(() => {
     if (!diagramId || !user) return;
@@ -161,6 +231,7 @@ export function DiagramEditorPage(): JSX.Element {
           <p data-testid="save-status">
             {t(saveStatusTranslationKey(kind), { count: pendingCount })}
           </p>
+          <ConnectionStatus store={presence} />
           {/* XPRT-01..06: export/bundle actions — both only need diagram:read, which reaching
               this route already implies (bootstrap's own read-permission check), so no extra
               role gate here. */}
@@ -177,6 +248,7 @@ export function DiagramEditorPage(): JSX.Element {
                 initialElements={initialElements}
                 onDeltas={(deltas) => queue.getState().enqueue(deltas)}
                 onSelectionChange={setSelection}
+                onPointerMove={(pointer) => presenceClientRef.current?.sendCursor(pointer)}
               />
             </div>
           ) : (

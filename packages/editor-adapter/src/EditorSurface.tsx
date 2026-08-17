@@ -26,6 +26,13 @@ export interface EditorSurfaceProps {
   onDeltas?: (deltas: ElementDelta[]) => void;
   /** Called with the ids of the currently-selected elements on every canvas change, including selection-only changes that produce no element delta. */
   onSelectionChange?: (ids: string[]) => void;
+  /**
+   * Called with the local pointer position in SCENE coordinates whenever it moves
+   * over the canvas (LIVE-09). Wired to Excalidraw's own `onPointerUpdate`, which
+   * already reports scene coordinates — the caller must never do its own
+   * client-to-scene conversion, since scroll and zoom live inside this component.
+   */
+  onPointerMove?: (pointer: { x: number; y: number }) => void;
 }
 
 /**
@@ -130,7 +137,7 @@ interface ExcalidrawSceneApi {
  */
 export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>(
   function EditorSurface(
-    { initialElements = [], onDeltas, onSelectionChange }: EditorSurfaceProps,
+    { initialElements = [], onDeltas, onSelectionChange, onPointerMove }: EditorSurfaceProps,
     ref,
   ): JSX.Element {
     const previousSceneRef = useRef(buildSceneIndex(initialElements));
@@ -223,6 +230,12 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
         // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own imperative API type is branded and only importable via an internal subpath.
         excalidrawAPI={(api: any) => {
           apiRef.current = api as ExcalidrawSceneApi;
+        }}
+        // LIVE-09: `pointer` is already in scene coordinates — this is the same
+        // hook Excalidraw's own collaboration integration uses, so no
+        // client-to-scene conversion is duplicated here or in any caller.
+        onPointerUpdate={(payload: { pointer: { x: number; y: number } }) => {
+          onPointerMove?.({ x: payload.pointer.x, y: payload.pointer.y });
         }}
         // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own onChange element/appState types are branded and only importable via an internal subpath.
         onChange={(elements: any, appState: any) => {

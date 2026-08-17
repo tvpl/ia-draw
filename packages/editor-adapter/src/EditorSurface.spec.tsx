@@ -18,6 +18,7 @@ import type { SceneElement } from './types.js';
 // (`reconcileElements`, `restoreElements`, `convertToExcalidrawElements`, ...) stays
 // real, since `applyRemote.ts` and `EditorSurface.tsx` itself both call into them.
 let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefined;
+let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 let addFilesSpy: ReturnType<typeof vi.fn>;
 let getAppStateMock: ReturnType<typeof vi.fn>;
@@ -36,6 +37,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
     ...actual,
     Excalidraw: (props: {
       onChange?: (elements: unknown, appState: unknown) => void;
+      onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
       excalidrawAPI?: (api: {
         updateScene: typeof updateSceneSpy;
         getAppState: typeof getAppStateMock;
@@ -43,6 +45,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
       }) => void;
     }) => {
       capturedOnChange = props.onChange;
+      capturedOnPointerUpdate = props.onPointerUpdate;
       // Mirrors what the real Excalidraw does on mount: hands the caller its imperative API.
       props.excalidrawAPI?.({
         updateScene: updateSceneSpy,
@@ -68,6 +71,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
 
   beforeEach(() => {
     capturedOnChange = undefined;
+    capturedOnPointerUpdate = undefined;
     updateSceneSpy = vi.fn();
     addFilesSpy = vi.fn();
     getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
@@ -230,6 +234,17 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     ];
     expect(sceneData.collaborators.size).toBe(0);
     expect(sceneData.elements).toBeUndefined();
+  });
+
+  it('forwards the scene-coordinate pointer from onPointerUpdate to onPointerMove (LIVE-09)', () => {
+    const onPointerMove = vi.fn();
+    mount({ onPointerMove });
+
+    act(() => {
+      capturedOnPointerUpdate?.({ pointer: { x: 42.5, y: -13 } });
+    });
+
+    expect(onPointerMove).toHaveBeenCalledWith({ x: 42.5, y: -13 });
   });
 
   const INLINE_ITEM: LibraryItem = {

@@ -396,6 +396,7 @@ T12 → T15
 
 **What**: Ciclo de vida do `PresenceClient`, envio de cursor/seleção, entrega do mapa de colaboradores ao canvas e o indicador na coluna do canvas.
 **Where**: `apps/web/src/diagram/DiagramEditorPage.tsx`
+**Deviation (recorded during Execute)**: also touches `packages/editor-adapter/src/EditorSurface.tsx` — the local pointer has to reach the wire in SCENE coordinates, and scroll/zoom live inside the adapter. The adapter gained a small additive `onPointerMove` prop wired to Excalidraw's public `onPointerUpdate` (which already reports scene coordinates), instead of every caller duplicating a viewport conversion it has no state for.
 **Depends on**: T3, T8, T9, T10
 **Reuses**: o `selection` já levantado por `onSelectionChange` (não duplica a fiação); o `editorSurfaceRef` de AD-010; `useAuth()` como única fonte de identidade (AD-011)
 **Requirement**: LIVE-06, LIVE-08, LIVE-09, LIVE-10, LIVE-13, LIVE-24
@@ -405,14 +406,14 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] O `PresenceClient` é criado depois que o bootstrap resolve e fechado no unmount
-- [ ] Movimento de ponteiro sobre o wrapper do canvas chama `sendCursor`
-- [ ] Mudança de seleção chama `sendSelection` reusando o `selection` já existente
-- [ ] Uma presença remota recebida chega ao canvas por `applyCollaborators`
-- [ ] `<ConnectionStatus/>` renderiza na coluna do canvas
-- [ ] Testes RTL com `WebSocket` fake global cobrem: URL aberta com o ticket, colaborador remoto chegando a `updateScene`, e fechamento no unmount
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 4 novos casos passam (nenhum existente removido)
+- [x] O `PresenceClient` é criado depois que o bootstrap resolve e fechado no unmount
+- [x] Movimento de ponteiro sobre o canvas chama `sendCursor` com coordenadas de cena (via o `onPointerMove` novo do `EditorSurface`)
+- [x] Mudança de seleção chama `sendSelection` reusando o `selection` já existente
+- [x] Uma presença remota recebida chega ao canvas por `applyCollaborators`
+- [x] `<ConnectionStatus/>` renderiza na coluna do canvas
+- [x] Testes RTL com `WebSocket` fake global cobrem: URL aberta com o ticket, colaborador remoto chegando a `updateScene`, e fechamento no unmount
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 4 novos casos passam (nenhum existente removido)
 
 **Tests**: unit
 **Gate**: quick

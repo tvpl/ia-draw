@@ -8,6 +8,8 @@ import { AuthProvider } from '../auth/AuthProvider.js';
 // language is pt-BR (`DEFAULT_LANGUAGE`), so assertions below query the pt-BR strings
 // ("Enviar", "Aprovar", ...) unless a test explicitly switches locale (T8/CLIB-18/SNAP-16).
 import i18n from '../i18n/index.js';
+import { collaboratorColor } from '../presence/collaboratorColor.js';
+import { FakeSocket } from '../presence/fakeSocket.js';
 import { DiagramEditorPage } from './DiagramEditorPage.js';
 
 // The real `<Excalidraw/>` needs browser APIs jsdom doesn't implement — same mocking
@@ -15,6 +17,7 @@ import { DiagramEditorPage } from './DiagramEditorPage.js';
 // `Excalidraw` export is replaced, everything else (`reconcileElements`, etc.) stays real
 // since `applyRemote`/`EditorSurface` call into it.
 let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefined;
+let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 
 vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
@@ -23,9 +26,11 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
     ...actual,
     Excalidraw: (props: {
       onChange?: (elements: unknown, appState: unknown) => void;
+      onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
       excalidrawAPI?: (api: { updateScene: typeof updateSceneSpy }) => void;
     }) => {
       capturedOnChange = props.onChange;
+      capturedOnPointerUpdate = props.onPointerUpdate;
       props.excalidrawAPI?.({ updateScene: updateSceneSpy });
       return null;
     },
@@ -952,5 +957,190 @@ describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
         'No snapshots yet. Automatic snapshots appear as you edit the diagram.',
       ),
     ).toBeTruthy();
+  });
+});
+
+describe('DiagramEditorPage realtime presence (T12, LIVE-06..14/24)', () => {
+  beforeEach(() => {
+    capturedOnChange = undefined;
+    capturedOnPointerUpdate = undefined;
+    updateSceneSpy = vi.fn();
+    FakeSocket.reset();
+    vi.stubGlobal('WebSocket', FakeSocket);
+  });
+
+  afterEach(async () => {
+    cleanup();
+    vi.unstubAllGlobals();
+    await i18n.changeLanguage('pt-BR');
+  });
+
+  const SELF_ID = 'user-1';
+  const PEER_ID = '1cb2b6a0-98c1-4e0c-9d1f-2b3c4d5e6f73';
+  const WS_DIAGRAM_ID = '4fa2b6a0-98c1-4e0c-9d1f-2b3c4d5e6f70';
+
+  function presenceFetchImpl(): typeof fetch {
+    return vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: SELF_ID } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/ws-ticket' && init?.method === 'POST') {
+        return Promise.resolve(
+          jsonResponse(200, { ticket: 'ws-ticket-1', expiresAt: '2026-08-17T12:00:30.000Z' }),
+        );
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === `/diagrams/diagram-1/elements/${baseElement.id}/metadata`) {
+        return Promise.resolve(jsonResponse(404, {}));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  function peerPresenceFrame(payload: Record<string, unknown>): string {
+    return JSON.stringify({
+      protocolVersion: 1,
+      diagramId: WS_DIAGRAM_ID,
+      messageId: '7cb2b6a0-98c1-4e0c-9d1f-2b3c4d5e6f71',
+      sentAt: '2026-08-17T12:00:00.000Z',
+      type: 'presence',
+      payload,
+    });
+  }
+
+  it('opens the ws route with a freshly minted ticket once bootstrap resolves (LIVE-06)', async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    renderPage();
+    await waitFor(() => expect(FakeSocket.instances).toHaveLength(1));
+
+    expect(FakeSocket.last?.url).toBe(
+      'ws://localhost:3000/ws/diagrams/diagram-1?ticket=ws-ticket-1',
+    );
+  });
+
+  it('shows the connection status, moving from connecting to connected when the socket opens (LIVE-24)', async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    renderPage();
+    expect((await screen.findByTestId('presence-connection-status')).textContent).toBe(
+      'Conectando à presença ao vivo…',
+    );
+
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+
+    expect(screen.getByTestId('presence-connection-status').textContent).toBe(
+      'Presença ao vivo conectada',
+    );
+  });
+
+  it("puts a peer's cursor, name, colour and selection onto the canvas (LIVE-13, LIVE-14)", async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    renderPage();
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+    updateSceneSpy.mockClear();
+
+    act(() => {
+      FakeSocket.last?.receive(
+        peerPresenceFrame({
+          senderId: PEER_ID,
+          displayName: 'Ana',
+          cursor: { x: 30, y: 40 },
+          selection: ['el-9'],
+          status: 'active',
+        }),
+      );
+    });
+
+    await waitFor(() => expect(updateSceneSpy).toHaveBeenCalled());
+    const [sceneData] = updateSceneSpy.mock.calls.at(-1) as [
+      { collaborators: Map<string, Record<string, unknown>> },
+    ];
+    expect(sceneData.collaborators.get(PEER_ID)).toEqual({
+      id: PEER_ID,
+      username: 'Ana',
+      color: collaboratorColor(PEER_ID),
+      pointer: { x: 30, y: 40, tool: 'pointer' },
+      selectedElementIds: { 'el-9': true },
+    });
+  });
+
+  it('broadcasts the local pointer in scene coordinates through the throttle (LIVE-09)', async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    renderPage();
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+
+    // Excalidraw's own `onPointerUpdate` already reports scene coordinates — the
+    // page never converts, so whatever it reports is what goes on the wire.
+    act(() => {
+      capturedOnPointerUpdate?.({ pointer: { x: 5, y: 6 } });
+      capturedOnPointerUpdate?.({ pointer: { x: 7, y: 8 } });
+    });
+
+    await waitFor(() => {
+      const payloads = (FakeSocket.last?.sent ?? []).map(
+        (raw) => (JSON.parse(raw) as { payload: Record<string, unknown> }).payload,
+      );
+      expect(payloads).toContainEqual({ cursor: { x: 7, y: 8 }, status: 'active' });
+      // The burst collapsed: the intermediate position never left this client.
+      expect(payloads.filter((payload) => 'cursor' in payload)).toHaveLength(1);
+    });
+  });
+
+  it('broadcasts the local selection reusing the existing onSelectionChange state (LIVE-10)', async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+
+    act(() => {
+      capturedOnChange?.([baseElement], { selectedElementIds: { [baseElement.id]: true } });
+    });
+
+    await waitFor(() => {
+      const payloads = (FakeSocket.last?.sent ?? []).map(
+        (raw) => (JSON.parse(raw) as { payload: Record<string, unknown> }).payload,
+      );
+      expect(payloads).toContainEqual({ selection: [baseElement.id], status: 'active' });
+    });
+  });
+
+  it('closes the socket when the editor unmounts (LIVE-08)', async () => {
+    vi.stubGlobal('fetch', presenceFetchImpl());
+
+    const { unmount } = renderPage();
+    await waitFor(() => expect(FakeSocket.last).toBeDefined());
+    act(() => {
+      FakeSocket.last?.open();
+    });
+    const socket = FakeSocket.last;
+
+    unmount();
+
+    expect(socket?.readyState).toBe(3);
   });
 });
