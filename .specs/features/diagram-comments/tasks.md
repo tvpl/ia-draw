@@ -263,12 +263,12 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Recebe `aiPanel: ReactNode | null` e `commentsPanel: ReactNode`; quando `aiPanel` é `null` a aba "IA" não é renderizada
-- [ ] Exatamente um `tabpanel` visível por vez; o inativo permanece montado com o atributo `hidden` (preserva estado do dock de IA e o texto digitado no comentário)
-- [ ] Aba ativa inicial: "IA" quando há `aiPanel`, "Comentários" quando não há
-- [ ] Semântica ARIA de abas completa (`role`, `aria-selected`, `aria-controls`, `aria-labelledby`), com as abas alcançáveis por teclado
-- [ ] Testes RTL cobrem 1:1 CMT2-01..04, incluindo que o conteúdo do painel inativo sai da árvore de acessibilidade
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Recebe `aiPanel: ReactNode | null` e `commentsPanel: ReactNode`; quando `aiPanel` é `null` a aba "IA" não é renderizada
+- [x] Exatamente um `tabpanel` visível por vez; o inativo permanece montado com o atributo `hidden` (preserva estado do dock de IA e o texto digitado no comentário)
+- [x] Aba ativa inicial: "IA" quando há `aiPanel`, "Comentários" quando não há
+- [x] Semântica ARIA de abas completa (`role`, `aria-selected`, `aria-controls`, `aria-labelledby`), com as abas alcançáveis por teclado
+- [x] Testes RTL cobrem 1:1 CMT2-01..04, incluindo que o conteúdo do painel inativo sai da árvore de acessibilidade
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
