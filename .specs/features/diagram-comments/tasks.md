@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: inline (escopo Medium — sem `design.md` próprio; a tabela de Assumptions da `spec.md` já resolveu as duas decisões arquiteturais reais: painel lateral único com abas em vez de dois painéis docados, e `commentClient.ts` dedicado em vez do `resourceClient` genérico).
-**Status**: Approved
+**Status**: Done (8/8 tasks) — aguardando o Verifier independente
 
 ---
 
@@ -292,13 +292,13 @@ T7 → T8
 
 **Done when**:
 
-- [ ] A linha do editor continua com 2 filhos: a coluna do canvas (`flex:1`/`minHeight:0` inalterados) e a coluna lateral
-- [ ] `CommentsSidebar` recebe `diagramId`, `selection` e os ids derivados de `initialElements`
-- [ ] Com `mutatePermissions.allowed: false` não existe aba nem dock de IA, e o painel de comentários é o ativo
-- [ ] A asserção de layout existente em `DiagramEditorPage.spec.tsx` é **atualizada** para o novo layout (mesma precisão, nada afrouxado); nenhum outro teste do arquivo é alterado e nenhum é removido
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` regenera `docs/route-inventory.md` com as 3 rotas de comentário em `consumed`, e o arquivo regenerado entra no commit
-- [ ] Contagem de testes de `@arch-canvas/web` só cresce em relação ao início da onda
-- [ ] Gate check passa: `make lint && make typecheck && make test-unit`
+- [x] A linha do editor continua com 2 filhos: a coluna do canvas (`flex:1`/`minHeight:0` inalterados) e a coluna lateral
+- [x] `CommentsSidebar` recebe `diagramId`, `selection` e os ids derivados de `initialElements`
+- [x] Com `mutatePermissions.allowed: false` não existe aba nem dock de IA, e o painel de comentários é o ativo
+- [x] A asserção de layout existente em `DiagramEditorPage.spec.tsx` é **atualizada** para o novo layout (mesma precisão, nada afrouxado); nenhum outro teste do arquivo é alterado e nenhum é removido
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` regenera `docs/route-inventory.md` com as 3 rotas de comentário em `consumed`, e o arquivo regenerado entra no commit
+- [x] Contagem de testes de `@arch-canvas/web` só cresce em relação ao início da onda
+- [x] Gate check passa: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit (RTL, integration-style)
 **Gate**: full

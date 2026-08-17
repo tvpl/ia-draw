@@ -211,38 +211,38 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CMT2-01 | P1: Ler comentários | R9 | Pending |
-| CMT2-02 | P1: Ler comentários | R9 | Pending |
-| CMT2-03 | P1: Ler comentários | R9 | Pending |
-| CMT2-04 | P1: Ler comentários | R9 | Pending |
-| CMT2-05 | P1: Ler comentários | R9 | Pending |
-| CMT2-06 | P1: Ler comentários | R9 | Pending |
-| CMT2-07 | P1: Ler comentários | R9 | Pending |
-| CMT2-08 | P1: Ler comentários | R9 | Pending |
-| CMT2-09 | P1: Ler comentários | R9 | Pending |
-| CMT2-10 | P1: Ler comentários | R9 | Pending |
-| CMT2-11 | P1: Comentar | R9 | Pending |
-| CMT2-12 | P1: Comentar | R9 | Pending |
-| CMT2-13 | P1: Comentar | R9 | Pending |
-| CMT2-14 | P1: Comentar | R9 | Pending |
-| CMT2-15 | P1: Comentar | R9 | Pending |
-| CMT2-16 | P1: Comentar | R9 | Pending |
-| CMT2-17 | P1: Comentar | R9 | Pending |
-| CMT2-18 | P1: Comentar | R9 | Pending |
-| CMT2-19 | P1: Comentar | R9 | Pending |
-| CMT2-20 | P1: Resolver e reabrir | R9 | Pending |
-| CMT2-21 | P1: Resolver e reabrir | R9 | Pending |
-| CMT2-22 | P1: Resolver e reabrir | R9 | Pending |
-| CMT2-23 | P1: Resolver e reabrir | R9 | Pending |
-| CMT2-24 | P2: Responder | R9 | Pending |
-| CMT2-25 | P2: Responder | R9 | Pending |
-| CMT2-26 | P2: Responder | R9 | Pending |
-| CMT2-27 | P2: Filtrar e atualizar | R9 | Pending |
-| CMT2-28 | P2: Filtrar e atualizar | R9 | Pending |
-| CMT2-29 | P2: Filtrar e atualizar | R9 | Pending |
-| CMT2-30 | P2: Teclado e idioma | R9 | Pending |
-| CMT2-31 | P2: Teclado e idioma | R9 | Pending |
-| CMT2-32 | P2: Teclado e idioma | R9 | Pending |
+| CMT2-01 | P1: Ler comentários | R9 | Implementing |
+| CMT2-02 | P1: Ler comentários | R9 | Implementing |
+| CMT2-03 | P1: Ler comentários | R9 | Implementing |
+| CMT2-04 | P1: Ler comentários | R9 | Implementing |
+| CMT2-05 | P1: Ler comentários | R9 | Implementing |
+| CMT2-06 | P1: Ler comentários | R9 | Implementing |
+| CMT2-07 | P1: Ler comentários | R9 | Implementing |
+| CMT2-08 | P1: Ler comentários | R9 | Implementing |
+| CMT2-09 | P1: Ler comentários | R9 | Implementing |
+| CMT2-10 | P1: Ler comentários | R9 | Implementing |
+| CMT2-11 | P1: Comentar | R9 | Implementing |
+| CMT2-12 | P1: Comentar | R9 | Implementing |
+| CMT2-13 | P1: Comentar | R9 | Implementing |
+| CMT2-14 | P1: Comentar | R9 | Implementing |
+| CMT2-15 | P1: Comentar | R9 | Implementing |
+| CMT2-16 | P1: Comentar | R9 | Implementing |
+| CMT2-17 | P1: Comentar | R9 | Implementing |
+| CMT2-18 | P1: Comentar | R9 | Implementing |
+| CMT2-19 | P1: Comentar | R9 | Implementing |
+| CMT2-20 | P1: Resolver e reabrir | R9 | Implementing |
+| CMT2-21 | P1: Resolver e reabrir | R9 | Implementing |
+| CMT2-22 | P1: Resolver e reabrir | R9 | Implementing |
+| CMT2-23 | P1: Resolver e reabrir | R9 | Implementing |
+| CMT2-24 | P2: Responder | R9 | Implementing |
+| CMT2-25 | P2: Responder | R9 | Implementing |
+| CMT2-26 | P2: Responder | R9 | Implementing |
+| CMT2-27 | P2: Filtrar e atualizar | R9 | Implementing |
+| CMT2-28 | P2: Filtrar e atualizar | R9 | Implementing |
+| CMT2-29 | P2: Filtrar e atualizar | R9 | Implementing |
+| CMT2-30 | P2: Teclado e idioma | R9 | Implementing |
+| CMT2-31 | P2: Teclado e idioma | R9 | Implementing |
+| CMT2-32 | P2: Teclado e idioma | R9 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
@@ -254,6 +254,9 @@ CMT, DOC, DOCK, DR, EDT, EXP, EXT, FND, GOV, LIB, LNT, MCP, MEM, NAV, OBS, OIDC,
 REC, SEC, SSO, TRU, UIX, VER.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
+
+Todas as 8 tasks estão fechadas; os requisitos ficam em `Implementing` até o Verifier independente
+rodar e virá-los para `Verified` (autor ≠ verificador).
 
 **Coverage:** 32 requisitos, mapeados 1:1 às 32 acceptance criteria das seis histórias.
 

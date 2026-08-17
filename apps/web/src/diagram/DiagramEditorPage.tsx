@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
 import { useAuth } from '../auth/AuthProvider.js';
+import { CommentsSidebar } from '../comments/CommentsSidebar.js';
 import { BundleButton } from '../export/BundleButton.js';
 import { ExportMenu } from '../export/ExportMenu.js';
 import { DiffView } from '../history/DiffView.js';
@@ -18,6 +19,7 @@ import { MetadataPanel } from '../library/MetadataPanel.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
+import { EditorSidePanel } from './EditorSidePanel.js';
 
 /**
  * Route: `/w/:workspaceId/d/:diagramId` (chosen routing shape — workspace-scoped,
@@ -33,7 +35,11 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * (non-reactive) `initialData` is correct on its one and only mount.
  *
  * T9: the layout is a row — this column (status + canvas) as a `flex:1, minHeight:0`
- * child, a sidebar column as its sibling. `canMutate` comes from bootstrap's
+ * child, the side column as its sibling. Since T8 (diagram-comments) that sibling's
+ * AI/Comments half is `<EditorSidePanel/>`, a tabbed container holding `<AiDock/>` and
+ * `<CommentsSidebar/>` instead of the dock alone: two docked panels would eat too much
+ * canvas width, and the comments panel must stay reachable for a role whose bootstrap
+ * denies mutation (CMT2-01..04). `canMutate` comes from bootstrap's
  * `mutatePermissions.allowed` (T1); `selection` comes from `EditorSurface`'s
  * `onSelectionChange` (T2). `AiDock`'s `onApproved` (reused for its undo-success path,
  * design.md) re-runs the SAME `DiagramSyncClient.bootstrap()` already used for the
@@ -43,7 +49,7 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * canvas via `EditorSurface`'s imperative `applyRemoteScene` handle (T3), never before the
  * approve/restore call itself has resolved (DOCK-13/18).
  *
- * T8 (component-library): the sidebar column also hosts `LibraryPanel` and
+ * T8 (component-library): the side column also hosts `LibraryPanel` and
  * `MetadataPanel`, each collapsible via `<details>` (same toggle convention `AiDock`
  * established), plus a link into the inventory route. `canMutate` — the SAME
  * `diagram:mutate` decision `AiDock` already gates on — doubles as the `canWrite` prop
@@ -53,6 +59,9 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * `diagram:write` check without adding one. `LibraryPanel.onInsert` is wired to
  * `EditorSurfaceHandle.insertLibraryItem` via the same `editorSurfaceRef` `applyRemoteScene`
  * already uses (design.md Approach A — no second ref/path onto the canvas, AD-010/EDT-07).
+ * These two panels stay outside `<EditorSidePanel/>` — their collapsed-by-default
+ * `<details>` footprint doesn't compete for canvas width the way two simultaneously-open
+ * docks would, so there's no tab-sharing pressure for them.
  *
  * (history-snapshots T6) A collapsed-by-default history section sits below the row —
  * deliberately outside it, not a third flex child, so it never disturbs the row's own
@@ -136,6 +145,13 @@ export function DiagramEditorPage(): JSX.Element {
   const kind = status((s) => s.kind);
   const pendingCount = status((s) => s.pendingCount);
 
+  // CMT2-09/10: the anchor check runs against the scene this session loaded — the only element-id
+  // set this page already holds without new plumbing into `EditorSurface` (spec.md's Assumptions).
+  const liveElementIds = useMemo(
+    () => (initialElements ?? []).map((element) => element.id),
+    [initialElements],
+  );
+
   if (!diagramId) return <p>Missing diagram id.</p>;
 
   return (
@@ -168,11 +184,24 @@ export function DiagramEditorPage(): JSX.Element {
           )}
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <AiDock
-            diagramId={diagramId}
-            canMutate={canMutate}
-            selection={selection}
-            onApproved={handleApproved}
+          <EditorSidePanel
+            aiPanel={
+              canMutate ? (
+                <AiDock
+                  diagramId={diagramId}
+                  canMutate={canMutate}
+                  selection={selection}
+                  onApproved={handleApproved}
+                />
+              ) : null
+            }
+            commentsPanel={
+              <CommentsSidebar
+                diagramId={diagramId}
+                selection={selection}
+                liveElementIds={liveElementIds}
+              />
+            }
           />
           <details>
             <summary>{t('library.title')}</summary>

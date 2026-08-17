@@ -77,7 +77,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
     await i18n.changeLanguage('pt-BR');
   });
 
-  /** Shared happy-path bootstrap + empty-library fetch, reused by every T8 test below that doesn't need a more specific mock. */
+  /** Shared happy-path bootstrap + empty-library + empty-comments fetch, reused by every T8 test below that doesn't need a more specific mock. */
   function basicFetchImpl(): typeof fetch {
     return vi.fn((url: string) => {
       if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
@@ -96,13 +96,21 @@ describe('DiagramEditorPage (T9, integration)', () => {
       if (url === `/diagrams/diagram-1/elements/${baseElement.id}/metadata`) {
         return Promise.resolve(jsonResponse(404, {}));
       }
+      // CMT2 (diagram-comments): CommentsSidebar always mounts inside EditorSidePanel now,
+      // so it always fetches the comment list on mount, same as the library panel.
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
   }
 
-  it('the layout is a row with the canvas column and AiDock as siblings (unchanged flex:1/minHeight:0 canvas sizing)', async () => {
+  it('the layout is a row with the canvas column and the side column as siblings (unchanged flex:1/minHeight:0 canvas sizing)', async () => {
     const fetchImpl = vi.fn((url: string) => {
       if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       if (url === '/diagrams/diagram-1/bootstrap') {
         return Promise.resolve(
           jsonResponse(200, {
@@ -134,12 +142,18 @@ describe('DiagramEditorPage (T9, integration)', () => {
     // jsdom normalizes the `flex: 1` shorthand into its three longhands.
     expect(canvasColumn.style.flex).toBe('1 1 0%');
     expect(canvasColumn.style.minHeight).toBe('0px');
-    // T8: the row's second child is now a sidebar column hosting AiDock plus the new
-    // LibraryPanel/MetadataPanel panels (each collapsible via <details>), not AiDock
-    // rendered bare — AiDock's own <details> is nested one level inside it.
+    // T8/CMT2: the row's second child is a sidebar column hosting the tabbed AI/Comments
+    // side panel plus the LibraryPanel/MetadataPanel panels (each collapsible via
+    // <details>) — AiDock (still a <details> element) lives inside the tabbed panel's "IA"
+    // tabpanel instead of being this column's direct child.
     const sidebar = row.children[1] as HTMLElement;
     expect(sidebar.tagName).toBe('DIV');
-    expect(sidebar.querySelectorAll('details')).toHaveLength(3);
+    expect(sidebar.querySelector('[role="tablist"]')).not.toBeNull();
+    expect(sidebar.querySelector('#side-panel-ai details')).not.toBeNull();
+    expect(sidebar.querySelector('#side-panel-comments')).not.toBeNull();
+    // The two component-library panels are still direct <details> siblings, alongside
+    // (not inside) the tabbed panel.
+    expect(sidebar.querySelectorAll(':scope > details')).toHaveLength(2);
   });
 
   it('full flow: bootstrap -> ai run -> approve -> applyRemoteScene fires only after the approve response resolves (DOCK-13)', async () => {
@@ -195,6 +209,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
       // every test's fetchImpl needs to answer this URL too, not just the DOCK-specific
       // ones each test already exercises.
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -288,6 +305,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
       // every test's fetchImpl needs to answer this URL too, not just the DOCK-specific
       // ones each test already exercises.
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -369,6 +389,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
       // every test's fetchImpl needs to answer this URL too, not just the DOCK-specific
       // ones each test already exercises.
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -435,6 +458,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
       // every test's fetchImpl needs to answer this URL too, not just the DOCK-specific
       // ones each test already exercises.
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -462,9 +488,63 @@ describe('DiagramEditorPage (T9, integration)', () => {
     expect(bootstrapCalls).toBe(1);
   });
 
+  it('a role denied canvas mutation still gets the comments panel, with no AI tab at all (CMT2-02, CMT2-03, CMT2-11)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            comments: [
+              {
+                id: 'c-1',
+                diagramId: 'diagram-1',
+                elementId: null,
+                frameId: null,
+                parentId: null,
+                body: 'revisor comentou',
+                status: 'open',
+                authorId: 'user-1',
+                createdAt: '2026-08-17T00:00:00.000Z',
+                updatedAt: '2026-08-17T00:00:00.000Z',
+                mentions: [],
+              },
+            ],
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: false, reason: 'role reviewer' },
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    expect(screen.queryByRole('tab', { name: 'IA' })).toBeNull();
+    expect(screen.getByRole('tab', { name: 'Comentários' }).getAttribute('aria-selected')).toBe(
+      'true',
+    );
+    // The composer is reachable, and the diagram's threads are on screen.
+    expect(await screen.findByText('revisor comentou')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Comentar' })).toBeTruthy();
+  });
+
   it('the dock is entirely absent when bootstrap reports mutatePermissions.allowed: false', async () => {
     const fetchImpl = vi.fn((url: string) => {
       if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       if (url === '/diagrams/diagram-1/bootstrap') {
         return Promise.resolve(
           jsonResponse(200, {
@@ -513,6 +593,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
         );
       }
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -585,6 +668,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
         );
       }
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -617,6 +703,9 @@ describe('DiagramEditorPage (T9, integration)', () => {
         );
       }
       if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -727,6 +816,9 @@ describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
       if (url === '/diagrams/diagram-1/snapshots') {
         return Promise.resolve(jsonResponse(200, { snapshots: [] }));
       }
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -795,6 +887,9 @@ describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
           jsonResponse(200, { currentRevision: 2, restoredFromSnapshotId: 'snap-1' }),
         );
       }
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
     vi.stubGlobal('fetch', fetchImpl);
@@ -833,6 +928,9 @@ describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
       }
       if (url === '/diagrams/diagram-1/snapshots') {
         return Promise.resolve(jsonResponse(200, { snapshots: [] }));
+      }
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
       }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
