@@ -410,3 +410,78 @@ describe('PresentationEditorPage — reorder frames (PRZ-13..17)', () => {
     ]);
   });
 });
+
+describe('PresentationEditorPage — prototype navigation links (PRZ-18..21)', () => {
+  it('the target picker never offers the frame being edited itself', async () => {
+    const fetchImpl = baseFetch({ frames: threeFrames });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const firstRow = screen.getByTestId('frame-row-f-1');
+    fireEvent.click(
+      within(firstRow).getByRole('button', { name: 'Links de navegação (protótipo)' }),
+    );
+
+    const select = within(firstRow).getByLabelText('Ir para o frame') as HTMLSelectElement;
+    const optionValues = Array.from(select.options).map((option) => option.value);
+    expect(optionValues).toEqual(['f-2', 'f-3']);
+  });
+
+  it('saving selected targets PATCHes {navLinksJson}', async () => {
+    const fetchImpl = baseFetch({ frames: threeFrames });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const firstRow = screen.getByTestId('frame-row-f-1');
+    fireEvent.click(
+      within(firstRow).getByRole('button', { name: 'Links de navegação (protótipo)' }),
+    );
+
+    const select = within(firstRow).getByLabelText('Ir para o frame') as HTMLSelectElement;
+    const targetOption = Array.from(select.options).find((o) => o.value === 'f-3');
+    if (targetOption) targetOption.selected = true;
+    fireEvent.change(select);
+    fireEvent.click(within(firstRow).getByRole('button', { name: 'Salvar links' }));
+
+    await waitFor(() =>
+      expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1/frames/f-1', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ navLinksJson: [{ targetFrameId: 'f-3' }] }),
+      }),
+    );
+  });
+
+  it('a 400 (target frame no longer exists) shows an error and keeps the previously-saved links displayed', async () => {
+    const withLink = [
+      { ...threeFrames[0], navLinksJson: [{ targetFrameId: 'f-2' }] },
+      threeFrames[1],
+      threeFrames[2],
+    ];
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/presentations/p-1')
+        return jsonResponse(200, { presentation, frames: withLink });
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      if (url === '/presentations/p-1/frames/f-1' && init?.method === 'PATCH') {
+        return jsonResponse(400, {});
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const firstRow = screen.getByTestId('frame-row-f-1');
+    fireEvent.click(
+      within(firstRow).getByRole('button', { name: 'Links de navegação (protótipo)' }),
+    );
+    fireEvent.click(within(firstRow).getByRole('button', { name: 'Salvar links' }));
+
+    expect(
+      await screen.findByText('Um dos links aponta para um frame que não existe mais.'),
+    ).toBeTruthy();
+    // The frame list itself was never touched — still whatever the last successful load held.
+    expect(screen.getByTestId('frame-row-f-1')).toBeTruthy();
+  });
+});

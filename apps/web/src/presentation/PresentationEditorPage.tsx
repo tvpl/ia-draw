@@ -75,6 +75,10 @@ export function PresentationEditorPage({
   const [deleteError, setDeleteError] = useState<string | null>(null);
   const [reorderError, setReorderError] = useState<string | null>(null);
 
+  const [editingNavLinksId, setEditingNavLinksId] = useState<string | null>(null);
+  const [navLinksDraft, setNavLinksDraft] = useState<string[]>([]);
+  const [navLinksError, setNavLinksError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!presentationId) return;
     let cancelled = false;
@@ -206,6 +210,32 @@ export function PresentationEditorPage({
     setAnnouncement(t('presentation.editor.error.generic'));
   }
 
+  function startEditNavLinks(frame: FrameSummary): void {
+    setEditingNavLinksId(frame.id);
+    setNavLinksDraft(frame.navLinksJson.map((link) => link.targetFrameId));
+    setNavLinksError(null);
+  }
+
+  async function saveNavLinks(frameId: string): Promise<void> {
+    if (!presentationId || !frames) return;
+    const result = await client.updateFrame(presentationId, frameId, {
+      navLinksJson: navLinksDraft.map((targetFrameId) => ({ targetFrameId })),
+    });
+    if (result.status === 'ok') {
+      setFrames(frames.map((frame) => (frame.id === frameId ? result.frame : frame)));
+      setEditingNavLinksId(null);
+      setAnnouncement(t('presentation.editor.announcement.navLinksSaved'));
+      return;
+    }
+    // PRZ-20: keep the previously-saved links displayed (`frames` state is untouched) — only
+    // the inline error changes, the target picker stays open with the draft as typed.
+    if (result.status === 'invalid') {
+      setNavLinksError(t('presentation.editor.error.invalidNavLink'));
+    } else {
+      setNavLinksError(t('presentation.editor.error.generic'));
+    }
+  }
+
   if (notFound) {
     return (
       <div>
@@ -294,6 +324,50 @@ export function PresentationEditorPage({
                     {t('presentation.editor.deleteFrame')}
                   </button>
                 )}
+
+                {canMutate &&
+                  (editingNavLinksId === frame.id ? (
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        void saveNavLinks(frame.id);
+                      }}
+                    >
+                      <label>
+                        {t('presentation.editor.navLinksTargetLabel')}
+                        <select
+                          multiple
+                          value={navLinksDraft}
+                          onChange={(event) =>
+                            setNavLinksDraft(
+                              Array.from(event.target.selectedOptions, (option) => option.value),
+                            )
+                          }
+                        >
+                          {/* PRZ-21: a frame never targets itself. */}
+                          {frames
+                            .filter((candidate) => candidate.id !== frame.id)
+                            .map((candidate) => {
+                              const candidateDescriptor = frameLabel(
+                                candidate,
+                                frames.indexOf(candidate) + 1,
+                              );
+                              return (
+                                <option key={candidate.id} value={candidate.id}>
+                                  {t(candidateDescriptor.key, candidateDescriptor.params)}
+                                </option>
+                              );
+                            })}
+                        </select>
+                      </label>
+                      <button type="submit">{t('presentation.editor.navLinksSave')}</button>
+                      {navLinksError && <p>{navLinksError}</p>}
+                    </form>
+                  ) : (
+                    <button type="button" onClick={() => startEditNavLinks(frame)}>
+                      {t('presentation.editor.navLinksTitle')}
+                    </button>
+                  ))}
               </li>
             );
           })}
