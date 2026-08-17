@@ -242,7 +242,7 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | WHK-14 | P1: Revelação única | F10 | ✅ Verified |
 | WHK-15 | P1: Revelação única | F10 | ✅ Verified |
 | WHK-16 | P1: Revelação única | F10 | ✅ Verified |
-| WHK-17 | P1: Revelação única | F10 | ❌ Needs Fix |
+| WHK-17 | P1: Revelação única | F10 | ✅ Verified |
 | WHK-18 | P1: Editar | F10 | ✅ Verified |
 | WHK-19 | P1: Editar | F10 | ✅ Verified |
 | WHK-20 | P1: Editar | F10 | ✅ Verified |
