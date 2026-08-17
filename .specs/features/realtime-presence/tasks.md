@@ -263,17 +263,17 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `connect()` emite `POST /diagrams/:id/ws-ticket` e abre a URL `/ws/diagrams/:id?ticket=<ticket>` pelo `WebSocketImpl` injetado
-- [ ] Uma falha do ticket (não-2xx ou rede) não abre socket e leva a conexão a `disconnected`
-- [ ] `close()` fecha o socket, cancela todos os temporizadores e impede reconexão posterior
-- [ ] Uma mensagem `presence` com `senderId` diferente do usuário logado vira `upsertRemote` com cursor, seleção, nome e `lastSeenAt`
-- [ ] Uma mensagem `presence` sem `senderId` é ignorada
-- [ ] Uma mensagem `presence` com `senderId` igual ao usuário logado é ignorada
-- [ ] Uma mensagem `presence` com `status:'idle'` remove o remetente
-- [ ] Um fechamento de socket limpa o mapa de remotos
-- [ ] Mensagem malformada é descartada sem derrubar a conexão
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 9 casos passam
+- [x] `connect()` emite `POST /diagrams/:id/ws-ticket` e abre a URL `/ws/diagrams/:id?ticket=<ticket>` pelo `WebSocketImpl` injetado
+- [x] Uma falha do ticket (não-2xx ou rede) não abre socket e leva a conexão a `disconnected`
+- [x] `close()` fecha o socket, cancela todos os temporizadores e impede reconexão posterior
+- [x] Uma mensagem `presence` com `senderId` diferente do usuário logado vira `upsertRemote` com cursor, seleção, nome e `lastSeenAt`
+- [x] Uma mensagem `presence` sem `senderId` é ignorada
+- [x] Uma mensagem `presence` com `senderId` igual ao usuário logado é ignorada
+- [x] Uma mensagem `presence` com `status:'idle'` remove o remetente
+- [x] Um fechamento de socket limpa o mapa de remotos
+- [x] Mensagem malformada é descartada sem derrubar a conexão
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 9 casos passam
 
 **Tests**: unit
 **Gate**: quick

@@ -220,24 +220,24 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 | LIVE-03 | P1: Identidade na retransmissão | F10 | Implementing |
 | LIVE-04 | P1: Identidade na retransmissão | F10 | Implementing |
 | LIVE-05 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-06 | P1: Sessão de presença | F10 | Pending |
-| LIVE-07 | P1: Sessão de presença | F10 | Pending |
-| LIVE-08 | P1: Sessão de presença | F10 | Pending |
+| LIVE-06 | P1: Sessão de presença | F10 | Implementing |
+| LIVE-07 | P1: Sessão de presença | F10 | Implementing |
+| LIVE-08 | P1: Sessão de presença | F10 | Implementing |
 | LIVE-09 | P1: Transmitir presença | F10 | Pending |
 | LIVE-10 | P1: Transmitir presença | F10 | Pending |
 | LIVE-11 | P1: Transmitir presença | F10 | Pending |
 | LIVE-12 | P1: Transmitir presença | F10 | Pending |
-| LIVE-13 | P1: Renderizar presença remota | F10 | Pending |
-| LIVE-14 | P1: Renderizar presença remota | F10 | Pending |
+| LIVE-13 | P1: Renderizar presença remota | F10 | Implementing |
+| LIVE-14 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-15 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-16 | P1: Renderizar presença remota | F10 | Pending |
-| LIVE-17 | P1: Renderizar presença remota | F10 | Pending |
-| LIVE-18 | P1: Renderizar presença remota | F10 | Pending |
+| LIVE-16 | P1: Renderizar presença remota | F10 | Implementing |
+| LIVE-17 | P1: Renderizar presença remota | F10 | Implementing |
+| LIVE-18 | P1: Renderizar presença remota | F10 | Implementing |
 | LIVE-19 | P1: Reconexão com catch-up | F10 | Pending |
 | LIVE-20 | P1: Reconexão com catch-up | F10 | Pending |
 | LIVE-21 | P1: Reconexão com catch-up | F10 | Pending |
 | LIVE-22 | P1: Reconexão com catch-up | F10 | Pending |
-| LIVE-23 | P1: Reconexão com catch-up | F10 | Pending |
+| LIVE-23 | P1: Reconexão com catch-up | F10 | Implementing |
 | LIVE-24 | P2: Estado da conexão | F10 | Pending |
 | LIVE-25 | P2: Estado da conexão | F10 | Pending |
 | LIVE-26 | P2: Estado da conexão | F10 | Pending |
