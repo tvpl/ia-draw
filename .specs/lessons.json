@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 40,
+  "next_id": 42,
   "lessons": [
     {
       "id": "L-001",
@@ -708,6 +708,42 @@
       ],
       "created": "2026-08-17T07:01:56Z",
       "last_seen": "2026-08-17T07:01:56Z"
+    },
+    {
+      "id": "L-040",
+      "key": "spec_deviation::a web http client s local fetch binding must be named literally fetchimpl never aliased e g dofetch or repo tools web consumer extractor tools repo tools src webconsumers ts silently fails to detect its routes as consumed in docs route inventory md",
+      "text": "A web HTTP client's local fetch binding must be named literally 'fetchImpl' (never aliased, e.g. 'doFetch') or repo-tools' web-consumer extractor (tools/repo-tools/src/webConsumers.ts) silently fails to detect its routes as consumed in docs/route-inventory.md.",
+      "signal": "spec_deviation",
+      "scope": "repo-tooling",
+      "status": "candidate",
+      "features": [
+        "living-docs"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/docs/docgenClient.ts (T6 fix, commit 02873c5) (repo-tooling)"
+      ],
+      "created": "2026-08-17T10:20:26Z",
+      "last_seen": "2026-08-17T10:20:26Z"
+    },
+    {
+      "id": "L-041",
+      "key": "ac_gap::a transient loading state ac exercised only implicitly on the way to the final assertion never asserted at the moment it is true can pass every test while remaining uncovered assert it explicitly synchronously before the awaited resolution the same way the list s own loading state is asserted",
+      "text": "A transient loading-state AC exercised only implicitly on the way to the final assertion (never asserted at the moment it is true) can pass every test while remaining uncovered - assert it explicitly, synchronously, before the awaited resolution, the same way the list's own loading state is asserted.",
+      "signal": "ac_gap",
+      "scope": "tests",
+      "status": "candidate",
+      "features": [
+        "living-docs"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md LDC-13 (tests)"
+      ],
+      "created": "2026-08-17T10:20:33Z",
+      "last_seen": "2026-08-17T10:20:33Z"
     }
   ]
 }
