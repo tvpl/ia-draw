@@ -117,9 +117,9 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] `list(workspaceId?)` implementado, `GET /libraries?workspaceId=` só quando fornecido
-- [ ] Branch de sucesso (200) e erro genérico (não-2xx) cobertos
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `list(workspaceId?)` implementado, `GET /libraries?workspaceId=` só quando fornecido
+- [x] Branch de sucesso (200) e erro genérico (não-2xx) cobertos
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

@@ -161,7 +161,7 @@ inserir um item, classificar um elemento e ver o inventário sem mouse.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| CLIB-01 | P1: Navegar e inserir | Design | Pending |
+| CLIB-01 | P1: Navegar e inserir | Tasks | Implementing |
 | CLIB-02 | P1: Navegar e inserir | Design | Pending |
 | CLIB-03 | P1: Navegar e inserir | Tasks | Implementing |
 | CLIB-04 | P1: Navegar e inserir | Tasks | Implementing |
