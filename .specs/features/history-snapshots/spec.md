@@ -155,10 +155,10 @@ nesta frente.
 | SNAP-04 | P1: Linha do tempo e criar | T2 | Implementing |
 | SNAP-05 | P1: Linha do tempo e criar | T2 | Implementing |
 | SNAP-06 | P1: Restaurar | T1/T3 | Implementing |
-| SNAP-07 | P1: Restaurar | T3 | Pending |
-| SNAP-08 | P1: Restaurar | T3 | Pending |
-| SNAP-09 | P1: Restaurar | T3 | Pending |
-| SNAP-10 | P1: Restaurar | T3 | Pending |
+| SNAP-07 | P1: Restaurar | T3 | Implementing |
+| SNAP-08 | P1: Restaurar | T3 | Implementing |
+| SNAP-09 | P1: Restaurar | T3 | Implementing |
+| SNAP-10 | P1: Restaurar | T3 | Implementing |
 | SNAP-11 | P2: Comparar | T1/T4 | Implementing |
 | SNAP-12 | P2: Comparar | T4 | Pending |
 | SNAP-13 | P2: Comparar | T4 | Pending |

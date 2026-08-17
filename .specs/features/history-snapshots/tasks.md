@@ -139,12 +139,12 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Diálogo nomeia explicitamente "cria uma revisão nova, nunca apaga revisões intermediárias"
-- [ ] Confirmar gera um `clientMutationId` (`crypto.randomUUID()`) e chama `snapshotClient.restore`
-- [ ] `200` aplica a cena via `applyRemoteScene` (recebido como prop/ref de `DiagramEditorPage`) e exibe a nova `currentRevision`
-- [ ] `404` informa que o snapshot não existe mais e relista
-- [ ] Ação de restaurar oculta quando `role` não concede `diagram:mutate`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Diálogo nomeia explicitamente "cria uma revisão nova, nunca apaga revisões intermediárias"
+- [x] Confirmar gera um `clientMutationId` (`crypto.randomUUID()`) e chama `snapshotClient.restore`
+- [x] `200` aplica a cena via `applyRemoteScene` (recebido como prop/ref de `DiagramEditorPage`) e exibe a nova `currentRevision`
+- [x] `404` informa que o snapshot não existe mais e relista
+- [x] Ação de restaurar oculta quando `role` não concede `diagram:mutate`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

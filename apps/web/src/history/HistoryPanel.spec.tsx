@@ -1,9 +1,14 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { HistoryPanel } from './HistoryPanel.js';
 // Side-effect import — initializes the shared i18next singleton `useTranslation()` reads
 // from. Default language is pt-BR, so assertions below query the pt-BR strings.
 import '../i18n/index.js';
+
+/** No-op `onRestored` for tests that don't exercise the restore flow (T3 adds it). */
+function noopRestored(): Promise<void> {
+  return Promise.resolve();
+}
 
 function jsonResponse(status: number, body: unknown): Response {
   return new Response(JSON.stringify(body), {
@@ -43,7 +48,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={false} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     const rows = await screen.findAllByTestId('history-item');
     expect(rows).toHaveLength(3);
@@ -71,7 +83,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       ),
     ) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={false} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     expect(await screen.findByText('Snapshot sem nome')).toBeTruthy();
   });
@@ -81,7 +100,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS })),
     ) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={false} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     await screen.findAllByTestId('history-item');
     expect(screen.queryByRole('button', { name: 'Criar snapshot' })).toBeNull();
@@ -92,7 +118,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS })),
     ) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={true} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     await screen.findAllByTestId('history-item');
     expect(screen.getByRole('button', { name: 'Criar snapshot' })).not.toBeNull();
@@ -119,7 +152,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={true} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
     await screen.findAllByTestId('history-item');
 
     fireEvent.change(screen.getByLabelText('Nome do snapshot (opcional)'), {
@@ -152,7 +192,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
     }) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={true} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
     await screen.findAllByTestId('history-item');
 
     fireEvent.click(screen.getByRole('button', { name: 'Criar snapshot' }));
@@ -168,7 +215,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
     }) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={true} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
     await screen.findAllByTestId('history-item');
 
     fireEvent.click(screen.getByRole('button', { name: 'Criar snapshot' }));
@@ -182,7 +236,14 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       Promise.resolve(jsonResponse(200, { snapshots: [] })),
     ) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={false} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     expect(
       await screen.findByText(
@@ -197,8 +258,242 @@ describe('HistoryPanel (T2, SNAP-01..05)', () => {
       Promise.resolve(jsonResponse(500, {})),
     ) as unknown as typeof fetch;
 
-    render(<HistoryPanel diagramId="diagram-1" canMutate={false} fetchImpl={fetchImpl} />);
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
 
     expect(await screen.findByText('Não foi possível carregar o histórico.')).toBeTruthy();
+  });
+});
+
+describe('HistoryPanel restore flow (T3, SNAP-06..10)', () => {
+  // jsdom 30.0.1's `HTMLDialogElement` has no `showModal()`/`close()` — same shim as
+  // `ConfirmArchiveDialog.spec.tsx`/`RestoreConfirmDialog.spec.tsx`.
+  beforeAll(() => {
+    const proto = HTMLDialogElement.prototype as unknown as {
+      showModal?: () => void;
+      close?: () => void;
+    };
+    if (!proto.showModal) {
+      proto.showModal = function showModal(this: HTMLDialogElement) {
+        this.setAttribute('open', '');
+      };
+    }
+    if (!proto.close) {
+      proto.close = function close(this: HTMLDialogElement) {
+        this.removeAttribute('open');
+        this.dispatchEvent(new Event('close'));
+      };
+    }
+  });
+
+  it('SNAP-10: the restore action is hidden entirely when canMutate is false', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS })),
+    ) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={false}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+
+    await screen.findAllByTestId('history-item');
+    expect(screen.queryByText('Restaurar')).toBeNull();
+  });
+
+  it('SNAP-06: clicking restore opens a dialog naming that it creates a new revision without deleting anything', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS })),
+    ) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+
+    expect(screen.getByTestId('restore-confirm-confirm')).not.toBeNull();
+    expect(
+      screen.getByText(
+        'Restaurar cria uma revisão nova a partir deste snapshot — nenhuma revisão intermediária é apagada, tudo continua na linha do tempo.',
+      ),
+    ).toBeTruthy();
+  });
+
+  it('SNAP-07/08: confirming restores with a generated clientMutationId, applies via onRestored on 200, and shows the new revision', async () => {
+    const onRestored = vi.fn(async () => {});
+    let restoreBody: unknown;
+    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        restoreBody = init?.body ? JSON.parse(init.body as string) : undefined;
+        return Promise.resolve(
+          jsonResponse(200, { currentRevision: 9, restoredFromSnapshotId: 'snap-3' }),
+        );
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={onRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    await waitFor(() => expect(onRestored).toHaveBeenCalledTimes(1));
+    expect(restoreBody).toMatchObject({
+      clientMutationId: expect.stringMatching(/^[0-9a-f-]{36}$/),
+    });
+    expect(await screen.findByText('Restaurado. Nova revisão: 9.')).toBeTruthy();
+    // The dialog closed after resolving.
+    expect(screen.queryByTestId('restore-confirm-confirm')).toBeNull();
+  });
+
+  it('SNAP-09: a 404 on restore says the snapshot no longer exists and relists, without calling onRestored', async () => {
+    const onRestored = vi.fn(async () => {});
+    let listCalls = 0;
+    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        return Promise.resolve(jsonResponse(404, { title: 'snapshot not found' }));
+      }
+      if (url === '/diagrams/diagram-1/snapshots' && !init) {
+        listCalls += 1;
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={onRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+    expect(listCalls).toBe(1);
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    expect(
+      await screen.findByText('Esse snapshot não existe mais. A lista foi atualizada.'),
+    ).toBeTruthy();
+    expect(onRestored).not.toHaveBeenCalled();
+    await waitFor(() => expect(listCalls).toBe(2));
+  });
+
+  it('edge case: a non-404 restore failure (e.g. 403, role revoked mid-session) shows the failure and never calls onRestored', async () => {
+    const onRestored = vi.fn(async () => {});
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        return Promise.resolve(jsonResponse(403, {}));
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={onRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    expect(await screen.findByText('Não foi possível restaurar o snapshot.')).toBeTruthy();
+    expect(onRestored).not.toHaveBeenCalled();
+  });
+
+  it('edge case: clicking confirm twice before the first response resolves reuses the same clientMutationId', async () => {
+    let resolveRestore: ((response: Response) => void) | undefined;
+    const restoreBodies: unknown[] = [];
+    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        restoreBodies.push(init?.body ? JSON.parse(init.body as string) : undefined);
+        return new Promise<Response>((resolve) => {
+          resolveRestore = resolve;
+        });
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    expect(restoreBodies).toHaveLength(2);
+    const [first, second] = restoreBodies as Array<{ clientMutationId: string }>;
+    expect(first?.clientMutationId).toBe(second?.clientMutationId);
+
+    resolveRestore?.(jsonResponse(200, { currentRevision: 10, restoredFromSnapshotId: 'snap-3' }));
+  });
+
+  it('edge case: an unsaved create-name is preserved across the relist a restore triggers', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        return Promise.resolve(
+          jsonResponse(200, { currentRevision: 9, restoredFromSnapshotId: 'snap-3' }),
+        );
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    fireEvent.change(screen.getByLabelText('Nome do snapshot (opcional)'), {
+      target: { value: 'draft name not yet submitted' },
+    });
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    await waitFor(() => expect(screen.getByText('Restaurado. Nova revisão: 9.')).toBeTruthy());
+    expect((screen.getByLabelText('Nome do snapshot (opcional)') as HTMLInputElement).value).toBe(
+      'draft name not yet submitted',
+    );
   });
 });
