@@ -11,8 +11,8 @@ import { loadConfig } from '../../core/config.js';
 import { buildServer } from '../../core/server.js';
 import { createLocalAccount } from './accounts.js';
 import { SESSION_COOKIE_NAME } from './cookie.js';
-import { createSession } from './session.js';
 import { registerAuthModule } from './routes.js';
+import { createSession } from './session.js';
 
 describe('GET /users:lookup (T1, MEM-04..06)', () => {
   let client: PGlite;

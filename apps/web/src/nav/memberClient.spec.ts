@@ -76,9 +76,7 @@ describe('createMemberClient — lookupByEmail', () => {
 
 describe('createMemberClient — add', () => {
   it('returns {status: "added", member} on 201, POSTing {userId, role}', async () => {
-    const fetchImpl = vi.fn(async () =>
-      jsonResponse(201, { member }),
-    ) as unknown as typeof fetch;
+    const fetchImpl = vi.fn(async () => jsonResponse(201, { member })) as unknown as typeof fetch;
     const client = createMemberClient(fetchImpl);
 
     await expect(client.add('ws-1', 'u-1', 'editor')).resolves.toEqual({
@@ -120,9 +118,7 @@ describe('createMemberClient — add', () => {
 
 describe('createMemberClient — changeRole', () => {
   it('returns {status: "ok"} on 200, PATCHing {role}', async () => {
-    const fetchImpl = vi.fn(async () =>
-      jsonResponse(200, { ok: true }),
-    ) as unknown as typeof fetch;
+    const fetchImpl = vi.fn(async () => jsonResponse(200, { ok: true })) as unknown as typeof fetch;
     const client = createMemberClient(fetchImpl);
 
     await expect(client.changeRole('ws-1', 'u-1', 'viewer')).resolves.toEqual({ status: 'ok' });
