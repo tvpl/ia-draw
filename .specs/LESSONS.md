@@ -242,6 +242,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: Sensor M2 - WorkspaceWebhooksPage.tsx:246 onDismiss no-op survived (apps/web)
 - last seen: 2026-08-17T03:41:31Z
 
+### L-039 - When a test asserts that a user-selected value reaches the request body, pick a value the code could not plausibly hardcode (never the field's default or first option), or an implementation that ignores the user's choice passes unchanged.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `web` · harmful: 0
+- features: share-links
+- evidence: .specs/features/share-links/validation.md:M7 (apps/web/src/share/ShareLinkPanel.spec.tsx:106) (web)
+- last seen: 2026-08-17T07:01:56Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 39,
+  "next_id": 40,
   "lessons": [
     {
       "id": "L-001",
@@ -690,6 +690,24 @@
       ],
       "created": "2026-08-17T03:41:31Z",
       "last_seen": "2026-08-17T03:41:31Z"
+    },
+    {
+      "id": "L-039",
+      "key": "surviving_mutant::when a test asserts that a user selected value reaches the request body pick a value the code could not plausibly hardcode never the field s default or first option or an implementation that ignores the user s choice passes unchanged",
+      "text": "When a test asserts that a user-selected value reaches the request body, pick a value the code could not plausibly hardcode (never the field's default or first option), or an implementation that ignores the user's choice passes unchanged.",
+      "signal": "surviving_mutant",
+      "scope": "web",
+      "status": "candidate",
+      "features": [
+        "share-links"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/share-links/validation.md:M7 (apps/web/src/share/ShareLinkPanel.spec.tsx:106) (web)"
+      ],
+      "created": "2026-08-17T07:01:56Z",
+      "last_seen": "2026-08-17T07:01:56Z"
     }
   ]
 }

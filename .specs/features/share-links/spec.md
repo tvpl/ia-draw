@@ -239,37 +239,37 @@ abrir a visão pública no mesmo locale.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SHR-01 | P1: Criar link | F10 | Implementing |
-| SHR-02 | P1: Criar link | F10 | Implementing |
-| SHR-03 | P1: Criar link | F10 | Implementing |
-| SHR-04 | P1: Criar link | F10 | Implementing |
-| SHR-05 | P1: Criar link | F10 | Implementing |
-| SHR-06 | P1: Criar link | F10 | Implementing |
-| SHR-07 | P1: Criar link | F10 | Implementing |
-| SHR-08 | P1: Revogar link | F10 | Implementing |
-| SHR-09 | P1: Revogar link | F10 | Implementing |
-| SHR-10 | P1: Revogar link | F10 | Implementing |
-| SHR-11 | P1: Revogar link | F10 | Implementing |
-| SHR-12 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-13 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-14 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-15 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-16 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-17 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-18 | P1: Somente leitura de verdade | F10 | Implementing |
-| SHR-19 | P1: Somente leitura de verdade | F10 | Implementing |
-| SHR-20 | P1: Somente leitura de verdade | F10 | Implementing |
-| SHR-21 | P1: Somente leitura de verdade | F10 | Implementing |
-| SHR-22 | P1: Editor autenticado respeita papel | F10 | Implementing |
-| SHR-23 | P1: Token fora do log | F10 | Implementing |
-| SHR-24 | P1: Token fora do log | F10 | Implementing |
-| SHR-25 | P1: Token fora do log | F10 | Implementing |
-| SHR-26 | P1: Token fora do log | F10 | Implementing |
-| SHR-27 | P2: Link de apresentação | F10 | Implementing |
-| SHR-28 | P2: Link de apresentação | F10 | Implementing |
-| SHR-29 | P2: Teclado e idioma | F10 | Implementing |
-| SHR-30 | P2: Teclado e idioma | F10 | Implementing |
-| SHR-31 | P2: Teclado e idioma | F10 | Implementing |
+| SHR-01 | P1: Criar link | F10 | ✅ Verified |
+| SHR-02 | P1: Criar link | F10 | ✅ Verified |
+| SHR-03 | P1: Criar link | F10 | ✅ Verified |
+| SHR-04 | P1: Criar link | F10 | ❌ Needs Fix |
+| SHR-05 | P1: Criar link | F10 | ✅ Verified |
+| SHR-06 | P1: Criar link | F10 | ✅ Verified |
+| SHR-07 | P1: Criar link | F10 | ✅ Verified |
+| SHR-08 | P1: Revogar link | F10 | ✅ Verified |
+| SHR-09 | P1: Revogar link | F10 | ✅ Verified |
+| SHR-10 | P1: Revogar link | F10 | ✅ Verified |
+| SHR-11 | P1: Revogar link | F10 | ✅ Verified |
+| SHR-12 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-13 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-14 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-15 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-16 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-17 | P1: Visão pública sem sessão | F10 | ✅ Verified |
+| SHR-18 | P1: Somente leitura de verdade | F10 | ✅ Verified |
+| SHR-19 | P1: Somente leitura de verdade | F10 | ✅ Verified |
+| SHR-20 | P1: Somente leitura de verdade | F10 | ✅ Verified |
+| SHR-21 | P1: Somente leitura de verdade | F10 | ✅ Verified |
+| SHR-22 | P1: Editor autenticado respeita papel | F10 | ✅ Verified |
+| SHR-23 | P1: Token fora do log | F10 | ✅ Verified |
+| SHR-24 | P1: Token fora do log | F10 | ✅ Verified |
+| SHR-25 | P1: Token fora do log | F10 | ✅ Verified |
+| SHR-26 | P1: Token fora do log | F10 | ✅ Verified |
+| SHR-27 | P2: Link de apresentação | F10 | ✅ Verified |
+| SHR-28 | P2: Link de apresentação | F10 | ✅ Verified |
+| SHR-29 | P2: Teclado e idioma | F10 | ✅ Verified |
+| SHR-30 | P2: Teclado e idioma | F10 | ✅ Verified |
+| SHR-31 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
