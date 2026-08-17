@@ -81,6 +81,31 @@
       "create": "Criar diagrama",
       "empty": "Este projeto ainda não tem diagramas."
     },
+    "members": {
+      "link": "Membros",
+      "title": "Membros",
+      "emailLabel": "E-mail",
+      "roleLabel": "Papel",
+      "roleSelectPlaceholder": "Escolha um papel",
+      "invite": "Convidar",
+      "notFound": "Nenhuma conta encontrada com esse e-mail.",
+      "alreadyMember": "Essa pessoa já é membro deste workspace.",
+      "added": "Membro adicionado.",
+      "remove": "Remover",
+      "removed": "Membro removido.",
+      "roleChanged": "Papel atualizado.",
+      "lastAdminBlock": {
+        "selfRemove": "Você não pode se remover — você é o único admin deste workspace.",
+        "selfDowngrade": "Você não pode trocar seu próprio papel — você é o único admin deste workspace."
+      },
+      "roleOptions": {
+        "orgAdmin": "Admin da organização",
+        "workspaceAdmin": "Admin do workspace",
+        "editor": "Editor",
+        "reviewer": "Revisor",
+        "viewer": "Visualizador"
+      }
+    },
     "rename": "Renomear",
     "renameSave": "Salvar",
     "renameCancel": "Cancelar",

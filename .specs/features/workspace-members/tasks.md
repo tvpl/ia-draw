@@ -121,9 +121,9 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Both locale files have an identical key set under `nav.members`
-- [ ] Includes at minimum: `nav.members.title`, `invite`, `emailLabel`, `roleLabel`, `roleOptions.*` (5 roles), `notFound`, `alreadyMember`, `lastAdminBlock.{selfRemove,selfDowngrade}`, `remove`, `roleChanged`
-- [ ] `make lint` passes
+- [x] Both locale files have an identical key set under `nav.members`
+- [x] Includes at minimum: `nav.members.title`, `invite`, `emailLabel`, `roleLabel`, `roleOptions.*` (5 roles), `notFound`, `alreadyMember`, `lastAdminBlock.{selfRemove,selfDowngrade}`, `remove`, `roleChanged`
+- [x] `make lint` passes
 
 **Tests**: none (build gate only)
 **Gate**: quick (`make lint`)
