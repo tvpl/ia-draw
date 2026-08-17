@@ -83,11 +83,11 @@ T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `list(diagramId)` devolve `SnapshotRow[]` tal como o servidor devolve (`kind`/`name`/`createdAt`)
-- [ ] `create(diagramId, name?)` envia `POST` com/sem `name`, devolve o snapshot criado (`201`)
-- [ ] `restore(diagramId, snapshotId, clientMutationId)` cobre `200`/`404`/`403`
-- [ ] `diff(diagramId, from, to)` devolve `{added, removed, moved, modified}`, cobre `404`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `list(diagramId)` devolve `SnapshotRow[]` tal como o servidor devolve (`kind`/`name`/`createdAt`)
+- [x] `create(diagramId, name?)` envia `POST` com/sem `name`, devolve o snapshot criado (`201`)
+- [x] `restore(diagramId, snapshotId, clientMutationId)` cobre `200`/`404`/`403`
+- [x] `diff(diagramId, from, to)` devolve `{added, removed, moved, modified}`, cobre `404`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
