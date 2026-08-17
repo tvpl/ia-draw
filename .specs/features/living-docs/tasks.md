@@ -162,19 +162,19 @@ client methods those ACs' `POST`/`GET` calls and status branches map onto)
 - Skill: NONE
 
 **Done when**:
-- [ ] `list(diagramId, cursor?)` calls `GET /diagrams/:id/specs` (with `?cursor=` when given),
+- [x] `list(diagramId, cursor?)` calls `GET /diagrams/:id/specs` (with `?cursor=` when given),
       returns `{status:'ok', specs, nextCursor} | {status:'error'}`.
-- [ ] `generate(diagramId)` calls `POST /diagrams/:id/specs:generate`, returns
+- [x] `generate(diagramId)` calls `POST /diagrams/:id/specs:generate`, returns
       `{status:'created', spec} | {status:'forbidden'} | {status:'error'}` (`201`/`403`/other).
-- [ ] `regenerateSection(diagramId, version, section)` calls `POST
+- [x] `regenerateSection(diagramId, version, section)` calls `POST
       /diagrams/:id/specs/:version:regenerate-section` with `{section}`, returns
       `{status:'created', spec} | {status:'forbidden'} | {status:'not_found'} | {status:'error'}`
       (`201`/`403`/`404`/other).
-- [ ] Every method's non-2xx branch never throws — same "never throws on a resolved HTTP response"
+- [x] Every method's non-2xx branch never throws — same "never throws on a resolved HTTP response"
       convention as `snapshotClient.ts`.
-- [ ] Unit tests (`docgenClient.spec.ts`) cover every branch above with a mocked `fetchImpl`.
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `feat(web): add docgenClient for the 3 living-docs routes`
+- [x] Unit tests (`docgenClient.spec.ts`) cover every branch above with a mocked `fetchImpl`.
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `feat(web): add docgenClient for the 3 living-docs routes`
 
 ---
 
