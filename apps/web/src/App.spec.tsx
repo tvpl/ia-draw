@@ -464,6 +464,30 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     const backLink = screen.getByRole('link', { name: 'Voltar' }) as HTMLAnchorElement;
     expect(backLink.getAttribute('href')).toBe('/w/ws-1/d/diag-1');
   });
+
+  it('/w/:workspaceId/d/:diagramId/present renders PresentationListPage, also with no AppShell chrome (presentation-mode/T8)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/diagrams/diag-1/bootstrap') {
+          return Promise.resolve(jsonResponse(200, { mutatePermissions: { allowed: false } }));
+        }
+        if (url === '/presentations?diagramId=diag-1') {
+          return Promise.resolve(jsonResponse(200, { presentations: [] }));
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/d/diag-1/present');
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/w/ws-1/d/diag-1/present'),
+    );
+    expect(await screen.findByRole('heading', { name: 'Apresentações' })).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+  });
 });
 
 describe('T10 (share-links): /share/:token is public — outside AuthProvider (SHR-12, SHR-13)', () => {

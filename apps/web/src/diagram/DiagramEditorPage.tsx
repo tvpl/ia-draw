@@ -338,6 +338,14 @@ export function DiagramEditorPage(): JSX.Element {
           {workspaceId && (
             <Link to={`/w/${workspaceId}/d/${diagramId}/inventory`}>{t('inventory.open')}</Link>
           )}
+          {/* presentation-mode/T8: the ONLY change this file needs for R12 — a single link into
+              the new /present route, same tier as the /inventory link above it. Everything else
+              (frame CRUD, publish, presenter mode) lives entirely on the other side of this link. */}
+          {workspaceId && (
+            <Link to={`/w/${workspaceId}/d/${diagramId}/present`}>
+              {t('presentation.list.title')}
+            </Link>
+          )}
         </div>
       </div>
       <div>
