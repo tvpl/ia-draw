@@ -58,6 +58,37 @@
     "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
     "logout": "Sair"
   },
+  "export": {
+    "menu": {
+      "title": "Exportar",
+      "generate": "Gerar exports",
+      "success": "Exports prontos",
+      "rateLimited": "Muitas solicitações de export — aguarde um momento e tente de novo.",
+      "error": "Não foi possível gerar os exports. Tente novamente.",
+      "format": {
+        "excalidraw": ".excalidraw",
+        "svg": "SVG",
+        "png": "PNG",
+        "pdf": "PDF"
+      }
+    },
+    "bundle": {
+      "button": "Baixar bundle",
+      "loading": "Gerando bundle…",
+      "success": "Bundle pronto",
+      "error": "Não foi possível gerar o bundle. Tente novamente."
+    }
+  },
+  "import": {
+    "trigger": "Importar diagrama",
+    "title": "Importar arquivo .excalidraw",
+    "fileLabel": "Arquivo",
+    "preview": "{{count}} elementos serão importados",
+    "titleLabel": "Título do diagrama",
+    "confirm": "Confirmar import",
+    "cancel": "Cancelar",
+    "success": "Diagrama importado"
+  },
   "nav": {
     "workspaces": {
       "title": "Workspaces",
@@ -67,6 +98,11 @@
       "emptyState": "Você ainda não pertence a nenhum workspace.",
       "emptyStateCta": "Criar seu primeiro workspace",
       "archiveCurrent": "Arquivar este workspace"
+    },
+    "workspaceBundle": {
+      "action": "Solicitar bundle do workspace",
+      "queued": "Bundle solicitado — este produto não mostra quando termina ou onde baixar; trate como item de acompanhamento operacional.",
+      "unavailable": "Solicitações de bundle em lote estão temporariamente indisponíveis."
     },
     "projects": {
       "title": "Projetos",
@@ -122,6 +158,84 @@
       "conflict": "Esse nome já está em uso.",
       "forbidden": "Você não tem permissão para fazer isso.",
       "generic": "Algo deu errado. Tente novamente."
+    }
+  },
+  "library": {
+    "title": "Biblioteca de componentes",
+    "searchLabel": "Buscar componentes",
+    "insert": "Inserir",
+    "inserted": "{{name}} inserido no canvas",
+    "loading": "Carregando biblioteca…",
+    "error": "Não foi possível carregar a biblioteca.",
+    "retry": "Tentar de novo",
+    "emptySearch": "Nenhum componente encontrado para essa busca."
+  },
+  "metadata": {
+    "title": "Metadados do elemento",
+    "emptyState": "Selecione um elemento para ver ou editar seus metadados.",
+    "semanticTypeLabel": "Tipo semântico",
+    "metadataJsonLabel": "Metadados (JSON)",
+    "save": "Salvar",
+    "saved": "Metadados salvos",
+    "invalidJson": "Os metadados precisam ser um JSON válido.",
+    "error": "Não foi possível carregar ou salvar os metadados. Tente novamente."
+  },
+  "inventory": {
+    "title": "Inventário",
+    "open": "Ver inventário",
+    "exportCsv": "Exportar CSV",
+    "empty": "Nenhum elemento foi classificado ainda.",
+    "removed": "Removido do canvas",
+    "columns": {
+      "elementId": "Elemento",
+      "elementType": "Tipo",
+      "semanticType": "Tipo semântico",
+      "revision": "Revisão"
+    },
+    "error": "Não foi possível carregar o inventário."
+  },
+  "history": {
+    "panelToggle": "Histórico",
+    "loading": "Carregando histórico…",
+    "error": "Não foi possível carregar o histórico.",
+    "emptyState": "Nenhum snapshot ainda. Snapshots automáticos aparecem conforme você edita o diagrama.",
+    "kind": {
+      "auto": "Automático",
+      "published": "Publicado",
+      "pre_ai": "Antes da edição por IA",
+      "restore_point": "Ponto de restauração"
+    },
+    "unnamedSnapshot": "Snapshot sem nome",
+    "create": {
+      "nameLabel": "Nome do snapshot (opcional)",
+      "submit": "Criar snapshot",
+      "success": "Snapshot criado.",
+      "error": "Não foi possível criar o snapshot."
+    },
+    "restoreAction": "Restaurar",
+    "restoreConfirm": {
+      "title": "Restaurar este snapshot?",
+      "body": "Restaurar cria uma revisão nova a partir deste snapshot — nenhuma revisão intermediária é apagada, tudo continua na linha do tempo.",
+      "confirm": "Restaurar",
+      "cancel": "Cancelar"
+    },
+    "restore": {
+      "success": "Restaurado. Nova revisão: {{revision}}.",
+      "notFound": "Esse snapshot não existe mais. A lista foi atualizada.",
+      "error": "Não foi possível restaurar o snapshot."
+    },
+    "diff": {
+      "title": "Comparar revisões",
+      "fromLabel": "De",
+      "toLabel": "Para",
+      "compare": "Comparar",
+      "disabledExplanation": "É preciso pelo menos dois pontos na linha do tempo para comparar.",
+      "noChanges": "Nenhuma mudança estrutural entre essas duas revisões.",
+      "added": "Adicionados ({{count}})",
+      "removed": "Removidos ({{count}})",
+      "moved": "Movidos ({{count}})",
+      "modified": "Modificados ({{count}})",
+      "error": "Não foi possível comparar essas revisões."
     }
   }
 }

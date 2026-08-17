@@ -75,6 +75,7 @@ describe('App wiring (T8, SSO-13..18 integration)', () => {
         if (url === '/auth/refresh') return Promise.resolve(jsonResponse(401, {}));
         if (url === '/auth/oidc/status')
           return Promise.resolve(jsonResponse(200, { configured: false }));
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -96,6 +97,7 @@ describe('App wiring (T8, SSO-13..18 integration)', () => {
         if (url === '/auth/refresh') return Promise.resolve(jsonResponse(401, {}));
         if (url === '/auth/oidc/status')
           return Promise.resolve(jsonResponse(200, { configured: false }));
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -117,6 +119,7 @@ describe('App wiring (T8, SSO-13..18 integration)', () => {
           expect(init?.method).toBe('POST');
           return Promise.resolve(jsonResponse(200, {}));
         }
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -166,6 +169,7 @@ describe('App wiring (T8, SSO-13..18 integration)', () => {
             }),
           );
         }
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -212,6 +216,7 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
               ],
             }),
           );
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -238,6 +243,7 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
           return Promise.resolve(
             jsonResponse(200, { items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }] }),
           );
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -298,6 +304,7 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
           return Promise.resolve(
             jsonResponse(200, { items: [{ id: 'd-1', projectId: 'p-1', title: 'Diagram One' }] }),
           );
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -324,6 +331,7 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
               mutatePermissions: { allowed: true, reason: '' },
             }),
           );
+        if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
         throw new Error(`unexpected fetch: ${url}`);
       }) as unknown as typeof fetch,
     );
@@ -335,5 +343,41 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     );
     // AppShell's chrome (header/logout button) never renders on the unnested editor route.
     expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+  });
+
+  it('/w/:workspaceId/d/:diagramId/inventory renders InventoryPage, also with no AppShell chrome (T8, CLIB-14)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/diagrams/diag-1/inventory?format=json') {
+          return Promise.resolve(
+            jsonResponse(200, {
+              items: [
+                {
+                  elementId: 'el-1',
+                  elementType: 'rectangle',
+                  semanticType: 'service',
+                  metadataJson: {},
+                  revision: 1,
+                },
+              ],
+            }),
+          );
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/d/diag-1/inventory');
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/w/ws-1/d/diag-1/inventory'),
+    );
+    expect(await screen.findByText('el-1')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+    // The way back into the editor this diagram's inventory belongs to.
+    const backLink = screen.getByRole('link', { name: 'Voltar' }) as HTMLAnchorElement;
+    expect(backLink.getAttribute('href')).toBe('/w/ws-1/d/diag-1');
   });
 });

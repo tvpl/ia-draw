@@ -351,6 +351,12 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     archiveButton.focus();
     expect(document.activeElement).toBe(archiveButton);
 
+    // XPRT-16: the workspace bundle-request action (visible for this fixture's
+    // workspace_admin role) is keyboard-focusable too.
+    const bundleButton = screen.getByRole('button', { name: 'Solicitar bundle do workspace' });
+    bundleButton.focus();
+    expect(document.activeElement).toBe(bundleButton);
+
     fireEvent.click(archiveButton);
     const confirmButton = screen.getByTestId('confirm-archive-confirm');
     confirmButton.focus();
@@ -387,6 +393,8 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(await screen.findByRole('button', { name: 'Create workspace' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Rename' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Archive' })).toBeTruthy();
+    // XPRT-18: the workspace bundle-request action's own i18n key renders in en too.
+    expect(screen.getByRole('button', { name: 'Request workspace bundle' })).toBeTruthy();
   });
 
   it('archiving the only remaining workspace returns to the zero-workspaces empty state (edge case)', async () => {
@@ -405,5 +413,76 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(await screen.findByText('Você ainda não pertence a nenhum workspace.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Criar seu primeiro workspace' })).toBeTruthy();
     expect(screen.queryByRole('list')).toBeNull();
+  });
+
+  it('the workspace bundle action only appears for items whose own role is org_admin/workspace_admin (XPRT-13)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        items: [
+          workspaceFixture({ id: 'ws-admin', name: 'Admin WS', role: 'workspace_admin' }),
+          workspaceFixture({ id: 'ws-editor', name: 'Editor WS', role: 'editor' }),
+        ],
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Admin WS' });
+
+    const items = screen.getAllByRole('listitem');
+    const adminItem = items.find((li) => within(li).queryByText('Admin WS'));
+    const editorItem = items.find((li) => within(li).queryByText('Editor WS'));
+    if (!adminItem || !editorItem) throw new Error('fixture items not found');
+
+    expect(
+      within(adminItem).getByRole('button', { name: 'Solicitar bundle do workspace' }),
+    ).toBeTruthy();
+    expect(
+      within(editorItem).queryByRole('button', { name: 'Solicitar bundle do workspace' }),
+    ).toBeNull();
+  });
+
+  it('confirming the request POSTs /workspaces/:id/bundles and shows the explicit no-tracking message on 200 (XPRT-14)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces' && !init) return jsonResponse(200, { items: [workspaceFixture()] });
+      if (url === '/workspaces/ws-1/bundles' && init?.method === 'POST') {
+        return jsonResponse(200, { jobId: 'job-1', status: 'queued' });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Alpha' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solicitar bundle do workspace' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('workspace-announcement').textContent).toBe(
+        'Bundle solicitado — este produto não mostra quando termina ou onde baixar; trate como item de acompanhamento operacional.',
+      ),
+    );
+  });
+
+  it('a 503 shows the unavailable message and never retries automatically (XPRT-15)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces' && !init) return jsonResponse(200, { items: [workspaceFixture()] });
+      if (url === '/workspaces/ws-1/bundles' && init?.method === 'POST') {
+        return jsonResponse(503, { title: 'bulk workspace export is unavailable' });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    renderPage(fetchImpl as unknown as typeof fetch);
+    await screen.findByRole('link', { name: 'Alpha' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solicitar bundle do workspace' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('workspace-announcement').textContent).toBe(
+        'Solicitações de bundle em lote estão temporariamente indisponíveis.',
+      ),
+    );
+    // No automatic retry: exactly one POST to the bundles route.
+    const bundleCalls = fetchImpl.mock.calls.filter(([url]) => url === '/workspaces/ws-1/bundles');
+    expect(bundleCalls).toHaveLength(1);
   });
 });

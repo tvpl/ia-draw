@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 35,
+  "next_id": 37,
   "lessons": [
     {
       "id": "L-001",
@@ -618,6 +618,42 @@
       ],
       "created": "2026-08-17T00:45:58Z",
       "last_seen": "2026-08-17T00:45:58Z"
+    },
+    {
+      "id": "L-035",
+      "key": "surviving_mutant::when a spec requires an aria live announcement on both success and failure of a write action add a test that drives the client through the failure branch and asserts the failure announcement text not just the success branch",
+      "text": "When a spec requires an aria-live announcement on both success and failure of a write action, add a test that drives the client through the failure branch and asserts the failure announcement text, not just the success branch.",
+      "signal": "surviving_mutant",
+      "scope": "web/a11y-announcements",
+      "status": "candidate",
+      "features": [
+        "component-library"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/library/MetadataPanel.tsx:104-106 (web/a11y-announcements)"
+      ],
+      "created": "2026-08-17T02:31:49Z",
+      "last_seen": "2026-08-17T02:31:49Z"
+    },
+    {
+      "id": "L-036",
+      "key": "spec_precision_gap::when a spec requires every action to be keyboard reachable assert focusability for each named interactive control individually rather than only a sample of them",
+      "text": "When a spec requires every action to be keyboard-reachable, assert focusability for each named interactive control individually rather than only a sample of them.",
+      "signal": "spec_precision_gap",
+      "scope": "web/a11y-keyboard",
+      "status": "candidate",
+      "features": [
+        "component-library"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CLIB-18 (web/a11y-keyboard)"
+      ],
+      "created": "2026-08-17T02:31:49Z",
+      "last_seen": "2026-08-17T02:31:49Z"
     }
   ]
 }

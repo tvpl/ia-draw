@@ -1,3 +1,4 @@
+import type { LibraryItem } from '@arch-canvas/library-content';
 import { allFixtures } from '@arch-canvas/test-fixtures';
 import { act, createRef, type Ref } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
@@ -13,10 +14,20 @@ import type { SceneElement } from './types.js';
 // DOM measurement, etc.) that jsdom doesn't support and no test in this codebase
 // attempts to mount — see `apps/web/src/a11y/shell.a11y.spec.tsx`'s header comment.
 // Only the `Excalidraw` export is replaced here; every other export
-// (`reconcileElements`, `restoreElements`, ...) stays real, since `applyRemote.ts`
-// and `EditorSurface.tsx` itself both call into them.
+// (`reconcileElements`, `restoreElements`, `convertToExcalidrawElements`, ...) stays
+// real, since `applyRemote.ts` and `EditorSurface.tsx` itself both call into them.
 let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
+let addFilesSpy: ReturnType<typeof vi.fn>;
+let getAppStateMock: ReturnType<typeof vi.fn>;
+
+const DEFAULT_MOCK_APP_STATE = {
+  scrollX: 0,
+  scrollY: 0,
+  width: 800,
+  height: 600,
+  zoom: { value: 1 },
+};
 
 vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@excalidraw/excalidraw')>();
@@ -24,11 +35,19 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
     ...actual,
     Excalidraw: (props: {
       onChange?: (elements: unknown, appState: unknown) => void;
-      excalidrawAPI?: (api: { updateScene: typeof updateSceneSpy }) => void;
+      excalidrawAPI?: (api: {
+        updateScene: typeof updateSceneSpy;
+        getAppState: typeof getAppStateMock;
+        addFiles: typeof addFilesSpy;
+      }) => void;
     }) => {
       capturedOnChange = props.onChange;
       // Mirrors what the real Excalidraw does on mount: hands the caller its imperative API.
-      props.excalidrawAPI?.({ updateScene: updateSceneSpy });
+      props.excalidrawAPI?.({
+        updateScene: updateSceneSpy,
+        getAppState: getAppStateMock,
+        addFiles: addFilesSpy,
+      });
       return null;
     },
   };
@@ -49,6 +68,8 @@ describe('EditorSurface (T94, DOCK-03)', () => {
   beforeEach(() => {
     capturedOnChange = undefined;
     updateSceneSpy = vi.fn();
+    addFilesSpy = vi.fn();
+    getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -156,5 +177,154 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     // normalizes its own version/versionNonce on merge, so only presence is asserted —
     // same convention as applyRemote.spec.ts's "local-only element" case).
     expect(byId.has('el-remote-added')).toBe(true);
+  });
+
+  const INLINE_ITEM: LibraryItem = {
+    stableKey: 'generic.compute.server',
+    name: 'Server',
+    category: 'compute',
+    aliases: ['host'],
+    description: 'Generic compute host.',
+    tags: ['compute'],
+    color: '#4B5563',
+    icon: {
+      kind: 'inline',
+      svg: '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><rect x="3" y="4" width="18" height="6"/></svg>',
+    },
+    version: '1.0.0',
+    license: 'CC0-1.0',
+    attribution: 'Architecture Canvas project',
+  };
+
+  const EXTERNAL_ITEM: LibraryItem = {
+    stableKey: 'aws.ec2',
+    name: 'Amazon EC2',
+    category: 'compute',
+    aliases: ['ec2'],
+    description: 'Amazon Elastic Compute Cloud.',
+    tags: ['aws'],
+    color: '#ED7100',
+    icon: {
+      kind: 'external',
+      sourceUrl: 'https://aws.amazon.com/architecture/icons/',
+      note: 'license note',
+    },
+    version: '2026.1',
+    license: 'CC-BY-ND-2.0',
+    attribution: '© Amazon Web Services, Inc.',
+  };
+
+  describe('insertLibraryItem (CLIB-03/04)', () => {
+    it('icon.kind "inline": registers the SVG via addFiles and inserts an image element + a text element carrying item.name, centered on the viewport', () => {
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      act(() => {
+        ref.current?.insertLibraryItem(INLINE_ITEM);
+      });
+
+      // Viewport center at scrollX/scrollY=0, width=800, height=600, zoom=1 -> (400, 300).
+      expect(addFilesSpy).toHaveBeenCalledTimes(1);
+      const [[files]] = addFilesSpy.mock.calls as [
+        [{ id: string; dataURL: string; mimeType: string }[]],
+      ];
+      const [file] = files as [{ id: string; dataURL: string; mimeType: string }];
+      expect(file.mimeType).toBe('image/svg+xml');
+      expect(file.dataURL.startsWith('data:image/svg+xml;base64,')).toBe(true);
+
+      expect(updateSceneSpy).toHaveBeenCalledTimes(1);
+      const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+      const imageElement = sceneData.elements.find(
+        (el) => (el as unknown as { type: string }).type === 'image',
+      ) as unknown as { fileId: string; x: number; y: number; width: number; height: number };
+      const textElement = sceneData.elements.find(
+        (el) => (el as unknown as { type: string }).type === 'text',
+      ) as unknown as { text: string };
+
+      expect(imageElement).toBeDefined();
+      expect(imageElement.fileId).toBe(file.id);
+      expect(textElement).toBeDefined();
+      expect(textElement.text).toBe('Server');
+
+      // Centered on the viewport (400, 300): the image's own center matches it exactly.
+      expect(imageElement.x + imageElement.width / 2).toBe(400);
+      expect(imageElement.y + imageElement.height / 2).toBe(300);
+    });
+
+    it('icon.kind "inline": never calls fetch — the SVG is embedded locally, no network request', () => {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal('fetch', fetchSpy);
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      act(() => {
+        ref.current?.insertLibraryItem(INLINE_ITEM);
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it('icon.kind "external": never calls addFiles/fetch — inserts the rectangle+label fallback instead, centered on the viewport', () => {
+      const fetchSpy = vi.fn();
+      vi.stubGlobal('fetch', fetchSpy);
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      act(() => {
+        ref.current?.insertLibraryItem(EXTERNAL_ITEM);
+      });
+
+      expect(fetchSpy).not.toHaveBeenCalled();
+      expect(addFilesSpy).not.toHaveBeenCalled();
+
+      expect(updateSceneSpy).toHaveBeenCalledTimes(1);
+      const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+      const rectangleElement = sceneData.elements.find(
+        (el) => (el as unknown as { type: string }).type === 'rectangle',
+      ) as unknown as {
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        backgroundColor: string;
+      };
+      const textElement = sceneData.elements.find(
+        (el) => (el as unknown as { type: string }).type === 'text',
+      ) as unknown as { text: string };
+
+      expect(rectangleElement).toBeDefined();
+      expect(rectangleElement.backgroundColor).toBe('#ED7100');
+      expect(textElement).toBeDefined();
+      expect(textElement.text).toBe('Amazon EC2');
+      expect(rectangleElement.x + rectangleElement.width / 2).toBe(400);
+      expect(rectangleElement.y + rectangleElement.height / 2).toBe(300);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('positions the inserted item at the viewport center computed from a non-zero scroll/zoom appState', () => {
+      getAppStateMock = vi.fn(() => ({
+        scrollX: -100,
+        scrollY: -50,
+        width: 800,
+        height: 600,
+        zoom: { value: 2 },
+      }));
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      act(() => {
+        ref.current?.insertLibraryItem(EXTERNAL_ITEM);
+      });
+
+      // sceneX = width/(2*zoom) - scrollX = 800/4 - (-100) = 300; sceneY = 600/4 - (-50) = 200.
+      const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+      const rectangleElement = sceneData.elements.find(
+        (el) => (el as unknown as { type: string }).type === 'rectangle',
+      ) as unknown as { x: number; y: number; width: number; height: number };
+      expect(rectangleElement.x + rectangleElement.width / 2).toBe(300);
+      expect(rectangleElement.y + rectangleElement.height / 2).toBe(200);
+    });
   });
 });
