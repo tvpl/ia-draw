@@ -3,11 +3,11 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 38
-- Pendentes de produto (`pending-product`): 52
+- Com consumidor de UI (`consumed`): 49
+- Pendentes de produto (`pending-product`): 41
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (38)
+## consumed (49)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -24,13 +24,24 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
 | GET | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
 | PATCH | `/diagrams/:id/comments/:commentId` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
-| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/sync/syncClient.ts` |
+| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/presentation/PresentationEditorPage.tsx`, `apps/web/src/presentation/PresentationListPage.tsx`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
 | GET | `/diagrams/:id/specs` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
 | POST | `/diagrams/:id/specs/:version(^[^:]+):regenerate-section` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
+| POST | `/presentations/:id(^[^:]+):publish` | `apps/server/src/modules/presentation/publishRoutes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| POST | `/presentations/:id(^[^:]+):export-pdf` | `apps/server/src/modules/presentation/publishRoutes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| POST | `/presentations` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| GET | `/presentations` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| GET | `/presentations/:id` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| PATCH | `/presentations/:id` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| POST | `/presentations/:id/frames` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| PATCH | `/presentations/:id/frames` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| PATCH | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
+| DELETE | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
 | POST | `/diagrams/:id/share-links` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
+| POST | `/presentations/:id/share-links` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | GET | `/share/:token` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
@@ -50,7 +61,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (52)
+## pending-product (41)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -81,18 +92,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/diagrams/:id/ir` | `apps/server/src/modules/mcp/routes.ts` |
 | GET | `/diagrams/:id/components/:stableKey` | `apps/server/src/modules/mcp/routes.ts` |
 | POST | `/diagrams/:id/mcp-patch` | `apps/server/src/modules/mcp/routes.ts` |
-| POST | `/presentations/:id(^[^:]+):publish` | `apps/server/src/modules/presentation/publishRoutes.ts` |
 | GET | `/presentations/:id/published` | `apps/server/src/modules/presentation/publishRoutes.ts` |
-| POST | `/presentations/:id(^[^:]+):export-pdf` | `apps/server/src/modules/presentation/publishRoutes.ts` |
-| POST | `/presentations` | `apps/server/src/modules/presentation/routes.ts` |
-| GET | `/presentations` | `apps/server/src/modules/presentation/routes.ts` |
-| GET | `/presentations/:id` | `apps/server/src/modules/presentation/routes.ts` |
-| PATCH | `/presentations/:id` | `apps/server/src/modules/presentation/routes.ts` |
-| POST | `/presentations/:id/frames` | `apps/server/src/modules/presentation/routes.ts` |
-| PATCH | `/presentations/:id/frames` | `apps/server/src/modules/presentation/routes.ts` |
-| PATCH | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` |
-| DELETE | `/presentations/:id/frames/:frameId` | `apps/server/src/modules/presentation/routes.ts` |
-| POST | `/presentations/:id/share-links` | `apps/server/src/modules/share/routes.ts` |
 | POST | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/diagrams/:id/diff` | `apps/server/src/modules/snapshot/routes.ts` |
