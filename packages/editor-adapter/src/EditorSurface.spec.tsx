@@ -24,6 +24,7 @@ let capturedViewModeEnabled: boolean | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 let addFilesSpy: ReturnType<typeof vi.fn>;
 let getAppStateMock: ReturnType<typeof vi.fn>;
+let scrollToContentSpy: ReturnType<typeof vi.fn>;
 
 const DEFAULT_MOCK_APP_STATE = {
   scrollX: 0,
@@ -45,6 +46,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
         updateScene: typeof updateSceneSpy;
         getAppState: typeof getAppStateMock;
         addFiles: typeof addFilesSpy;
+        scrollToContent: typeof scrollToContentSpy;
       }) => void;
     }) => {
       capturedOnChange = props.onChange;
@@ -55,6 +57,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
         updateScene: updateSceneSpy,
         getAppState: getAppStateMock,
         addFiles: addFilesSpy,
+        scrollToContent: scrollToContentSpy,
       });
       return null;
     },
@@ -80,6 +83,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     updateSceneSpy = vi.fn();
     addFilesSpy = vi.fn();
     getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
+    scrollToContentSpy = vi.fn();
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -239,6 +243,109 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     ];
     expect(sceneData.collaborators.size).toBe(0);
     expect(sceneData.elements).toBeUndefined();
+  });
+
+  describe('focusElement (ALNT-08/09/10)', () => {
+    it('selects the element and scrolls it into view when its id is in the current local scene', () => {
+      const target: SceneElement = { ...base, id: 'el-target', version: 1, versionNonce: 1 };
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [target] }, ref);
+
+      let result: boolean | undefined;
+      act(() => {
+        result = ref.current?.focusElement('el-target');
+      });
+
+      expect(result).toBe(true);
+      expect(updateSceneSpy).toHaveBeenCalledWith({
+        appState: { selectedElementIds: { 'el-target': true } },
+      });
+      expect(scrollToContentSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'el-target' }),
+        { animate: true },
+      );
+    });
+
+    it('reads the CURRENT local scene, not a stale snapshot of initialElements, for an element added after mount', () => {
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      const addedAfterMount: SceneElement = {
+        ...base,
+        id: 'el-added',
+        version: 1,
+        versionNonce: 1,
+      };
+      act(() => {
+        capturedOnChange?.([addedAfterMount], { selectedElementIds: {} });
+      });
+
+      let result: boolean | undefined;
+      act(() => {
+        result = ref.current?.focusElement('el-added');
+      });
+
+      expect(result).toBe(true);
+      expect(scrollToContentSpy).toHaveBeenCalledWith(expect.objectContaining({ id: 'el-added' }), {
+        animate: true,
+      });
+    });
+
+    it('is a no-op returning false for an id absent from the local scene — never throws', () => {
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [base] }, ref);
+
+      let result: boolean | undefined;
+      expect(() => {
+        act(() => {
+          result = ref.current?.focusElement('el-does-not-exist');
+        });
+      }).not.toThrow();
+
+      expect(result).toBe(false);
+      expect(updateSceneSpy).not.toHaveBeenCalled();
+      expect(scrollToContentSpy).not.toHaveBeenCalled();
+    });
+
+    it('is a no-op returning false for an id whose element is a tombstone (isDeleted: true)', () => {
+      const deleted: SceneElement = {
+        ...base,
+        id: 'el-deleted',
+        version: 1,
+        versionNonce: 1,
+      } as unknown as SceneElement;
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({}, ref);
+
+      act(() => {
+        capturedOnChange?.([{ ...deleted, isDeleted: true } as unknown as SceneElement], {
+          selectedElementIds: {},
+        });
+      });
+
+      let result: boolean | undefined;
+      act(() => {
+        result = ref.current?.focusElement('el-deleted');
+      });
+
+      expect(result).toBe(false);
+      expect(updateSceneSpy).not.toHaveBeenCalled();
+      expect(scrollToContentSpy).not.toHaveBeenCalled();
+    });
+
+    it('never passes elements to updateScene — a jump never mutates scene content', () => {
+      const target: SceneElement = { ...base, id: 'el-target', version: 1, versionNonce: 1 };
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [target] }, ref);
+
+      act(() => {
+        ref.current?.focusElement('el-target');
+      });
+
+      for (const call of updateSceneSpy.mock.calls) {
+        expect((call[0] as { elements?: unknown }).elements).toBeUndefined();
+      }
+    });
   });
 
   it('forwards the scene-coordinate pointer from onPointerUpdate to onPointerMove (LIVE-09)', () => {

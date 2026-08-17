@@ -19,6 +19,8 @@ import { DiagramEditorPage } from './DiagramEditorPage.js';
 let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefined;
 let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
+/** ALNT-08/09/10: `EditorSurfaceHandle.focusElement` calls this — see `EditorSurface.spec.tsx`. */
+let scrollToContentSpy: ReturnType<typeof vi.fn>;
 /** What `<Excalidraw/>` actually received for `viewModeEnabled` on its last render (SHR-22). */
 let capturedViewModeEnabled: boolean | undefined;
 
@@ -30,12 +32,15 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
       onChange?: (elements: unknown, appState: unknown) => void;
       onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
       viewModeEnabled?: boolean;
-      excalidrawAPI?: (api: { updateScene: typeof updateSceneSpy }) => void;
+      excalidrawAPI?: (api: {
+        updateScene: typeof updateSceneSpy;
+        scrollToContent: typeof scrollToContentSpy;
+      }) => void;
     }) => {
       capturedOnChange = props.onChange;
       capturedOnPointerUpdate = props.onPointerUpdate;
       capturedViewModeEnabled = props.viewModeEnabled;
-      props.excalidrawAPI?.({ updateScene: updateSceneSpy });
+      props.excalidrawAPI?.({ updateScene: updateSceneSpy, scrollToContent: scrollToContentSpy });
       return null;
     },
   };
@@ -77,6 +82,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
     capturedOnChange = undefined;
     capturedViewModeEnabled = undefined;
     updateSceneSpy = vi.fn();
+    scrollToContentSpy = vi.fn();
   });
 
   afterEach(async () => {
@@ -110,6 +116,11 @@ describe('DiagramEditorPage (T9, integration)', () => {
       // so it always fetches the comment list on mount, same as the library panel.
       if (url === '/diagrams/diagram-1/comments') {
         return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
+      // ALNT-01: LintPanel always mounts inside EditorSidePanel's third tab now, so it
+      // always fetches the lint list on mount too, same as the library/comments panels.
+      if (url === '/diagrams/diagram-1/lint') {
+        return Promise.resolve(jsonResponse(200, { warnings: [] }));
       }
       throw new Error(`unexpected fetch: ${url}`);
     }) as unknown as typeof fetch;
@@ -783,6 +794,62 @@ describe('DiagramEditorPage (T9, integration)', () => {
     const inventoryLink = screen.getByRole('link', { name: 'Ver inventário' });
     inventoryLink.focus();
     expect(document.activeElement).toBe(inventoryLink);
+  });
+
+  it('ALNT-08/09/10: clicking "ir para o elemento" in the Lint tab selects and centers that element via EditorSurfaceHandle.focusElement', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
+      if (url === '/diagrams/diagram-1/lint') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            warnings: [
+              {
+                rule: 'orphan-component',
+                severity: 'warning',
+                message: '1 componente(s) sem nenhum edge conectado.',
+                elementIds: [baseElement.id],
+              },
+            ],
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    fireEvent.click(screen.getByRole('tab', { name: 'Lint' }));
+    const jumpButton = await screen.findByRole('button', {
+      name: new RegExp(baseElement.id),
+    });
+    fireEvent.click(jumpButton);
+
+    await waitFor(() =>
+      expect(updateSceneSpy).toHaveBeenCalledWith({
+        appState: { selectedElementIds: { [baseElement.id]: true } },
+      }),
+    );
+    expect(scrollToContentSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ id: baseElement.id }),
+      { animate: true },
+    );
   });
 });
 

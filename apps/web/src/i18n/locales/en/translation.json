@@ -52,7 +52,8 @@
     "title": "Comments",
     "tabs": {
       "ai": "AI",
-      "comments": "Comments"
+      "comments": "Comments",
+      "lint": "Lint"
     },
     "loading": "Loading comments…",
     "empty": "No comments on this diagram yet.",
@@ -441,5 +442,17 @@
       "removed": "Element removed ({{elementId}})"
     },
     "regenerateSection": "Regenerate this section"
+  },
+  "lint": {
+    "title": "Lint",
+    "refresh": "Refresh",
+    "loading": "Loading warnings…",
+    "error": "Couldn't load the lint warnings.",
+    "empty": "No warnings for this diagram.",
+    "jumpToElement": "Jump to element",
+    "elementUnavailable": "removed from canvas",
+    "announce": {
+      "jumped": "Moved focus to element {{elementId}}."
+    }
   }
 }

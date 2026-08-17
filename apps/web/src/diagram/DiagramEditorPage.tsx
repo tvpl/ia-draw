@@ -18,6 +18,7 @@ import { DiffView } from '../history/DiffView.js';
 import { HistoryPanel } from '../history/HistoryPanel.js';
 import { LibraryPanel } from '../library/LibraryPanel.js';
 import { MetadataPanel } from '../library/MetadataPanel.js';
+import { LintPanel } from '../lint/LintPanel.js';
 import { ConnectionStatus } from '../presence/ConnectionStatus.js';
 import { collaboratorColor } from '../presence/collaboratorColor.js';
 import { PresenceClient } from '../presence/presenceClient.js';
@@ -93,6 +94,12 @@ import { EditorSidePanel } from './EditorSidePanel.js';
  * the top of the canvas column, above the canvas itself — both only need `diagram:read`,
  * which reaching this route already implies (bootstrap's own read-permission check), so
  * neither needs an extra role gate here.
+ *
+ * ALNT-01..14 (architecture-lint): `<EditorSidePanel/>`'s third tab hosts `<LintPanel/>`,
+ * fed the SAME `liveElementIds` `CommentsSidebar` already receives (ALNT-06 — no second
+ * "what still exists in the scene" source). `LintPanel.onJumpToElement` reaches the canvas
+ * through the SAME `editorSurfaceRef` every other panel on this page already uses
+ * (`EditorSurfaceHandle.focusElement`, AD-010) — no second ref/path.
  */
 export function DiagramEditorPage(): JSX.Element {
   const { workspaceId, diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
@@ -247,6 +254,14 @@ export function DiagramEditorPage(): JSX.Element {
     editorSurfaceRef.current?.insertLibraryItem(item);
   }, []);
 
+  // ALNT-08/09/10: the only place `LintPanel` reaches the canvas — via the SAME
+  // `editorSurfaceRef` every other imperative-handle caller on this page already uses
+  // (AD-010), never a second path. `focusElement` itself is a no-op for a stale id, so
+  // there is nothing else to branch on here.
+  const handleJumpToElement = useCallback((elementId: string) => {
+    editorSurfaceRef.current?.focusElement(elementId);
+  }, []);
+
   const kind = status((s) => s.kind);
   const pendingCount = status((s) => s.pendingCount);
 
@@ -312,6 +327,13 @@ export function DiagramEditorPage(): JSX.Element {
                 diagramId={diagramId}
                 selection={selection}
                 liveElementIds={liveElementIds}
+              />
+            }
+            lintPanel={
+              <LintPanel
+                diagramId={diagramId}
+                liveElementIds={liveElementIds}
+                onJumpToElement={handleJumpToElement}
               />
             }
           />
