@@ -237,11 +237,11 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `collaboratorColor(id)` devolve `{background, stroke}` com valores hex válidos
-- [ ] Chamadas repetidas com o mesmo id devolvem exatamente o mesmo par
-- [ ] Ids diferentes se espalham por mais de uma cor da paleta
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 3 casos passam
+- [x] `collaboratorColor(id)` devolve `{background, stroke}` com valores hex válidos
+- [x] Chamadas repetidas com o mesmo id devolvem exatamente o mesmo par
+- [x] Ids diferentes se espalham por mais de uma cor da paleta
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 3 casos passam
 
 **Tests**: unit
 **Gate**: quick
