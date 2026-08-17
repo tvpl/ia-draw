@@ -12,8 +12,20 @@ describe('snapshotClient (T1, SNAP-01/03/06/11)', () => {
   describe('list', () => {
     it('SNAP-01: GETs /diagrams/:id/snapshots and returns the snapshots as the server sent them (kind/name/createdAt)', async () => {
       const snapshots = [
-        { id: 'snap-2', revision: 2, kind: 'named', name: 'checkpoint', createdAt: '2026-08-16T10:00:00.000Z' },
-        { id: 'snap-1', revision: 1, kind: 'auto', name: null, createdAt: '2026-08-16T09:00:00.000Z' },
+        {
+          id: 'snap-2',
+          revision: 2,
+          kind: 'named',
+          name: 'checkpoint',
+          createdAt: '2026-08-16T10:00:00.000Z',
+        },
+        {
+          id: 'snap-1',
+          revision: 1,
+          kind: 'auto',
+          name: null,
+          createdAt: '2026-08-16T09:00:00.000Z',
+        },
       ];
       const fetchImpl = vi.fn(() =>
         Promise.resolve(jsonResponse(200, { snapshots })),
@@ -117,7 +129,9 @@ describe('snapshotClient (T1, SNAP-01/03/06/11)', () => {
   describe('restore', () => {
     it('SNAP-06/07: POSTs .../:snapshotId:restore with the given clientMutationId', async () => {
       const fetchImpl = vi.fn(() =>
-        Promise.resolve(jsonResponse(200, { currentRevision: 9, restoredFromSnapshotId: 'snap-1' })),
+        Promise.resolve(
+          jsonResponse(200, { currentRevision: 9, restoredFromSnapshotId: 'snap-1' }),
+        ),
       ) as unknown as typeof fetch;
       const client = createSnapshotClient({ fetchImpl });
 
