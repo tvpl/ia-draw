@@ -388,4 +388,22 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(screen.getByRole('button', { name: 'Rename' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Archive' })).toBeTruthy();
   });
+
+  it('archiving the only remaining workspace returns to the zero-workspaces empty state (edge case)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces' && !init) return jsonResponse(200, { items: [workspaceFixture()] });
+      if (url === '/workspaces/ws-1' && init?.method === 'DELETE') return jsonResponse(204, null);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Alpha' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar' }));
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    expect(await screen.findByText('Você ainda não pertence a nenhum workspace.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Criar seu primeiro workspace' })).toBeTruthy();
+    expect(screen.queryByRole('list')).toBeNull();
+  });
 });

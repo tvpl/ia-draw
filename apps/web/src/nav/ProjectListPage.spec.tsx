@@ -377,4 +377,22 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
 
     await waitFor(() => expect(liveRegion.textContent).toBe('Arquivar'));
   });
+
+  it('never submits POST /projects for an empty or whitespace-only name (edge case)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Criar projeto' });
+
+    fireEvent.change(screen.getByLabelText('Nome do projeto'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar projeto' }));
+
+    // Only the initial GET /workspaces/:id + GET /projects calls, never a POST.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
 });

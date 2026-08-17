@@ -390,4 +390,22 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
 
     await waitFor(() => expect(liveRegion.textContent).toBe('Arquivar'));
   });
+
+  it('never submits POST /diagrams for an empty or whitespace-only title (edge case)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Criar diagrama' });
+
+    fireEvent.change(screen.getByLabelText('Título do diagrama'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Criar diagrama' }));
+
+    // Only the initial GET /projects/:id + GET /workspaces/:id + GET /diagrams calls, never a POST.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchImpl).toHaveBeenCalledTimes(3);
+  });
 });
