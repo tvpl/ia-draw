@@ -354,5 +354,39 @@
     "no": "não",
     "globalLink": "Providers de IA (global)",
     "workspaceLink": "Providers de IA"
+  },
+  "share": {
+    "panelTitle": "Link de compartilhamento",
+    "roleLabel": "Papel concedido pelo link",
+    "roleSelectPlaceholder": "Escolha um papel",
+    "roleOptions": {
+      "orgAdmin": "Admin da organização",
+      "workspaceAdmin": "Admin do workspace",
+      "editor": "Editor",
+      "reviewer": "Revisor",
+      "viewer": "Leitor"
+    },
+    "expiresAtLabel": "Expira em",
+    "create": "Criar link",
+    "createdListTitle": "Links criados nesta sessão",
+    "sessionOnlyNotice": "Só aparecem aqui os links que você criou nesta tela. Recarregar a página limpa a lista, e a URL não pode ser recuperada depois.",
+    "oneShotNotice": "Copie esta URL agora. Ela é exibida uma única vez e não pode ser recuperada.",
+    "urlLabel": "URL de compartilhamento",
+    "revoke": "Revogar",
+    "revokedBadge": "Revogado",
+    "created": "Link de compartilhamento criado.",
+    "revoked": "Link de compartilhamento revogado.",
+    "error": {
+      "roleCeiling": "Você não pode conceder um papel acima do seu.",
+      "expiresInPast": "Escolha uma data de expiração no futuro.",
+      "generic": "Algo deu errado. Tente de novo."
+    },
+    "public": {
+      "loading": "Carregando o diagrama compartilhado…",
+      "invalid": "Este link é inválido, expirou ou foi revogado.",
+      "readOnlyNotice": "Visualização somente leitura. Nada do que você fizer aqui é salvo.",
+      "presentationTitle": "Apresentação: {{name}}",
+      "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
+    }
   }
 }

@@ -269,7 +269,7 @@ abrir a visão pública no mesmo locale.
 | SHR-28 | P2: Link de apresentação | F10 | Implementing |
 | SHR-29 | P2: Teclado e idioma | F10 | Pending |
 | SHR-30 | P2: Teclado e idioma | F10 | Pending |
-| SHR-31 | P2: Teclado e idioma | F10 | Pending |
+| SHR-31 | P2: Teclado e idioma | F10 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

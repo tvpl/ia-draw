@@ -354,5 +354,39 @@
     "no": "no",
     "globalLink": "AI providers (global)",
     "workspaceLink": "AI providers"
+  },
+  "share": {
+    "panelTitle": "Share link",
+    "roleLabel": "Role granted by the link",
+    "roleSelectPlaceholder": "Choose a role",
+    "roleOptions": {
+      "orgAdmin": "Organization admin",
+      "workspaceAdmin": "Workspace admin",
+      "editor": "Editor",
+      "reviewer": "Reviewer",
+      "viewer": "Viewer"
+    },
+    "expiresAtLabel": "Expires on",
+    "create": "Create link",
+    "createdListTitle": "Links created in this session",
+    "sessionOnlyNotice": "Only the links you created on this screen appear here. Reloading the page clears the list, and the URL cannot be recovered afterwards.",
+    "oneShotNotice": "Copy this URL now. It is shown only once and cannot be recovered.",
+    "urlLabel": "Share URL",
+    "revoke": "Revoke",
+    "revokedBadge": "Revoked",
+    "created": "Share link created.",
+    "revoked": "Share link revoked.",
+    "error": {
+      "roleCeiling": "You cannot grant a role above your own.",
+      "expiresInPast": "Choose an expiry date in the future.",
+      "generic": "Something went wrong. Try again."
+    },
+    "public": {
+      "loading": "Loading the shared diagram…",
+      "invalid": "This link is invalid, expired or revoked.",
+      "readOnlyNotice": "Read-only view. Nothing you do here is saved.",
+      "presentationTitle": "Presentation: {{name}}",
+      "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
+    }
   }
 }

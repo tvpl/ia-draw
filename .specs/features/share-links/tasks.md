@@ -192,9 +192,9 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `share.*` existe nos dois arquivos de locale com exatamente o mesmo conjunto de chaves
-- [ ] Nenhuma chave existente é renomeada ou removida
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `share.*` existe nos dois arquivos de locale com exatamente o mesmo conjunto de chaves
+- [x] Nenhuma chave existente é renomeada ou removida
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build
