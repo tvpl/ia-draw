@@ -8,6 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
 import { useAuth } from '../auth/AuthProvider.js';
+import { BundleButton } from '../export/BundleButton.js';
+import { ExportMenu } from '../export/ExportMenu.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -103,6 +105,13 @@ export function DiagramEditorPage(): JSX.Element {
         <p data-testid="save-status">
           {t(saveStatusTranslationKey(kind), { count: pendingCount })}
         </p>
+        {/* XPRT-01..06: export/bundle actions — both only need diagram:read, which reaching
+            this route already implies (bootstrap's own read-permission check), so no extra
+            role gate here. */}
+        <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+          <ExportMenu diagramId={diagramId} />
+          <BundleButton diagramId={diagramId} />
+        </div>
         {initialElements ? (
           // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
           // concrete height it needs (an unstyled ancestor chain collapses to 0 height).

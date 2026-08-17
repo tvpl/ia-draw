@@ -100,11 +100,14 @@ export function ImportDialog({
       return;
     }
     if (result.status === 'invalid') {
+      // XPRT-17: a confirmation that fails is announced too, not just a successful one.
       setMessage(result.message);
+      setAnnouncement(result.message);
       setPhase('invalid');
       return;
     }
     setMessage(t('nav.error.generic'));
+    setAnnouncement(t('nav.error.generic'));
     setPhase('error');
   }
 

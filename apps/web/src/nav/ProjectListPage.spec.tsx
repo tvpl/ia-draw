@@ -395,4 +395,82 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+
+  it('the "import diagram" action is reachable per project row when the role grants diagram:write (XPRT-12/T7)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1')
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Project One' });
+
+    const trigger = screen.getByRole('button', { name: 'Importar diagrama' });
+    expect(trigger).toBeTruthy();
+    // Keyboard-focusable (XPRT-16), same convention as NAV-24's own focus assertions.
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+  });
+
+  it('the "import diagram" action is absent when the role lacks diagram:write (viewer, XPRT-12)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('viewer');
+      if (url === '/projects?workspaceId=ws-1')
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    await screen.findByRole('link', { name: 'Project One' });
+    expect(screen.queryByRole('button', { name: 'Importar diagrama' })).toBeNull();
+  });
+
+  it('a failed import confirmation is announced in an aria-live=polite region, in the en locale too (XPRT-17/18)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1')
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      if (url === '/projects/p-1/import' && init?.method === 'POST') {
+        const body = JSON.parse(init.body as string);
+        if (body.confirm) {
+          // Confirm fails even though the preview already succeeded (e.g. the file changed
+          // server-side between preview and confirm) — the announcement still needs to fire.
+          return jsonResponse(400, { title: 'title is required to confirm an import' });
+        }
+        return jsonResponse(200, { preview: { elementCount: 2, appState: {} } });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    // NAV-26 pattern: switch locale mid-test.
+    await i18n.changeLanguage('en');
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Project One' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Import diagram' }));
+    const file = new File(['{"elements":[{},{}],"appState":{}}'], 'scene.excalidraw', {
+      type: 'application/json',
+    });
+    fireEvent.change(screen.getByLabelText('File'), { target: { files: [file] } });
+    await screen.findByText('2 elements will be imported');
+
+    const liveRegion = screen.getByTestId('import-announcement');
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    fireEvent.change(screen.getByLabelText('Diagram title'), { target: { value: 'Imported' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm import' }));
+
+    await waitFor(() =>
+      expect(liveRegion.textContent).toBe('title is required to confirm an import'),
+    );
+  });
 });

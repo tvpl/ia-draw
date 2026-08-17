@@ -187,16 +187,16 @@ importar sem mouse.
 | XPRT-13 | P2: Bundle de workspace | Tasks | Implementing |
 | XPRT-14 | P2: Bundle de workspace | Tasks | Implementing |
 | XPRT-15 | P2: Bundle de workspace | Tasks | Implementing |
-| XPRT-16 | P2: Teclado e idioma | Tasks | Pending |
-| XPRT-17 | P2: Teclado e idioma | Tasks | Pending |
-| XPRT-18 | P2: Teclado e idioma | Tasks | Pending |
+| XPRT-16 | P2: Teclado e idioma | Tasks | Implementing |
+| XPRT-17 | P2: Teclado e idioma | Tasks | Implementing |
+| XPRT-18 | P2: Teclado e idioma | Tasks | Implementing |
 
 **ID format:** `XPRT-NN` (fatia de frontend distinta de `EXP-NN`, que já nomeia os requisitos de
 backend em `architecture-canvas/spec.md`).
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 18 total, 0 mapped to tasks yet, 18 unmapped ⚠️ (aguardando Tasks)
+**Coverage:** 18 total, 18 mapped to tasks (T1-T7), 0 unmapped
 
 ---
 

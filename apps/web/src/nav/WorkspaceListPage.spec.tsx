@@ -461,9 +461,9 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
         return jsonResponse(503, { title: 'bulk workspace export is unavailable' });
       }
       throw new Error(`unexpected fetch: ${url}`);
-    }) as unknown as typeof fetch;
+    });
 
-    renderPage(fetchImpl);
+    renderPage(fetchImpl as unknown as typeof fetch);
     await screen.findByRole('link', { name: 'Alpha' });
 
     fireEvent.click(screen.getByRole('button', { name: 'Solicitar bundle do workspace' }));

@@ -65,7 +65,12 @@ describe('createExportClient (T1, XPRT-01/05/07/13)', () => {
     it('sends POST /diagrams/:id/bundle and returns bundleId/url/sizeBytes/manifest on 200 (XPRT-05)', async () => {
       const manifest = { files: ['scene.excalidraw'] };
       const fetchImpl = vi.fn(async () =>
-        jsonResponse(200, { bundleId: 'bundle-1', url: 'https://s3/bundle', sizeBytes: 512, manifest }),
+        jsonResponse(200, {
+          bundleId: 'bundle-1',
+          url: 'https://s3/bundle',
+          sizeBytes: 512,
+          manifest,
+        }),
       ) as unknown as typeof fetch;
       const client = createExportClient(fetchImpl);
 
@@ -99,7 +104,9 @@ describe('createExportClient (T1, XPRT-01/05/07/13)', () => {
   describe('previewImport', () => {
     it('sends fileContent without confirm and returns the preview on 200 (XPRT-07)', async () => {
       const preview = { elementCount: 3, appState: { viewBackgroundColor: '#fff' } };
-      const fetchImpl = vi.fn(async () => jsonResponse(200, { preview })) as unknown as typeof fetch;
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(200, { preview }),
+      ) as unknown as typeof fetch;
       const client = createExportClient(fetchImpl);
 
       const result = await client.previewImport('project-1', '{"elements":[]}');
@@ -116,7 +123,9 @@ describe('createExportClient (T1, XPRT-01/05/07/13)', () => {
 
     it('maps a 400 (malformed/limit exceeded) response to status "invalid" with the server message (XPRT-08)', async () => {
       const fetchImpl = vi.fn(async () =>
-        jsonResponse(400, { title: '.excalidraw file has 25000 elements, exceeding the 20000-element import limit' }),
+        jsonResponse(400, {
+          title: '.excalidraw file has 25000 elements, exceeding the 20000-element import limit',
+        }),
       ) as unknown as typeof fetch;
       const client = createExportClient(fetchImpl);
 
@@ -173,7 +182,10 @@ describe('createExportClient (T1, XPRT-01/05/07/13)', () => {
 
       const result = await client.confirmImport('project-1', 'not json', 'Imported');
 
-      expect(result).toEqual({ status: 'invalid', message: 'malformed .excalidraw file: invalid JSON' });
+      expect(result).toEqual({
+        status: 'invalid',
+        message: 'malformed .excalidraw file: invalid JSON',
+      });
     });
 
     it('maps a non-201/400 response to status "error"', async () => {

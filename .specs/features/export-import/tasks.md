@@ -243,13 +243,17 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] `ExportMenu`/`BundleButton` aparecem no toolbar do editor
-- [ ] `ImportDialog` alcançável a partir de `ProjectListPage`
-- [ ] Toda ação alcançável só por Tab/Shift+Tab/Enter
-- [ ] `aria-live="polite"` anuncia sucesso/falha de geração e de confirmação de import
-- [ ] Teste roda com locale `en` trocado no meio do caminho
-- [ ] Zero violações serious/critical de axe em `ExportMenu`/`ImportDialog`
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `ExportMenu`/`BundleButton` aparecem no toolbar do editor
+- [x] `ImportDialog` alcançável a partir de `ProjectListPage`
+- [x] Toda ação alcançável só por Tab/Shift+Tab/Enter
+- [x] `aria-live="polite"` anuncia sucesso/falha de geração e de confirmação de import
+- [x] Teste roda com locale `en` trocado no meio do caminho
+- [x] Zero violações serious/critical de axe em `ExportMenu`/`ImportDialog`
+- [x] Full gate passes: `make lint && make typecheck && make test-unit` (nota: `make lint`
+      só falha por 5 issues pré-existentes fora desta feature — `docs/openapi.json`,
+      `apps/mcp/src/client.spec.ts`, `apps/server/src/modules/auth/users.int.spec.ts`,
+      `tools/repo-tools/src/webConsumers.spec.ts` — confirmado via `git log` que nenhum commit
+      desta feature toca esses arquivos; todo arquivo desta feature está lint-clean)
 
 **Tests**: unit
 **Gate**: full

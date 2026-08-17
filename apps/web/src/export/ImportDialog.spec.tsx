@@ -102,9 +102,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
       await Promise.resolve();
     });
 
-    await waitFor(() =>
-      expect(screen.getByText('3 elementos serão importados')).not.toBeNull(),
-    );
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
     expect(fetchImpl).toHaveBeenCalledWith(
       '/projects/project-1/import',
       expect.objectContaining({
@@ -116,9 +114,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
 
   it('a 400 for malformed/unrecognized JSON shows the server message and blocks confirmation (XPRT-08)', async () => {
     const fetchImpl = vi.fn(() =>
-      Promise.resolve(
-        jsonResponse(400, { title: 'malformed .excalidraw file: invalid JSON' }),
-      ),
+      Promise.resolve(jsonResponse(400, { title: 'malformed .excalidraw file: invalid JSON' })),
     ) as unknown as typeof fetch;
     renderDialog({ fetchImpl });
 
@@ -165,7 +161,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
   });
 
   it('confirming with a title calls confirmImport with confirm:true and navigates to the created diagram (XPRT-10)', async () => {
-    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+    const fetchImpl = vi.fn((_url: string, init?: RequestInit) => {
       const body = init?.body ? JSON.parse(init.body as string) : {};
       if (body.confirm) {
         return Promise.resolve(
@@ -175,9 +171,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
           }),
         );
       }
-      return Promise.resolve(
-        jsonResponse(200, { preview: { elementCount: 3, appState: {} } }),
-      );
+      return Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } }));
     }) as unknown as typeof fetch;
 
     const { getCapturedPath } = renderDialog({ fetchImpl });
@@ -188,9 +182,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    await waitFor(() =>
-      expect(screen.getByText('3 elementos serão importados')).not.toBeNull(),
-    );
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
 
     fireEvent.change(screen.getByLabelText('Título do diagrama'), {
       target: { value: 'Imported' },
@@ -218,8 +210,8 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
   it('confirming with a blank title never sends the confirmation request (XPRT-11)', async () => {
     const fetchImpl = vi.fn(() =>
       Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } })),
-    ) as unknown as typeof fetch;
-    renderDialog({ fetchImpl });
+    );
+    renderDialog({ fetchImpl: fetchImpl as unknown as typeof fetch });
 
     fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
     await act(async () => {
@@ -227,9 +219,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
       await Promise.resolve();
       await Promise.resolve();
     });
-    await waitFor(() =>
-      expect(screen.getByText('3 elementos serão importados')).not.toBeNull(),
-    );
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
 
     const confirmButton = screen.getByRole('button', { name: 'Confirmar import' });
     expect(confirmButton).toHaveProperty('disabled', true);

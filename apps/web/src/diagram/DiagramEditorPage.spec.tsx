@@ -4,11 +4,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthProvider } from '../auth/AuthProvider.js';
+// Default export (not just the side-effect import) — needed below to switch locale
+// mid-test (NAV-26 pattern), on top of initializing the shared i18next singleton
+// `useTranslation()` reads from. Default language is pt-BR (`DEFAULT_LANGUAGE`), so
+// assertions below query the pt-BR strings ("Enviar", "Aprovar", ...) unless switched.
+import i18n from '../i18n/index.js';
 import { DiagramEditorPage } from './DiagramEditorPage.js';
-// Side-effect import — initializes the shared i18next singleton `useTranslation()` reads
-// from. Default language is pt-BR (`DEFAULT_LANGUAGE`), so assertions below query the
-// pt-BR strings ("Enviar", "Aprovar", ...).
-import '../i18n/index.js';
 
 // The real `<Excalidraw/>` needs browser APIs jsdom doesn't implement — same mocking
 // convention as `packages/editor-adapter/src/EditorSurface.spec.tsx`: only the
@@ -69,9 +70,12 @@ describe('DiagramEditorPage (T9, integration)', () => {
     updateSceneSpy = vi.fn();
   });
 
-  afterEach(() => {
+  afterEach(async () => {
     cleanup();
     vi.unstubAllGlobals();
+    // Restores the default locale in case a test switched it (NAV-26 pattern) and failed
+    // before switching back.
+    await i18n.changeLanguage('pt-BR');
   });
 
   it('the layout is a row with the canvas column and AiDock as siblings (unchanged flex:1/minHeight:0 canvas sizing)', async () => {
@@ -434,6 +438,79 @@ describe('DiagramEditorPage (T9, integration)', () => {
 
     await waitFor(() => expect(capturedOnChange).toBeDefined());
     expect(screen.queryByRole('button', { name: 'Enviar' })).toBeNull();
-    expect(document.querySelector('details')).toBeNull();
+    // Scoped to AiDock's own disclosure (its `<summary>` text) rather than "no <details>
+    // anywhere on the page" — ExportMenu (XPRT-01) is a second, unrelated `<details>` that
+    // stays mounted regardless of mutatePermissions (export only needs diagram:read).
+    expect(screen.queryByText('Dock de IA')).toBeNull();
+  });
+
+  it('ExportMenu and BundleButton mount in the toolbar, keyboard-focusable, and render in the en locale too (XPRT-01/05, T7)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    await i18n.changeLanguage('en');
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    const exportSummary = screen.getByText('Export');
+    expect(exportSummary).not.toBeNull();
+    const bundleButton = screen.getByRole('button', { name: 'Download bundle' });
+    expect(bundleButton).not.toBeNull();
+
+    // Keyboard-focusable (XPRT-16), same `.focus()` convention as NAV-24's own assertions.
+    bundleButton.focus();
+    expect(document.activeElement).toBe(bundleButton);
+  });
+
+  it('a bundle generation failure is announced in an aria-live=polite region (XPRT-06/17)', async () => {
+    const fetchImpl = vi.fn((url: string, init?: RequestInit) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url === '/diagrams/diagram-1/bundle' && init?.method === 'POST') {
+        return Promise.resolve(jsonResponse(500, { title: 'boom' }));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    const liveRegion = screen.getByTestId('bundle-button-announcement');
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Baixar bundle' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(liveRegion.textContent).toBe('Não foi possível gerar o bundle. Tente novamente.'),
+    );
   });
 });

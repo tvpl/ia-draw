@@ -39,7 +39,9 @@ describe('BundleButton (T3, XPRT-05/06)', () => {
       await Promise.resolve();
     });
 
-    await waitFor(() => expect(openUrl).toHaveBeenCalledWith('https://storage.example/bundle-1.zip'));
+    await waitFor(() =>
+      expect(openUrl).toHaveBeenCalledWith('https://storage.example/bundle-1.zip'),
+    );
     expect(fetchImpl).toHaveBeenCalledWith(
       '/diagrams/diagram-1/bundle',
       expect.objectContaining({ method: 'POST' }),
