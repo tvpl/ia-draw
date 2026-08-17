@@ -132,10 +132,10 @@ union de resultado em vez de exceção para o caminho feliz de UI).
 
 **Done when**:
 
-- [ ] `LintWarning`/`LintRuleName` espelham exatamente o shape de `apps/server/src/modules/lint/engine.ts` (`rule`, `severity: 'warning'`, `message`, `elementIds: string[]`)
-- [ ] `list(diagramId)` devolve `{ status: 'ok', warnings }` em 200, `{ status: 'error' }` em qualquer outro status ou exceção de rede — nunca lança
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: um teste por branch de status (200 com avisos, 200 vazio, não-200, falha de rede) passa
+- [x] `LintWarning`/`LintRuleName` espelham exatamente o shape de `apps/server/src/modules/lint/engine.ts` (`rule`, `severity: 'warning'`, `message`, `elementIds: string[]`)
+- [x] `list(diagramId)` devolve `{ status: 'ok', warnings }` em 200, `{ status: 'error' }` em qualquer outro status ou exceção de rede — nunca lança
+- [x] Gate check passes: `make lint && make typecheck && make test-unit` (escopado a `@arch-canvas/web` — ver nota de ambiente no relatório final sobre contenção de recursos ao rodar todos os pacotes de uma vez com `turbo --continue`)
+- [x] Test count: 4 testes cobrindo os 4 branches (200 com avisos, 200 vazio, não-200, falha de rede) passam
 
 **Tests**: unit
 **Gate**: full
