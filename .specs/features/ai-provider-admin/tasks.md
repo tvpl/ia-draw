@@ -226,13 +226,13 @@ T13
 
 **Done when**:
 
-- [ ] O envio fica bloqueado enquanto endpoint, modelo ou chave estiverem vazios
-- [ ] O corpo do `POST` emitido é `{scope, baseUrl, model, token}` com `scope` vindo da rota
-- [ ] `201` adiciona a configuração à lista sem recarregar e limpa o campo de chave
-- [ ] O campo de chave é `type="password"` com `autoComplete="off"` (asserção sobre os atributos)
-- [ ] `400` mostra a mensagem de URL rejeitada e mantém os valores digitados
-- [ ] Testes cobrem PROV-08..12
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] O envio fica bloqueado enquanto endpoint, modelo ou chave estiverem vazios
+- [x] O corpo do `POST` emitido é `{scope, baseUrl, model, token}` com `scope` vindo da rota
+- [x] `201` adiciona a configuração à lista sem recarregar e limpa o campo de chave
+- [x] O campo de chave é `type="password"` com `autoComplete="off"` (asserção sobre os atributos)
+- [x] `400` mostra a mensagem de URL rejeitada e mantém os valores digitados
+- [x] Testes cobrem PROV-08..12
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

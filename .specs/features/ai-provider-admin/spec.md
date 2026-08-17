@@ -251,11 +251,11 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | PROV-05 | P1: Alcançar a tela | F10 | Pending |
 | PROV-06 | P1: Alcançar a tela | F10 | Pending |
 | PROV-07 | P1: Alcançar a tela | F10 | Pending |
-| PROV-08 | P1: Cadastrar | F10 | Pending |
-| PROV-09 | P1: Cadastrar | F10 | Pending |
-| PROV-10 | P1: Cadastrar | F10 | Pending |
-| PROV-11 | P1: Cadastrar | F10 | Pending |
-| PROV-12 | P1: Cadastrar | F10 | Pending |
+| PROV-08 | P1: Cadastrar | F10 | Implementing |
+| PROV-09 | P1: Cadastrar | F10 | Implementing |
+| PROV-10 | P1: Cadastrar | F10 | Implementing |
+| PROV-11 | P1: Cadastrar | F10 | Implementing |
+| PROV-12 | P1: Cadastrar | F10 | Implementing |
 | PROV-13 | P1: Editar sem redigitar a chave | F10 | Pending |
 | PROV-14 | P1: Editar sem redigitar a chave | F10 | Pending |
 | PROV-15 | P1: Editar sem redigitar a chave | F10 | Pending |

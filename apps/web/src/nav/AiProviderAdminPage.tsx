@@ -1,4 +1,4 @@
-import { type JSX, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { createAiProviderClient, type ProviderConfig } from './aiProviderClient.js';
@@ -34,8 +34,16 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
   const items = store((s) => s.items);
   const status = store((s) => s.status);
   const setItems = store((s) => s.setItems);
+  const addItem = store((s) => s.addItem);
 
   const [notFound, setNotFound] = useState(false);
+  const [announcement, setAnnouncement] = useState('');
+
+  const [createBaseUrl, setCreateBaseUrl] = useState('');
+  const [createModel, setCreateModel] = useState('');
+  const [createToken, setCreateToken] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +65,45 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
     };
   }, [client, scope, setItems]);
 
+  const createDisabled =
+    creating ||
+    createBaseUrl.trim().length === 0 ||
+    createModel.trim().length === 0 ||
+    createToken.trim().length === 0;
+
+  async function handleCreate(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    if (createDisabled) return;
+
+    setCreateError(null);
+    setCreating(true);
+    try {
+      const result = await client.create({
+        scope,
+        baseUrl: createBaseUrl.trim(),
+        model: createModel.trim(),
+        token: createToken,
+      });
+
+      if (result.status === 'created') {
+        addItem(result.config);
+        setCreateBaseUrl('');
+        setCreateModel('');
+        setCreateToken('');
+        setAnnouncement(t('adminProviders.created'));
+        return;
+      }
+      // PROV-12: a rejected baseUrl keeps every typed value in place so the
+      // operator can fix the URL instead of retyping the key.
+      const message =
+        result.status === 'rejected' ? t('adminProviders.rejectedUrl') : t('nav.error.generic');
+      setCreateError(message);
+      setAnnouncement(message);
+    } finally {
+      setCreating(false);
+    }
+  }
+
   if (notFound) {
     return (
       <div>
@@ -71,7 +118,9 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
       <Link to={backTo}>{t('nav.back')}</Link>
       <h2>{t('adminProviders.title')}</h2>
       <p>{workspaceId ? t('adminProviders.workspaceScope') : t('adminProviders.globalScope')}</p>
-      <div aria-live="polite" data-testid="ai-provider-announcement" />
+      <div aria-live="polite" data-testid="ai-provider-announcement">
+        {announcement}
+      </div>
 
       {status === 'ready' && items.length === 0 && <p>{t('adminProviders.empty')}</p>}
 
@@ -87,6 +136,39 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
           ))}
         </ul>
       )}
+
+      <form onSubmit={(event) => void handleCreate(event)}>
+        <label htmlFor="provider-create-base-url">{t('adminProviders.baseUrlLabel')}</label>
+        <input
+          id="provider-create-base-url"
+          value={createBaseUrl}
+          onChange={(event) => setCreateBaseUrl(event.target.value)}
+        />
+
+        <label htmlFor="provider-create-model">{t('adminProviders.modelLabel')}</label>
+        <input
+          id="provider-create-model"
+          value={createModel}
+          onChange={(event) => setCreateModel(event.target.value)}
+        />
+
+        <label htmlFor="provider-create-token">{t('adminProviders.keyLabel')}</label>
+        {/* Same shape as `LoginPage`'s password field, but `autoComplete="off"`:
+            this is a provider credential being registered, not a login credential
+            the browser should offer to remember (PROV-11). */}
+        <input
+          id="provider-create-token"
+          type="password"
+          autoComplete="off"
+          value={createToken}
+          onChange={(event) => setCreateToken(event.target.value)}
+        />
+
+        <button type="submit" disabled={createDisabled}>
+          {t('adminProviders.create')}
+        </button>
+        {createError && <p>{createError}</p>}
+      </form>
     </div>
   );
 }
