@@ -334,12 +334,12 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Zero violação `serious`/`critical` no estado vazio e no estado com um link criado
-- [ ] Formulário (papel, expiração, enviar) e ação de revogar são focáveis por teclado
-- [ ] A região de anúncio tem `aria-live="polite"` afirmado pelo atributo, e anuncia um resultado real
-- [ ] O painel renderiza no locale `en` além do `pt-BR`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 5 testes novos passam
+- [x] Zero violação `serious`/`critical` no estado vazio e no estado com um link criado
+- [x] Formulário (papel, expiração, enviar) e ação de revogar são focáveis por teclado
+- [x] A região de anúncio tem `aria-live="polite"` afirmado pelo atributo, e anuncia um resultado real
+- [x] O painel renderiza no locale `en` além do `pt-BR`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 5 testes novos passam
 
 **Tests**: unit
 **Gate**: quick
