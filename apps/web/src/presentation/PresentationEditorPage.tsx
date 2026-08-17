@@ -3,6 +3,7 @@ import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { frameLabel } from './frameLabel.js';
+import { PresentationSharePanel } from './PresentationSharePanel.js';
 import {
   createPresentationClient,
   type FrameSummary,
@@ -449,6 +450,11 @@ export function PresentationEditorPage({
           </button>
           {presentation.publishedSnapshotId && <p>{t('presentation.editor.republishWarning')}</p>}
           {publishError && <p>{publishError}</p>}
+          <PresentationSharePanel
+            presentationId={presentationId}
+            published={presentation.publishedSnapshotId !== null}
+            fetchImpl={fetchImplProp}
+          />
         </div>
       )}
     </div>
