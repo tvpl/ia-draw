@@ -146,6 +146,12 @@ export function ProjectListPage({
   const canManageWebhooks = workspace
     ? can({ role: workspace.role }, 'workspace:manage_members', { workspaceId }).allowed
     : false;
+  // PROV-07: `workspace:manage_members` grants exactly `org_admin`/`workspace_admin`, which is
+  // the same pair the server's `assertProviderAdmin` requires for a workspace-scoped provider
+  // config — so this gate mirrors the server instead of inventing its own rule.
+  const canAdministerProviders = workspace
+    ? can({ role: workspace.role }, 'workspace:manage_members', { workspaceId }).allowed
+    : false;
 
   async function handleCreate(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -258,6 +264,9 @@ export function ProjectListPage({
       <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
       <Link to={`/w/${workspaceId}/members`}>{t('nav.members.link')}</Link>
       {canManageWebhooks && <Link to={`/w/${workspaceId}/webhooks`}>{t('nav.webhooks.link')}</Link>}
+      {canAdministerProviders && (
+        <Link to={`/w/${workspaceId}/admin/ai-providers`}>{t('adminProviders.workspaceLink')}</Link>
+      )}
       {canWriteWorkspace && (
         <button type="button" onClick={requestArchiveWorkspace}>
           {t('nav.workspaces.archiveCurrent')}

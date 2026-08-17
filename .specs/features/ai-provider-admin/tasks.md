@@ -399,10 +399,10 @@ T13
 
 **Done when**:
 
-- [ ] Com papel que concede `workspace:manage_members`, o link aparece
-- [ ] Com papel que não concede, o link não existe no DOM
-- [ ] Testes em `apps/web/src/nav/ProjectListPage.spec.tsx` cobrem PROV-07 nas duas direções
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Com papel que concede `workspace:manage_members`, o link aparece
+- [x] Com papel que não concede, o link não existe no DOM
+- [x] Testes em `apps/web/src/nav/ProjectListPage.spec.tsx` cobrem PROV-07 nas duas direções
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

@@ -515,3 +515,30 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     );
   });
 });
+
+describe('ProjectListPage — workspace AI provider admin link (PROV-07)', () => {
+  function fetchWithRole(role: string) {
+    return vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse(role);
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  it('shows the link for a role granting workspace:manage_members (PROV-07)', async () => {
+    renderPage(fetchWithRole('workspace_admin'));
+    await screen.findByRole('heading', { name: 'Acme Workspace' });
+
+    expect(screen.getByRole('link', { name: 'Providers de IA' })).toHaveProperty(
+      'href',
+      expect.stringContaining('/w/ws-1/admin/ai-providers'),
+    );
+  });
+
+  it('omits the link for a role that does not grant it (PROV-07)', async () => {
+    renderPage(fetchWithRole('editor'));
+    await screen.findByRole('heading', { name: 'Acme Workspace' });
+
+    expect(screen.queryByRole('link', { name: 'Providers de IA' })).toBeNull();
+  });
+});
