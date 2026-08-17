@@ -322,9 +322,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] `jest-axe` run against each of the 4 surfaces in at least one populated state
-- [ ] Zero serious/critical violations in every case
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` run against each of the 4 surfaces in at least one populated state
+- [x] Zero serious/critical violations in every case
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
