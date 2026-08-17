@@ -211,38 +211,38 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CMT2-01 | P1: Ler comentários | R9 | Implementing |
-| CMT2-02 | P1: Ler comentários | R9 | Implementing |
-| CMT2-03 | P1: Ler comentários | R9 | Implementing |
-| CMT2-04 | P1: Ler comentários | R9 | Implementing |
-| CMT2-05 | P1: Ler comentários | R9 | Implementing |
-| CMT2-06 | P1: Ler comentários | R9 | Implementing |
-| CMT2-07 | P1: Ler comentários | R9 | Implementing |
-| CMT2-08 | P1: Ler comentários | R9 | Implementing |
-| CMT2-09 | P1: Ler comentários | R9 | Implementing |
-| CMT2-10 | P1: Ler comentários | R9 | Implementing |
-| CMT2-11 | P1: Comentar | R9 | Implementing |
-| CMT2-12 | P1: Comentar | R9 | Implementing |
-| CMT2-13 | P1: Comentar | R9 | Implementing |
-| CMT2-14 | P1: Comentar | R9 | Implementing |
-| CMT2-15 | P1: Comentar | R9 | Implementing |
-| CMT2-16 | P1: Comentar | R9 | Implementing |
-| CMT2-17 | P1: Comentar | R9 | Implementing |
-| CMT2-18 | P1: Comentar | R9 | Implementing |
-| CMT2-19 | P1: Comentar | R9 | Implementing |
-| CMT2-20 | P1: Resolver e reabrir | R9 | Implementing |
-| CMT2-21 | P1: Resolver e reabrir | R9 | Implementing |
-| CMT2-22 | P1: Resolver e reabrir | R9 | Implementing |
-| CMT2-23 | P1: Resolver e reabrir | R9 | Implementing |
-| CMT2-24 | P2: Responder | R9 | Implementing |
-| CMT2-25 | P2: Responder | R9 | Implementing |
-| CMT2-26 | P2: Responder | R9 | Implementing |
-| CMT2-27 | P2: Filtrar e atualizar | R9 | Implementing |
-| CMT2-28 | P2: Filtrar e atualizar | R9 | Implementing |
-| CMT2-29 | P2: Filtrar e atualizar | R9 | Implementing |
-| CMT2-30 | P2: Teclado e idioma | R9 | Implementing |
-| CMT2-31 | P2: Teclado e idioma | R9 | Implementing |
-| CMT2-32 | P2: Teclado e idioma | R9 | Implementing |
+| CMT2-01 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-02 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-03 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-04 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-05 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-06 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-07 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-08 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-09 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-10 | P1: Ler comentários | R9 | ✅ Verified |
+| CMT2-11 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-12 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-13 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-14 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-15 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-16 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-17 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-18 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-19 | P1: Comentar | R9 | ✅ Verified |
+| CMT2-20 | P1: Resolver e reabrir | R9 | ✅ Verified |
+| CMT2-21 | P1: Resolver e reabrir | R9 | ✅ Verified |
+| CMT2-22 | P1: Resolver e reabrir | R9 | ✅ Verified |
+| CMT2-23 | P1: Resolver e reabrir | R9 | ✅ Verified |
+| CMT2-24 | P2: Responder | R9 | ✅ Verified |
+| CMT2-25 | P2: Responder | R9 | ✅ Verified |
+| CMT2-26 | P2: Responder | R9 | ✅ Verified |
+| CMT2-27 | P2: Filtrar e atualizar | R9 | ✅ Verified |
+| CMT2-28 | P2: Filtrar e atualizar | R9 | ✅ Verified |
+| CMT2-29 | P2: Filtrar e atualizar | R9 | ✅ Verified |
+| CMT2-30 | P2: Teclado e idioma | R9 | ✅ Verified |
+| CMT2-31 | P2: Teclado e idioma | R9 | ✅ Verified |
+| CMT2-32 | P2: Teclado e idioma | R9 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
@@ -255,8 +255,10 @@ REC, SEC, SSO, TRU, UIX, VER.
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-Todas as 8 tasks estão fechadas; os requisitos ficam em `Implementing` até o Verifier independente
-rodar e virá-los para `Verified` (autor ≠ verificador).
+Todas as 8 tasks estão fechadas. O Verifier independente (autor ≠ verificador) rodou em 2026-08-17 e
+virou os 32 requisitos para `Verified`: 32/32 acceptance criteria com evidência `file:line`, gate
+`make lint && make typecheck && make test-unit` verde, e 6/6 mutações do sensor de discriminação
+mortas. Relatório completo em `.specs/features/diagram-comments/validation.md`.
 
 **Coverage:** 32 requisitos, mapeados 1:1 às 32 acceptance criteria das seis histórias.
 
