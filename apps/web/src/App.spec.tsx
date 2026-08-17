@@ -318,6 +318,57 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     expect(screen.getByTestId('webhook-url-wh-1').textContent).toBe('https://a.example.com/hook');
   });
 
+  it('/admin/ai-providers renders AiProviderAdminPage inside AppShell chrome (PROV-01, T9)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/admin/ai-providers?scope=global')
+          return Promise.resolve(
+            jsonResponse(200, {
+              items: [
+                {
+                  id: 'cfg-1',
+                  scope: 'global',
+                  baseUrl: 'https://api.openai.com/v1',
+                  model: 'gpt-4o-mini',
+                  capabilitiesJson: {},
+                  enabled: true,
+                  createdAt: '2026-08-17T00:00:00.000Z',
+                  updatedAt: '2026-08-17T00:00:00.000Z',
+                },
+              ],
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/admin/ai-providers');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Providers de IA' })).toBeTruthy();
+    expect(screen.getByText('https://api.openai.com/v1')).toBeTruthy();
+  });
+
+  it('/w/:workspaceId/admin/ai-providers renders the same page scoped to that workspace (PROV-02, T9)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/admin/ai-providers?scope=ws-1')
+          return Promise.resolve(jsonResponse(200, { items: [] }));
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/admin/ai-providers');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Providers de IA' })).toBeTruthy();
+    expect(screen.getByText('Nenhum provider cadastrado neste escopo.')).toBeTruthy();
+  });
+
   it('/w/:workspaceId/p/:projectId renders DiagramListPage inside AppShell chrome', async () => {
     vi.stubGlobal(
       'fetch',

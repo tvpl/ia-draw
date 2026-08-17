@@ -6,6 +6,7 @@ import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
 import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
 import { InventoryPage } from './diagram/InventoryPage.js';
+import { AiProviderAdminPage } from './nav/AiProviderAdminPage.js';
 import { DiagramListPage } from './nav/DiagramListPage.js';
 import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
@@ -30,6 +31,12 @@ import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
  * as a fourth nested child, a sibling of `w/:workspaceId`/`w/:workspaceId/p/:projectId`
  * rather than nested under either — membership is a workspace-level concern, not
  * scoped to a project.
+ *
+ * T9 (ai-provider-admin): `admin/ai-providers` and `w/:workspaceId/admin/ai-providers`
+ * join as two more nested children — one component serving both, parameterized by
+ * the scope it reads from `useParams()`. `admin/ai-providers` is the app's first
+ * authenticated route with no workspace in its URL at all: the `"global"` provider
+ * scope is instance-wide, so there is no workspace to nest it under.
  *
  * T8 (component-library): `/w/:workspaceId/d/:diagramId/inventory` is a second
  * unnested sibling, same tier as the editor route — `InventoryView` never mounts
@@ -59,6 +66,8 @@ export function AppRoutes(): JSX.Element {
           <Route path="w/:workspaceId/members" element={<WorkspaceMembersPage />} />
           <Route path="w/:workspaceId/webhooks" element={<WorkspaceWebhooksPage />} />
           <Route path="w/:workspaceId/p/:projectId" element={<DiagramListPage />} />
+          <Route path="admin/ai-providers" element={<AiProviderAdminPage />} />
+          <Route path="w/:workspaceId/admin/ai-providers" element={<AiProviderAdminPage />} />
         </Route>
         <Route
           path="/w/:workspaceId/d/:diagramId"

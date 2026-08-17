@@ -346,9 +346,9 @@ T13
 
 **Done when**:
 
-- [ ] As duas rotas montam `AiProviderAdminPage` dentro do `AppShell`, sob `ProtectedRoute`
-- [ ] Testes em `apps/web/src/App.spec.tsx` provam que cada rota renderiza a página (a rota global é a primeira rota autenticada do app sem workspace na URL)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] As duas rotas montam `AiProviderAdminPage` dentro do `AppShell`, sob `ProtectedRoute`
+- [x] Testes em `apps/web/src/App.spec.tsx` provam que cada rota renderiza a página (a rota global é a primeira rota autenticada do app sem workspace na URL)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
