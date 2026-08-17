@@ -496,4 +496,58 @@ describe('HistoryPanel restore flow (T3, SNAP-06..10)', () => {
       'draft name not yet submitted',
     );
   });
+
+  it('SNAP-14: the create-snapshot and restore actions are keyboard-focusable', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS })),
+    ) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    const createButton = screen.getByRole('button', { name: 'Criar snapshot' });
+    createButton.focus();
+    expect(document.activeElement).toBe(createButton);
+
+    const restoreButton = screen.getAllByText('Restaurar')[0] as HTMLElement;
+    restoreButton.focus();
+    expect(document.activeElement).toBe(restoreButton);
+  });
+
+  it('SNAP-15: a successful restore announcement lives inside the aria-live="polite" region', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/snapshots/snap-3:restore') {
+        return Promise.resolve(
+          jsonResponse(200, { currentRevision: 9, restoredFromSnapshotId: 'snap-3' }),
+        );
+      }
+      return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+    }) as unknown as typeof fetch;
+
+    render(
+      <HistoryPanel
+        diagramId="diagram-1"
+        canMutate={true}
+        onRestored={noopRestored}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await screen.findAllByTestId('history-item');
+
+    const region = screen.getByTestId('history-announcement');
+    expect(region.getAttribute('aria-live')).toBe('polite');
+    expect(region.textContent).toBe('');
+
+    fireEvent.click(screen.getAllByText('Restaurar')[0] as HTMLElement);
+    fireEvent.click(screen.getByTestId('restore-confirm-confirm'));
+
+    await waitFor(() => expect(region.textContent).toBe('Restaurado. Nova revisão: 9.'));
+  });
 });

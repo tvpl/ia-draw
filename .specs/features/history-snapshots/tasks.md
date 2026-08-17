@@ -215,13 +215,13 @@ o dispara e aplica o resultado ao canvas.
 - Skill: NONE
 
 **Done when**:
-- [ ] Painel monta sem interferir no canvas quando fechado
-- [ ] `role` efetivo resolvido uma vez e passado como prop (mesma fonte usada pelas demais fatias)
-- [ ] Toda ação alcançável só por Tab/Shift+Tab/Enter
-- [ ] `aria-live="polite"` anuncia sucesso/falha de criação e de restauração
-- [ ] Teste roda com locale `en` trocado no meio do caminho
-- [ ] Zero violações serious/critical de axe em `HistoryPanel`/`DiffView`
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] Painel monta sem interferir no canvas quando fechado
+- [x] `role` efetivo resolvido uma vez e passado como prop (mesma fonte usada pelas demais fatias)
+- [x] Toda ação alcançável só por Tab/Shift+Tab/Enter
+- [x] `aria-live="polite"` anuncia sucesso/falha de criação e de restauração
+- [x] Teste roda com locale `en` trocado no meio do caminho
+- [x] Zero violações serious/critical de axe em `HistoryPanel`/`DiffView`
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
