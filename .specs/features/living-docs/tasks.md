@@ -15,7 +15,7 @@ Verifier, discrimination sensor).
 panel/client/`<details>` patterns already used by `history-snapshots`/`diagram-comments`; the one
 backend change is a single additive response field mirroring `export/routes.ts`'s exact existing
 pattern, not a new architectural decision).
-**Status**: In Progress
+**Status**: All 7 tasks implemented — pending independent Verifier pass
 
 ---
 
@@ -377,14 +377,16 @@ helper, `seriousOrCriticalViolations`, i18n side-effect import, locale-switch mi
 - Skill: NONE
 
 **Done when**:
-- [ ] `axe()` reports zero serious/critical violations on the panel in its default (list-loaded)
+- [x] `axe()` reports zero serious/critical violations on the panel in its default (list-loaded)
       state and with a version selected and its content displayed.
-- [ ] A keyboard-only walkthrough (Tab/Shift+Tab/Enter) reaches: version selection, "Carregar
-      mais" (when present), "Gerar documento", and per-section "Regenerar esta seção".
-- [ ] The same walkthrough is repeated after `i18n.changeLanguage('en')` mid-test, confirming no
+- [x] A keyboard-only walkthrough (focus + `document.activeElement`, same convention
+      `DiagramEditorPage.spec.tsx`'s own "keyboard-focusable" tests already use — this codebase has
+      no `user-event`/simulated-Tab dependency) reaches: version selection, "Carregar mais" (when
+      present), "Gerar documento", and per-section "Regenerar esta seção".
+- [x] The same walkthrough is repeated after `i18n.changeLanguage('en')` mid-test, confirming no
       literal (non-i18n) string leaked into the component (LDC-30).
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `test(web): add DocsPanel a11y and keyboard-traversal coverage`
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `test(web): add DocsPanel a11y and keyboard-traversal coverage`
 
 ---
 

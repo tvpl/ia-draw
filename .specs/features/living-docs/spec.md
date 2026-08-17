@@ -221,7 +221,7 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | LDC-27 | P1: Regenerar seção | R13 | Implementing |
 | LDC-28 | P2: Teclado e idioma | R13 | Implementing |
 | LDC-29 | P2: Teclado e idioma | R13 | Implementing |
-| LDC-30 | P2: Teclado e idioma | R13 | Pending |
+| LDC-30 | P2: Teclado e idioma | R13 | Implementing |
 
 **ID format:** `LDC-NN`. O prefixo é `LDC` (não `DOC`) porque `DOC-01..04` já nomeia os requisitos
 de **backend** de docgen, em `.specs/features/architecture-canvas/spec.md`, verificados na onda F3
