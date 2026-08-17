@@ -55,6 +55,17 @@ function baseFetch({
         frame: { id: 'f-new', presentationId: 'p-1', notes: null, navLinksJson: [], ...body },
       });
     }
+    if (url === '/presentations/p-1/frames' && init?.method === 'PATCH') {
+      const { frames: updates } = JSON.parse(init.body as string) as {
+        frames: { id: string; position: number }[];
+      };
+      const byId = new Map((frames as { id: string }[]).map((f) => [f.id, f]));
+      const reordered = updates
+        .slice()
+        .sort((a, b) => a.position - b.position)
+        .map((u) => ({ ...byId.get(u.id), position: u.position }));
+      return jsonResponse(200, { frames: reordered });
+    }
     if (url.startsWith('/presentations/p-1/frames/') && init?.method === 'PATCH') {
       const frameId = url.split('/').pop();
       const body = JSON.parse(init.body as string);
@@ -68,6 +79,36 @@ function baseFetch({
     throw new Error(`unexpected url ${url}`);
   }) as unknown as typeof fetch;
 }
+
+const threeFrames = [
+  {
+    id: 'f-1',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'a',
+    position: 0,
+    notes: null,
+    navLinksJson: [],
+  },
+  {
+    id: 'f-2',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'b',
+    position: 1,
+    notes: null,
+    navLinksJson: [],
+  },
+  {
+    id: 'f-3',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'c',
+    position: 2,
+    notes: null,
+    navLinksJson: [],
+  },
+];
 
 const editableFrame = {
   id: 'f-1',
@@ -285,5 +326,87 @@ describe('PresentationEditorPage — edit notes and delete frame (PRZ-09..12)', 
       expect.objectContaining({ method: 'DELETE' }),
     );
     confirmSpy.mockRestore();
+  });
+});
+
+describe('PresentationEditorPage — reorder frames (PRZ-13..17)', () => {
+  it('the first row has "move up" disabled and the last row has "move down" disabled', async () => {
+    const fetchImpl = baseFetch({ frames: threeFrames });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const rows = screen.getAllByTestId(/^frame-row-/);
+    const upFirst = within(rows[0] as HTMLElement).getByRole('button', {
+      name: 'Mover para cima',
+    }) as HTMLButtonElement;
+    const downLast = within(rows[2] as HTMLElement).getByRole('button', {
+      name: 'Mover para baixo',
+    }) as HTMLButtonElement;
+    const upMiddle = within(rows[1] as HTMLElement).getByRole('button', {
+      name: 'Mover para cima',
+    }) as HTMLButtonElement;
+    expect(upFirst.disabled).toBe(true);
+    expect(downLast.disabled).toBe(true);
+    expect(upMiddle.disabled).toBe(false);
+  });
+
+  it('moving the last frame to the top PATCHes ALL 3 recalculated positions, not just the moved one', async () => {
+    const fetchImpl = baseFetch({ frames: threeFrames });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const lastRow = screen.getByTestId('frame-row-f-3');
+    fireEvent.click(within(lastRow).getByRole('button', { name: 'Mover para cima' }));
+
+    await waitFor(() =>
+      expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1/frames', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          frames: [
+            { id: 'f-1', position: 0 },
+            { id: 'f-3', position: 1 },
+            { id: 'f-2', position: 2 },
+          ],
+        }),
+      }),
+    );
+
+    const rowsAfter = screen.getAllByTestId(/^frame-row-/);
+    expect(rowsAfter.map((r) => r.dataset.testid)).toEqual([
+      'frame-row-f-1',
+      'frame-row-f-3',
+      'frame-row-f-2',
+    ]);
+  });
+
+  it('reverts the displayed order when the reorder request fails', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/presentations/p-1') {
+        return jsonResponse(200, { presentation, frames: threeFrames });
+      }
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      if (url === '/presentations/p-1/frames' && init?.method === 'PATCH') {
+        return jsonResponse(404, {});
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    const lastRow = screen.getByTestId('frame-row-f-3');
+    fireEvent.click(within(lastRow).getByRole('button', { name: 'Mover para cima' }));
+
+    await waitFor(() =>
+      expect(screen.getAllByText('Algo deu errado. Tente de novo.').length).toBeGreaterThan(0),
+    );
+    const rows = screen.getAllByTestId(/^frame-row-/);
+    expect(rows.map((r) => r.dataset.testid)).toEqual([
+      'frame-row-f-1',
+      'frame-row-f-2',
+      'frame-row-f-3',
+    ]);
   });
 });

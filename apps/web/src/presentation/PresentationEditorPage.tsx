@@ -73,6 +73,7 @@ export function PresentationEditorPage({
   const [notesDraft, setNotesDraft] = useState('');
   const [notesError, setNotesError] = useState<string | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [reorderError, setReorderError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!presentationId) return;
@@ -176,6 +177,35 @@ export function PresentationEditorPage({
     setAnnouncement(t('presentation.editor.error.generic'));
   }
 
+  /** PRZ-14: recomputes ALL positions (never just the moved frame's) and PATCHes the
+   * whole array in one bulk request — same reorder rule as the server's bulkReorderFrames. */
+  async function moveFrame(index: number, direction: -1 | 1): Promise<void> {
+    if (!presentationId || !frames) return;
+    const targetIndex = index + direction;
+    if (targetIndex < 0 || targetIndex >= frames.length) return;
+
+    const reordered = [...frames];
+    const [moved] = reordered.splice(index, 1);
+    if (!moved) return;
+    reordered.splice(targetIndex, 0, moved);
+    const previous = frames;
+
+    setFrames(reordered);
+    const updates = reordered.map((frame, i) => ({ id: frame.id, position: i }));
+    const result = await client.reorderFrames(presentationId, updates);
+
+    if (result.status === 'ok') {
+      setFrames(result.frames);
+      setAnnouncement(t('presentation.editor.announcement.framesReordered'));
+      setReorderError(null);
+      return;
+    }
+    // Revert the optimistic reorder to the last server-confirmed order (PRZ-17).
+    setFrames(previous);
+    setReorderError(t('presentation.editor.error.generic'));
+    setAnnouncement(t('presentation.editor.error.generic'));
+  }
+
   if (notFound) {
     return (
       <div>
@@ -199,6 +229,7 @@ export function PresentationEditorPage({
 
       <h3>{t('presentation.editor.framesTitle')}</h3>
       {deleteError && <p>{deleteError}</p>}
+      {reorderError && <p>{reorderError}</p>}
       {frames && frames.length === 0 && <p>{t('presentation.list.empty')}</p>}
       {frames && frames.length > 0 && (
         <ol data-testid="frame-list">
@@ -208,6 +239,25 @@ export function PresentationEditorPage({
             return (
               <li key={frame.id} data-testid={`frame-row-${frame.id}`}>
                 <span>{t(descriptor.key, descriptor.params)}</span>
+
+                {canMutate && (
+                  <>
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={() => void moveFrame(index, -1)}
+                    >
+                      {t('presentation.editor.moveUp')}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={index === frames.length - 1}
+                      onClick={() => void moveFrame(index, 1)}
+                    >
+                      {t('presentation.editor.moveDown')}
+                    </button>
+                  </>
+                )}
 
                 {isEditingNotes ? (
                   <form
