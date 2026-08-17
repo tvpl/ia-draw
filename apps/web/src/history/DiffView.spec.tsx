@@ -94,6 +94,33 @@ describe('DiffView (T4, SNAP-11..13)', () => {
     ).toBeTruthy();
   });
 
+  it('SNAP-12: a mixed diff (one category populated, the rest empty) renders the categorized lists, not "no changes"', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/snapshots') {
+        return Promise.resolve(jsonResponse(200, { snapshots: SNAPSHOTS }));
+      }
+      return Promise.resolve(
+        jsonResponse(200, {
+          from: 'snap-2',
+          to: 'snap-3',
+          added: ['el-only-change'],
+          removed: [],
+          moved: [],
+          modified: [],
+        }),
+      );
+    }) as unknown as typeof fetch;
+
+    render(<DiffView diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    await screen.findByRole('button', { name: 'Comparar' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Comparar' }));
+
+    expect(await screen.findByText('el-only-change')).toBeTruthy();
+    expect(screen.getByText('Adicionados (1)')).toBeTruthy();
+    expect(screen.queryByText('Nenhuma mudança estrutural entre essas duas revisões.')).toBeNull();
+  });
+
   it("SNAP-13: a 404 shows the server's own error message without breaking the panel", async () => {
     const fetchImpl = vi.fn((url: string) => {
       if (url === '/diagrams/diagram-1/snapshots') {
