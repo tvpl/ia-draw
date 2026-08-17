@@ -91,11 +91,17 @@ describe('ShareLinkPanel — creating a link (T8, SHR-02..07)', () => {
 
   it('POSTs {role, expiresAt} to /diagrams/:id/share-links (SHR-04)', async () => {
     const fetchImpl = vi.fn(async () =>
-      jsonResponse(201, { shareLink: CREATED_LINK, token: 'plain-token-abc' }),
+      jsonResponse(201, {
+        shareLink: { ...CREATED_LINK, role: 'editor' },
+        token: 'plain-token-abc',
+      }),
     ) as unknown as typeof fetch;
     renderPanel(fetchImpl);
 
-    fillForm();
+    // A non-default role: 'editor' is neither the <select>'s first option nor fillForm()'s own
+    // default ('viewer'), so a body built from a hardcoded/default role would fail this
+    // assertion instead of passing it by coincidence.
+    fillForm('editor');
     submit();
 
     await waitFor(() => expect(fetchImpl).toHaveBeenCalled());
@@ -106,7 +112,7 @@ describe('ShareLinkPanel — creating a link (T8, SHR-02..07)', () => {
     expect(url).toBe('/diagrams/d-1/share-links');
     expect(init.method).toBe('POST');
     expect(JSON.parse(init.body as string)).toEqual({
-      role: 'viewer',
+      role: 'editor',
       expiresAt: new Date(FUTURE_LOCAL).toISOString(),
     });
   });
@@ -143,6 +149,13 @@ describe('ShareLinkPanel — creating a link (T8, SHR-02..07)', () => {
       ),
     );
     expect(screen.queryAllByRole('listitem')).toEqual([]);
+    // The picked role reaches the request even on a rejected attempt — the 403 is the server's
+    // ceiling check on the value actually sent, not a client-side substitution.
+    const [, init] = (fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(JSON.parse(init.body as string).role).toBe('org_admin');
   });
 
   it('shows a generic failure on any other error status and adds nothing to the list (SHR-07)', async () => {
