@@ -247,8 +247,8 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] Ambos os locales têm o mesmo conjunto de chaves sob `library`/`metadata`/`inventory`
-- [ ] `make lint` passes
+- [x] Ambos os locales têm o mesmo conjunto de chaves sob `library`/`metadata`/`inventory`
+- [x] `make lint` passes
 
 **Tests**: none
 **Gate**: quick

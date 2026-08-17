@@ -98,5 +98,39 @@
       "forbidden": "You don't have permission to do that.",
       "generic": "Something went wrong. Try again."
     }
+  },
+  "library": {
+    "title": "Component library",
+    "searchLabel": "Search components",
+    "insert": "Insert",
+    "inserted": "{{name}} inserted into the canvas",
+    "loading": "Loading library…",
+    "error": "Couldn't load the library.",
+    "retry": "Retry",
+    "emptySearch": "No components match your search."
+  },
+  "metadata": {
+    "title": "Element metadata",
+    "emptyState": "Select an element to see or edit its metadata.",
+    "semanticTypeLabel": "Semantic type",
+    "metadataJsonLabel": "Metadata (JSON)",
+    "save": "Save",
+    "saved": "Metadata saved",
+    "invalidJson": "Metadata must be valid JSON.",
+    "error": "Couldn't save the metadata. Try again."
+  },
+  "inventory": {
+    "title": "Inventory",
+    "open": "View inventory",
+    "exportCsv": "Export CSV",
+    "empty": "No elements have been classified yet.",
+    "removed": "Removed from canvas",
+    "columns": {
+      "elementId": "Element",
+      "elementType": "Type",
+      "semanticType": "Semantic type",
+      "revision": "Revision"
+    },
+    "error": "Couldn't load the inventory."
   }
 }
