@@ -216,11 +216,11 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Renderiza `children` dentro de um `<main>`, com cabeçalho de produto
-- [ ] Não renderiza botão de logout nem nenhum link para rota autenticada (asserção explícita, não só ausência de import)
-- [ ] Renderiza fora de `AuthProvider` sem lançar (teste monta o componente sem provider nenhum)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 3 testes novos passam
+- [x] Renderiza `children` dentro de um `<main>`, com cabeçalho de produto
+- [x] Não renderiza botão de logout nem nenhum link para rota autenticada (asserção explícita, não só ausência de import)
+- [x] Renderiza fora de `AuthProvider` sem lançar (teste monta o componente sem provider nenhum)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 3 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

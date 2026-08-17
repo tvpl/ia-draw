@@ -255,7 +255,7 @@ abrir a visão pública no mesmo locale.
 | SHR-14 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-15 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-16 | P1: Visão pública sem sessão | F10 | Implementing |
-| SHR-17 | P1: Visão pública sem sessão | F10 | Pending |
+| SHR-17 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-18 | P1: Somente leitura de verdade | F10 | Implementing |
 | SHR-19 | P1: Somente leitura de verdade | F10 | Pending |
 | SHR-20 | P1: Somente leitura de verdade | F10 | Pending |
