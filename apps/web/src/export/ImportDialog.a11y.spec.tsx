@@ -87,4 +87,40 @@ describe('ImportDialog (XPRT-16..18)', () => {
     const results = await axe(container);
     expect(seriousOrCriticalViolations(results)).toEqual([]);
   });
+
+  it('the open dialog with the Mermaid format selected and a preview showing has zero serious/critical axe violations (INT-15)', async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+
+    const { container } = render(
+      <MemoryRouter initialEntries={['/w/ws-1/p/project-1']}>
+        <Routes>
+          <Route
+            path="/w/:workspaceId/p/:projectId"
+            element={
+              <ImportDialog
+                projectId="project-1"
+                workspaceId="ws-1"
+                canImport
+                fetchImpl={fetchImpl}
+              />
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    const input = screen.getByLabelText('Arquivo Mermaid/Structurizr') as HTMLInputElement;
+    const file = new File(['flowchart TD\n  A --> B'], 'diagram.mmd', { type: 'text/plain' });
+    await act(async () => {
+      fireEvent.change(input, { target: { files: [file] } });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    const results = await axe(container);
+    expect(seriousOrCriticalViolations(results)).toEqual([]);
+  });
 });

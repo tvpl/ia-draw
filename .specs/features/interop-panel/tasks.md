@@ -14,7 +14,7 @@ Verifier, discrimination sensor).
 **Design**: inline (Medium scope — sem `design.md` próprio; a única decisão de arquitetura real
 — como expressar "prévia" sem uma rota de dry-run — já está resolvida na tabela de Assumptions do
 `spec.md`).
-**Status**: Approved
+**Status**: Done (T1-T3 implementados, aguardando Verifier)
 
 ---
 
@@ -149,13 +149,13 @@ INT-16, INT-17
 - Skill: NONE
 
 **Done when**:
-- [ ] Diálogo abre com `.excalidraw` selecionado por padrão; escolher Mermaid/Structurizr troca `accept` e descarta prévia/arquivo anterior
-- [ ] Selecionar arquivo sob Mermaid/Structurizr lê como texto e exibe a prévia somente-leitura sem nenhuma chamada de rede
-- [ ] Confirmar chama `POST /projects/:id/import:<format>` exatamente uma vez com `{dsl, title?}`; `201` exibe `limitations` (mesmo vazio) e navega para `/w/:workspaceId/d/:diagramId`; `400` mostra a mensagem do servidor e não navega; qualquer outro status mostra erro genérico e não navega
-- [ ] Confirmar com título vazio é permitido para Mermaid/Structurizr (diferente do `.excalidraw`); arquivo com conteúdo vazio mantém o botão de confirmar desabilitado
-- [ ] `canImport` continua escondendo o gatilho inteiro (os 3 formatos) para quem não tem `diagram:write`
-- [ ] Seletor, prévia e botão de confirmar são alcançáveis por teclado; toda string nova vem de `translation.json` (pt-BR e en)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Diálogo abre com `.excalidraw` selecionado por padrão; escolher Mermaid/Structurizr troca `accept` e descarta prévia/arquivo anterior
+- [x] Selecionar arquivo sob Mermaid/Structurizr lê como texto e exibe a prévia somente-leitura sem nenhuma chamada de rede
+- [x] Confirmar chama `POST /projects/:id/import:<format>` exatamente uma vez com `{dsl, title?}`; `201` exibe `limitations` (mesmo vazio) e navega para `/w/:workspaceId/d/:diagramId`; `400` mostra a mensagem do servidor e não navega; qualquer outro status mostra erro genérico e não navega
+- [x] Confirmar com título vazio é permitido para Mermaid/Structurizr (diferente do `.excalidraw`); arquivo com conteúdo vazio mantém o botão de confirmar desabilitado
+- [x] `canImport` continua escondendo o gatilho inteiro (os 3 formatos) para quem não tem `diagram:write`
+- [x] Seletor, prévia e botão de confirmar são alcançáveis por teclado; toda string nova vem de `translation.json` (pt-BR e en)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: build (última task da feature)

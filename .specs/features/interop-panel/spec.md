@@ -153,23 +153,23 @@ frente.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| INT-01 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
-| INT-02 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
-| INT-03 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
-| INT-04 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
-| INT-05 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1+T2 done, aguarda Verifier) |
-| INT-06 | P1: Importar com prévia | Tasks | Pending |
-| INT-07 | P1: Importar com prévia | Tasks | Pending |
-| INT-08 | P1: Importar com prévia | Tasks | Pending |
-| INT-09 | P1: Importar com prévia | Tasks | Implementing (T1 client done, T3 UI pending) |
-| INT-10 | P1: Importar com prévia | Tasks | Implementing (T1 client done, T3 UI pending) |
-| INT-11 | P1: Importar com prévia | Tasks | Implementing (T1 client done, T3 UI pending) |
-| INT-12 | P1: Importar com prévia | Tasks | Implementing (T1 client done, T3 UI pending) |
-| INT-13 | P1: Importar com prévia | Tasks | Pending |
-| INT-14 | P1: Importar com prévia | Tasks | Pending |
-| INT-15 | P1: Importar com prévia | Tasks | Pending |
-| INT-16 | P2: Teclado e idioma | Tasks | Pending |
-| INT-17 | P2: Teclado e idioma | Tasks | Pending |
+| INT-01 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-02 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-03 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-04 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-05 | P1: Exportar Mermaid/Structurizr | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-06 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-07 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-08 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-09 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-10 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-11 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-12 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-13 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-14 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-15 | P1: Importar com prévia | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-16 | P2: Teclado e idioma | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
+| INT-17 | P2: Teclado e idioma | Tasks | Implementing (T1-T3 done, aguarda Verifier) |
 
 **ID format:** `INT-NN` (INTerop — fatia de frontend distinta de `AAC-NN`, que já nomeia os
 requisitos de backend em `architecture-canvas/spec.md`; sem colisão com nenhum prefixo existente
