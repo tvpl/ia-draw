@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 // Side-effect import — initializes the shared i18next singleton (default pt-BR),
@@ -255,5 +255,88 @@ describe('AiProviderAdminPage — creation (PROV-08..12)', () => {
     );
     expect((screen.getByLabelText('Modelo') as HTMLInputElement).value).toBe('gpt-4o');
     expect((screen.getByLabelText('Chave da API') as HTMLInputElement).value).toBe('sk-new');
+  });
+});
+
+/** Renders the global page with one config already listed, then opens its edit form. */
+async function renderWithEditOpen(fetchImpl: typeof fetch) {
+  renderGlobal(fetchImpl);
+  await screen.findByText('https://api.openai.com/v1');
+  fireEvent.click(screen.getByRole('button', { name: 'Editar' }));
+  return screen.getByText('https://api.openai.com/v1').closest('li') as HTMLElement;
+}
+
+function listResponseOnly(patchResponse: Response): typeof fetch {
+  return vi.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.method === 'PATCH') return patchResponse;
+    return jsonResponse(200, { items: [providerConfig()] });
+  }) as unknown as typeof fetch;
+}
+
+describe('AiProviderAdminPage — editing (PROV-13..16)', () => {
+  it('omits `token` from the PATCH body when the key field is left blank (PROV-13)', async () => {
+    const fetchImpl = listResponseOnly(
+      jsonResponse(200, { config: providerConfig({ model: 'gpt-4.1' }) }),
+    );
+    const row = await renderWithEditOpen(fetchImpl);
+
+    fireEvent.change(within(row).getByLabelText('Modelo'), { target: { value: 'gpt-4.1' } });
+    fireEvent.click(within(row).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2));
+    const body = bodyOfCall(fetchImpl, 1);
+    expect('token' in body).toBe(false);
+    expect(body).toEqual({ baseUrl: 'https://api.openai.com/v1', model: 'gpt-4.1' });
+  });
+
+  it('includes `token` when the key field is filled in (PROV-14)', async () => {
+    const fetchImpl = listResponseOnly(jsonResponse(200, { config: providerConfig() }));
+    const row = await renderWithEditOpen(fetchImpl);
+
+    fireEvent.change(within(row).getByLabelText('Chave da API'), {
+      target: { value: 'sk-rotated' },
+    });
+    fireEvent.click(within(row).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() => expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2));
+    expect(bodyOfCall(fetchImpl, 1).token).toBe('sk-rotated');
+  });
+
+  it('shows the "leave blank to keep the current key" hint in the edit form (PROV-15)', async () => {
+    const fetchImpl = listResponseOnly(jsonResponse(200, { config: providerConfig() }));
+    const row = await renderWithEditOpen(fetchImpl);
+
+    expect(within(row).getByText('Deixe em branco para manter a chave atual.')).toBeTruthy();
+    // The key field is never prefilled — the server never returns a key to prefill it with.
+    expect((within(row).getByLabelText('Chave da API') as HTMLInputElement).value).toBe('');
+  });
+
+  it('keeps the previous values in the list when the PATCH fails (PROV-16)', async () => {
+    const fetchImpl = listResponseOnly(jsonResponse(403, {}));
+    const row = await renderWithEditOpen(fetchImpl);
+
+    fireEvent.change(within(row).getByLabelText('Modelo'), { target: { value: 'gpt-4.1' } });
+    fireEvent.click(within(row).getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-announcement').textContent).toBe(
+        'Algo deu errado. Tente novamente.',
+      ),
+    );
+    expect(screen.getByText('gpt-4o-mini')).toBeTruthy();
+    expect(screen.queryByText('gpt-4.1')).toBeNull();
+  });
+
+  it('replaces the row with the server response on success (PROV-16 counterpart)', async () => {
+    const fetchImpl = listResponseOnly(
+      jsonResponse(200, { config: providerConfig({ model: 'gpt-4.1' }) }),
+    );
+    const row = await renderWithEditOpen(fetchImpl);
+
+    fireEvent.change(within(row).getByLabelText('Modelo'), { target: { value: 'gpt-4.1' } });
+    fireEvent.click(within(row).getByRole('button', { name: 'Salvar' }));
+
+    expect(await screen.findByText('gpt-4.1')).toBeTruthy();
+    expect(screen.getByTestId('ai-provider-announcement').textContent).toBe('Provider atualizado.');
   });
 });

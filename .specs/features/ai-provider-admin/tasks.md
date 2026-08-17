@@ -256,12 +256,12 @@ T13
 
 **Done when**:
 
-- [ ] Salvar com o campo de chave vazio emite um `PATCH` cujo corpo serializado não tem a propriedade `token` (asserção sobre o corpo, não sobre a chamada)
-- [ ] Salvar com o campo de chave preenchido emite um `PATCH` com `token` igual ao valor digitado
-- [ ] A nota "deixar em branco mantém a chave atual" aparece no formulário de edição
-- [ ] Status diferente de `200` informa a falha e mantém os valores anteriores na lista
-- [ ] Testes cobrem PROV-13..16
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Salvar com o campo de chave vazio emite um `PATCH` cujo corpo serializado não tem a propriedade `token` (asserção sobre o corpo, não sobre a chamada)
+- [x] Salvar com o campo de chave preenchido emite um `PATCH` com `token` igual ao valor digitado
+- [x] A nota "deixar em branco mantém a chave atual" aparece no formulário de edição
+- [x] Status diferente de `200` informa a falha e mantém os valores anteriores na lista
+- [x] Testes cobrem PROV-13..16
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

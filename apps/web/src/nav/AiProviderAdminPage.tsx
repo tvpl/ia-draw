@@ -35,6 +35,7 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
   const status = store((s) => s.status);
   const setItems = store((s) => s.setItems);
   const addItem = store((s) => s.addItem);
+  const replaceItem = store((s) => s.replaceItem);
 
   const [notFound, setNotFound] = useState(false);
   const [announcement, setAnnouncement] = useState('');
@@ -44,6 +45,11 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
   const [createToken, setCreateToken] = useState('');
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editBaseUrl, setEditBaseUrl] = useState('');
+  const [editModel, setEditModel] = useState('');
+  const [editToken, setEditToken] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -104,6 +110,41 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
     }
   }
 
+  function startEdit(item: ProviderConfig): void {
+    setEditingId(item.id);
+    setEditBaseUrl(item.baseUrl);
+    setEditModel(item.model);
+    // Never prefilled: the server does not return the key, so there is nothing
+    // to prefill it with, and an empty field is exactly what "keep the current
+    // key" means on submit (PROV-13/15).
+    setEditToken('');
+  }
+
+  function cancelEdit(): void {
+    setEditingId(null);
+    setEditToken('');
+  }
+
+  async function submitEdit(item: ProviderConfig): Promise<void> {
+    const result = await client.update(item.id, {
+      baseUrl: editBaseUrl.trim(),
+      model: editModel.trim(),
+      // An empty field omits `token` entirely, which is what makes the server
+      // leave the stored ciphertext untouched (PROV-13).
+      token: editToken.length > 0 ? editToken : undefined,
+    });
+
+    if (result.status === 'ok') {
+      replaceItem(item.id, result.config);
+      setEditingId(null);
+      setEditToken('');
+      setAnnouncement(t('adminProviders.updated'));
+      return;
+    }
+    // PROV-16: the list keeps the previous values — nothing is replaced on failure.
+    setAnnouncement(t('nav.error.generic'));
+  }
+
   if (notFound) {
     return (
       <div>
@@ -131,7 +172,48 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
               <span>{item.baseUrl}</span> <span>{item.model}</span>{' '}
               <span data-testid={`ai-provider-state-${item.id}`}>
                 {item.enabled ? t('adminProviders.active') : t('adminProviders.inactive')}
-              </span>
+              </span>{' '}
+              {editingId === item.id ? (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void submitEdit(item);
+                  }}
+                >
+                  <label htmlFor="provider-edit-base-url">{t('adminProviders.baseUrlLabel')}</label>
+                  <input
+                    id="provider-edit-base-url"
+                    value={editBaseUrl}
+                    onChange={(event) => setEditBaseUrl(event.target.value)}
+                  />
+
+                  <label htmlFor="provider-edit-model">{t('adminProviders.modelLabel')}</label>
+                  <input
+                    id="provider-edit-model"
+                    value={editModel}
+                    onChange={(event) => setEditModel(event.target.value)}
+                  />
+
+                  <label htmlFor="provider-edit-token">{t('adminProviders.keyLabel')}</label>
+                  <input
+                    id="provider-edit-token"
+                    type="password"
+                    autoComplete="off"
+                    value={editToken}
+                    onChange={(event) => setEditToken(event.target.value)}
+                  />
+                  <p>{t('adminProviders.keyKeepHint')}</p>
+
+                  <button type="submit">{t('adminProviders.save')}</button>
+                  <button type="button" onClick={cancelEdit}>
+                    {t('adminProviders.cancel')}
+                  </button>
+                </form>
+              ) : (
+                <button type="button" onClick={() => startEdit(item)}>
+                  {t('adminProviders.edit')}
+                </button>
+              )}
             </li>
           ))}
         </ul>

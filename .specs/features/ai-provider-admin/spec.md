@@ -256,10 +256,10 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | PROV-10 | P1: Cadastrar | F10 | Implementing |
 | PROV-11 | P1: Cadastrar | F10 | Implementing |
 | PROV-12 | P1: Cadastrar | F10 | Implementing |
-| PROV-13 | P1: Editar sem redigitar a chave | F10 | Pending |
-| PROV-14 | P1: Editar sem redigitar a chave | F10 | Pending |
-| PROV-15 | P1: Editar sem redigitar a chave | F10 | Pending |
-| PROV-16 | P1: Editar sem redigitar a chave | F10 | Pending |
+| PROV-13 | P1: Editar sem redigitar a chave | F10 | Implementing |
+| PROV-14 | P1: Editar sem redigitar a chave | F10 | Implementing |
+| PROV-15 | P1: Editar sem redigitar a chave | F10 | Implementing |
+| PROV-16 | P1: Editar sem redigitar a chave | F10 | Implementing |
 | PROV-17 | P1: Testar a conexão | F10 | Pending |
 | PROV-18 | P1: Testar a conexão | F10 | Pending |
 | PROV-19 | P1: Testar a conexão | F10 | Pending |
