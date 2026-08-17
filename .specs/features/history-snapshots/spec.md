@@ -150,10 +150,10 @@ nesta frente.
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
 | SNAP-01 | P1: Linha do tempo e criar | T1/T2 | Implementing |
-| SNAP-02 | P1: Linha do tempo e criar | T2 | Pending |
+| SNAP-02 | P1: Linha do tempo e criar | T2 | Implementing |
 | SNAP-03 | P1: Linha do tempo e criar | T1/T2 | Implementing |
-| SNAP-04 | P1: Linha do tempo e criar | T2 | Pending |
-| SNAP-05 | P1: Linha do tempo e criar | T2 | Pending |
+| SNAP-04 | P1: Linha do tempo e criar | T2 | Implementing |
+| SNAP-05 | P1: Linha do tempo e criar | T2 | Implementing |
 | SNAP-06 | P1: Restaurar | T1/T3 | Implementing |
 | SNAP-07 | P1: Restaurar | T3 | Pending |
 | SNAP-08 | P1: Restaurar | T3 | Pending |

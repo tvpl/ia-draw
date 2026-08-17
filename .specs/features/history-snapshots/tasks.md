@@ -110,12 +110,12 @@ T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Lista ordenada do mais recente pro mais antigo, cada item com rótulo de `kind` traduzido
-- [ ] Ação "criar snapshot nomeado" visível só quando `role` concede `diagram:mutate`
-- [ ] Criar com nome insere no topo a partir da resposta `201`, sem novo `GET`
-- [ ] Criar sem nome envia sem o campo `name`
-- [ ] Estado vazio quando não há nenhum snapshot ainda
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lista ordenada do mais recente pro mais antigo, cada item com rótulo de `kind` traduzido
+- [x] Ação "criar snapshot nomeado" visível só quando `role` concede `diagram:mutate`
+- [x] Criar com nome insere no topo a partir da resposta `201`, sem novo `GET`
+- [x] Criar sem nome envia sem o campo `name`
+- [x] Estado vazio quando não há nenhum snapshot ainda
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
