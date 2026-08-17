@@ -242,16 +242,16 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Ao montar, emite `GET /share/:token` exatamente uma vez (contador de chamadas, não só "foi chamada")
-- [ ] `200` com `resourceType:'diagram'` renderiza `EditorSurface` recebendo os elementos de `scene`
-- [ ] `EditorSurface` recebe `viewModeEnabled === true`, inclusive quando o papel do link é `editor` (asserção na prop repassada)
-- [ ] `404` renderiza a mensagem única de link inválido e nenhum canvas
-- [ ] Falha de rede renderiza a mesma mensagem de falha, sem segunda requisição
-- [ ] `scene: []` renderiza o canvas vazio, nunca a mensagem de link inválido
-- [ ] `resourceType:'presentation'` renderiza o nome da apresentação e o placeholder, e nenhum texto de `notes` aparece na tela mesmo quando a resposta traz `notes` preenchido
-- [ ] Nenhum `DiagramSyncClient`/fila de mutação é construído e nenhuma requisição de mutação é emitida (asserção sobre as URLs chamadas)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 9 testes novos passam
+- [x] Ao montar, emite `GET /share/:token` exatamente uma vez (contador de chamadas, não só "foi chamada")
+- [x] `200` com `resourceType:'diagram'` renderiza `EditorSurface` recebendo os elementos de `scene`
+- [x] `EditorSurface` recebe `viewModeEnabled === true`, inclusive quando o papel do link é `editor` (asserção na prop repassada)
+- [x] `404` renderiza a mensagem única de link inválido e nenhum canvas
+- [x] Falha de rede renderiza a mesma mensagem de falha, sem segunda requisição
+- [x] `scene: []` renderiza o canvas vazio, nunca a mensagem de link inválido
+- [x] `resourceType:'presentation'` renderiza o nome da apresentação e o placeholder, e nenhum texto de `notes` aparece na tela mesmo quando a resposta traz `notes` preenchido
+- [x] Nenhum `DiagramSyncClient`/fila de mutação é construído e nenhuma requisição de mutação é emitida (asserção sobre as URLs chamadas)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 9 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

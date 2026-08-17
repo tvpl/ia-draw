@@ -257,9 +257,9 @@ abrir a visão pública no mesmo locale.
 | SHR-16 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-17 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-18 | P1: Somente leitura de verdade | F10 | Implementing |
-| SHR-19 | P1: Somente leitura de verdade | F10 | Pending |
-| SHR-20 | P1: Somente leitura de verdade | F10 | Pending |
-| SHR-21 | P1: Somente leitura de verdade | F10 | Pending |
+| SHR-19 | P1: Somente leitura de verdade | F10 | Implementing |
+| SHR-20 | P1: Somente leitura de verdade | F10 | Implementing |
+| SHR-21 | P1: Somente leitura de verdade | F10 | Implementing |
 | SHR-22 | P1: Editor autenticado respeita papel | F10 | Pending |
 | SHR-23 | P1: Token fora do log | F10 | Implementing |
 | SHR-24 | P1: Token fora do log | F10 | Implementing |
