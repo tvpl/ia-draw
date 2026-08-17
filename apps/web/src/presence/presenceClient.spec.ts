@@ -3,8 +3,10 @@ import { FakeSocket } from './fakeSocket.js';
 import {
   CURSOR_THROTTLE_MS,
   IDLE_AFTER_MS,
+  NON_RETRYABLE_CLOSE_CODES,
   PresenceClient,
   type PresenceClientOptions,
+  reconnectDelayMs,
   STALE_REMOTE_AFTER_MS,
   SWEEP_INTERVAL_MS,
 } from './presenceClient.js';
@@ -368,5 +370,92 @@ describe('PresenceClient: local broadcast (T8, LIVE-09..12)', () => {
     client.close();
 
     expect(timers.scheduled.filter((timer) => !timer.cancelled)).toEqual([]);
+  });
+});
+
+describe('PresenceClient: reconnection (T9, LIVE-19)', () => {
+  beforeEach(() => {
+    FakeSocket.reset();
+  });
+
+  async function connectedWithTimers(overrides: Partial<PresenceClientOptions> = {}) {
+    const timers = timerHarness();
+    const fetchImpl = ticketFetch('ticket-1');
+    const { client, store } = build({
+      fetchImpl,
+      setTimeoutImpl: timers.setTimeoutImpl,
+      clearTimeoutImpl: timers.clearTimeoutImpl,
+      ...overrides,
+    });
+    client.connect();
+    await settle();
+    FakeSocket.last?.open();
+    return { client, store, timers, fetchImpl };
+  }
+
+  it('reschedules with a growing, capped delay after an unexpected drop (LIVE-19)', async () => {
+    const { timers } = await connectedWithTimers();
+
+    FakeSocket.last?.emitClose(1006);
+    expect(reconnectDelayMs(0)).toBe(1000);
+    timers.fire(reconnectDelayMs(0));
+    await settle();
+
+    FakeSocket.last?.emitClose(1006);
+    // Second attempt without an intervening successful open backs off further.
+    expect(
+      timers.scheduled.some(
+        (timer) => timer.delayMs === reconnectDelayMs(1) && timer.delayMs === 2000,
+      ),
+    ).toBe(true);
+    expect(reconnectDelayMs(99)).toBe(30_000);
+  });
+
+  it('mints a fresh ticket on every reconnection attempt (LIVE-19)', async () => {
+    const { timers, fetchImpl } = await connectedWithTimers();
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    FakeSocket.last?.emitClose(1006);
+    timers.fire(reconnectDelayMs(0));
+    await settle();
+
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+    expect(FakeSocket.instances).toHaveLength(2);
+  });
+
+  it('calls onReconnected once a reconnection opens, never on the first connect (LIVE-19)', async () => {
+    const onReconnected = vi.fn();
+    const { timers } = await connectedWithTimers({ onReconnected });
+
+    expect(onReconnected).not.toHaveBeenCalled();
+
+    FakeSocket.last?.emitClose(1006);
+    timers.fire(reconnectDelayMs(0));
+    await settle();
+    FakeSocket.last?.open();
+
+    expect(onReconnected).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops retrying after a policy close code from the server (LIVE-19)', async () => {
+    for (const code of NON_RETRYABLE_CLOSE_CODES) {
+      FakeSocket.reset();
+      const { timers, store } = await connectedWithTimers();
+
+      FakeSocket.last?.emitClose(code);
+
+      expect(store.getState().connection).toBe('disconnected');
+      expect(timers.scheduled.filter((timer) => !timer.cancelled)).toEqual([]);
+    }
+  });
+
+  it('close() cancels a pending reconnection attempt (LIVE-08, LIVE-19)', async () => {
+    const { client, timers, fetchImpl } = await connectedWithTimers();
+
+    FakeSocket.last?.emitClose(1006);
+    client.close();
+
+    expect(timers.scheduled.filter((timer) => !timer.cancelled)).toEqual([]);
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
   });
 });

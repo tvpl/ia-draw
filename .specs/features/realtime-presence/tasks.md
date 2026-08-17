@@ -323,13 +323,13 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Um fechamento inesperado agenda nova tentativa com atraso crescente e limitado
-- [ ] Cada tentativa emite um `POST /diagrams/:id/ws-ticket` novo (ticket é de uso único)
-- [ ] Uma reconexão bem-sucedida invoca `onReconnected` exatamente uma vez
-- [ ] Um fechamento com código `4403` ou `4413` não agenda nova tentativa
-- [ ] Um `close()` explícito não agenda nova tentativa
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 5 casos passam
+- [x] Um fechamento inesperado agenda nova tentativa com atraso crescente e limitado
+- [x] Cada tentativa emite um `POST /diagrams/:id/ws-ticket` novo (ticket é de uso único)
+- [x] Uma reconexão bem-sucedida invoca `onReconnected` exatamente uma vez
+- [x] Um fechamento com código `4403` ou `4413` não agenda nova tentativa
+- [x] Um `close()` explícito não agenda nova tentativa
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 5 casos passam
 
 **Tests**: unit
 **Gate**: quick

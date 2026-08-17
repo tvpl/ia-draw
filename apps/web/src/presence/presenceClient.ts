@@ -41,6 +41,16 @@ export const STALE_REMOTE_AFTER_MS = 90_000;
 /** One timer drives both time-based sweeps above. */
 export const SWEEP_INTERVAL_MS = 15_000;
 
+/**
+ * Close codes the server uses for a deterministic policy rejection
+ * (`WS_CLOSE_FORBIDDEN` / `WS_CLOSE_PAYLOAD_TOO_LARGE`, `ws-gateway/routes.ts`).
+ * Retrying either would reproduce the same rejection, so reconnection stops.
+ */
+export const NON_RETRYABLE_CLOSE_CODES: readonly number[] = [4403, 4413];
+
+/** Same capped exponential schedule `DiagramSyncClient` already retries batches with. */
+export const reconnectDelayMs = (attempt: number): number => Math.min(1000 * 2 ** attempt, 30_000);
+
 export interface PresenceClientOptions {
   diagramId: string;
   /** From `useAuth()` (AD-011) — used only to filter this user's own relayed presence out of the remote map. */
@@ -55,6 +65,8 @@ export interface PresenceClientOptions {
   /** Injectable timers for tests; default to the global ones (same seam as `DiagramSyncClient.scheduleRetryTimer`). */
   setTimeoutImpl?: (callback: () => void, delayMs: number) => unknown;
   clearTimeoutImpl?: (handle: unknown) => void;
+  /** Called after a socket opens that was NOT the first one — the catch-up trigger (LIVE-20). */
+  onReconnected?: () => void;
 }
 
 function defaultWebSocketImpl(): PresenceSocketConstructor | undefined {
@@ -83,6 +95,7 @@ export class PresenceClient {
   private readonly now: () => number;
   private readonly setTimeoutImpl: (callback: () => void, delayMs: number) => unknown;
   private readonly clearTimeoutImpl: (handle: unknown) => void;
+  private readonly onReconnected?: () => void;
 
   private socket: PresenceSocket | null = null;
   /** Set by `close()` — every asynchronous continuation checks it so nothing reopens after teardown. */
@@ -91,8 +104,11 @@ export class PresenceClient {
   private pendingCursor: { x: number; y: number } | null = null;
   private throttleHandle: unknown;
   private sweepHandle: unknown;
+  private reconnectHandle: unknown;
   private lastPointerMoveAt = 0;
   private localStatus: 'active' | 'idle' = 'active';
+  private retryAttempt = 0;
+  private everConnected = false;
 
   constructor(options: PresenceClientOptions) {
     this.diagramId = options.diagramId;
@@ -105,6 +121,7 @@ export class PresenceClient {
     this.now = options.now ?? (() => Date.now());
     this.setTimeoutImpl = options.setTimeoutImpl ?? ((cb, ms) => setTimeout(cb, ms));
     this.clearTimeoutImpl = options.clearTimeoutImpl ?? ((handle) => clearTimeout(handle as number));
+    this.onReconnected = options.onReconnected;
   }
 
   /** LIVE-06: mints a ticket and opens the socket. */
@@ -159,7 +176,29 @@ export class PresenceClient {
       this.clearTimeoutImpl(this.sweepHandle);
       this.sweepHandle = undefined;
     }
+    if (this.reconnectHandle !== undefined) {
+      this.clearTimeoutImpl(this.reconnectHandle);
+      this.reconnectHandle = undefined;
+    }
     this.pendingCursor = null;
+  }
+
+  /**
+   * LIVE-19: rescheduled with the same capped exponential backoff
+   * `DiagramSyncClient` uses. Every attempt goes through `openSocket`, which
+   * mints a FRESH ticket — the server's are single-use, so reusing one would
+   * be rejected before the upgrade.
+   */
+  private scheduleReconnect(): void {
+    if (this.disposed || this.reconnectHandle !== undefined) return;
+    const delay = reconnectDelayMs(this.retryAttempt);
+    this.retryAttempt += 1;
+    this.reconnectHandle = this.setTimeoutImpl(() => {
+      this.reconnectHandle = undefined;
+      if (this.disposed) return;
+      this.store.getState().setConnection('connecting');
+      void this.openSocket();
+    }, delay);
   }
 
   private scheduleSweep(): void {
@@ -241,19 +280,24 @@ export class PresenceClient {
     socket.onopen = () => {
       if (this.disposed) return;
       this.store.getState().setConnection('connected');
+      this.retryAttempt = 0;
       this.lastPointerMoveAt = this.now();
       this.localStatus = 'active';
       this.scheduleSweep();
+      // LIVE-20: only a RE-connection triggers catch-up. The first open follows
+      // the editor's own bootstrap, which already loaded the current scene.
+      if (this.everConnected) this.onReconnected?.();
+      this.everConnected = true;
     };
 
     socket.onmessage = (event) => {
       this.handleMessage(event.data);
     };
 
-    socket.onclose = () => {
+    socket.onclose = (event) => {
       if (this.socket !== socket) return;
       this.socket = null;
-      this.markDisconnected();
+      this.markDisconnected(event?.code);
     };
 
     socket.onerror = () => {
@@ -262,13 +306,15 @@ export class PresenceClient {
     };
   }
 
-  private markDisconnected(): void {
+  private markDisconnected(code?: number): void {
     if (this.disposed) return;
     this.stopTimers();
     this.store.getState().setConnection('disconnected');
     // LIVE-23: a disconnected client shows no remote cursors — every one of
     // them is now stale by definition.
     this.store.getState().clearRemotes();
+    if (code !== undefined && NON_RETRYABLE_CLOSE_CODES.includes(code)) return;
+    this.scheduleReconnect();
   }
 
   private handleMessage(data: unknown): void {
