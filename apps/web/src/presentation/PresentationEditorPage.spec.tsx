@@ -76,6 +76,11 @@ function baseFetch({
     if (url.startsWith('/presentations/p-1/frames/') && init?.method === 'DELETE') {
       return new Response(null, { status: 204 });
     }
+    if (url === '/presentations/p-1:publish' && init?.method === 'POST') {
+      return jsonResponse(200, {
+        presentation: { ...presentation, publishedSnapshotId: 'snap-1' },
+      });
+    }
     throw new Error(`unexpected url ${url}`);
   }) as unknown as typeof fetch;
 }
@@ -483,5 +488,78 @@ describe('PresentationEditorPage — prototype navigation links (PRZ-18..21)', (
     ).toBeTruthy();
     // The frame list itself was never touched — still whatever the last successful load held.
     expect(screen.getByTestId('frame-row-f-1')).toBeTruthy();
+  });
+});
+
+describe('PresentationEditorPage — publish/republish (PRZ-22..25)', () => {
+  it('the publish control is absent without canMutate', async () => {
+    const fetchImpl = baseFetch({ canMutate: false });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByText('Frames')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: 'Publicar' })).toBeNull();
+  });
+
+  it('publishing an unpublished presentation POSTs :publish with no confirmation, and flips to "republicar" on 200', async () => {
+    const fetchImpl = baseFetch({ frames: [] });
+    renderPage(fetchImpl);
+
+    const publishButton = await screen.findByRole('button', { name: 'Publicar' });
+    fireEvent.click(publishButton);
+
+    await waitFor(() =>
+      expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1:publish', { method: 'POST' }),
+    );
+    expect(await screen.findByRole('button', { name: 'Republicar' })).toBeTruthy();
+    expect(screen.getByText('Publicada')).toBeTruthy();
+  });
+
+  it('republishing an already-published presentation asks for confirmation first, with the swap-warning copy', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const publishedPresentation = { ...presentation, publishedSnapshotId: 'snap-existing' };
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/presentations/p-1') {
+        return jsonResponse(200, { presentation: publishedPresentation, frames: [] });
+      }
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      if (url === '/presentations/p-1:publish' && init?.method === 'POST') {
+        return jsonResponse(200, {
+          presentation: { ...publishedPresentation, publishedSnapshotId: 'snap-new' },
+        });
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    const republishButton = await screen.findByRole('button', { name: 'Republicar' });
+    expect(screen.getByText(/Republicar substitui o conteúdo/)).toBeTruthy();
+    fireEvent.click(republishButton);
+
+    await waitFor(() => expect(confirmSpy).toHaveBeenCalled());
+    confirmSpy.mockRestore();
+  });
+
+  it('declining the republish confirmation never emits :publish', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const publishedPresentation = { ...presentation, publishedSnapshotId: 'snap-existing' };
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/presentations/p-1') {
+        return jsonResponse(200, { presentation: publishedPresentation, frames: [] });
+      }
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    const republishButton = await screen.findByRole('button', { name: 'Republicar' });
+    fireEvent.click(republishButton);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(fetchImpl).not.toHaveBeenCalledWith('/presentations/p-1:publish', expect.anything());
+    confirmSpy.mockRestore();
   });
 });

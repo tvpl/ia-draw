@@ -79,6 +79,9 @@ export function PresentationEditorPage({
   const [navLinksDraft, setNavLinksDraft] = useState<string[]>([]);
   const [navLinksError, setNavLinksError] = useState<string | null>(null);
 
+  const [publishInFlight, setPublishInFlight] = useState(false);
+  const [publishError, setPublishError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!presentationId) return;
     let cancelled = false;
@@ -233,6 +236,32 @@ export function PresentationEditorPage({
       setNavLinksError(t('presentation.editor.error.invalidNavLink'));
     } else {
       setNavLinksError(t('presentation.editor.error.generic'));
+    }
+  }
+
+  /** PRZ-22..25: `publishedSnapshotId` already set means this is a REPUBLISH — the
+   * confirmation copy changes to warn that any already-distributed share link will
+   * immediately start showing the new content (design.md: links are never pinned to a
+   * specific historical snapshot, they always resolve the presentation's CURRENT one). */
+  async function handlePublish(): Promise<void> {
+    if (!presentationId || publishInFlight) return;
+    if (presentation?.publishedSnapshotId) {
+      if (!window.confirm(t('presentation.editor.republishConfirm'))) return;
+    }
+
+    setPublishInFlight(true);
+    setPublishError(null);
+    try {
+      const result = await client.publish(presentationId);
+      if (result.status === 'ok') {
+        setPresentation(result.presentation);
+        setAnnouncement(t('presentation.editor.announcement.published'));
+        return;
+      }
+      setPublishError(t('presentation.editor.error.generic'));
+      setAnnouncement(t('presentation.editor.error.generic'));
+    } finally {
+      setPublishInFlight(false);
     }
   }
 
@@ -404,6 +433,23 @@ export function PresentationEditorPage({
           </button>
           {addError && <p>{addError}</p>}
         </form>
+      )}
+
+      {canMutate && presentation && (
+        <div>
+          <p>
+            {presentation.publishedSnapshotId
+              ? t('presentation.editor.publishedBadge')
+              : t('presentation.editor.notPublishedBadge')}
+          </p>
+          <button type="button" disabled={publishInFlight} onClick={() => void handlePublish()}>
+            {presentation.publishedSnapshotId
+              ? t('presentation.editor.republish')
+              : t('presentation.editor.publish')}
+          </button>
+          {presentation.publishedSnapshotId && <p>{t('presentation.editor.republishWarning')}</p>}
+          {publishError && <p>{publishError}</p>}
+        </div>
       )}
     </div>
   );
