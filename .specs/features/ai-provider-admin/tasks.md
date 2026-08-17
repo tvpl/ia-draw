@@ -196,13 +196,13 @@ T13
 
 **Done when**:
 
-- [ ] Montada em `/admin/ai-providers` a página emite `GET /admin/ai-providers?scope=global`; montada em `/w/:workspaceId/admin/ai-providers` emite `?scope=<workspaceId>`
-- [ ] Cada configuração aparece com `baseUrl`, `model` e um indicador explícito de ativa/inativa
-- [ ] Nenhum campo de token é exibido, em nenhuma forma (asserção sobre o texto renderizado, não só sobre o tipo)
-- [ ] `403` e `404` levam ao estado "não existe ou sem acesso", sem lista e sem formulário
-- [ ] Escopo sem nenhuma configuração renderiza estado vazio explícito (caso de borda da spec)
-- [ ] Testes em `apps/web/src/nav/AiProviderAdminPage.spec.tsx` cobrem PROV-01..04 e o estado vazio
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Montada em `/admin/ai-providers` a página emite `GET /admin/ai-providers?scope=global`; montada em `/w/:workspaceId/admin/ai-providers` emite `?scope=<workspaceId>`
+- [x] Cada configuração aparece com `baseUrl`, `model` e um indicador explícito de ativa/inativa
+- [x] Nenhum campo de token é exibido, em nenhuma forma (asserção sobre o texto renderizado, não só sobre o tipo)
+- [x] `403` e `404` levam ao estado "não existe ou sem acesso", sem lista e sem formulário
+- [x] Escopo sem nenhuma configuração renderiza estado vazio explícito (caso de borda da spec)
+- [x] Testes em `apps/web/src/nav/AiProviderAdminPage.spec.tsx` cobrem PROV-01..04 e o estado vazio
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

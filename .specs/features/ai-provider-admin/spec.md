@@ -246,8 +246,8 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | -------------- | ----- | ----- | ------ |
 | PROV-01 | P1: Ver configurações | F10 | Implementing |
 | PROV-02 | P1: Ver configurações | F10 | Implementing |
-| PROV-03 | P1: Ver configurações | F10 | Pending |
-| PROV-04 | P1: Ver configurações | F10 | Pending |
+| PROV-03 | P1: Ver configurações | F10 | Implementing |
+| PROV-04 | P1: Ver configurações | F10 | Implementing |
 | PROV-05 | P1: Alcançar a tela | F10 | Pending |
 | PROV-06 | P1: Alcançar a tela | F10 | Pending |
 | PROV-07 | P1: Alcançar a tela | F10 | Pending |
