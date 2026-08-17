@@ -139,14 +139,14 @@ T13
 
 **Done when**:
 
-- [ ] `list(scope)` emite `GET /admin/ai-providers?scope=<scope>` e devolve `ProviderConfig[]`; lança em resposta não-2xx
-- [ ] `create(input)` emite `POST /admin/ai-providers` e devolve `{status:'created', config} | {status:'rejected'} (400) | {status:'error'}`
-- [ ] `update(id, patch)` emite `PATCH /admin/ai-providers/:id` e devolve `{status:'ok', config} | {status:'error'}`; `patch.token` ausente não aparece no corpo serializado
-- [ ] `testConnection(id)` emite `POST /admin/ai-providers/:id:test` e devolve `{status:'done', result} | {status:'rate_limited'} (429) | {status:'error'}` — um `200` com `result.success === false` continua sendo `'done'`
-- [ ] `ProviderConfig` não declara nenhum campo de token
-- [ ] Testes unitários em `apps/web/src/nav/aiProviderClient.spec.ts` cobrem todo ramo acima, incluindo erro de rede (rejeição do `fetch`)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: ~12 testes novos, 0 removidos
+- [x] `list(scope)` emite `GET /admin/ai-providers?scope=<scope>` e devolve `ProviderConfig[]`; lança em resposta não-2xx
+- [x] `create(input)` emite `POST /admin/ai-providers` e devolve `{status:'created', config} | {status:'rejected'} (400) | {status:'error'}`
+- [x] `update(id, patch)` emite `PATCH /admin/ai-providers/:id` e devolve `{status:'ok', config} | {status:'error'}`; `patch.token` ausente não aparece no corpo serializado
+- [x] `testConnection(id)` emite `POST /admin/ai-providers/:id:test` e devolve `{status:'done', result} | {status:'rate_limited'} (429) | {status:'error'}` — um `200` com `result.success === false` continua sendo `'done'`
+- [x] `ProviderConfig` não declara nenhum campo de token
+- [x] Testes unitários em `apps/web/src/nav/aiProviderClient.spec.ts` cobrem todo ramo acima, incluindo erro de rede (rejeição do `fetch`)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 17 testes novos, 0 removidos
 
 **Tests**: unit
 **Gate**: quick
