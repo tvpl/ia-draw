@@ -128,15 +128,15 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] O `display_name` do ator é resolvido uma vez, logo após o `hello`, e antes de `presence.subscribe`
-- [ ] `case 'presence'` publica `senderId` e `displayName` a partir da conexão, nunca de `message.payload`
-- [ ] `handlePresenceEvent` repassa `senderId` e `displayName` no `send()`
-- [ ] O filtro que descarta `mutation_broadcast` permanece intacto (coedição continua fora de escopo, AD-002)
-- [ ] Teste de integração com dois sockets `ws` reais: a presença de A chega em B com `senderId` = id de A e `displayName` = nome de A
-- [ ] Teste de integração: A nunca recebe o eco da própria presença
-- [ ] Teste de integração: um `senderId` falso enviado por A é ignorado — B recebe o id real de A
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
-- [ ] Test count: 3 novos casos de integração passam
+- [x] O `display_name` do ator é resolvido uma vez, logo após o `hello`, e antes de `presence.subscribe`
+- [x] `case 'presence'` publica `senderId` e `displayName` a partir da conexão, nunca de `message.payload`
+- [x] `handlePresenceEvent` repassa `senderId` e `displayName` no `send()`
+- [x] O filtro que descarta `mutation_broadcast` permanece intacto (coedição continua fora de escopo, AD-002)
+- [x] Teste de integração com dois sockets `ws` reais: a presença de A chega em B com `senderId` = id de A e `displayName` = nome de A
+- [x] Teste de integração: A nunca recebe o eco da própria presença
+- [x] Teste de integração: um `senderId` falso enviado por A é ignorado — B recebe o id real de A
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:integration`
+- [x] Test count: 3 novos casos de integração passam
 
 **Tests**: integration
 **Gate**: full
