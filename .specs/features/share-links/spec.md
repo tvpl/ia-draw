@@ -242,19 +242,19 @@ abrir a visão pública no mesmo locale.
 | SHR-01 | P1: Criar link | F10 | Pending |
 | SHR-02 | P1: Criar link | F10 | Pending |
 | SHR-03 | P1: Criar link | F10 | Pending |
-| SHR-04 | P1: Criar link | F10 | Pending |
-| SHR-05 | P1: Criar link | F10 | Pending |
-| SHR-06 | P1: Criar link | F10 | Pending |
-| SHR-07 | P1: Criar link | F10 | Pending |
+| SHR-04 | P1: Criar link | F10 | Implementing |
+| SHR-05 | P1: Criar link | F10 | Implementing |
+| SHR-06 | P1: Criar link | F10 | Implementing |
+| SHR-07 | P1: Criar link | F10 | Implementing |
 | SHR-08 | P1: Revogar link | F10 | Pending |
-| SHR-09 | P1: Revogar link | F10 | Pending |
-| SHR-10 | P1: Revogar link | F10 | Pending |
-| SHR-11 | P1: Revogar link | F10 | Pending |
+| SHR-09 | P1: Revogar link | F10 | Implementing |
+| SHR-10 | P1: Revogar link | F10 | Implementing |
+| SHR-11 | P1: Revogar link | F10 | Implementing |
 | SHR-12 | P1: Visão pública sem sessão | F10 | Pending |
 | SHR-13 | P1: Visão pública sem sessão | F10 | Pending |
-| SHR-14 | P1: Visão pública sem sessão | F10 | Pending |
-| SHR-15 | P1: Visão pública sem sessão | F10 | Pending |
-| SHR-16 | P1: Visão pública sem sessão | F10 | Pending |
+| SHR-14 | P1: Visão pública sem sessão | F10 | Implementing |
+| SHR-15 | P1: Visão pública sem sessão | F10 | Implementing |
+| SHR-16 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-17 | P1: Visão pública sem sessão | F10 | Pending |
 | SHR-18 | P1: Somente leitura de verdade | F10 | Implementing |
 | SHR-19 | P1: Somente leitura de verdade | F10 | Pending |
@@ -265,8 +265,8 @@ abrir a visão pública no mesmo locale.
 | SHR-24 | P1: Token fora do log | F10 | Implementing |
 | SHR-25 | P1: Token fora do log | F10 | Implementing |
 | SHR-26 | P1: Token fora do log | F10 | Implementing |
-| SHR-27 | P2: Link de apresentação | F10 | Pending |
-| SHR-28 | P2: Link de apresentação | F10 | Pending |
+| SHR-27 | P2: Link de apresentação | F10 | Implementing |
+| SHR-28 | P2: Link de apresentação | F10 | Implementing |
 | SHR-29 | P2: Teclado e idioma | F10 | Pending |
 | SHR-30 | P2: Teclado e idioma | F10 | Pending |
 | SHR-31 | P2: Teclado e idioma | F10 | Pending |

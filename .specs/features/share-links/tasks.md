@@ -162,15 +162,15 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `createForDiagram(diagramId, role, expiresAt)` emite `POST /diagrams/:id/share-links` com corpo `{role, expiresAt}` e devolve `{status:'created', shareLink, token}` no `201`
-- [ ] `403` na criação vira `{status:'forbidden'}`; qualquer outro status vira `{status:'error'}`
-- [ ] Um `201` cujo corpo não traz `token` vira `{status:'error'}` (Edge Case da spec)
-- [ ] `revoke(id)` emite `POST /share-links/:id:revoke` e devolve `{status:'revoked', shareLink}` no `200`, `{status:'forbidden'}` no `403`, `{status:'not_found'}` no `404`
-- [ ] `resolve(token)` emite `GET /share/:token` e devolve `{status:'diagram', role, scene, revision}` para `resourceType:'diagram'`
-- [ ] `resolve(token)` devolve `{status:'presentation', role, presentation, frameCount}` para `resourceType:'presentation'`, e o objeto devolvido não contém `notes` nem `navLinksJson` de nenhum frame
-- [ ] `404` em `resolve` vira `{status:'not_found'}`; falha de rede vira `{status:'error'}`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 11 testes novos passam
+- [x] `createForDiagram(diagramId, role, expiresAt)` emite `POST /diagrams/:id/share-links` com corpo `{role, expiresAt}` e devolve `{status:'created', shareLink, token}` no `201`
+- [x] `403` na criação vira `{status:'forbidden'}`; qualquer outro status vira `{status:'error'}`
+- [x] Um `201` cujo corpo não traz `token` vira `{status:'error'}` (Edge Case da spec)
+- [x] `revoke(id)` emite `POST /share-links/:id:revoke` e devolve `{status:'revoked', shareLink}` no `200`, `{status:'forbidden'}` no `403`, `{status:'not_found'}` no `404`
+- [x] `resolve(token)` emite `GET /share/:token` e devolve `{status:'diagram', role, scene, revision}` para `resourceType:'diagram'`
+- [x] `resolve(token)` devolve `{status:'presentation', role, presentation, frameCount}` para `resourceType:'presentation'`, e o objeto devolvido não contém `notes` nem `navLinksJson` de nenhum frame
+- [x] `404` em `resolve` vira `{status:'not_found'}`; falha de rede vira `{status:'error'}`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 11 testes novos passam
 
 **Tests**: unit
 **Gate**: quick
