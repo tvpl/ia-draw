@@ -235,11 +235,11 @@ T7 → T8
 
 **Done when**:
 
-- [ ] `jest-axe` roda em pelo menos 2 estados (lista populada com thread aberta; estado com resolvidas visíveis e formulário de resposta aberto), com zero violações sérias/críticas
-- [ ] Teste explícito de foco por teclado em cada controle do painel (campo, enviar, responder, resolver/reabrir, mostrar resolvidas, atualizar)
-- [ ] Teste de que a região de resultado é `aria-live="polite"` e anuncia uma ação concluída
-- [ ] Teste de render no locale `en`, restaurando `pt-BR` no `afterEach`
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` roda em pelo menos 2 estados (lista populada com thread aberta; estado com resolvidas visíveis e formulário de resposta aberto), com zero violações sérias/críticas
+- [x] Teste explícito de foco por teclado em cada controle do painel (campo, enviar, responder, resolver/reabrir, mostrar resolvidas, atualizar)
+- [x] Teste de que a região de resultado é `aria-live="polite"` e anuncia uma ação concluída
+- [x] Teste de render no locale `en`, restaurando `pt-BR` no `afterEach`
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
