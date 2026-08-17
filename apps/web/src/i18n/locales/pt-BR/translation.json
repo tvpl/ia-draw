@@ -52,7 +52,8 @@
     "title": "Comentários",
     "tabs": {
       "ai": "IA",
-      "comments": "Comentários"
+      "comments": "Comentários",
+      "lint": "Lint"
     },
     "loading": "Carregando comentários…",
     "empty": "Nenhum comentário neste diagrama ainda.",

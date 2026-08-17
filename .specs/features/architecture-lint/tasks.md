@@ -202,12 +202,12 @@ um terceiro braço, sem reescrever a lógica de `active`.
 
 **Done when**:
 
-- [ ] Nova prop `lintPanel: ReactNode` (sempre renderizada, sem o `| null` que `aiPanel` tem)
-- [ ] Aba "Lint" aparece sempre, independente de `aiPanel` ser `null` ou não
-- [ ] Painel de lint fica montado com `hidden` quando outra aba está ativa (mesma regra dos outros dois painéis) — nunca desmontado
-- [ ] Chave i18n nova `comments.tabs.lint` em `en`/`pt-BR`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: testes novos cobrindo a aba sempre presente + `hidden` ao trocar passam, nenhum teste existente de `EditorSidePanel.spec.tsx` quebra
+- [x] Nova prop `lintPanel: ReactNode` (sempre renderizada, sem o `| null` que `aiPanel` tem)
+- [x] Aba "Lint" aparece sempre, independente de `aiPanel` ser `null` ou não
+- [x] Painel de lint fica montado com `hidden` quando outra aba está ativa (mesma regra dos outros dois painéis) — nunca desmontado
+- [x] Chave i18n nova `comments.tabs.lint` em `en`/`pt-BR`
+- [x] Gate check passes: `make lint && make typecheck && make test-unit` (escopado a `@arch-canvas/web`). Nota: tornar `lintPanel` obrigatória quebrava o typecheck do único chamador existente (`DiagramEditorPage.tsx`, que só ganha o `LintPanel` real em T5) — corrigido nesta mesma task com um placeholder explícito `lintPanel={null}` (`ReactNode` já inclui `null` como valor legal; só a CHAVE é obrigatória) e um comentário `TODO(ALNT-06, wired in the next task)`, substituído pelo componente real em T5
+- [x] Test count: 2 testes novos cobrindo a aba sempre presente + `hidden` ao trocar passam (8 testes totais no arquivo), nenhum teste existente de `EditorSidePanel.spec.tsx` quebra
 
 **Tests**: unit
 **Gate**: full

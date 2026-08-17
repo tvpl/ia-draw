@@ -52,7 +52,8 @@
     "title": "Comments",
     "tabs": {
       "ai": "AI",
-      "comments": "Comments"
+      "comments": "Comments",
+      "lint": "Lint"
     },
     "loading": "Loading comments…",
     "empty": "No comments on this diagram yet.",

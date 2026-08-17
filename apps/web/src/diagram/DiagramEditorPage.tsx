@@ -313,6 +313,8 @@ export function DiagramEditorPage(): JSX.Element {
                 liveElementIds={liveElementIds}
               />
             }
+            // TODO(ALNT-06, wired in the next task): placeholder until LintPanel is plugged in.
+            lintPanel={null}
           />
           <details>
             <summary>{t('library.title')}</summary>
