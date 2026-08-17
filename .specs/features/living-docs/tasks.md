@@ -236,23 +236,26 @@ component's own keyboard reachability and i18n keys)
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders all 4 sections in fixed order regardless of which the source Markdown includes.
-- [ ] Each of `components`/`flows`/`decisions` renders its referenced-element list (or nothing, if
+- [x] Renders all 4 sections in fixed order regardless of which the source Markdown includes.
+- [x] Each of `components`/`flows`/`decisions` renders its referenced-element list (or nothing, if
       empty) below the section body; `overview` never renders one.
-- [ ] A referenced id absent from `liveElementIds` renders with the "removed" marker text, never
+- [x] A referenced id absent from `liveElementIds` renders with the "removed" marker text, never
       hidden.
-- [ ] "Regenerar esta seção" appears per section only under `status === 'current' && canMutate`;
+- [x] "Regenerar esta seção" appears per section only under `status === 'current' && canMutate`;
       absent for `superseded`/`draft` or `canMutate === false`.
-- [ ] Clicking it calls `onRegenerateSection(sectionName)` — this component never calls
+- [x] Clicking it calls `onRegenerateSection(sectionName)` — this component never calls
       `docgenClient` itself (container/display split, same as `HistoryPanel`/`DiffView`).
-- [ ] New `docs.*` i18n keys added to both `pt-BR` and `en` `translation.json` for every visible
-      string this component owns (section titles are NOT i18n — they come from the server's fixed
-      Portuguese Markdown, per spec.md's Out of Scope row on translating generated content; only
-      this component's OWN chrome — the "removed" marker, the regenerate button, loading/error
-      copy it renders — is bilingual).
-- [ ] Unit tests cover every "Done when" bullet above via React Testing Library.
-- [ ] Gate: `make lint && make typecheck && make test-unit` green.
-- [ ] Commit: `feat(web): add SpecViewer for section content and per-section regenerate`
+- [x] New `docs.*` i18n keys added to both `pt-BR` and `en` `translation.json` for every visible
+      string this component owns. SPEC_DEVIATION from this bullet's original draft: the section
+      *titles* (`<h3>`) turned out to be this component's OWN chrome too, not fetched prose —
+      `parseSpecSections` already strips the `## <Título>` heading line out of the body it returns
+      — so they are i18n like everything else here (LDC-30), not left as a hardcoded Portuguese
+      literal. Only the section BODY text stays the server's literal, untranslated Portuguese
+      (spec.md's Out of Scope: the generated document's own body is never translated). See the
+      code comment in `SpecViewer.tsx` at the `<h3>`.
+- [x] Unit tests cover every "Done when" bullet above via React Testing Library.
+- [x] Gate: `make lint && make typecheck && make test-unit` green.
+- [x] Commit: `feat(web): add SpecViewer for section content and per-section regenerate`
 
 ---
 

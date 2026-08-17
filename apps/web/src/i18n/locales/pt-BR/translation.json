@@ -388,5 +388,18 @@
       "presentationTitle": "Apresentação: {{name}}",
       "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
     }
+  },
+  "docs": {
+    "sections": {
+      "overview": "Visão Geral",
+      "components": "Componentes",
+      "flows": "Fluxos",
+      "decisions": "Decisões"
+    },
+    "reference": {
+      "element": "Elemento: {{elementId}}",
+      "removed": "Elemento removido ({{elementId}})"
+    },
+    "regenerateSection": "Regenerar esta seção"
   }
 }

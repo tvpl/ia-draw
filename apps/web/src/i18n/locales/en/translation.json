@@ -388,5 +388,18 @@
       "presentationTitle": "Presentation: {{name}}",
       "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
     }
+  },
+  "docs": {
+    "sections": {
+      "overview": "Overview",
+      "components": "Components",
+      "flows": "Flows",
+      "decisions": "Decisions"
+    },
+    "reference": {
+      "element": "Element: {{elementId}}",
+      "removed": "Element removed ({{elementId}})"
+    },
+    "regenerateSection": "Regenerate this section"
   }
 }
