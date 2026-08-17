@@ -25,14 +25,28 @@ export type RevokeResult =
   | { status: 'not_found' }
   | { status: 'error' };
 
+/** Mirrors the server's `FrameRow`, notes already redacted per the link's own role
+ * (never re-checked here — same "server is the authority" convention as
+ * `apps/web/src/presentation/presentationClient.ts`). */
+export interface PublicFrame {
+  id: string;
+  position: number;
+  elementId: string | null;
+  frameId: string | null;
+  notes: string | null;
+  navLinksJson: { targetFrameId: string }[];
+}
+
 /**
  * `GET /share/:token`'s two response shapes plus its failure modes. The server
  * folds "token does not exist", "expired" and "revoked" into ONE indistinguishable
  * `404` (IDOR-safe), so `not_found` deliberately carries no reason either.
  *
- * The presentation branch keeps only `frameCount`: `frames` themselves (including
- * `notes` and `navLinksJson`) are dropped here, at the client boundary, so SHR-28
- * holds by construction rather than by rendering discipline.
+ * presentation-mode/T4: the presentation branch now carries `frames` and, once the
+ * presentation has been published (server-side, T1), `scene` — the FROZEN scene
+ * from the published snapshot, never live. Before the first publish, `scene` stays
+ * `null` and `published` stays `false`, exactly like the placeholder R11 already
+ * renders for that state (SHR-27/28 unaffected).
  */
 export type ResolveResult =
   | { status: 'diagram'; role: Role; scene: readonly SceneElement[]; revision: number }
@@ -41,6 +55,9 @@ export type ResolveResult =
       role: Role;
       presentation: { id: string; name: string };
       frameCount: number;
+      frames: readonly PublicFrame[];
+      scene: readonly SceneElement[] | null;
+      published: boolean;
     }
   | { status: 'not_found' }
   | { status: 'error' };
@@ -48,6 +65,13 @@ export type ResolveResult =
 export interface ShareLinkClient {
   createForDiagram(
     diagramId: string,
+    role: Role,
+    expiresAt: string,
+  ): Promise<CreateShareLinkResult>;
+  /** presentation-mode/T4 (PRZ-27/28): same shape/semantics as `createForDiagram`, targeting a
+   * presentation's own `POST /presentations/:id/share-links` instead. */
+  createForPresentation(
+    presentationId: string,
     role: Role,
     expiresAt: string,
   ): Promise<CreateShareLinkResult>;
@@ -70,7 +94,8 @@ interface ResolveResponseBody {
   scene?: readonly SceneElement[];
   revision?: number;
   presentation?: { id: string; name: string };
-  frames?: readonly unknown[];
+  frames?: readonly PublicFrame[];
+  published?: boolean;
 }
 
 /**
@@ -108,6 +133,30 @@ export function createShareLinkClient(fetchImplOption?: typeof fetch): ShareLink
     const body = (await response.json()) as CreateResponseBody;
     // A `201` without the one-shot token is unusable: showing a link without its
     // token would hand the user a URL that 404s forever (spec.md Edge Cases).
+    if (!body.shareLink || !body.token) return { status: 'error' };
+    return { status: 'created', shareLink: body.shareLink, token: body.token };
+  }
+
+  async function createForPresentation(
+    presentationId: string,
+    role: Role,
+    expiresAt: string,
+  ): Promise<CreateShareLinkResult> {
+    let response: Response;
+    try {
+      response = await fetchImpl(`/presentations/${presentationId}/share-links`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ role, expiresAt }),
+      });
+    } catch {
+      return { status: 'error' };
+    }
+
+    if (response.status === 403) return { status: 'forbidden' };
+    if (response.status !== 201) return { status: 'error' };
+
+    const body = (await response.json()) as CreateResponseBody;
     if (!body.shareLink || !body.token) return { status: 'error' };
     return { status: 'created', shareLink: body.shareLink, token: body.token };
   }
@@ -153,18 +202,26 @@ export function createShareLinkClient(fetchImplOption?: typeof fetch): ShareLink
     }
 
     if (body.resourceType === 'presentation' && body.presentation) {
+      const frames = body.frames ?? [];
       return {
         status: 'presentation',
         role: body.role,
-        // Projected to exactly id+name: nothing else from the presentation row,
-        // and no frame content at all, crosses this boundary (SHR-28).
+        // Projected to exactly id+name: nothing else from the presentation row
+        // crosses this boundary.
         presentation: { id: body.presentation.id, name: body.presentation.name },
-        frameCount: body.frames?.length ?? 0,
+        frameCount: frames.length,
+        // SHR-28, kept for the presentation-mode/T4 shape: `notes` is stripped at
+        // THIS boundary too, defense-in-depth on top of the server's own
+        // per-link-role redaction — a frame's `notes` never crosses into
+        // anything this client returns, no matter what the response body held.
+        frames: frames.map((frame) => ({ ...frame, notes: null })),
+        scene: body.scene ?? null,
+        published: body.published === true,
       };
     }
 
     return { status: 'error' };
   }
 
-  return { createForDiagram, revoke, resolve };
+  return { createForDiagram, createForPresentation, revoke, resolve };
 }

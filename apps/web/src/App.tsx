@@ -12,6 +12,7 @@ import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
 import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
+import { PresentationListPage } from './presentation/PresentationListPage.js';
 import { SharedResourcePage } from './share/SharedResourcePage.js';
 
 /**
@@ -57,6 +58,13 @@ function AuthLayout(): JSX.Element {
  * unnested sibling, same tier as the editor route — `InventoryView` never mounts
  * the canvas (design.md), so it gets its own bare route instead of a mode inside
  * `DiagramEditorPage`; `DiagramEditorPage` links into it.
+ *
+ * T8 (presentation-mode): `/w/:workspaceId/d/:diagramId/present` joins as a third
+ * unnested sibling of the same tier, same rationale as `/inventory` — the
+ * presentation editor is its own surface, not a mode inside `DiagramEditorPage`.
+ * `/present/:presentationId` (the presentation editor itself) and
+ * `/present/:presentationId/presenter` (tela cheia, no `AppShell` at all) join
+ * once their pages exist (design.md).
  *
  * T6 (workspace-webhooks): `w/:workspaceId/webhooks` (`WorkspaceWebhooksPage`)
  * joins as a fifth nested child, on the same level as `members` — webhooks are
@@ -104,6 +112,14 @@ export function AppRoutes(): JSX.Element {
           element={
             <ProtectedRoute>
               <InventoryPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/present"
+          element={
+            <ProtectedRoute>
+              <PresentationListPage />
             </ProtectedRoute>
           }
         />

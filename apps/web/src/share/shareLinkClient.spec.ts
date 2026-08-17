@@ -66,6 +66,54 @@ describe('createShareLinkClient — createForDiagram (SHR-04..07)', () => {
   });
 });
 
+describe('createShareLinkClient — createForPresentation (presentation-mode/T4, PRZ-27/28)', () => {
+  const presentationShareLink: ShareLink = {
+    ...shareLink,
+    resourceType: 'presentation',
+    resourceId: 'p-1',
+  };
+
+  it('POSTs {role, expiresAt} to /presentations/:id/share-links and returns the one-shot token on 201', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(201, { shareLink: presentationShareLink, token: 'plain-token-xyz' }),
+    ) as unknown as typeof fetch;
+    const client = createShareLinkClient(fetchImpl);
+
+    await expect(
+      client.createForPresentation('p-1', 'viewer', '2026-12-31T00:00:00.000Z'),
+    ).resolves.toEqual({
+      status: 'created',
+      shareLink: presentationShareLink,
+      token: 'plain-token-xyz',
+    });
+    expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1/share-links', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ role: 'viewer', expiresAt: '2026-12-31T00:00:00.000Z' }),
+    });
+  });
+
+  it('returns {status: "forbidden"} on 403 (role ceiling)', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(403, {})) as unknown as typeof fetch;
+    const client = createShareLinkClient(fetchImpl);
+
+    await expect(
+      client.createForPresentation('p-1', 'org_admin', '2026-12-31T00:00:00.000Z'),
+    ).resolves.toEqual({ status: 'forbidden' });
+  });
+
+  it('returns {status: "error"} when a 201 body carries no token', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(201, { shareLink: presentationShareLink }),
+    ) as unknown as typeof fetch;
+    const client = createShareLinkClient(fetchImpl);
+
+    await expect(
+      client.createForPresentation('p-1', 'viewer', '2026-12-31T00:00:00.000Z'),
+    ).resolves.toEqual({ status: 'error' });
+  });
+});
+
 describe('createShareLinkClient — revoke (SHR-09..11)', () => {
   it('POSTs to /share-links/:id:revoke and returns the revoked link on 200', async () => {
     const revoked = { ...shareLink, revokedAt: '2026-08-17T01:00:00.000Z' };
@@ -113,7 +161,7 @@ describe('createShareLinkClient — resolve (SHR-14..16, SHR-27, SHR-28)', () =>
     expect(fetchImpl).toHaveBeenCalledWith('/share/tok-1');
   });
 
-  it('returns only id, name and frameCount for a presentation — no notes, no navLinksJson', async () => {
+  it('returns only id/name from the presentation row, frames with notes stripped, no scene when unpublished (SHR-27/28)', async () => {
     const fetchImpl = vi.fn(async () =>
       jsonResponse(200, {
         resourceType: 'presentation',
@@ -139,8 +187,35 @@ describe('createShareLinkClient — resolve (SHR-14..16, SHR-27, SHR-28)', () =>
       role: 'editor',
       presentation: { id: 'p-1', name: 'Roadmap' },
       frameCount: 2,
+      frames: [
+        { id: 'f-1', position: 0, notes: null, navLinksJson: [] },
+        { id: 'f-2', position: 1, notes: null, navLinksJson: [] },
+      ],
+      scene: null,
+      published: false,
     });
+    // Defense-in-depth (T4): the stripped note text never appears in the result at all,
+    // even though the fixture response body carried it.
     expect(JSON.stringify(result)).not.toContain('private speaker note');
+  });
+
+  it('a published presentation carries scene and published:true (presentation-mode/T4, PRZ-29/30)', async () => {
+    const scene = [{ id: 'el-1' }];
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        resourceType: 'presentation',
+        role: 'viewer',
+        presentation: { id: 'p-1', name: 'Roadmap' },
+        frames: [{ id: 'f-1', position: 0, notes: null, navLinksJson: [] }],
+        scene,
+        published: true,
+      }),
+    ) as unknown as typeof fetch;
+    const client = createShareLinkClient(fetchImpl);
+
+    const result = await client.resolve('tok-1');
+
+    expect(result).toMatchObject({ status: 'presentation', scene, published: true });
   });
 
   it('returns {status: "not_found"} on 404, with no reason attached', async () => {

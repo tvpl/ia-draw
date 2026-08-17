@@ -126,6 +126,16 @@ describe('DiagramEditorPage (T9, integration)', () => {
     }) as unknown as typeof fetch;
   }
 
+  it('links into /present (presentation-mode/T8) alongside the existing /inventory link', async () => {
+    vi.stubGlobal('fetch', basicFetchImpl());
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    const link = screen.getByRole('link', { name: 'Apresentações' }) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/w/ws-1/d/diagram-1/present');
+  });
+
   it('the layout is a row with the canvas column and the side column as siblings (unchanged flex:1/minHeight:0 canvas sizing)', async () => {
     const fetchImpl = vi.fn((url: string) => {
       if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));

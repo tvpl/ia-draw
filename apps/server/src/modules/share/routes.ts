@@ -9,6 +9,8 @@ import '../auth/types.js';
 import { loadDiagramScene } from '../diagram-sync/scene.js';
 import { type FrameRow, listFramesForPresentation } from '../presentation/frames.js';
 import { getPresentationById, getPresentationDiagramId } from '../presentation/presentations.js';
+import { getSnapshotById } from '../snapshot/snapshots.js';
+import { EXPORT_BUCKET, type StorageClient } from '../storage/index.js';
 import { resolveDiagramWorkspaceId, resolveWorkspaceRole } from '../workspace/index.js';
 import {
   createShareLink,
@@ -23,6 +25,13 @@ import {
 
 export interface ShareModuleDeps {
   db: Db;
+  /**
+   * presentation-mode/T1: needed to read a published presentation's FROZEN
+   * scene from its `diagram_snapshots` storage object, the same
+   * bucket/key pair `presentation/publish.ts`'s `getPublishedPresentation`
+   * already reads — this module never writes to storage, only reads.
+   */
+  storage: StorageClient;
 }
 
 function notFound(): never {
@@ -135,7 +144,7 @@ async function createShareLinkForResource(
  * workspace role first.
  */
 export function registerShareModule(app: FastifyInstance, deps: ShareModuleDeps): void {
-  const { db } = deps;
+  const { db, storage } = deps;
 
   app.post(
     '/diagrams/:id/share-links',
@@ -227,7 +236,39 @@ export function registerShareModule(app: FastifyInstance, deps: ShareModuleDeps)
       await listFramesForPresentation(db, link.resourceId),
       canEdit,
     );
-    return { resourceType: 'presentation' as const, role: link.role, presentation, frames };
+
+    // presentation-mode/T1: when the presentation has already been published,
+    // the same public token also serves the FROZEN scene from its published
+    // snapshot — never the live one (mirrors `publish.ts`'s
+    // `getPublishedPresentation`, but never THROWS on "not published yet":
+    // that state is a normal 200 here, just without `scene`/`published`, so
+    // the token itself stays valid before the first publish). Any snapshot
+    // that fails to resolve (deleted, storage miss) degrades the same way —
+    // silently falls back to the pre-existing shape, never a 500.
+    let scene: unknown[] | null = null;
+    if (presentation.publishedSnapshotId) {
+      const snapshot = await getSnapshotById(
+        db,
+        presentation.diagramId,
+        presentation.publishedSnapshotId,
+      );
+      if (snapshot) {
+        try {
+          const sceneJson = await storage.getObject(EXPORT_BUCKET, snapshot.sceneJsonKey);
+          scene = JSON.parse(sceneJson.toString('utf8')) as unknown[];
+        } catch {
+          scene = null;
+        }
+      }
+    }
+
+    return {
+      resourceType: 'presentation' as const,
+      role: link.role,
+      presentation,
+      frames,
+      ...(scene !== null ? { scene, published: true as const } : {}),
+    };
   });
 
   app.post(
