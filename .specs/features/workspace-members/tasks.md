@@ -93,13 +93,13 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `lookupByEmail(email)` → `{status: 'found', user} | {status: 'not_found'} | {status: 'error'}`
-- [ ] `add(workspaceId, userId, role)` → `{status: 'added', member} | {status: 'conflict'} | {status: 'error'}`
-- [ ] `changeRole(workspaceId, userId, role)` → `{status: 'ok'} | {status: 'forbidden'} | {status: 'error'}`
-- [ ] `remove(workspaceId, userId)` → `{status: 'removed'} | {status: 'forbidden'} | {status: 'error'}`
-- [ ] `list(workspaceId)` → `WorkspaceMember[]` from `GET /workspaces/:id/members`
-- [ ] Unit tests cover every branch above
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `lookupByEmail(email)` → `{status: 'found', user} | {status: 'not_found'} | {status: 'error'}`
+- [x] `add(workspaceId, userId, role)` → `{status: 'added', member} | {status: 'conflict'} | {status: 'error'}`
+- [x] `changeRole(workspaceId, userId, role)` → `{status: 'ok'} | {status: 'forbidden'} | {status: 'error'}`
+- [x] `remove(workspaceId, userId)` → `{status: 'removed'} | {status: 'forbidden'} | {status: 'error'}`
+- [x] `list(workspaceId)` → `WorkspaceMember[]` from `GET /workspaces/:id/members`
+- [x] Unit tests cover every branch above
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
