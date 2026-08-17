@@ -142,9 +142,9 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Clique dispara `generateBundle` e abre a `url` retornada na resposta `200`
-- [ ] Indicador de carregamento durante a geração
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Clique dispara `generateBundle` e abre a `url` retornada na resposta `200`
+- [x] Indicador de carregamento durante a geração
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
