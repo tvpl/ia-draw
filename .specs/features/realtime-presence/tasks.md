@@ -209,13 +209,13 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `createPresenceStore()` devolve um store com `connection: 'connecting'` e `remotes: {}`
-- [ ] `setConnection`, `upsertRemote`, `dropRemote`, `pruneRemotes`, `clearRemotes` implementados
-- [ ] `presenceStatusTranslationKey(phase)` devolve `presence.status.<phase>`
-- [ ] `pruneRemotes(staleBefore)` remove só quem tem `lastSeenAt < staleBefore`
-- [ ] Testes unitários cobrem cada ação e cada uma das três fases de conexão
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 7 casos passam
+- [x] `createPresenceStore()` devolve um store com `connection: 'connecting'` e `remotes: {}`
+- [x] `setConnection`, `upsertRemote`, `dropRemote`, `pruneRemotes`, `clearRemotes` implementados
+- [x] `presenceStatusTranslationKey(phase)` devolve `presence.status.<phase>`
+- [x] `pruneRemotes(staleBefore)` remove só quem tem `lastSeenAt < staleBefore`
+- [x] Testes unitários cobrem cada ação e cada uma das três fases de conexão
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 7 casos passam
 
 **Tests**: unit
 **Gate**: quick
