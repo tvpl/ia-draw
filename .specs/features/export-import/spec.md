@@ -172,24 +172,24 @@ importar sem mouse.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| XPRT-01 | P1: Exportar 4 formatos | Tasks | Implementing |
-| XPRT-02 | P1: Exportar 4 formatos | Tasks | Implementing |
-| XPRT-03 | P1: Exportar 4 formatos | Tasks | Implementing |
-| XPRT-04 | P1: Exportar 4 formatos | Tasks | Implementing |
-| XPRT-05 | P1: Bundle de diagrama | Tasks | Implementing |
-| XPRT-06 | P1: Bundle de diagrama | Tasks | Implementing |
-| XPRT-07 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-08 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-09 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-10 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-11 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-12 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-13 | P2: Bundle de workspace | Tasks | Implementing |
-| XPRT-14 | P2: Bundle de workspace | Tasks | Implementing |
-| XPRT-15 | P2: Bundle de workspace | Tasks | Implementing |
-| XPRT-16 | P2: Teclado e idioma | Tasks | Implementing |
-| XPRT-17 | P2: Teclado e idioma | Tasks | Implementing |
-| XPRT-18 | P2: Teclado e idioma | Tasks | Implementing |
+| XPRT-01 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-02 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-03 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-04 | P1: Exportar 4 formatos | Tasks | ✅ Verified |
+| XPRT-05 | P1: Bundle de diagrama | Tasks | ✅ Verified |
+| XPRT-06 | P1: Bundle de diagrama | Tasks | ✅ Verified |
+| XPRT-07 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-08 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-09 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-10 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-11 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-12 | P1: Importar com prévia | Tasks | ✅ Verified |
+| XPRT-13 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-14 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-15 | P2: Bundle de workspace | Tasks | ✅ Verified |
+| XPRT-16 | P2: Teclado e idioma | Tasks | ✅ Verified |
+| XPRT-17 | P2: Teclado e idioma | Tasks | ✅ Verified |
+| XPRT-18 | P2: Teclado e idioma | Tasks | ✅ Verified |
 
 **ID format:** `XPRT-NN` (fatia de frontend distinta de `EXP-NN`, que já nomeia os requisitos de
 backend em `architecture-canvas/spec.md`).
