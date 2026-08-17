@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 // Side-effect import — initializes the shared i18next singleton. Default language is pt-BR,
 // so the assertions below query the pt-BR strings.
@@ -321,5 +321,197 @@ describe('CommentsSidebar — composing a comment (CMT2-11..19)', () => {
       'rascunho',
     );
     expect(screen.getByText('Será ancorado em el-3')).toBeTruthy();
+  });
+});
+
+describe('CommentsSidebar — resolving and reopening (CMT2-20..23)', () => {
+  it('offers resolve on every open thread (CMT2-20)', async () => {
+    const fetchImpl = listFetch([comment('c-1'), comment('c-2')]);
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    expect(screen.getAllByRole('button', { name: 'Resolver' })).toHaveLength(2);
+  });
+
+  it('patches the ROOT id with {status: "resolved"} and only reflects it after the 200 (CMT2-21)', async () => {
+    let release: (() => void) | undefined;
+    const pending = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        return jsonResponse(200, {
+          comments: [comment('c-1'), comment('c-2', { parentId: 'c-1' })],
+        });
+      }
+      await pending;
+      return jsonResponse(200, { comment: comment('c-1', { status: 'resolved' }) });
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar resolvidas' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Resolver' }));
+
+    await waitFor(() => expect(callsTo(fetchImpl, 'PATCH')).toHaveLength(1));
+    expect(callsTo(fetchImpl, 'PATCH')[0]?.[0]).toBe('/diagrams/d-1/comments/c-1');
+    expect(JSON.parse(String(callsTo(fetchImpl, 'PATCH')[0]?.[1]?.body))).toEqual({
+      status: 'resolved',
+    });
+    // Still open on screen: the response has not resolved yet.
+    expect(screen.queryByText('Resolvido')).toBeNull();
+
+    release?.();
+    expect(await screen.findByText('Resolvido')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Reabrir' })).toBeTruthy();
+  });
+
+  it('offers reopen on a resolved thread and patches {status: "open"} (CMT2-22)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        return jsonResponse(200, { comments: [comment('c-1', { status: 'resolved' })] });
+      }
+      return jsonResponse(200, { comment: comment('c-1', { status: 'open' }) });
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByRole('checkbox', { name: 'Mostrar resolvidas' });
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar resolvidas' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Reabrir' }));
+
+    await waitFor(() => expect(callsTo(fetchImpl, 'PATCH')).toHaveLength(1));
+    expect(JSON.parse(String(callsTo(fetchImpl, 'PATCH')[0]?.[1]?.body))).toEqual({
+      status: 'open',
+    });
+    expect(await screen.findByRole('button', { name: 'Resolver' })).toBeTruthy();
+  });
+
+  it('keeps the previous status and announces the failure when the PATCH is not 200 (CMT2-23)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        return jsonResponse(200, { comments: [comment('c-1')] });
+      }
+      return jsonResponse(403, {});
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Resolver' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('comments-announcement').textContent).toBe(
+        'A ação falhou. Tente de novo.',
+      ),
+    );
+    expect(screen.getByRole('button', { name: 'Resolver' })).toBeTruthy();
+    expect(screen.queryByText('Resolvido')).toBeNull();
+  });
+});
+
+describe('CommentsSidebar — replying (CMT2-24..26)', () => {
+  it('offers reply on every displayed thread (CMT2-24)', async () => {
+    const fetchImpl = listFetch([comment('c-1'), comment('c-2')]);
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    expect(screen.getAllByRole('button', { name: 'Responder' })).toHaveLength(2);
+  });
+
+  it('posts parentId = the thread ROOT id even when the thread already has replies (CMT2-25)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        return jsonResponse(200, {
+          comments: [comment('c-1'), comment('c-2', { parentId: 'c-1' })],
+        });
+      }
+      return jsonResponse(201, {
+        comment: comment('c-3', { parentId: 'c-1', body: 'minha resposta' }),
+        mentions: [],
+      });
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Responder' }));
+    fireEvent.change(screen.getByLabelText('Sua resposta'), {
+      target: { value: 'minha resposta' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+
+    await waitFor(() => expect(callsTo(fetchImpl, 'POST')).toHaveLength(1));
+    expect(postBody(fetchImpl)).toEqual({ body: 'minha resposta', parentId: 'c-1' });
+  });
+
+  it('shows the created reply inside its own thread, after the comments already there (CMT2-26)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        return jsonResponse(200, {
+          comments: [comment('c-1'), comment('c-2', { parentId: 'c-1' })],
+        });
+      }
+      return jsonResponse(201, {
+        comment: comment('c-3', { parentId: 'c-1', body: 'minha resposta' }),
+        mentions: [],
+      });
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Responder' }));
+    fireEvent.change(screen.getByLabelText('Sua resposta'), {
+      target: { value: 'minha resposta' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Enviar resposta' }));
+
+    await screen.findByText('minha resposta');
+    const thread = screen.getByTestId('comment-thread');
+    const replies = within(thread)
+      .getAllByRole('listitem')
+      .map((item) => item.textContent);
+    expect(replies).toEqual(['body of c-2', 'minha resposta']);
+    expect(screen.getAllByTestId('comment-thread')).toHaveLength(1);
+  });
+});
+
+describe('CommentsSidebar — filtering and refreshing (CMT2-27..29)', () => {
+  it('hides threads whose root is resolved by default (CMT2-27)', async () => {
+    const fetchImpl = listFetch([comment('c-1'), comment('c-2', { status: 'resolved' })]);
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    expect(screen.queryByText('body of c-2')).toBeNull();
+    expect(screen.getAllByTestId('comment-thread')).toHaveLength(1);
+  });
+
+  it('shows every thread once "show resolved" is on (CMT2-28)', async () => {
+    const fetchImpl = listFetch([comment('c-1'), comment('c-2', { status: 'resolved' })]);
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Mostrar resolvidas' }));
+
+    expect(screen.getByText('body of c-2')).toBeTruthy();
+    expect(screen.getAllByTestId('comment-thread')).toHaveLength(2);
+  });
+
+  it('re-emits the GET and replaces the list on refresh (CMT2-29)', async () => {
+    let listCalls = 0;
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/diagrams/d-1/comments' && !init) {
+        listCalls += 1;
+        return jsonResponse(200, {
+          comments: listCalls === 1 ? [comment('c-1')] : [comment('c-9')],
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderSidebar(fetchImpl);
+
+    await screen.findByText('body of c-1');
+    fireEvent.click(screen.getByRole('button', { name: 'Atualizar' }));
+
+    expect(await screen.findByText('body of c-9')).toBeTruthy();
+    expect(screen.queryByText('body of c-1')).toBeNull();
+    expect(callsTo(fetchImpl)).toHaveLength(2);
   });
 });

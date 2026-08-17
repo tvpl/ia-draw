@@ -1,6 +1,11 @@
-import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, type JSX, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { type Comment, createCommentClient } from './commentClient.js';
+import {
+  type Comment,
+  type CommentStatus,
+  createCommentClient,
+  type ListCommentsResult,
+} from './commentClient.js';
 import { buildThreads, type ThreadAnchor } from './commentThreads.js';
 
 export interface CommentsSidebarProps {
@@ -41,29 +46,44 @@ export function CommentsSidebar({
   const [draft, setDraft] = useState('');
   const [creating, setCreating] = useState(false);
   const [announcement, setAnnouncement] = useState('');
+  const [showResolved, setShowResolved] = useState(false);
+  const [replyTarget, setReplyTarget] = useState<string | null>(null);
+  const [replyDraft, setReplyDraft] = useState('');
+  const [replying, setReplying] = useState(false);
+
+  const applyList = useCallback((result: ListCommentsResult) => {
+    if (result.status === 'ok') {
+      setComments(result.comments);
+      setListState('ready');
+      return;
+    }
+    // CMT2-08: any non-200 leaves the list empty behind the generic error — including the 404
+    // the IDOR convention returns for a diagram you cannot see.
+    setListState('error');
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       const result = await client.list(diagramId);
-      if (cancelled) return;
-      if (result.status === 'ok') {
-        setComments(result.comments);
-        setListState('ready');
-        return;
-      }
-      // CMT2-08: any non-200 leaves the list empty behind the generic error — including the 404
-      // the IDOR convention returns for a diagram you cannot see.
-      setListState('error');
+      if (!cancelled) applyList(result);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [client, diagramId]);
+  }, [client, diagramId, applyList]);
 
-  const threads = useMemo(() => buildThreads(comments, liveElementIds), [comments, liveElementIds]);
+  const allThreads = useMemo(
+    () => buildThreads(comments, liveElementIds),
+    [comments, liveElementIds],
+  );
+  // CMT2-27/28: the filter looks at the ROOT's status only — the thread is the unit of review
+  // even though `status` is stored per comment (spec.md's Assumptions table).
+  const threads = showResolved
+    ? allThreads
+    : allThreads.filter((thread) => thread.root.status === 'open');
 
   // CMT2-13..15: a single selected element is the anchor; zero or several means no anchor at all,
   // because `elementId` is one scalar and picking "the first" of a multi-selection would be
@@ -103,6 +123,51 @@ export function CommentsSidebar({
     }
   }
 
+  // CMT2-25: a reply always hangs off the thread ROOT, never off another reply, so every thread
+  // stays exactly two levels deep no matter how the server-side chain was built.
+  async function handleReplySubmit(event: FormEvent, rootId: string): Promise<void> {
+    event.preventDefault();
+    if (replying) return;
+    const body = replyDraft.trim();
+    if (!body) return;
+
+    setReplying(true);
+    try {
+      const result = await client.create(diagramId, { body, parentId: rootId });
+      if (result.status === 'created') {
+        setComments((current) => [...current, result.comment]);
+        setReplyDraft('');
+        setReplyTarget(null);
+        setAnnouncement(t('comments.announce.replied'));
+        return;
+      }
+      setAnnouncement(result.status === 'not_found' ? t('comments.notFound') : t('comments.error'));
+    } finally {
+      setReplying(false);
+    }
+  }
+
+  // CMT2-21..23: `PATCH` targets the thread root, and the new status only reaches the screen once
+  // the server has answered 200 — a failure leaves the previous status in place.
+  async function handleStatusChange(rootId: string, status: CommentStatus): Promise<void> {
+    const result = await client.setStatus(diagramId, rootId, status);
+    if (result.status === 'ok') {
+      const updated = result.comment;
+      setComments((current) =>
+        current.map((comment) => (comment.id === rootId ? updated : comment)),
+      );
+      setAnnouncement(
+        t(status === 'resolved' ? 'comments.announce.resolved' : 'comments.announce.reopened'),
+      );
+      return;
+    }
+    setAnnouncement(t('comments.announce.failed'));
+  }
+
+  async function handleRefresh(): Promise<void> {
+    applyList(await client.list(diagramId));
+  }
+
   return (
     <section aria-labelledby="comments-title">
       <h2 id="comments-title">{t('comments.title')}</h2>
@@ -110,6 +175,18 @@ export function CommentsSidebar({
       <div aria-live="polite" data-testid="comments-announcement">
         {announcement}
       </div>
+
+      <label>
+        <input
+          type="checkbox"
+          checked={showResolved}
+          onChange={(event) => setShowResolved(event.target.checked)}
+        />
+        {t('comments.showResolved')}
+      </label>
+      <button type="button" onClick={() => void handleRefresh()}>
+        {t('comments.refresh')}
+      </button>
 
       {listState === 'loading' && <p>{t('comments.loading')}</p>}
       {listState === 'error' && <p>{t('comments.error')}</p>}
@@ -121,12 +198,50 @@ export function CommentsSidebar({
             <li key={thread.root.id} data-testid="comment-thread">
               <ThreadAnchorLabel anchor={thread.anchor} />
               <p>{thread.root.body}</p>
+              {thread.root.status === 'resolved' && <span>{t('comments.resolvedBadge')}</span>}
               {thread.replies.length > 0 && (
                 <ul>
                   {thread.replies.map((reply) => (
                     <li key={reply.id}>{reply.body}</li>
                   ))}
                 </ul>
+              )}
+              <button
+                type="button"
+                onClick={() =>
+                  void handleStatusChange(
+                    thread.root.id,
+                    thread.root.status === 'open' ? 'resolved' : 'open',
+                  )
+                }
+              >
+                {t(thread.root.status === 'open' ? 'comments.resolve' : 'comments.reopen')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setReplyTarget(thread.root.id);
+                  setReplyDraft('');
+                }}
+              >
+                {t('comments.reply.action')}
+              </button>
+              {replyTarget === thread.root.id && (
+                <form
+                  data-testid="reply-form"
+                  onSubmit={(event) => void handleReplySubmit(event, thread.root.id)}
+                >
+                  <label>
+                    {t('comments.reply.label')}
+                    <textarea
+                      value={replyDraft}
+                      onChange={(event) => setReplyDraft(event.target.value)}
+                    />
+                  </label>
+                  <button type="submit" disabled={replyDraft.trim().length === 0 || replying}>
+                    {t('comments.reply.submit')}
+                  </button>
+                </form>
               )}
             </li>
           ))}

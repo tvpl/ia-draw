@@ -202,16 +202,16 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Toda thread aberta oferece resolver, sem depender de papel nem de `canMutate`
-- [ ] Resolver emite `PATCH` no id da **raiz** com `{status:'resolved'}` e só reflete o novo status depois do `200`
-- [ ] Uma thread resolvida oferece reabrir, emitindo `PATCH` com `{status:'open'}`
-- [ ] Qualquer status diferente de 200 no `PATCH` mantém o status anterior e informa a falha
-- [ ] Toda thread oferece responder; a resposta vai com `parentId` igual ao id da raiz, mesmo quando a thread já tem respostas
-- [ ] `201` da resposta a coloca dentro da própria thread, depois dos comentários já exibidos
-- [ ] Threads com raiz `resolved` ficam ocultas por padrão e aparecem quando "mostrar resolvidas" é acionado
-- [ ] "Atualizar" reemite o `GET` e substitui a lista pelo conteúdo da resposta
-- [ ] Testes RTL cobrem 1:1 cada bullet acima, sem remover nenhum teste de T4
-- [ ] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Toda thread aberta oferece resolver, sem depender de papel nem de `canMutate`
+- [x] Resolver emite `PATCH` no id da **raiz** com `{status:'resolved'}` e só reflete o novo status depois do `200`
+- [x] Uma thread resolvida oferece reabrir, emitindo `PATCH` com `{status:'open'}`
+- [x] Qualquer status diferente de 200 no `PATCH` mantém o status anterior e informa a falha
+- [x] Toda thread oferece responder; a resposta vai com `parentId` igual ao id da raiz, mesmo quando a thread já tem respostas
+- [x] `201` da resposta a coloca dentro da própria thread, depois dos comentários já exibidos
+- [x] Threads com raiz `resolved` ficam ocultas por padrão e aparecem quando "mostrar resolvidas" é acionado
+- [x] "Atualizar" reemite o `GET` e substitui a lista pelo conteúdo da resposta
+- [x] Testes RTL cobrem 1:1 cada bullet acima, sem remover nenhum teste de T4
+- [x] Gate check passa: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
