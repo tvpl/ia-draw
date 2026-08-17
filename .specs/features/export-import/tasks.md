@@ -116,11 +116,11 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Um clique em "gerar" dispara uma única chamada e exibe os 4 links (`.excalidraw`/SVG/PNG/PDF) com `sizeBytes` formatado
-- [ ] Cada link abre a `url` assinada diretamente, sem passar pelo servidor do produto de novo
-- [ ] `429` exibe mensagem de "aguarde", sem travar o editor
-- [ ] Botão desabilitado durante a geração em andamento
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Um clique em "gerar" dispara uma única chamada e exibe os 4 links (`.excalidraw`/SVG/PNG/PDF) com `sizeBytes` formatado
+- [x] Cada link abre a `url` assinada diretamente, sem passar pelo servidor do produto de novo
+- [x] `429` exibe mensagem de "aguarde", sem travar o editor
+- [x] Botão desabilitado durante a geração em andamento
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

@@ -173,9 +173,9 @@ importar sem mouse.
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
 | XPRT-01 | P1: Exportar 4 formatos | Tasks | Implementing |
-| XPRT-02 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-03 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-04 | P1: Exportar 4 formatos | Tasks | Pending |
+| XPRT-02 | P1: Exportar 4 formatos | Tasks | Implementing |
+| XPRT-03 | P1: Exportar 4 formatos | Tasks | Implementing |
+| XPRT-04 | P1: Exportar 4 formatos | Tasks | Implementing |
 | XPRT-05 | P1: Bundle de diagrama | Tasks | Implementing |
 | XPRT-06 | P1: Bundle de diagrama | Tasks | Pending |
 | XPRT-07 | P1: Importar com prévia | Tasks | Implementing |
