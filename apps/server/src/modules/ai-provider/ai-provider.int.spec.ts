@@ -3,7 +3,7 @@
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import { PGlite } from '@electric-sql/pglite';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { drizzle, type PgliteDatabase } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import type { FastifyInstance } from 'fastify';
@@ -301,6 +301,112 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
         .where(eq(schema.auditEvents.action, 'ai_provider_config.tested'));
       expect(auditRows.length).toBeGreaterThan(0);
       expect(JSON.stringify(auditRows)).not.toContain(TEST_TOKEN);
+    });
+  });
+
+  describe('exclusividade de configuração ativa por escopo (PROV-23/24/25)', () => {
+    /**
+     * Seeds a row straight through Drizzle, deliberately bypassing
+     * `createProviderConfig` — that is the only way to reproduce the state this
+     * hardening exists to converge: two rows already `enabled` in the same scope,
+     * which is exactly what the table allowed before this change (no unique
+     * constraint, no application guard).
+     */
+    async function seedRow(scope: string, model: string, enabled: boolean) {
+      const [row] = await db
+        .insert(schema.aiProviderConfigs)
+        .values({
+          scope,
+          baseUrl: 'https://api.openai.com/v1',
+          model,
+          encryptedToken: 'ciphertext-placeholder',
+          enabled,
+        })
+        .returning();
+      if (!row) throw new Error('seedRow: insert returned no row');
+      return row;
+    }
+
+    async function readEnabled(id: string): Promise<boolean> {
+      const [row] = await db
+        .select()
+        .from(schema.aiProviderConfigs)
+        .where(eq(schema.aiProviderConfigs.id, id));
+      if (!row) throw new Error(`readEnabled: no row for ${id}`);
+      return row.enabled;
+    }
+
+    async function countEnabledInScope(scope: string): Promise<number> {
+      const rows = await db
+        .select()
+        .from(schema.aiProviderConfigs)
+        .where(
+          and(
+            eq(schema.aiProviderConfigs.scope, scope),
+            eq(schema.aiProviderConfigs.enabled, true),
+          ),
+        );
+      return rows.length;
+    }
+
+    it('PATCH {enabled:true} disables every other config in the same scope and leaves other scopes untouched (PROV-23/25)', async () => {
+      const { workspaceId, member: admin } = await seedWorkspaceWithRole('workspace_admin');
+      const first = await seedRow(workspaceId, 'gpt-4o-mini', true);
+      const second = await seedRow(workspaceId, 'gpt-4o', true);
+      const otherScope = await seedRow('global', 'gpt-4o-mini', true);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/admin/ai-providers/${second.id}`,
+        cookies: admin.cookies,
+        payload: { enabled: true },
+      });
+      expect(response.statusCode).toBe(200);
+
+      expect(await readEnabled(first.id)).toBe(false);
+      expect(await readEnabled(second.id)).toBe(true);
+      expect(await countEnabledInScope(workspaceId)).toBe(1);
+      // PROV-25: a row in a different scope is never touched.
+      expect(await readEnabled(otherScope.id)).toBe(true);
+    });
+
+    it('POST of an enabled config disables every other config in the same scope and leaves other scopes untouched (PROV-24/25)', async () => {
+      const { workspaceId, member: admin } = await seedWorkspaceWithRole('workspace_admin');
+      const existing = await seedRow(workspaceId, 'gpt-4o-mini', true);
+      const otherScope = await seedRow('global', 'gpt-4o-mini', true);
+
+      const created = await createConfig(admin.cookies, {
+        scope: workspaceId,
+        baseUrl: 'https://api.openai.com/v1',
+        model: 'gpt-4o',
+        token: TEST_TOKEN,
+      });
+      expect(created.statusCode).toBe(201);
+      const createdId = created.json().config.id as string;
+
+      expect(await readEnabled(existing.id)).toBe(false);
+      expect(await readEnabled(createdId)).toBe(true);
+      expect(await countEnabledInScope(workspaceId)).toBe(1);
+      expect(await readEnabled(otherScope.id)).toBe(true);
+    });
+
+    it('a PATCH that does not mention `enabled` still converges a scope that already had two enabled rows (edge case)', async () => {
+      const { workspaceId, member: admin } = await seedWorkspaceWithRole('workspace_admin');
+      const first = await seedRow(workspaceId, 'gpt-4o-mini', true);
+      const second = await seedRow(workspaceId, 'gpt-4o', true);
+
+      const response = await app.inject({
+        method: 'PATCH',
+        url: `/admin/ai-providers/${second.id}`,
+        cookies: admin.cookies,
+        payload: { model: 'gpt-4.1' },
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().config.model).toBe('gpt-4.1');
+
+      expect(await readEnabled(first.id)).toBe(false);
+      expect(await readEnabled(second.id)).toBe(true);
+      expect(await countEnabledInScope(workspaceId)).toBe(1);
     });
   });
 

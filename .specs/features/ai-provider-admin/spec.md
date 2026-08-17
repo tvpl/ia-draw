@@ -266,9 +266,9 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | PROV-20 | P1: Testar a conexão | F10 | Pending |
 | PROV-21 | P1: Alternar qual está ativa | F10 | Pending |
 | PROV-22 | P1: Alternar qual está ativa | F10 | Pending |
-| PROV-23 | P1: Alternar qual está ativa | F10 | Pending |
-| PROV-24 | P1: Alternar qual está ativa | F10 | Pending |
-| PROV-25 | P1: Alternar qual está ativa | F10 | Pending |
+| PROV-23 | P1: Alternar qual está ativa | F10 | Implementing |
+| PROV-24 | P1: Alternar qual está ativa | F10 | Implementing |
+| PROV-25 | P1: Alternar qual está ativa | F10 | Implementing |
 | PROV-26 | P1: Alternar qual está ativa | F10 | Pending |
 | PROV-27 | P2: Teclado e idiomas | F10 | Pending |
 | PROV-28 | P2: Teclado e idiomas | F10 | Pending |

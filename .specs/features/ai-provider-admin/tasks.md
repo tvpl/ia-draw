@@ -115,7 +115,7 @@ T13
 - [x] Assinaturas públicas das duas funções inalteradas; nenhum contrato de rota muda
 - [x] Testes de integração novos em `apps/server/src/modules/ai-provider/ai-provider.int.spec.ts`: (a) duas configs habilitadas no mesmo escopo, `PATCH {enabled:true}` na segunda deixa a primeira `false` — lido direto da tabela; (b) `POST` de uma terceira config deixa as anteriores `false`; (c) uma config de outro escopo continua `enabled = true` nos dois casos
 - [x] Gate check passes: `make lint && make typecheck && make test-unit` e `pnpm --filter @arch-canvas/server run test:integration`
-- [x] Test count: os 6 testes de integração existentes deste arquivo continuam passando, mais os 3 novos (nenhuma exclusão silenciosa)
+- [x] Test count: os 7 testes de integração existentes deste arquivo continuam passando, mais os 3 novos — 10/10 verdes (nenhuma exclusão silenciosa)
 
 **Tests**: integration
 **Gate**: full
@@ -139,14 +139,14 @@ T13
 
 **Done when**:
 
-- [x] `list(scope)` emite `GET /admin/ai-providers?scope=<scope>` e devolve `ProviderConfig[]`; lança em resposta não-2xx
-- [x] `create(input)` emite `POST /admin/ai-providers` e devolve `{status:'created', config} | {status:'rejected'} (400) | {status:'error'}`
-- [x] `update(id, patch)` emite `PATCH /admin/ai-providers/:id` e devolve `{status:'ok', config} | {status:'error'}`; `patch.token` ausente não aparece no corpo serializado
-- [x] `testConnection(id)` emite `POST /admin/ai-providers/:id:test` e devolve `{status:'done', result} | {status:'rate_limited'} (429) | {status:'error'}` — um `200` com `result.success === false` continua sendo `'done'`
-- [x] `ProviderConfig` não declara nenhum campo de token
-- [x] Testes unitários em `apps/web/src/nav/aiProviderClient.spec.ts` cobrem todo ramo acima, incluindo erro de rede (rejeição do `fetch`)
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [x] Test count: ~12 testes novos, 0 removidos
+- [ ] `list(scope)` emite `GET /admin/ai-providers?scope=<scope>` e devolve `ProviderConfig[]`; lança em resposta não-2xx
+- [ ] `create(input)` emite `POST /admin/ai-providers` e devolve `{status:'created', config} | {status:'rejected'} (400) | {status:'error'}`
+- [ ] `update(id, patch)` emite `PATCH /admin/ai-providers/:id` e devolve `{status:'ok', config} | {status:'error'}`; `patch.token` ausente não aparece no corpo serializado
+- [ ] `testConnection(id)` emite `POST /admin/ai-providers/:id:test` e devolve `{status:'done', result} | {status:'rate_limited'} (429) | {status:'error'}` — um `200` com `result.success === false` continua sendo `'done'`
+- [ ] `ProviderConfig` não declara nenhum campo de token
+- [ ] Testes unitários em `apps/web/src/nav/aiProviderClient.spec.ts` cobrem todo ramo acima, incluindo erro de rede (rejeição do `fetch`)
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Test count: ~12 testes novos, 0 removidos
 
 **Tests**: unit
 **Gate**: quick
@@ -170,9 +170,9 @@ T13
 
 **Done when**:
 
-- [x] Bloco `adminProviders` presente nos dois locales, com o mesmo conjunto de chaves em ambos
-- [x] Nenhuma chave existente removida ou renomeada
-- [x] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/server run test:integration`
+- [ ] Bloco `adminProviders` presente nos dois locales, com o mesmo conjunto de chaves em ambos
+- [ ] Nenhuma chave existente removida ou renomeada
+- [ ] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/server run test:integration`
 
 **Tests**: none
 **Gate**: build
@@ -196,13 +196,13 @@ T13
 
 **Done when**:
 
-- [x] Montada em `/admin/ai-providers` a página emite `GET /admin/ai-providers?scope=global`; montada em `/w/:workspaceId/admin/ai-providers` emite `?scope=<workspaceId>`
-- [x] Cada configuração aparece com `baseUrl`, `model` e um indicador explícito de ativa/inativa
-- [x] Nenhum campo de token é exibido, em nenhuma forma (asserção sobre o texto renderizado, não só sobre o tipo)
-- [x] `403` e `404` levam ao estado "não existe ou sem acesso", sem lista e sem formulário
-- [x] Escopo sem nenhuma configuração renderiza estado vazio explícito (caso de borda da spec)
-- [x] Testes em `apps/web/src/nav/AiProviderAdminPage.spec.tsx` cobrem PROV-01..04 e o estado vazio
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Montada em `/admin/ai-providers` a página emite `GET /admin/ai-providers?scope=global`; montada em `/w/:workspaceId/admin/ai-providers` emite `?scope=<workspaceId>`
+- [ ] Cada configuração aparece com `baseUrl`, `model` e um indicador explícito de ativa/inativa
+- [ ] Nenhum campo de token é exibido, em nenhuma forma (asserção sobre o texto renderizado, não só sobre o tipo)
+- [ ] `403` e `404` levam ao estado "não existe ou sem acesso", sem lista e sem formulário
+- [ ] Escopo sem nenhuma configuração renderiza estado vazio explícito (caso de borda da spec)
+- [ ] Testes em `apps/web/src/nav/AiProviderAdminPage.spec.tsx` cobrem PROV-01..04 e o estado vazio
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -226,13 +226,13 @@ T13
 
 **Done when**:
 
-- [x] O envio fica bloqueado enquanto endpoint, modelo ou chave estiverem vazios
-- [x] O corpo do `POST` emitido é `{scope, baseUrl, model, token}` com `scope` vindo da rota
-- [x] `201` adiciona a configuração à lista sem recarregar e limpa o campo de chave
-- [x] O campo de chave é `type="password"` com `autoComplete="off"` (asserção sobre os atributos)
-- [x] `400` mostra a mensagem de URL rejeitada e mantém os valores digitados
-- [x] Testes cobrem PROV-08..12
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] O envio fica bloqueado enquanto endpoint, modelo ou chave estiverem vazios
+- [ ] O corpo do `POST` emitido é `{scope, baseUrl, model, token}` com `scope` vindo da rota
+- [ ] `201` adiciona a configuração à lista sem recarregar e limpa o campo de chave
+- [ ] O campo de chave é `type="password"` com `autoComplete="off"` (asserção sobre os atributos)
+- [ ] `400` mostra a mensagem de URL rejeitada e mantém os valores digitados
+- [ ] Testes cobrem PROV-08..12
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -256,12 +256,12 @@ T13
 
 **Done when**:
 
-- [x] Salvar com o campo de chave vazio emite um `PATCH` cujo corpo serializado não tem a propriedade `token` (asserção sobre o corpo, não sobre a chamada)
-- [x] Salvar com o campo de chave preenchido emite um `PATCH` com `token` igual ao valor digitado
-- [x] A nota "deixar em branco mantém a chave atual" aparece no formulário de edição
-- [x] Status diferente de `200` informa a falha e mantém os valores anteriores na lista
-- [x] Testes cobrem PROV-13..16
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Salvar com o campo de chave vazio emite um `PATCH` cujo corpo serializado não tem a propriedade `token` (asserção sobre o corpo, não sobre a chamada)
+- [ ] Salvar com o campo de chave preenchido emite um `PATCH` com `token` igual ao valor digitado
+- [ ] A nota "deixar em branco mantém a chave atual" aparece no formulário de edição
+- [ ] Status diferente de `200` informa a falha e mantém os valores anteriores na lista
+- [ ] Testes cobrem PROV-13..16
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -285,12 +285,12 @@ T13
 
 **Done when**:
 
-- [x] Ativar emite `PATCH` com `{enabled: true}`
-- [x] Depois de um `200`, a configuração ativada aparece ativa e **toda outra do mesmo escopo** aparece inativa, sem recarregar (asserção sobre o estado renderizado das duas linhas, não só da ativada)
-- [x] Desativar a ativa emite `PATCH` com `{enabled: false}` e deixa o escopo sem nenhuma ativa
-- [x] Falha do `PATCH` mantém o estado anterior e anuncia a falha
-- [x] Testes cobrem PROV-21, PROV-22, PROV-26
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Ativar emite `PATCH` com `{enabled: true}`
+- [ ] Depois de um `200`, a configuração ativada aparece ativa e **toda outra do mesmo escopo** aparece inativa, sem recarregar (asserção sobre o estado renderizado das duas linhas, não só da ativada)
+- [ ] Desativar a ativa emite `PATCH` com `{enabled: false}` e deixa o escopo sem nenhuma ativa
+- [ ] Falha do `PATCH` mantém o estado anterior e anuncia a falha
+- [ ] Testes cobrem PROV-21, PROV-22, PROV-26
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -314,15 +314,15 @@ T13
 
 **Done when**:
 
-- [x] O clique emite `POST /admin/ai-providers/:id:test`
-- [x] `200` com `success: true` exibe sucesso citando `modelAvailable` e `toolCallingSupported`
-- [x] `200` com `success: false` exibe falha com o texto de `error` — nunca sucesso
-- [x] `429` exibe a mensagem de limite de testes atingido
-- [x] Erro de rede exibe falha genérica e o botão volta a ficar disponível (não fica preso em carregamento)
-- [x] Um segundo clique com um teste em voo não emite segunda requisição (caso de borda da spec)
-- [x] A página nunca dispara um teste sozinha no carregamento (a cota é 10/60s por usuário)
-- [x] Testes cobrem PROV-17..20 e os dois casos de borda acima
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] O clique emite `POST /admin/ai-providers/:id:test`
+- [ ] `200` com `success: true` exibe sucesso citando `modelAvailable` e `toolCallingSupported`
+- [ ] `200` com `success: false` exibe falha com o texto de `error` — nunca sucesso
+- [ ] `429` exibe a mensagem de limite de testes atingido
+- [ ] Erro de rede exibe falha genérica e o botão volta a ficar disponível (não fica preso em carregamento)
+- [ ] Um segundo clique com um teste em voo não emite segunda requisição (caso de borda da spec)
+- [ ] A página nunca dispara um teste sozinha no carregamento (a cota é 10/60s por usuário)
+- [ ] Testes cobrem PROV-17..20 e os dois casos de borda acima
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -346,9 +346,9 @@ T13
 
 **Done when**:
 
-- [x] As duas rotas montam `AiProviderAdminPage` dentro do `AppShell`, sob `ProtectedRoute`
-- [x] Testes em `apps/web/src/App.spec.tsx` provam que cada rota renderiza a página (a rota global é a primeira rota autenticada do app sem workspace na URL)
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] As duas rotas montam `AiProviderAdminPage` dentro do `AppShell`, sob `ProtectedRoute`
+- [ ] Testes em `apps/web/src/App.spec.tsx` provam que cada rota renderiza a página (a rota global é a primeira rota autenticada do app sem workspace na URL)
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -372,10 +372,10 @@ T13
 
 **Done when**:
 
-- [x] Com pelo menos um item `role === 'org_admin'`, o link aparece
-- [x] Sem nenhum item `role === 'org_admin'`, o link não existe no DOM (asserção de ausência, não de invisibilidade)
-- [x] Testes em `apps/web/src/nav/WorkspaceListPage.spec.tsx` cobrem PROV-05 e PROV-06
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Com pelo menos um item `role === 'org_admin'`, o link aparece
+- [ ] Sem nenhum item `role === 'org_admin'`, o link não existe no DOM (asserção de ausência, não de invisibilidade)
+- [ ] Testes em `apps/web/src/nav/WorkspaceListPage.spec.tsx` cobrem PROV-05 e PROV-06
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -399,10 +399,10 @@ T13
 
 **Done when**:
 
-- [x] Com papel que concede `workspace:manage_members`, o link aparece
-- [x] Com papel que não concede, o link não existe no DOM
-- [x] Testes em `apps/web/src/nav/ProjectListPage.spec.tsx` cobrem PROV-07 nas duas direções
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Com papel que concede `workspace:manage_members`, o link aparece
+- [ ] Com papel que não concede, o link não existe no DOM
+- [ ] Testes em `apps/web/src/nav/ProjectListPage.spec.tsx` cobrem PROV-07 nas duas direções
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -426,11 +426,11 @@ T13
 
 **Done when**:
 
-- [x] Estado com lista populada e estado com formulário de edição aberto: zero violações serious/critical
-- [x] Todo controle interativo (voltar, campos de cadastro, salvar, testar, ativar/desativar, editar) recebe foco por teclado, com asserção de `document.activeElement`
-- [x] A região de resultado tem `aria-live="polite"` (asserção sobre o atributo) e anuncia o desfecho de uma ação completada
-- [x] Um teste renderiza a página no locale `en` e afirma os rótulos traduzidos
-- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [ ] Estado com lista populada e estado com formulário de edição aberto: zero violações serious/critical
+- [ ] Todo controle interativo (voltar, campos de cadastro, salvar, testar, ativar/desativar, editar) recebe foco por teclado, com asserção de `document.activeElement`
+- [ ] A região de resultado tem `aria-live="polite"` (asserção sobre o atributo) e anuncia o desfecho de uma ação completada
+- [ ] Um teste renderiza a página no locale `en` e afirma os rótulos traduzidos
+- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
@@ -454,10 +454,10 @@ T13
 
 **Done when**:
 
-- [x] Nenhuma das duas mensagens afirma que a configuração é feita fora do produto
-- [x] As duas nomeiam a tela de administração de provider de IA
-- [x] Teste em `apps/web/src/ai-dock/AiDock.spec.tsx` afirma a mensagem nova nos dois locales (asserção sobre o texto renderizado)
-- [x] Gate check passes: `make lint && make typecheck && make test-unit`
+- [ ] Nenhuma das duas mensagens afirma que a configuração é feita fora do produto
+- [ ] As duas nomeiam a tela de administração de provider de IA
+- [ ] Teste em `apps/web/src/ai-dock/AiDock.spec.tsx` afirma a mensagem nova nos dois locales (asserção sobre o texto renderizado)
+- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
