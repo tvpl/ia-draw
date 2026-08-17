@@ -90,6 +90,14 @@
 - **Date**: 2026-08-16
 - **Status**: active
 
+### AD-012
+- **Decision**: `AuthProvider` é um **escopo de rota**, não um envelope global de `apps/web`. Em `App.tsx`, uma rota de layout sem path (`AuthLayout` = `<AuthProvider><Outlet/></AuthProvider>`) envolve todas as rotas autenticadas; toda superfície pública (sem sessão) entra como rota **irmã** dessa rota de layout, nunca dentro dela. `/share/:token` (R11) é a primeira.
+- **Reason**: uma página pública montada dentro de `AuthProvider` dispara `GET /me` + `POST /auth/refresh` para um visitante que nunca vai ter sessão — dois round-trips inúteis com cookies enviados a rotas de auth — e faz a garantia de "esta página não depende de sessão" depender de `AuthProvider` continuar não redirecionando, o que é convenção e não estrutura. Fora do provider, a garantia é estrutural: nada acima da rota consegue redirecionar.
+- **Trade-off**: uma indireção nova (`AuthLayout`) em `App.tsx`; em troca, nenhuma rota pública futura precisa reprovar que não vaza chamada de sessão. Não contradiz AD-011: `useAuth()` continua sendo a única fonte de verdade de sessão para toda superfície autenticada — só deixa de ser montado onde não há sessão nenhuma para resolver.
+- **Scope**: `apps/web/src/App.tsx` e toda superfície pública futura (R12's visão pública de apresentação é a próxima).
+- **Date**: 2026-08-17
+- **Status**: active
+
 ## Handoffs
 
 Uma subseção por frente ativa (GOV-06). Hoje só há uma frente (`platform-maturity`); o formato
