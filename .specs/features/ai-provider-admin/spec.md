@@ -244,36 +244,36 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| PROV-01 | P1: Ver configurações | F10 | Implementing |
-| PROV-02 | P1: Ver configurações | F10 | Implementing |
-| PROV-03 | P1: Ver configurações | F10 | Implementing |
-| PROV-04 | P1: Ver configurações | F10 | Implementing |
-| PROV-05 | P1: Alcançar a tela | F10 | Implementing |
-| PROV-06 | P1: Alcançar a tela | F10 | Implementing |
-| PROV-07 | P1: Alcançar a tela | F10 | Implementing |
-| PROV-08 | P1: Cadastrar | F10 | Implementing |
-| PROV-09 | P1: Cadastrar | F10 | Implementing |
-| PROV-10 | P1: Cadastrar | F10 | Implementing |
-| PROV-11 | P1: Cadastrar | F10 | Implementing |
-| PROV-12 | P1: Cadastrar | F10 | Implementing |
-| PROV-13 | P1: Editar sem redigitar a chave | F10 | Implementing |
-| PROV-14 | P1: Editar sem redigitar a chave | F10 | Implementing |
-| PROV-15 | P1: Editar sem redigitar a chave | F10 | Implementing |
-| PROV-16 | P1: Editar sem redigitar a chave | F10 | Implementing |
-| PROV-17 | P1: Testar a conexão | F10 | Implementing |
-| PROV-18 | P1: Testar a conexão | F10 | Implementing |
-| PROV-19 | P1: Testar a conexão | F10 | Implementing |
-| PROV-20 | P1: Testar a conexão | F10 | Implementing |
-| PROV-21 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-22 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-23 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-24 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-25 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-26 | P1: Alternar qual está ativa | F10 | Implementing |
-| PROV-27 | P2: Teclado e idiomas | F10 | Implementing |
-| PROV-28 | P2: Teclado e idiomas | F10 | Implementing |
-| PROV-29 | P2: Teclado e idiomas | F10 | Implementing |
-| PROV-30 | P2: Dock aponta para a tela | F10 | Implementing |
+| PROV-01 | P1: Ver configurações | F10 | ✅ Verified |
+| PROV-02 | P1: Ver configurações | F10 | ✅ Verified |
+| PROV-03 | P1: Ver configurações | F10 | ✅ Verified |
+| PROV-04 | P1: Ver configurações | F10 | ✅ Verified |
+| PROV-05 | P1: Alcançar a tela | F10 | ✅ Verified |
+| PROV-06 | P1: Alcançar a tela | F10 | ✅ Verified |
+| PROV-07 | P1: Alcançar a tela | F10 | ✅ Verified |
+| PROV-08 | P1: Cadastrar | F10 | ✅ Verified |
+| PROV-09 | P1: Cadastrar | F10 | ✅ Verified |
+| PROV-10 | P1: Cadastrar | F10 | ✅ Verified |
+| PROV-11 | P1: Cadastrar | F10 | ✅ Verified |
+| PROV-12 | P1: Cadastrar | F10 | ✅ Verified |
+| PROV-13 | P1: Editar sem redigitar a chave | F10 | ✅ Verified |
+| PROV-14 | P1: Editar sem redigitar a chave | F10 | ✅ Verified |
+| PROV-15 | P1: Editar sem redigitar a chave | F10 | ✅ Verified |
+| PROV-16 | P1: Editar sem redigitar a chave | F10 | ✅ Verified |
+| PROV-17 | P1: Testar a conexão | F10 | ✅ Verified |
+| PROV-18 | P1: Testar a conexão | F10 | ✅ Verified |
+| PROV-19 | P1: Testar a conexão | F10 | ✅ Verified |
+| PROV-20 | P1: Testar a conexão | F10 | ✅ Verified |
+| PROV-21 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-22 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-23 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-24 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-25 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-26 | P1: Alternar qual está ativa | F10 | ✅ Verified |
+| PROV-27 | P2: Teclado e idiomas | F10 | ✅ Verified |
+| PROV-28 | P2: Teclado e idiomas | F10 | ✅ Verified |
+| PROV-29 | P2: Teclado e idiomas | F10 | ✅ Verified |
+| PROV-30 | P2: Dock aponta para a tela | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
