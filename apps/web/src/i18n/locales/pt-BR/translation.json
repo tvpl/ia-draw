@@ -58,6 +58,37 @@
     "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
     "logout": "Sair"
   },
+  "export": {
+    "menu": {
+      "title": "Exportar",
+      "generate": "Gerar exports",
+      "success": "Exports prontos",
+      "rateLimited": "Muitas solicitações de export — aguarde um momento e tente de novo.",
+      "error": "Não foi possível gerar os exports. Tente novamente.",
+      "format": {
+        "excalidraw": ".excalidraw",
+        "svg": "SVG",
+        "png": "PNG",
+        "pdf": "PDF"
+      }
+    },
+    "bundle": {
+      "button": "Baixar bundle",
+      "loading": "Gerando bundle…",
+      "success": "Bundle pronto",
+      "error": "Não foi possível gerar o bundle. Tente novamente."
+    }
+  },
+  "import": {
+    "trigger": "Importar diagrama",
+    "title": "Importar arquivo .excalidraw",
+    "fileLabel": "Arquivo",
+    "preview": "{{count}} elementos serão importados",
+    "titleLabel": "Título do diagrama",
+    "confirm": "Confirmar import",
+    "cancel": "Cancelar",
+    "success": "Diagrama importado"
+  },
   "nav": {
     "workspaces": {
       "title": "Workspaces",
@@ -67,6 +98,11 @@
       "emptyState": "Você ainda não pertence a nenhum workspace.",
       "emptyStateCta": "Criar seu primeiro workspace",
       "archiveCurrent": "Arquivar este workspace"
+    },
+    "workspaceBundle": {
+      "action": "Solicitar bundle do workspace",
+      "queued": "Bundle solicitado — este produto não mostra quando termina ou onde baixar; trate como item de acompanhamento operacional.",
+      "unavailable": "Solicitações de bundle em lote estão temporariamente indisponíveis."
     },
     "projects": {
       "title": "Projetos",

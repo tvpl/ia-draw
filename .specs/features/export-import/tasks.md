@@ -219,8 +219,8 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Ambos os locales têm o mesmo conjunto de chaves sob `export`/`import`
-- [ ] `make lint` passes
+- [x] Ambos os locales têm o mesmo conjunto de chaves sob `export`/`import`
+- [x] `make lint` passes
 
 **Tests**: none
 **Gate**: quick
