@@ -340,3 +340,93 @@ describe('AiProviderAdminPage — editing (PROV-13..16)', () => {
     expect(screen.getByTestId('ai-provider-announcement').textContent).toBe('Provider atualizado.');
   });
 });
+
+const ACTIVE = providerConfig({ id: 'cfg-1', model: 'gpt-4o-mini', enabled: true });
+const INACTIVE = providerConfig({
+  id: 'cfg-2',
+  baseUrl: 'https://alt.example/v1',
+  model: 'gpt-4o',
+  enabled: false,
+});
+
+/** Two configs in the same scope: `cfg-1` active, `cfg-2` inactive. */
+function renderTwoConfigs(patchResponse: () => Response) {
+  const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+    if (init?.method === 'PATCH') return patchResponse();
+    return jsonResponse(200, { items: [ACTIVE, INACTIVE] });
+  }) as unknown as typeof fetch;
+  renderGlobal(fetchImpl);
+  return fetchImpl;
+}
+
+function rowOf(text: string): HTMLElement {
+  return screen.getByText(text).closest('li') as HTMLElement;
+}
+
+describe('AiProviderAdminPage — switching the active config (PROV-21/22/26)', () => {
+  it('PATCHes {enabled: true} to the activated config (PROV-21)', async () => {
+    const fetchImpl = renderTwoConfigs(() =>
+      jsonResponse(200, { config: { ...INACTIVE, enabled: true } }),
+    );
+    await screen.findByText('https://alt.example/v1');
+
+    fireEvent.click(
+      within(rowOf('https://alt.example/v1')).getByRole('button', { name: 'Ativar' }),
+    );
+
+    await waitFor(() => expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2));
+    expect(vi.mocked(fetchImpl).mock.calls[1]?.[0]).toBe('/admin/ai-providers/cfg-2');
+    expect(bodyOfCall(fetchImpl, 1)).toEqual({ enabled: true });
+  });
+
+  it('marks the activated config active AND every other config in the scope inactive (PROV-22)', async () => {
+    renderTwoConfigs(() => jsonResponse(200, { config: { ...INACTIVE, enabled: true } }));
+    await screen.findByText('https://alt.example/v1');
+
+    fireEvent.click(
+      within(rowOf('https://alt.example/v1')).getByRole('button', { name: 'Ativar' }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-state-cfg-2').textContent).toBe('Ativo'),
+    );
+    // The previously active sibling flips to inactive without a reload.
+    expect(screen.getByTestId('ai-provider-state-cfg-1').textContent).toBe('Inativo');
+    expect(screen.getByTestId('ai-provider-announcement').textContent).toBe('Provider ativado.');
+  });
+
+  it('deactivating the active config leaves the scope with none active (PROV-26)', async () => {
+    const fetchImpl = renderTwoConfigs(() =>
+      jsonResponse(200, { config: { ...ACTIVE, enabled: false } }),
+    );
+    await screen.findByText('https://api.openai.com/v1');
+
+    fireEvent.click(
+      within(rowOf('https://api.openai.com/v1')).getByRole('button', { name: 'Desativar' }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-state-cfg-1').textContent).toBe('Inativo'),
+    );
+    expect(bodyOfCall(fetchImpl, 1)).toEqual({ enabled: false });
+    expect(screen.getByTestId('ai-provider-state-cfg-2').textContent).toBe('Inativo');
+    expect(screen.getByTestId('ai-provider-announcement').textContent).toBe('Provider desativado.');
+  });
+
+  it('a failed PATCH keeps the previous active/inactive states and announces the failure', async () => {
+    renderTwoConfigs(() => jsonResponse(403, {}));
+    await screen.findByText('https://alt.example/v1');
+
+    fireEvent.click(
+      within(rowOf('https://alt.example/v1')).getByRole('button', { name: 'Ativar' }),
+    );
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-announcement').textContent).toBe(
+        'Algo deu errado. Tente novamente.',
+      ),
+    );
+    expect(screen.getByTestId('ai-provider-state-cfg-1').textContent).toBe('Ativo');
+    expect(screen.getByTestId('ai-provider-state-cfg-2').textContent).toBe('Inativo');
+  });
+});

@@ -145,6 +145,27 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
     setAnnouncement(t('nav.error.generic'));
   }
 
+  async function toggleEnabled(item: ProviderConfig, enabled: boolean): Promise<void> {
+    const result = await client.update(item.id, { enabled });
+
+    if (result.status === 'ok') {
+      // PROV-22: the server enforces "at most one enabled per scope" inside the
+      // same transaction, so the list mirrors that here instead of showing two
+      // active configs until the next reload. Every page instance is scoped to a
+      // single scope, so every other item in this list is a sibling of the one
+      // just enabled.
+      setItems(
+        items.map((current) => {
+          if (current.id === item.id) return result.config;
+          return enabled ? { ...current, enabled: false } : current;
+        }),
+      );
+      setAnnouncement(enabled ? t('adminProviders.activated') : t('adminProviders.deactivated'));
+      return;
+    }
+    setAnnouncement(t('nav.error.generic'));
+  }
+
   if (notFound) {
     return (
       <div>
@@ -210,9 +231,14 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
                   </button>
                 </form>
               ) : (
-                <button type="button" onClick={() => startEdit(item)}>
-                  {t('adminProviders.edit')}
-                </button>
+                <>
+                  <button type="button" onClick={() => startEdit(item)}>
+                    {t('adminProviders.edit')}
+                  </button>
+                  <button type="button" onClick={() => void toggleEnabled(item, !item.enabled)}>
+                    {item.enabled ? t('adminProviders.deactivate') : t('adminProviders.activate')}
+                  </button>
+                </>
               )}
             </li>
           ))}

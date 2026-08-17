@@ -285,12 +285,12 @@ T13
 
 **Done when**:
 
-- [ ] Ativar emite `PATCH` com `{enabled: true}`
-- [ ] Depois de um `200`, a configuração ativada aparece ativa e **toda outra do mesmo escopo** aparece inativa, sem recarregar (asserção sobre o estado renderizado das duas linhas, não só da ativada)
-- [ ] Desativar a ativa emite `PATCH` com `{enabled: false}` e deixa o escopo sem nenhuma ativa
-- [ ] Falha do `PATCH` mantém o estado anterior e anuncia a falha
-- [ ] Testes cobrem PROV-21, PROV-22, PROV-26
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Ativar emite `PATCH` com `{enabled: true}`
+- [x] Depois de um `200`, a configuração ativada aparece ativa e **toda outra do mesmo escopo** aparece inativa, sem recarregar (asserção sobre o estado renderizado das duas linhas, não só da ativada)
+- [x] Desativar a ativa emite `PATCH` com `{enabled: false}` e deixa o escopo sem nenhuma ativa
+- [x] Falha do `PATCH` mantém o estado anterior e anuncia a falha
+- [x] Testes cobrem PROV-21, PROV-22, PROV-26
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
