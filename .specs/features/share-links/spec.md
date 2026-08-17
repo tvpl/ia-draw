@@ -250,8 +250,8 @@ abrir a visão pública no mesmo locale.
 | SHR-09 | P1: Revogar link | F10 | Implementing |
 | SHR-10 | P1: Revogar link | F10 | Implementing |
 | SHR-11 | P1: Revogar link | F10 | Implementing |
-| SHR-12 | P1: Visão pública sem sessão | F10 | Pending |
-| SHR-13 | P1: Visão pública sem sessão | F10 | Pending |
+| SHR-12 | P1: Visão pública sem sessão | F10 | Implementing |
+| SHR-13 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-14 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-15 | P1: Visão pública sem sessão | F10 | Implementing |
 | SHR-16 | P1: Visão pública sem sessão | F10 | Implementing |

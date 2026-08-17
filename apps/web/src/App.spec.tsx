@@ -465,3 +465,63 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     expect(backLink.getAttribute('href')).toBe('/w/ws-1/d/diag-1');
   });
 });
+
+describe('T10 (share-links): /share/:token is public — outside AuthProvider (SHR-12, SHR-13)', () => {
+  it('renders the public share view for a visitor with no session, without redirecting to /login', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/share/tok-1')
+          return Promise.resolve(
+            jsonResponse(200, {
+              resourceType: 'diagram',
+              role: 'viewer',
+              scene: [],
+              revision: 1,
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/share/tok-1');
+
+    expect(await screen.findByTestId('share-read-only-notice')).toBeTruthy();
+    expect(screen.getByTestId('location').textContent).toBe('/share/tok-1');
+  });
+
+  it('never calls GET /me or POST /auth/refresh on a public share visit', async () => {
+    let meCalls = 0;
+    let refreshCalls = 0;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') {
+          meCalls += 1;
+          return Promise.resolve(jsonResponse(401, {}));
+        }
+        if (url === '/auth/refresh') {
+          refreshCalls += 1;
+          return Promise.resolve(jsonResponse(401, {}));
+        }
+        if (url === '/share/tok-1')
+          return Promise.resolve(
+            jsonResponse(200, {
+              resourceType: 'diagram',
+              role: 'viewer',
+              scene: [],
+              revision: 1,
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/share/tok-1');
+
+    await screen.findByTestId('share-read-only-notice');
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(meCalls).toBe(0);
+    expect(refreshCalls).toBe(0);
+  });
+});

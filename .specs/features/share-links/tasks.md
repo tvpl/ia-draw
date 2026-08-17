@@ -361,11 +361,11 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `/share/<token>` sem sessão renderiza a visão pública e a rota permanece `/share/<token>` (nenhum redirect para `/login`)
-- [ ] Nenhuma requisição a `GET /me` nem a `POST /auth/refresh` é emitida numa visita a `/share/<token>` (contador, não ausência de asserção)
-- [ ] Todas as rotas existentes continuam guardadas: uma visita anônima a `/w/:workspaceId/d/:diagramId` continua redirecionando para `/login?next=...` (testes existentes de `App.spec.tsx` continuam passando sem alteração)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: 2 testes novos passam; nenhum dos existentes em `App.spec.tsx` foi modificado
+- [x] `/share/<token>` sem sessão renderiza a visão pública e a rota permanece `/share/<token>` (nenhum redirect para `/login`)
+- [x] Nenhuma requisição a `GET /me` nem a `POST /auth/refresh` é emitida numa visita a `/share/<token>` (contador, não ausência de asserção)
+- [x] Todas as rotas existentes continuam guardadas: uma visita anônima a `/w/:workspaceId/d/:diagramId` continua redirecionando para `/login?next=...` (testes existentes de `App.spec.tsx` continuam passando sem alteração)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Test count: 2 testes novos passam; nenhum dos existentes em `App.spec.tsx` foi modificado
 
 **Tests**: unit
 **Gate**: full

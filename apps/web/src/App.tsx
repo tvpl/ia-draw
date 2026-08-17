@@ -1,5 +1,5 @@
 import type { JSX } from 'react';
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './app-shell/AppShell.js';
 import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
@@ -12,6 +12,21 @@ import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
 import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
+import { SharedResourcePage } from './share/SharedResourcePage.js';
+
+/**
+ * Pathless layout route that scopes `AuthProvider` to the authenticated half of
+ * the route table (AD-012). Every route that needs a session renders through this
+ * `<Outlet/>`; a public route is registered as its SIBLING, never inside it, so
+ * nothing above a public page can resolve `GET /me` or redirect to `/login`.
+ */
+function AuthLayout(): JSX.Element {
+  return (
+    <AuthProvider>
+      <Outlet />
+    </AuthProvider>
+  );
+}
 
 /**
  * The route table itself, router-agnostic (T8, SSO-13..18) — split out from
@@ -47,11 +62,18 @@ import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
  * joins as a fifth nested child, on the same level as `members` — webhooks are
  * a workspace-level integration concern. Unlike `members`, its entry link is
  * admin-only, because every one of its server routes is (WHK-02).
+ *
+ * T10 (share-links): `AuthProvider` is no longer the outermost wrapper. It now sits
+ * on a pathless layout route (`AuthLayout`) covering every authenticated route,
+ * exactly as before for all of them, while `/share/:token` is registered as that
+ * layout route's SIBLING — the first page in this app that works with no session
+ * (AD-012, SHR-12/13).
  */
 export function AppRoutes(): JSX.Element {
   return (
-    <AuthProvider>
-      <Routes>
+    <Routes>
+      <Route path="/share/:token" element={<SharedResourcePage />} />
+      <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/"
@@ -85,8 +107,8 @@ export function AppRoutes(): JSX.Element {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </AuthProvider>
+      </Route>
+    </Routes>
   );
 }
 
