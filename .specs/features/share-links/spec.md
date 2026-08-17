@@ -242,7 +242,7 @@ abrir a visão pública no mesmo locale.
 | SHR-01 | P1: Criar link | F10 | ✅ Verified |
 | SHR-02 | P1: Criar link | F10 | ✅ Verified |
 | SHR-03 | P1: Criar link | F10 | ✅ Verified |
-| SHR-04 | P1: Criar link | F10 | ❌ Needs Fix |
+| SHR-04 | P1: Criar link | F10 | ✅ Verified |
 | SHR-05 | P1: Criar link | F10 | ✅ Verified |
 | SHR-06 | P1: Criar link | F10 | ✅ Verified |
 | SHR-07 | P1: Criar link | F10 | ✅ Verified |
