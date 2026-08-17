@@ -47,13 +47,19 @@ interface ListResponseBody {
  * generic `resourceClient`: invite (`{userId, role}`, two fields), role change (`PATCH` returns
  * `{ok:true}`, no item), and email lookup (an entirely different resource, `/users:lookup`) don't
  * fit `resourceClient`'s single-string-body / wrapped-item-response shape. Same `fetchImpl`
- * injection and one-branch-per-documented-status style as `resourceClient.ts`/`syncClient.ts`.
+ * injection style as `resourceClient.ts`/`syncClient.ts`, one branch per documented status.
+ *
+ * Unlike `resourceClient.ts` (whose internal calls go through a `doFetch` local, invisible to
+ * `repo-tools`' route-inventory extractor — it only recognizes literal `fetch(`/`fetchImpl(` call
+ * sites), every call site below reads `fetchImpl(...)` literally, matching `syncClient.ts`'s
+ * `this.fetchImpl(...)` convention, so `GET /workspaces/:id/members` and friends land in the
+ * inventory's `consumed` bucket instead of `pending-product` (success criterion in spec.md).
  */
-export function createMemberClient(fetchImpl?: typeof fetch): MemberClient {
-  const doFetch = fetchImpl ?? fetch.bind(globalThis);
+export function createMemberClient(fetchImplOption?: typeof fetch): MemberClient {
+  const fetchImpl = fetchImplOption ?? fetch.bind(globalThis);
 
   async function list(workspaceId: string): Promise<WorkspaceMember[]> {
-    const response = await doFetch(`/workspaces/${workspaceId}/members`);
+    const response = await fetchImpl(`/workspaces/${workspaceId}/members`);
     if (!response.ok) throw new Error(`list members failed: ${response.status}`);
     const body = (await response.json()) as ListResponseBody;
     return body.items;
@@ -62,7 +68,7 @@ export function createMemberClient(fetchImpl?: typeof fetch): MemberClient {
   async function lookupByEmail(email: string): Promise<LookupResult> {
     let response: Response;
     try {
-      response = await doFetch(`/users:lookup?email=${encodeURIComponent(email)}`);
+      response = await fetchImpl(`/users:lookup?email=${encodeURIComponent(email)}`);
     } catch {
       return { status: 'error' };
     }
@@ -77,7 +83,7 @@ export function createMemberClient(fetchImpl?: typeof fetch): MemberClient {
   async function add(workspaceId: string, userId: string, role: Role): Promise<AddResult> {
     let response: Response;
     try {
-      response = await doFetch(`/workspaces/${workspaceId}/members`, {
+      response = await fetchImpl(`/workspaces/${workspaceId}/members`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ userId, role }),
@@ -100,7 +106,7 @@ export function createMemberClient(fetchImpl?: typeof fetch): MemberClient {
   ): Promise<ChangeRoleResult> {
     let response: Response;
     try {
-      response = await doFetch(`/workspaces/${workspaceId}/members/${userId}`, {
+      response = await fetchImpl(`/workspaces/${workspaceId}/members/${userId}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ role }),
@@ -117,7 +123,7 @@ export function createMemberClient(fetchImpl?: typeof fetch): MemberClient {
   async function remove(workspaceId: string, userId: string): Promise<RemoveResult> {
     let response: Response;
     try {
-      response = await doFetch(`/workspaces/${workspaceId}/members/${userId}`, {
+      response = await fetchImpl(`/workspaces/${workspaceId}/members/${userId}`, {
         method: 'DELETE',
       });
     } catch {
