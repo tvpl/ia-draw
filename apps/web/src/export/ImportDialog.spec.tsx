@@ -305,7 +305,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     expect(fetchImpl.mock.calls.length).toBe(callCountBeforeSubmit);
   });
 
-  it('the import trigger is absent when the role lacks diagram:write on the project (XPRT-12)', () => {
+  it('the import trigger is absent when the role lacks diagram:write on the project, for any format (XPRT-12/INT-15)', () => {
     renderDialog({ canImport: false });
 
     expect(screen.queryByRole('button', { name: 'Importar diagrama' })).toBeNull();
@@ -333,6 +333,235 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     fireEvent.change(screen.getByLabelText('Título do diagrama'), {
       target: { value: 'Imported' },
     });
+    const confirmButton = screen.getByRole('button', { name: 'Confirmar import' });
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+  });
+
+  function selectDslFile(content: string, name = 'diagram.mmd'): void {
+    const input = screen.getByLabelText('Arquivo Mermaid/Structurizr') as HTMLInputElement;
+    const file = new File([content], name, { type: 'text/plain' });
+    fireEvent.change(input, { target: { files: [file] } });
+  }
+
+  it('the format selector defaults to .excalidraw (INT-06)', () => {
+    renderDialog();
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+
+    expect(screen.getByRole('radio', { name: '.excalidraw' })).toHaveProperty('checked', true);
+    expect(screen.getByRole('radio', { name: 'Mermaid' })).toHaveProperty('checked', false);
+    expect(screen.getByRole('radio', { name: 'Structurizr' })).toHaveProperty('checked', false);
+    expect(screen.getByLabelText('Arquivo')).not.toBeNull();
+  });
+
+  it('selecting Mermaid swaps the file input label/accept and discards a previously selected .excalidraw preview (INT-07)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } })),
+    ) as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    await act(async () => {
+      selectFile('{"elements":[{},{},{}],"appState":{}}');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+
+    expect(screen.queryByText('3 elementos serão importados')).toBeNull();
+    expect(screen.queryByLabelText('Arquivo')).toBeNull();
+    const dslInput = screen.getByLabelText('Arquivo Mermaid/Structurizr') as HTMLInputElement;
+    expect(dslInput.accept).toBe('.mmd,.txt');
+  });
+
+  it('selecting a Mermaid file shows its raw content as the preview with no network call (INT-08)', async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    await act(async () => {
+      selectDslFile('flowchart TD\n  A --> B');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Prévia do arquivo')).toHaveProperty(
+        'value',
+        'flowchart TD\n  A --> B',
+      ),
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('confirming a Mermaid import with a title sends POST /projects/:id/import:mermaid with {dsl,title} and navigates (INT-09/10)', async () => {
+    const diagram = { id: 'diagram-9', projectId: 'project-1', title: 'Flow' };
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(201, { diagramId: 'diagram-9', diagram, limitations: [] })),
+    ) as unknown as typeof fetch;
+    const { getCapturedPath } = renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    await act(async () => {
+      selectDslFile('flowchart TD\n  A --> B');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    fireEvent.change(screen.getByLabelText('Título do diagrama'), { target: { value: 'Flow' } });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar import' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/projects/project-1/import:mermaid',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ dsl: 'flowchart TD\n  A --> B', title: 'Flow' }),
+      }),
+    );
+    await waitFor(() => expect(getCapturedPath()).toBe('/w/ws-1/d/diagram-9'));
+  });
+
+  it('confirming a Structurizr import with a blank title omits "title" from the request body entirely (INT-09/14)', async () => {
+    const diagram = {
+      id: 'diagram-9',
+      projectId: 'project-1',
+      title: 'Imported Structurizr workspace',
+    };
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(201, { diagramId: 'diagram-9', diagram, limitations: [] })),
+    ) as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Structurizr' }));
+    await act(async () => {
+      selectDslFile('workspace { ... }', 'diagram.dsl');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    const confirmButton = screen.getByRole('button', { name: 'Confirmar import' });
+    expect(confirmButton).toHaveProperty('disabled', false);
+    await act(async () => {
+      fireEvent.click(confirmButton);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/projects/project-1/import:structurizr',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ dsl: 'workspace { ... }' }),
+      }),
+    );
+  });
+
+  it('a 400 response to the Mermaid confirm shows the server message and never navigates (INT-11)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(400, { title: 'unsupported interop format' })),
+    ) as unknown as typeof fetch;
+    const { getCapturedPath } = renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    await act(async () => {
+      selectDslFile('flowchart TD\n  A --> B');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar import' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe('unsupported interop format'),
+    );
+    expect(getCapturedPath()).toBeNull();
+  });
+
+  it('a non-201/400 response to the Mermaid confirm shows a generic error and never navigates (INT-12)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(500, { title: 'boom' })),
+    ) as unknown as typeof fetch;
+    const { getCapturedPath } = renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    await act(async () => {
+      selectDslFile('flowchart TD\n  A --> B');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar import' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByRole('alert').textContent).toBe('Algo deu errado. Tente novamente.'),
+    );
+    expect(getCapturedPath()).toBeNull();
+  });
+
+  it('a Mermaid file with empty content keeps the confirm button disabled without sending a request (INT-13)', async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Mermaid' }));
+    await act(async () => {
+      selectDslFile('');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+    expect(screen.getByRole('button', { name: 'Confirmar import' })).toHaveProperty(
+      'disabled',
+      true,
+    );
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it('the format radiogroup, DSL preview and confirm button are keyboard-focusable (INT-16)', async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    const mermaidRadio = screen.getByRole('radio', { name: 'Mermaid' });
+    mermaidRadio.focus();
+    expect(document.activeElement).toBe(mermaidRadio);
+    fireEvent.click(mermaidRadio);
+
+    await act(async () => {
+      selectDslFile('flowchart TD\n  A --> B');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByLabelText('Prévia do arquivo')).not.toBeNull());
+
+    const preview = screen.getByLabelText('Prévia do arquivo');
+    preview.focus();
+    expect(document.activeElement).toBe(preview);
+
     const confirmButton = screen.getByRole('button', { name: 'Confirmar import' });
     confirmButton.focus();
     expect(document.activeElement).toBe(confirmButton);

@@ -78,4 +78,34 @@ describe('ExportMenu (XPRT-16..18)', () => {
     const results = await axe(container);
     expect(seriousOrCriticalViolations(results)).toEqual([]);
   });
+
+  it('the ready state after a Mermaid export (with limitations shown) has zero serious/critical axe violations (INT-16)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(200, {
+          dsl: 'flowchart TD\n  A --> B',
+          limitations: ["edge 'conn' mode 'data' has no Mermaid equivalent"],
+        }),
+      ),
+    ) as unknown as typeof fetch;
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:mock-url'),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    const { container } = render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    fireEvent.click(screen.getByText('Exportar'));
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Mermaid' }));
+      await Promise.resolve();
+    });
+    await waitFor(() =>
+      expect(screen.getByText("edge 'conn' mode 'data' has no Mermaid equivalent")).not.toBeNull(),
+    );
+
+    const results = await axe(container);
+    expect(seriousOrCriticalViolations(results)).toEqual([]);
+  });
 });

@@ -248,6 +248,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/share-links/validation.md:M7 (apps/web/src/share/ShareLinkPanel.spec.tsx:106) (web)
 - last seen: 2026-08-17T07:01:56Z
 
+### L-040 - When a success path both sets an aria-live announcement and immediately navigates away, add a dedicated test asserting the announcement text itself - a test that only checks the final route does not prove the announcement fired.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `apps/web/src/export` · harmful: 0
+- features: interop-panel
+- evidence: INT-10 (apps/web/src/export)
+- last seen: 2026-08-17T10:05:39Z
+
+### L-041 - When a requirement only says every visible string must come from i18n keys, verify it by grepping the component for hardcoded JSX text literals and confirming locale-file key parity, rather than inventing a runtime locale-switch test the codebase has no existing pattern for.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `apps/web/src/i18n` · harmful: 0
+- features: interop-panel
+- evidence: INT-17 (apps/web/src/i18n)
+- last seen: 2026-08-17T10:05:45Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

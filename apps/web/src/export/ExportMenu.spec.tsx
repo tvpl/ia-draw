@@ -163,6 +163,201 @@ describe('ExportMenu (T2, XPRT-01..04)', () => {
     await waitFor(() => expect(button).toHaveProperty('disabled', false));
   });
 
+  it('clicking "Exportar Mermaid" sends one POST /diagrams/:id/export:mermaid and downloads diagram-<id>.mmd via Blob (INT-01)', async () => {
+    const dsl = 'flowchart TD\n  A --> B';
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { dsl, limitations: [] })),
+    ) as unknown as typeof fetch;
+
+    const createObjectURL = vi.fn(() => 'blob:mock-url');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const appendedAnchors: HTMLAnchorElement[] = [];
+    const originalAppendChild = document.body.appendChild.bind(document.body);
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((node) => {
+      if (node instanceof HTMLAnchorElement) appendedAnchors.push(node);
+      return originalAppendChild(node);
+    });
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Mermaid' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/diagrams/diagram-1/export:mermaid',
+      expect.objectContaining({ method: 'POST' }),
+    );
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+
+    const [blobArg] = createObjectURL.mock.calls[0] as unknown as [Blob];
+    await expect(blobArg.text()).resolves.toBe(dsl);
+    expect(appendedAnchors).toHaveLength(1);
+    expect(appendedAnchors[0]?.download).toBe('diagram-diagram-1.mmd');
+    expect(appendedAnchors[0]?.href).toBe('blob:mock-url');
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+    expect(revokeObjectURL).toHaveBeenCalledWith('blob:mock-url');
+
+    clickSpy.mockRestore();
+    appendChildSpy.mockRestore();
+  });
+
+  it('clicking "Exportar Structurizr" sends one POST .../export:structurizr and downloads diagram-<id>.dsl (INT-02)', async () => {
+    const dsl = 'workspace { ... }';
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { dsl, limitations: [] })),
+    ) as unknown as typeof fetch;
+
+    const createObjectURL = vi.fn(() => 'blob:mock-url');
+    const revokeObjectURL = vi.fn();
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL });
+    const clickSpy = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    const appendedAnchors: HTMLAnchorElement[] = [];
+    const originalAppendChild = document.body.appendChild.bind(document.body);
+    const appendChildSpy = vi.spyOn(document.body, 'appendChild').mockImplementation((node) => {
+      if (node instanceof HTMLAnchorElement) appendedAnchors.push(node);
+      return originalAppendChild(node);
+    });
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Structurizr' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+    expect(fetchImpl).toHaveBeenCalledWith(
+      '/diagrams/diagram-1/export:structurizr',
+      expect.objectContaining({ method: 'POST' }),
+    );
+
+    expect(appendedAnchors).toHaveLength(1);
+    expect(appendedAnchors[0]?.download).toBe('diagram-diagram-1.dsl');
+    expect(clickSpy).toHaveBeenCalledTimes(1);
+
+    clickSpy.mockRestore();
+    appendChildSpy.mockRestore();
+  });
+
+  it('shows non-empty limitations next to the Mermaid button after a successful export (INT-03)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(
+        jsonResponse(200, {
+          dsl: 'flowchart TD\n  A --> B',
+          limitations: ["edge 'conn' mode 'data' has no Mermaid equivalent"],
+        }),
+      ),
+    ) as unknown as typeof fetch;
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:mock-url'),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Mermaid' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText("edge 'conn' mode 'data' has no Mermaid equivalent")).not.toBeNull(),
+    );
+  });
+
+  it('shows an explicit "no limitations" confirmation when the export returns an empty array (INT-03)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { dsl: 'flowchart TD\n  A --> B', limitations: [] })),
+    ) as unknown as typeof fetch;
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:mock-url'),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Mermaid' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByText('Nenhuma limitação de round-trip relatada.')).not.toBeNull(),
+    );
+  });
+
+  it('a non-200 DSL export response announces a generic error in the shared aria-live region, without downloading (INT-04)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(500, { title: 'boom' })),
+    ) as unknown as typeof fetch;
+    const createObjectURL = vi.fn(() => 'blob:mock-url');
+    vi.stubGlobal('URL', { ...URL, createObjectURL, revokeObjectURL: vi.fn() });
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Exportar Mermaid' }));
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('export-menu-announcement').textContent).toBe(
+        'Não foi possível exportar. Tente novamente.',
+      ),
+    );
+    expect(createObjectURL).not.toHaveBeenCalled();
+  });
+
+  it('the Mermaid and Structurizr export buttons disable independently of each other and of "Gerar exports" (INT-05)', async () => {
+    let resolveMermaid: (response: Response) => void = () => {};
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/diagrams/diagram-1/export:mermaid') {
+        return new Promise<Response>((resolve) => {
+          resolveMermaid = resolve;
+        });
+      }
+      return Promise.resolve(jsonResponse(200, { dsl: 'workspace { ... }', limitations: [] }));
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('URL', {
+      ...URL,
+      createObjectURL: vi.fn(() => 'blob:mock-url'),
+      revokeObjectURL: vi.fn(),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    const mermaidButton = screen.getByRole('button', { name: 'Exportar Mermaid' });
+    const structurizrButton = screen.getByRole('button', { name: 'Exportar Structurizr' });
+    const generateButton = screen.getByRole('button', { name: 'Gerar exports' });
+
+    fireEvent.click(mermaidButton);
+    await waitFor(() => expect(mermaidButton).toHaveProperty('disabled', true));
+    expect(structurizrButton).toHaveProperty('disabled', false);
+    expect(generateButton).toHaveProperty('disabled', false);
+
+    await act(async () => {
+      resolveMermaid(jsonResponse(200, { dsl: 'flowchart TD\n  A --> B', limitations: [] }));
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(mermaidButton).toHaveProperty('disabled', false));
+  });
+
   it('the generate button and every download link are keyboard-focusable (XPRT-16)', async () => {
     const fetchImpl = vi.fn(() =>
       Promise.resolve(jsonResponse(200, FORMATS_BODY)),
@@ -184,6 +379,18 @@ describe('ExportMenu (T2, XPRT-01..04)', () => {
     for (const link of screen.getAllByRole('link')) {
       link.focus();
       expect(document.activeElement).toBe(link);
+    }
+  });
+
+  it('the Mermaid and Structurizr export buttons are keyboard-focusable (INT-16)', () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    for (const name of ['Exportar Mermaid', 'Exportar Structurizr']) {
+      const button = screen.getByRole('button', { name });
+      button.focus();
+      expect(document.activeElement).toBe(button);
     }
   });
 });

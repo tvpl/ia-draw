@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 40,
+  "next_id": 42,
   "lessons": [
     {
       "id": "L-001",
@@ -708,6 +708,42 @@
       ],
       "created": "2026-08-17T07:01:56Z",
       "last_seen": "2026-08-17T07:01:56Z"
+    },
+    {
+      "id": "L-040",
+      "key": "ac_gap::when a success path both sets an aria live announcement and immediately navigates away add a dedicated test asserting the announcement text itself a test that only checks the final route does not prove the announcement fired",
+      "text": "When a success path both sets an aria-live announcement and immediately navigates away, add a dedicated test asserting the announcement text itself - a test that only checks the final route does not prove the announcement fired.",
+      "signal": "ac_gap",
+      "scope": "apps/web/src/export",
+      "status": "candidate",
+      "features": [
+        "interop-panel"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "INT-10 (apps/web/src/export)"
+      ],
+      "created": "2026-08-17T10:05:39Z",
+      "last_seen": "2026-08-17T10:05:39Z"
+    },
+    {
+      "id": "L-041",
+      "key": "spec_precision_gap::when a requirement only says every visible string must come from i18n keys verify it by grepping the component for hardcoded jsx text literals and confirming locale file key parity rather than inventing a runtime locale switch test the codebase has no existing pattern for",
+      "text": "When a requirement only says every visible string must come from i18n keys, verify it by grepping the component for hardcoded JSX text literals and confirming locale-file key parity, rather than inventing a runtime locale-switch test the codebase has no existing pattern for.",
+      "signal": "spec_precision_gap",
+      "scope": "apps/web/src/i18n",
+      "status": "candidate",
+      "features": [
+        "interop-panel"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "INT-17 (apps/web/src/i18n)"
+      ],
+      "created": "2026-08-17T10:05:45Z",
+      "last_seen": "2026-08-17T10:05:45Z"
     }
   ]
 }

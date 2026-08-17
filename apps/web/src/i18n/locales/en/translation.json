@@ -116,6 +116,13 @@
       "loading": "Generating bundle…",
       "success": "Bundle ready",
       "error": "Couldn't generate the bundle. Try again."
+    },
+    "dsl": {
+      "mermaidButton": "Export Mermaid",
+      "structurizrButton": "Export Structurizr",
+      "limitations": "Limitations:",
+      "noLimitations": "No round-trip limitations reported.",
+      "error": "Couldn't export. Try again."
     }
   },
   "import": {
@@ -126,7 +133,17 @@
     "titleLabel": "Diagram title",
     "confirm": "Confirm import",
     "cancel": "Cancel",
-    "success": "Diagram imported"
+    "success": "Diagram imported",
+    "format": {
+      "label": "Format",
+      "excalidraw": ".excalidraw",
+      "mermaid": "Mermaid",
+      "structurizr": "Structurizr"
+    },
+    "dslFileLabel": "Mermaid/Structurizr file",
+    "dslPreviewLabel": "File preview",
+    "limitations": "Limitations:",
+    "noLimitations": "No limitations reported."
   },
   "nav": {
     "workspaces": {
