@@ -3,11 +3,11 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 27
-- Pendentes de produto (`pending-product`): 63
+- Com consumidor de UI (`consumed`): 28
+- Pendentes de produto (`pending-product`): 62
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (27)
+## consumed (28)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -15,6 +15,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
 | GET | `/users:lookup` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/nav/memberClient.ts` |
+| POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/presence/presenceClient.ts` |
 | GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
 | POST | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
 | GET | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
@@ -39,7 +40,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (63)
+## pending-product (62)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -55,7 +56,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/auth/refresh` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/me` | `apps/server/src/modules/auth/routes.ts` |
-| POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/login` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/callback` | `apps/server/src/modules/auth/routes.ts` |
 | POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` |

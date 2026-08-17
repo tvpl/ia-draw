@@ -10,7 +10,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 **Spec**: `.specs/features/realtime-presence/spec.md`
 **Design**: `.specs/features/realtime-presence/design.md`
-**Status**: Approved
+**Status**: Done
 
 ---
 
@@ -487,13 +487,15 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `ui_surface` aponta para o arquivo real que expõe a capacidade
-- [ ] `status: backend-only` removido dessa entrada
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `ui_surface` aponta para o arquivo real que expõe a capacidade
+- [x] `status: backend-only` removido dessa entrada
+- [x] Gate check passes: `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build
+
+**Residual disclosed (não é gap, é limite conhecido da ferramenta)**: `repo-tools audit` continua marcando `GET /ws/diagrams/:diagramId` como `pending-product`. O extrator estático só reconhece URLs literais em `fetch(`/`this.fetchImpl(`; a URL do socket é montada por uma função auxiliar e passada a `new SocketImpl(url)`. Mesma classe de limitação já registrada em `sso-sign-in` e `workspace-navigation`. `POST /diagrams/:id/ws-ticket` **é** detectada corretamente (passou de `pending-product` para `consumed`), e o audit sai 0.
 
 **Commit**: `docs(capability-map): mark realtime presence as delivered`
 

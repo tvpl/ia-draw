@@ -120,8 +120,7 @@ capabilities:
   - capability: Colaboração em tempo real e presença
     requirements: [CLB-01, CLB-02, CLB-03, CLB-04]
     backend_evidence: apps/server/src/modules/ws-gateway/routes.ts
-    ui_surface: null
-    status: backend-only
+    ui_surface: apps/web/src/presence/presenceClient.ts
 
   - capability: Compartilhamento externo por link
     requirements: [EXT-01]
