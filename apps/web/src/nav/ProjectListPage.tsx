@@ -140,6 +140,12 @@ export function ProjectListPage({
   const canImportDiagram = workspace
     ? can({ role: workspace.role }, 'diagram:write', { workspaceId }).allowed
     : false;
+  // WHK-02: the webhooks screen is admin-only end to end — every one of its 5 server routes,
+  // `GET` included, requires `workspace:manage_members`. A link shown to a non-admin would only
+  // lead to a "no access" page, so it is gated here instead of in the destination.
+  const canManageWebhooks = workspace
+    ? can({ role: workspace.role }, 'workspace:manage_members', { workspaceId }).allowed
+    : false;
 
   async function handleCreate(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -251,6 +257,7 @@ export function ProjectListPage({
       <Link to="/">{t('nav.back')}</Link>
       <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
       <Link to={`/w/${workspaceId}/members`}>{t('nav.members.link')}</Link>
+      {canManageWebhooks && <Link to={`/w/${workspaceId}/webhooks`}>{t('nav.webhooks.link')}</Link>}
       {canWriteWorkspace && (
         <button type="button" onClick={requestArchiveWorkspace}>
           {t('nav.workspaces.archiveCurrent')}

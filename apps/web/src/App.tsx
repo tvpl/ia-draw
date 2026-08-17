@@ -10,6 +10,7 @@ import { DiagramListPage } from './nav/DiagramListPage.js';
 import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
+import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
 
 /**
  * The route table itself, router-agnostic (T8, SSO-13..18) — split out from
@@ -34,6 +35,11 @@ import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
  * unnested sibling, same tier as the editor route — `InventoryView` never mounts
  * the canvas (design.md), so it gets its own bare route instead of a mode inside
  * `DiagramEditorPage`; `DiagramEditorPage` links into it.
+ *
+ * T6 (workspace-webhooks): `w/:workspaceId/webhooks` (`WorkspaceWebhooksPage`)
+ * joins as a fifth nested child, on the same level as `members` — webhooks are
+ * a workspace-level integration concern. Unlike `members`, its entry link is
+ * admin-only, because every one of its server routes is (WHK-02).
  */
 export function AppRoutes(): JSX.Element {
   return (
@@ -51,6 +57,7 @@ export function AppRoutes(): JSX.Element {
           <Route index element={<WorkspaceListPage />} />
           <Route path="w/:workspaceId" element={<ProjectListPage />} />
           <Route path="w/:workspaceId/members" element={<WorkspaceMembersPage />} />
+          <Route path="w/:workspaceId/webhooks" element={<WorkspaceWebhooksPage />} />
           <Route path="w/:workspaceId/p/:projectId" element={<DiagramListPage />} />
         </Route>
         <Route

@@ -285,6 +285,39 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     expect(screen.getByText('a@b.com')).toBeTruthy();
   });
 
+  it('/w/:workspaceId/webhooks renders WorkspaceWebhooksPage inside AppShell chrome (WHK-01, T6)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/workspaces/ws-1/webhooks')
+          return Promise.resolve(
+            jsonResponse(200, {
+              items: [
+                {
+                  id: 'wh-1',
+                  workspaceId: 'ws-1',
+                  url: 'https://a.example.com/hook',
+                  events: ['diagram.created'],
+                  enabled: true,
+                  createdBy: 'user-1',
+                  createdAt: '2026-01-01T00:00:00.000Z',
+                  updatedAt: '2026-01-01T00:00:00.000Z',
+                },
+              ],
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/webhooks');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Webhooks' })).toBeTruthy();
+    expect(screen.getByTestId('webhook-url-wh-1').textContent).toBe('https://a.example.com/hook');
+  });
+
   it('/w/:workspaceId/p/:projectId renders DiagramListPage inside AppShell chrome', async () => {
     vi.stubGlobal(
       'fetch',

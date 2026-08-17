@@ -215,10 +215,10 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `/w/:workspaceId/webhooks` renders `WorkspaceWebhooksPage` inside the same `ProtectedRoute`/`AppShell` chrome as the other nav pages
-- [ ] `ProjectListPage` shows a "Webhooks" link to `/w/:workspaceId/webhooks` when the caller's role grants `workspace:manage_members`, and shows no such link otherwise (WHK-02)
-- [ ] Tests cover both the admin (link present) and non-admin (link absent) cases, plus the route rendering
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `/w/:workspaceId/webhooks` renders `WorkspaceWebhooksPage` inside the same `ProtectedRoute`/`AppShell` chrome as the other nav pages
+- [x] `ProjectListPage` shows a "Webhooks" link to `/w/:workspaceId/webhooks` when the caller's role grants `workspace:manage_members`, and shows no such link otherwise (WHK-02)
+- [x] Tests cover both the admin (link present) and non-admin (link absent) cases, plus the route rendering
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

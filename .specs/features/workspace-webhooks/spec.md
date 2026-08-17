@@ -227,7 +227,7 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | WHK-01 | P1: Ver webhooks | F10 | Implementing |
-| WHK-02 | P1: Ver webhooks | F10 | Pending |
+| WHK-02 | P1: Ver webhooks | F10 | Implementing |
 | WHK-03 | P1: Ver webhooks | F10 | Implementing |
 | WHK-04 | P1: Ver webhooks | F10 | Implementing |
 | WHK-05 | P1: Cadastrar | F10 | Implementing |

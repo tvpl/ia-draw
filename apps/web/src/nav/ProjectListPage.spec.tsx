@@ -146,6 +146,34 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     expect(membersLink).toHaveProperty('href', expect.stringContaining('/w/ws-1/members'));
   });
 
+  it('shows a "Webhooks" link to /w/:workspaceId/webhooks for a workspace_admin (WHK-02, T6)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('workspace_admin');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    const webhooksLink = await screen.findByRole('link', { name: 'Webhooks' });
+    expect(webhooksLink).toHaveProperty('href', expect.stringContaining('/w/ws-1/webhooks'));
+  });
+
+  it('hides the "Webhooks" link from an editor, who lacks workspace:manage_members (WHK-02, T6)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    // The members link is universal, so its presence proves the page finished loading before
+    // the absence below is asserted.
+    await screen.findByRole('link', { name: 'Membros' });
+    expect(screen.queryByRole('link', { name: 'Webhooks' })).toBeNull();
+  });
+
   it('an empty project list renders a simple empty message, not an error', async () => {
     const fetchImpl = vi.fn(async (url: string) => {
       if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
