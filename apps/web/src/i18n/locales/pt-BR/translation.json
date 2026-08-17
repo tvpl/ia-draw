@@ -43,7 +43,7 @@
     "rateLimited": "Limite de 20 pedidos por minuto atingido. Tente de novo em 60 segundos.",
     "conflict": "O diagrama mudou desde o seu pedido. Envie de novo para tentar outra vez.",
     "error": {
-      "no_provider_configured": "Nenhum provider de IA está configurado. Isso é feito fora do produto hoje.",
+      "no_provider_configured": "Nenhum provider de IA está configurado. Cadastre um na tela de administração de providers de IA.",
       "unknown": "Erro: {{code}}"
     },
     "sensitiveChange": "Mudança sensível — revise com atenção antes de aprovar"

@@ -526,9 +526,40 @@ describe('AiDock (T7)', () => {
     await submitRequest('draw three services');
 
     expect(
-      screen.getByText('No AI provider is configured. This is set up outside the product today.'),
+      screen.getByText(
+        'No AI provider is configured. Register one in the AI provider admin screen.',
+      ),
     ).not.toBeNull();
     expect(screen.queryByRole('button', { name: 'Approve' })).toBeNull();
+  });
+
+  it('the provider-not-configured message names the admin screen in both locales (PROV-30)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(424, {})),
+    ) as unknown as typeof fetch;
+    renderDock({ fetchImpl });
+
+    await submitRequest('draw three services');
+
+    // The old wording claimed provider setup happened outside the product. This wave ships
+    // the screen that makes that false, so neither locale may still say it.
+    expect(
+      screen.getByText(
+        'No AI provider is configured. Register one in the AI provider admin screen.',
+      ),
+    ).not.toBeNull();
+    expect(screen.queryByText(/outside the product/i)).toBeNull();
+
+    await act(async () => {
+      await i18n.changeLanguage('pt-BR');
+    });
+
+    expect(
+      screen.getByText(
+        'Nenhum provider de IA está configurado. Cadastre um na tela de administração de providers de IA.',
+      ),
+    ).not.toBeNull();
+    expect(screen.queryByText(/fora do produto/i)).toBeNull();
   });
 
   it('caps the visible preview list to 50 items while still showing the total count (Edge Case)', async () => {

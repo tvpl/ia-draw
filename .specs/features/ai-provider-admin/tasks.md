@@ -10,7 +10,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 
 **Spec**: `.specs/features/ai-provider-admin/spec.md`
 **Design**: `.specs/features/ai-provider-admin/design.md`
-**Status**: Approved
+**Status**: In Progress — todas as 13 tasks implementadas e commitadas; aguardando Verifier independente
 
 ---
 
@@ -454,10 +454,10 @@ T13
 
 **Done when**:
 
-- [ ] Nenhuma das duas mensagens afirma que a configuração é feita fora do produto
-- [ ] As duas nomeiam a tela de administração de provider de IA
-- [ ] Teste em `apps/web/src/ai-dock/AiDock.spec.tsx` afirma a mensagem nova nos dois locales (asserção sobre o texto renderizado)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Nenhuma das duas mensagens afirma que a configuração é feita fora do produto
+- [x] As duas nomeiam a tela de administração de provider de IA
+- [x] Teste em `apps/web/src/ai-dock/AiDock.spec.tsx` afirma a mensagem nova nos dois locales (asserção sobre o texto renderizado)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

@@ -43,7 +43,7 @@
     "rateLimited": "Limit of 20 requests per minute reached. Try again in 60 seconds.",
     "conflict": "The diagram changed since your request. Send it again to try once more.",
     "error": {
-      "no_provider_configured": "No AI provider is configured. This is set up outside the product today.",
+      "no_provider_configured": "No AI provider is configured. Register one in the AI provider admin screen.",
       "unknown": "Error: {{code}}"
     },
     "sensitiveChange": "Sensitive change — review carefully before approving"
