@@ -192,36 +192,36 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| LDC-01 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-02 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-03 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-04 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-05 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-06 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-07 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-08 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-09 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-10 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-11 | P1: Ver versões e gerar | R13 | Implementing |
-| LDC-12 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-13 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-14 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-15 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-16 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-17 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-18 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-19 | P1: Ler conteúdo e referências | R13 | Implementing |
-| LDC-20 | P1: Regenerar seção | R13 | Implementing |
-| LDC-21 | P1: Regenerar seção | R13 | Implementing |
-| LDC-22 | P1: Regenerar seção | R13 | Implementing |
-| LDC-23 | P1: Regenerar seção | R13 | Implementing |
-| LDC-24 | P1: Regenerar seção | R13 | Implementing |
-| LDC-25 | P1: Regenerar seção | R13 | Implementing |
-| LDC-26 | P1: Regenerar seção | R13 | Implementing |
-| LDC-27 | P1: Regenerar seção | R13 | Implementing |
-| LDC-28 | P2: Teclado e idioma | R13 | Implementing |
-| LDC-29 | P2: Teclado e idioma | R13 | Implementing |
-| LDC-30 | P2: Teclado e idioma | R13 | Implementing |
+| LDC-01 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-02 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-03 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-04 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-05 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-06 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-07 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-08 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-09 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-10 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-11 | P1: Ver versões e gerar | R13 | ✅ Verified |
+| LDC-12 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-13 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-14 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-15 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-16 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-17 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-18 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-19 | P1: Ler conteúdo e referências | R13 | ✅ Verified |
+| LDC-20 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-21 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-22 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-23 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-24 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-25 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-26 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-27 | P1: Regenerar seção | R13 | ✅ Verified |
+| LDC-28 | P2: Teclado e idioma | R13 | ✅ Verified |
+| LDC-29 | P2: Teclado e idioma | R13 | ✅ Verified |
+| LDC-30 | P2: Teclado e idioma | R13 | ✅ Verified |
 
 **ID format:** `LDC-NN`. O prefixo é `LDC` (não `DOC`) porque `DOC-01..04` já nomeia os requisitos
 de **backend** de docgen, em `.specs/features/architecture-canvas/spec.md`, verificados na onda F3

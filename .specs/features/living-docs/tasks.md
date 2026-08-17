@@ -15,7 +15,7 @@ Verifier, discrimination sensor).
 panel/client/`<details>` patterns already used by `history-snapshots`/`diagram-comments`; the one
 backend change is a single additive response field mirroring `export/routes.ts`'s exact existing
 pattern, not a new architectural decision).
-**Status**: All 7 tasks implemented — pending independent Verifier pass
+**Status**: Done — 7/7 tasks implemented, Verifier PASS (`.specs/features/living-docs/validation.md`)
 
 ---
 

@@ -342,6 +342,10 @@ describe('DocsPanel (T5, LDC-01..12, 18/19, 22..29)', () => {
     const [item] = await screen.findAllByTestId('docs-version-item');
     if (!item) throw new Error('no version item rendered');
     fireEvent.click(within(item).getByRole('button', { name: 'Versão 1' }));
+    // LDC-13: the loading state is set synchronously, before the `markdownUrl` fetch's promise
+    // resolves — visible in the same tick `fireEvent.click` returns, same "assert before await"
+    // pattern LDC-02 already uses for the list's own loading state.
+    expect(screen.getByText('Carregando conteúdo…')).toBeTruthy();
 
     await waitFor(() => expect(screen.getByText('overview body')).toBeTruthy());
   });
