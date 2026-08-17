@@ -14,7 +14,7 @@ Verifier, discrimination sensor).
 **Design**: inline (Medium scope — sem `design.md` próprio; a única decisão de arquitetura real
 — como expressar "prévia" sem uma rota de dry-run — já está resolvida na tabela de Assumptions do
 `spec.md`).
-**Status**: Done (T1-T3 implementados, aguardando Verifier)
+**Status**: Done (T1-T3 implementados, Verifier PASS — `.specs/features/interop-panel/validation.md`)
 
 ---
 
