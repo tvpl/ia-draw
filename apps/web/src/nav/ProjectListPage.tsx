@@ -1,0 +1,288 @@
+import type { Role } from '@arch-canvas/auth';
+import { can } from '@arch-canvas/auth';
+import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Link, useParams } from 'react-router-dom';
+import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
+import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
+import { createResourceListStore } from './resourceListStore.js';
+
+/** A `GET /projects` list item (design.md's `Project`, fields this page actually uses). */
+export interface ProjectItem {
+  id: string;
+  name: string;
+}
+
+interface WorkspaceDetail {
+  name: string;
+  role: Role;
+}
+
+interface WorkspaceDetailResponseBody {
+  workspace: { name: string; role: Role };
+}
+
+function projectsConfig(workspaceId: string): ResourceClientConfig {
+  return {
+    listUrl: `/projects?workspaceId=${workspaceId}`,
+    createUrl: '/projects',
+    createBody: (name) => ({ workspaceId, name }),
+    itemUrl: (id) => `/projects/${id}`,
+    renameBody: (name) => ({ name }),
+    itemKey: 'project',
+  };
+}
+
+export interface ProjectListPageProps {
+  /** Injectable for tests; defaults to the global fetch (same convention as `AuthProvider`). */
+  fetchImpl?: typeof fetch;
+}
+
+/**
+ * `/w/:workspaceId` route (design.md) — resolves the current workspace's name and the
+ * caller's effective role via `GET /workspaces/:id` (a single role value applied to every
+ * row here, unlike `WorkspaceListPage`'s per-item role: `project:write` is workspace-scoped,
+ * not per-project), lists its projects, and gates create/rename/archive on that role
+ * (NAV-09..11). A 404 on the workspace lookup renders the shared "not found or no access"
+ * message (NAV-04), never distinguishing the two cases.
+ */
+export function ProjectListPage({ fetchImpl }: ProjectListPageProps): JSX.Element | null {
+  const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { t } = useTranslation();
+  const doFetch = useMemo(() => fetchImpl ?? fetch.bind(globalThis), [fetchImpl]);
+
+  const store = useMemo(() => createResourceListStore<ProjectItem>(), []);
+  const client = useMemo(
+    () => createResourceClient<ProjectItem>(projectsConfig(workspaceId ?? ''), fetchImpl),
+    [workspaceId, fetchImpl],
+  );
+
+  const items = store((s) => s.items);
+  const listStatus = store((s) => s.status);
+  const setItems = store((s) => s.setItems);
+  const setError = store((s) => s.setError);
+  const addItem = store((s) => s.addItem);
+  const removeItem = store((s) => s.removeItem);
+  const replaceItem = store((s) => s.replaceItem);
+
+  const [workspace, setWorkspace] = useState<WorkspaceDetail | null>(null);
+  const [notFound, setNotFound] = useState(false);
+
+  const [announcement, setAnnouncement] = useState('');
+  const [createName, setCreateName] = useState('');
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState('');
+  const [renameError, setRenameError] = useState<string | null>(null);
+
+  const [archiveTarget, setArchiveTarget] = useState<ProjectItem | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
+
+  useEffect(() => {
+    if (!workspaceId) return;
+    let cancelled = false;
+
+    (async () => {
+      const response = await doFetch(`/workspaces/${workspaceId}`);
+      if (cancelled) return;
+      if (!response.ok) {
+        setNotFound(true);
+        return;
+      }
+      const body = (await response.json()) as WorkspaceDetailResponseBody;
+      if (cancelled) return;
+      setWorkspace({ name: body.workspace.name, role: body.workspace.role });
+
+      try {
+        const list = await client.list();
+        if (!cancelled) setItems(list);
+      } catch {
+        if (!cancelled) setError();
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [workspaceId, client, doFetch, setItems, setError]);
+
+  useEffect(() => {
+    if (archiveTarget) dialogRef.current?.showModal();
+  }, [archiveTarget]);
+
+  if (!workspaceId) return null;
+
+  const canWrite = workspace
+    ? can({ role: workspace.role }, 'project:write', { workspaceId }).allowed
+    : false;
+
+  async function handleCreate(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    const name = createName.trim();
+    if (!name) return;
+
+    setCreateError(null);
+    const result = await client.create(name);
+
+    if (result.status === 'created') {
+      addItem(result.item);
+      setCreateName('');
+      setAnnouncement(t('nav.projects.create'));
+      return;
+    }
+    if (result.status === 'conflict') {
+      setCreateError(t('nav.error.conflict'));
+      setAnnouncement(t('nav.error.conflict'));
+      return;
+    }
+    setCreateError(t('nav.error.generic'));
+    setAnnouncement(t('nav.error.generic'));
+  }
+
+  function startRename(item: ProjectItem): void {
+    setRenamingId(item.id);
+    setRenameValue(item.name);
+    setRenameError(null);
+  }
+
+  function cancelRename(): void {
+    setRenamingId(null);
+    setRenameError(null);
+  }
+
+  async function submitRename(item: ProjectItem): Promise<void> {
+    const name = renameValue.trim();
+    if (!name) return;
+
+    const result = await client.rename(item.id, name);
+
+    if (result.status === 'ok') {
+      replaceItem(item.id, result.item);
+      setRenamingId(null);
+      setAnnouncement(t('nav.rename'));
+      return;
+    }
+    if (result.status === 'conflict') {
+      setRenameError(t('nav.error.conflict'));
+      setAnnouncement(t('nav.error.conflict'));
+      return;
+    }
+    setRenameError(t('nav.error.generic'));
+    setAnnouncement(t('nav.error.generic'));
+  }
+
+  function requestArchive(item: ProjectItem): void {
+    setArchiveTarget(item);
+  }
+
+  function closeDialog(): void {
+    dialogRef.current?.close();
+    setArchiveTarget(null);
+  }
+
+  async function confirmArchive(): Promise<void> {
+    if (!archiveTarget) return;
+    const target = archiveTarget;
+
+    const result = await client.archive(target.id);
+    if (result.status === 'ok') {
+      removeItem(target.id);
+      setAnnouncement(t('nav.archive'));
+    } else {
+      setAnnouncement(t('nav.error.generic'));
+    }
+    closeDialog();
+  }
+
+  if (notFound) {
+    return (
+      <div>
+        <Link to="/">{t('nav.back')}</Link>
+        <p>{t('nav.notFound')}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <Link to="/">{t('nav.back')}</Link>
+      <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
+      <div aria-live="polite" data-testid="project-announcement">
+        {announcement}
+      </div>
+
+      {listStatus === 'error' && <p>{t('nav.error.generic')}</p>}
+
+      {listStatus === 'ready' && items.length === 0 && <p>{t('nav.projects.empty')}</p>}
+
+      {listStatus === 'ready' && items.length > 0 && (
+        <ul>
+          {items.map((item) => {
+            const isRenaming = renamingId === item.id;
+
+            return (
+              <li key={item.id}>
+                {isRenaming ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void submitRename(item);
+                    }}
+                  >
+                    <label>
+                      {t('nav.projects.nameLabel')}
+                      <input
+                        value={renameValue}
+                        onChange={(event) => setRenameValue(event.target.value)}
+                      />
+                    </label>
+                    <button type="submit">{t('nav.renameSave')}</button>
+                    <button type="button" onClick={cancelRename}>
+                      {t('nav.renameCancel')}
+                    </button>
+                    {renameError && <p>{renameError}</p>}
+                  </form>
+                ) : (
+                  <>
+                    <Link to={`/w/${workspaceId}/p/${item.id}`}>{item.name}</Link>
+                    {canWrite && (
+                      <>
+                        <button type="button" onClick={() => startRename(item)}>
+                          {t('nav.rename')}
+                        </button>
+                        <button type="button" onClick={() => requestArchive(item)}>
+                          {t('nav.archive')}
+                        </button>
+                      </>
+                    )}
+                  </>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {canWrite && (
+        <form onSubmit={(event) => void handleCreate(event)}>
+          <label>
+            {t('nav.projects.nameLabel')}
+            <input value={createName} onChange={(event) => setCreateName(event.target.value)} />
+          </label>
+          <button type="submit">{t('nav.projects.create')}</button>
+          {createError && <p>{createError}</p>}
+        </form>
+      )}
+
+      {archiveTarget && (
+        <ConfirmArchiveDialog
+          ref={dialogRef}
+          itemName={archiveTarget.name}
+          onConfirm={() => void confirmArchive()}
+          onCancel={closeDialog}
+        />
+      )}
+    </div>
+  );
+}

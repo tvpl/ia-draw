@@ -267,12 +267,12 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Resolves and displays the current workspace's name via `GET /workspaces/:id`; a 404 renders the "not found or no access" message (NAV-04), never distinguishing the two
-- [ ] Lists projects from `GET /projects?workspaceId=`, each linking to `/w/:workspaceId/p/:projectId`
-- [ ] Create/rename/archive shown only when the resolved `role` grants `project:write`
-- [ ] Back-navigation to `/` present
-- [ ] Unit tests cover all bullets above, including the 403-not-shown and 404 cases
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Resolves and displays the current workspace's name via `GET /workspaces/:id`; a 404 renders the "not found or no access" message (NAV-04), never distinguishing the two
+- [x] Lists projects from `GET /projects?workspaceId=`, each linking to `/w/:workspaceId/p/:projectId`
+- [x] Create/rename/archive shown only when the resolved `role` grants `project:write`
+- [x] Back-navigation to `/` present
+- [x] Unit tests cover all bullets above, including the 403-not-shown and 404 cases
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
