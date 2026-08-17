@@ -113,4 +113,16 @@ describe('ConfirmArchiveDialog (NAV-18)', () => {
     const { ref } = renderOpenDialog();
     expect(ref.current?.tagName).toBe('DIALOG');
   });
+
+  it('the confirm and cancel buttons are keyboard-focusable (NAV-24)', () => {
+    renderOpenDialog();
+
+    const confirmButton = screen.getByTestId('confirm-archive-confirm');
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+
+    const cancelButton = screen.getByTestId('confirm-archive-cancel');
+    cancelButton.focus();
+    expect(document.activeElement).toBe(cancelButton);
+  });
 });

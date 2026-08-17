@@ -324,6 +324,35 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(screen.getByRole('link', { name: 'Alpha' })).toBeTruthy();
   });
 
+  it('the navigate link, create/rename/archive controls, and the confirm dialog button are keyboard-focusable (NAV-24)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces' && !init) return jsonResponse(200, { items: [workspaceFixture()] });
+      throw new Error(`unexpected fetch: ${url} ${init?.method}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const link = await screen.findByRole('link', { name: 'Alpha' });
+    link.focus();
+    expect(document.activeElement).toBe(link);
+
+    const createButton = screen.getByRole('button', { name: 'Criar workspace' });
+    createButton.focus();
+    expect(document.activeElement).toBe(createButton);
+
+    const renameButton = screen.getByRole('button', { name: 'Renomear' });
+    renameButton.focus();
+    expect(document.activeElement).toBe(renameButton);
+
+    const archiveButton = screen.getByRole('button', { name: 'Arquivar' });
+    archiveButton.focus();
+    expect(document.activeElement).toBe(archiveButton);
+
+    fireEvent.click(archiveButton);
+    const confirmButton = screen.getByTestId('confirm-archive-confirm');
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+  });
+
   it('announces create/rename/archive completion in an aria-live=polite region (NAV-25)', async () => {
     const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
       if (url === '/workspaces' && !init) return jsonResponse(200, { items: [workspaceFixture()] });

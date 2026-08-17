@@ -245,6 +245,45 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Diagram One' })).toBeNull());
   });
 
+  it('back link, diagram link, create/rename/archive-row, archive-current-project, and the confirm dialog button are all keyboard-focusable (NAV-24)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () =>
+        jsonResponse(200, { items: [{ id: 'd-1', projectId: 'p-1', title: 'Diagram One' }] }),
+    });
+
+    renderPage(fetchImpl);
+    const backLink = await screen.findByRole('link', { name: 'Voltar' });
+    backLink.focus();
+    expect(document.activeElement).toBe(backLink);
+
+    const diagramLink = screen.getByRole('link', { name: 'Diagram One' });
+    diagramLink.focus();
+    expect(document.activeElement).toBe(diagramLink);
+
+    const createButton = screen.getByRole('button', { name: 'Criar diagrama' });
+    createButton.focus();
+    expect(document.activeElement).toBe(createButton);
+
+    const renameButton = screen.getByRole('button', { name: 'Renomear' });
+    renameButton.focus();
+    expect(document.activeElement).toBe(renameButton);
+
+    const archiveRowButton = screen.getByRole('button', { name: 'Arquivar' });
+    archiveRowButton.focus();
+    expect(document.activeElement).toBe(archiveRowButton);
+
+    const archiveProjectButton = screen.getByRole('button', { name: 'Arquivar este projeto' });
+    archiveProjectButton.focus();
+    expect(document.activeElement).toBe(archiveProjectButton);
+
+    fireEvent.click(archiveRowButton);
+    const confirmButton = screen.getByTestId('confirm-archive-confirm');
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+  });
+
   it('offers "archive this project" only when the resolved role grants project:write (NAV-21)', async () => {
     const editorFetch = mockFetch({
       '/projects/p-1': () => projectDetailResponse(),

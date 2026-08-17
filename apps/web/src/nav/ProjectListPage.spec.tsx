@@ -230,6 +230,47 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Project One' })).toBeNull());
   });
 
+  it('back link, project link, create/rename/archive-row, archive-current-workspace, and the confirm dialog button are all keyboard-focusable (NAV-24)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('workspace_admin');
+      if (url === '/projects?workspaceId=ws-1')
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const backLink = await screen.findByRole('link', { name: 'Voltar' });
+    backLink.focus();
+    expect(document.activeElement).toBe(backLink);
+
+    const projectLink = screen.getByRole('link', { name: 'Project One' });
+    projectLink.focus();
+    expect(document.activeElement).toBe(projectLink);
+
+    const createButton = screen.getByRole('button', { name: 'Criar projeto' });
+    createButton.focus();
+    expect(document.activeElement).toBe(createButton);
+
+    const renameButton = screen.getByRole('button', { name: 'Renomear' });
+    renameButton.focus();
+    expect(document.activeElement).toBe(renameButton);
+
+    const archiveRowButton = screen.getByRole('button', { name: 'Arquivar' });
+    archiveRowButton.focus();
+    expect(document.activeElement).toBe(archiveRowButton);
+
+    const archiveWorkspaceButton = screen.getByRole('button', { name: 'Arquivar este workspace' });
+    archiveWorkspaceButton.focus();
+    expect(document.activeElement).toBe(archiveWorkspaceButton);
+
+    fireEvent.click(archiveRowButton);
+    const confirmButton = screen.getByTestId('confirm-archive-confirm');
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
+  });
+
   it('offers "archive this workspace" only when the resolved role grants workspace:write (NAV-21)', async () => {
     const adminFetch = vi.fn(async (url: string) => {
       if (url === '/workspaces/ws-1') return workspaceDetailResponse('workspace_admin');
