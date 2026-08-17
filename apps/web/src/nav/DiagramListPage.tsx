@@ -21,6 +21,14 @@ interface WorkspaceDetailResponseBody {
   workspace: { role: Role };
 }
 
+/**
+ * What `ConfirmArchiveDialog` is currently confirming — either a diagram row (T9's original
+ * scope) or the project this page is itself showing (NAV-21: archiving the container
+ * currently being viewed navigates up a level, so it needs its own DELETE target and its own
+ * post-`204` outcome instead of `removeItem`).
+ */
+type ArchiveTarget = { kind: 'diagram'; item: DiagramItem } | { kind: 'project' };
+
 function diagramsConfig(projectId: string): ResourceClientConfig {
   return {
     listUrl: `/diagrams?projectId=${projectId}`,
@@ -82,7 +90,7 @@ export function DiagramListPage({
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState<string | null>(null);
 
-  const [archiveTarget, setArchiveTarget] = useState<DiagramItem | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<ArchiveTarget | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -125,6 +133,8 @@ export function DiagramListPage({
   if (!workspaceId || !projectId) return null;
 
   const canWrite = role !== null ? can({ role }, 'diagram:write', { workspaceId }).allowed : false;
+  const canWriteProject =
+    role !== null ? can({ role }, 'project:write', { workspaceId }).allowed : false;
 
   async function handleCreate(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -181,7 +191,11 @@ export function DiagramListPage({
   }
 
   function requestArchive(item: DiagramItem): void {
-    setArchiveTarget(item);
+    setArchiveTarget({ kind: 'diagram', item });
+  }
+
+  function requestArchiveProject(): void {
+    setArchiveTarget({ kind: 'project' });
   }
 
   function closeDialog(): void {
@@ -193,9 +207,23 @@ export function DiagramListPage({
     if (!archiveTarget) return;
     const target = archiveTarget;
 
-    const result = await client.archive(target.id);
+    if (target.kind === 'project') {
+      // No diagram-scoped `client` covers this — it archives the project itself, not a row
+      // in this page's list, so the DELETE is issued directly (NAV-21).
+      const response = await fetchImpl(`/projects/${projectId}`, { method: 'DELETE' });
+      if (response.status === 204) {
+        closeDialog();
+        navigate(`/w/${workspaceId}`);
+        return;
+      }
+      setAnnouncement(t('nav.error.generic'));
+      closeDialog();
+      return;
+    }
+
+    const result = await client.archive(target.item.id);
     if (result.status === 'ok') {
-      removeItem(target.id);
+      removeItem(target.item.id);
       setAnnouncement(t('nav.archive'));
     } else {
       setAnnouncement(t('nav.error.generic'));
@@ -216,6 +244,11 @@ export function DiagramListPage({
     <div>
       <Link to={`/w/${workspaceId}`}>{t('nav.back')}</Link>
       <h2>{projectName ?? t('nav.diagrams.title')}</h2>
+      {canWriteProject && (
+        <button type="button" onClick={requestArchiveProject}>
+          {t('nav.projects.archiveCurrent')}
+        </button>
+      )}
       <div aria-live="polite" data-testid="diagram-announcement">
         {announcement}
       </div>
@@ -286,7 +319,9 @@ export function DiagramListPage({
       {archiveTarget && (
         <ConfirmArchiveDialog
           ref={dialogRef}
-          itemName={archiveTarget.title}
+          itemName={
+            archiveTarget.kind === 'project' ? (projectName ?? '') : archiveTarget.item.title
+          }
           onConfirm={() => void confirmArchive()}
           onCancel={closeDialog}
         />

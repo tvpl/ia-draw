@@ -2,7 +2,7 @@ import type { Role } from '@arch-canvas/auth';
 import { can } from '@arch-canvas/auth';
 import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -21,6 +21,14 @@ interface WorkspaceDetail {
 interface WorkspaceDetailResponseBody {
   workspace: { name: string; role: Role };
 }
+
+/**
+ * What `ConfirmArchiveDialog` is currently confirming — either a project row (T8's original
+ * scope) or the workspace this page is itself showing (NAV-21: archiving the container
+ * currently being viewed navigates up a level, so it needs its own DELETE target and its own
+ * post-`204` outcome instead of `removeItem`).
+ */
+type ArchiveTarget = { kind: 'project'; item: ProjectItem } | { kind: 'workspace' };
 
 function projectsConfig(workspaceId: string): ResourceClientConfig {
   return {
@@ -51,6 +59,7 @@ export function ProjectListPage({
 }: ProjectListPageProps): JSX.Element | null {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   // Named `fetchImpl` (not the generic `doFetch`) so the repo-tools route-inventory
   // extractor — which only recognizes literal `fetch(`/`fetchImpl(` call sites — can
   // resolve this page's own direct `GET /workspaces/:id` lookup below.
@@ -81,7 +90,7 @@ export function ProjectListPage({
   const [renameValue, setRenameValue] = useState('');
   const [renameError, setRenameError] = useState<string | null>(null);
 
-  const [archiveTarget, setArchiveTarget] = useState<ProjectItem | null>(null);
+  const [archiveTarget, setArchiveTarget] = useState<ArchiveTarget | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   useEffect(() => {
@@ -120,6 +129,9 @@ export function ProjectListPage({
 
   const canWrite = workspace
     ? can({ role: workspace.role }, 'project:write', { workspaceId }).allowed
+    : false;
+  const canWriteWorkspace = workspace
+    ? can({ role: workspace.role }, 'workspace:write', { workspaceId }).allowed
     : false;
 
   async function handleCreate(event: FormEvent): Promise<void> {
@@ -178,7 +190,11 @@ export function ProjectListPage({
   }
 
   function requestArchive(item: ProjectItem): void {
-    setArchiveTarget(item);
+    setArchiveTarget({ kind: 'project', item });
+  }
+
+  function requestArchiveWorkspace(): void {
+    setArchiveTarget({ kind: 'workspace' });
   }
 
   function closeDialog(): void {
@@ -190,9 +206,23 @@ export function ProjectListPage({
     if (!archiveTarget) return;
     const target = archiveTarget;
 
-    const result = await client.archive(target.id);
+    if (target.kind === 'workspace') {
+      // No project-scoped `client` covers this — it archives the workspace itself, not a row
+      // in this page's list, so the DELETE is issued directly (NAV-21).
+      const response = await fetchImpl(`/workspaces/${workspaceId}`, { method: 'DELETE' });
+      if (response.status === 204) {
+        closeDialog();
+        navigate('/');
+        return;
+      }
+      setAnnouncement(t('nav.error.generic'));
+      closeDialog();
+      return;
+    }
+
+    const result = await client.archive(target.item.id);
     if (result.status === 'ok') {
-      removeItem(target.id);
+      removeItem(target.item.id);
       setAnnouncement(t('nav.archive'));
     } else {
       setAnnouncement(t('nav.error.generic'));
@@ -213,6 +243,11 @@ export function ProjectListPage({
     <div>
       <Link to="/">{t('nav.back')}</Link>
       <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
+      {canWriteWorkspace && (
+        <button type="button" onClick={requestArchiveWorkspace}>
+          {t('nav.workspaces.archiveCurrent')}
+        </button>
+      )}
       <div aria-live="polite" data-testid="project-announcement">
         {announcement}
       </div>
@@ -283,7 +318,9 @@ export function ProjectListPage({
       {archiveTarget && (
         <ConfirmArchiveDialog
           ref={dialogRef}
-          itemName={archiveTarget.name}
+          itemName={
+            archiveTarget.kind === 'workspace' ? (workspace?.name ?? '') : archiveTarget.item.name
+          }
           onConfirm={() => void confirmArchive()}
           onCancel={closeDialog}
         />

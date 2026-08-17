@@ -229,4 +229,66 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
 
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Project One' })).toBeNull());
   });
+
+  it('offers "archive this workspace" only when the resolved role grants workspace:write (NAV-21)', async () => {
+    const adminFetch = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('workspace_admin');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(adminFetch);
+    expect(await screen.findByRole('button', { name: 'Arquivar este workspace' })).toBeTruthy();
+    cleanup();
+
+    // editor grants project:write but not workspace:write — the archive-current-workspace
+    // action must not appear for it, even though row-level project archive does.
+    const editorFetch = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(editorFetch);
+    await screen.findByText('Este workspace ainda não tem projetos.');
+    expect(screen.queryByRole('button', { name: 'Arquivar este workspace' })).toBeNull();
+  });
+
+  it('archiving the current workspace DELETEs /workspaces/:id and navigates to / on 204 (NAV-21)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces/ws-1' && !init) return workspaceDetailResponse('workspace_admin');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      if (url === '/workspaces/ws-1' && init?.method === 'DELETE') return jsonResponse(204, null);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Arquivar este workspace' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar este workspace' }));
+    expect(screen.getByTestId('confirm-archive-item-name').textContent).toBe('Acme Workspace');
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() => expect(screen.getByTestId('workspace-list-page')).toBeTruthy());
+  });
+
+  it('archiving the current workspace on 403/404 announces failure and keeps the user on the page (NAV-21, NAV-20)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces/ws-1' && !init) return workspaceDetailResponse('workspace_admin');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(200, { items: [] });
+      if (url === '/workspaces/ws-1' && init?.method === 'DELETE') return jsonResponse(403, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Arquivar este workspace' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar este workspace' }));
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('project-announcement').textContent).toBe(
+        'Algo deu errado. Tente novamente.',
+      ),
+    );
+    expect(screen.getByText('Este workspace ainda não tem projetos.')).toBeTruthy();
+  });
 });

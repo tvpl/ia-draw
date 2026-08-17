@@ -244,4 +244,68 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
 
     await waitFor(() => expect(screen.queryByRole('link', { name: 'Diagram One' })).toBeNull());
   });
+
+  it('offers "archive this project" only when the resolved role grants project:write (NAV-21)', async () => {
+    const editorFetch = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+    renderPage(editorFetch);
+    expect(await screen.findByRole('button', { name: 'Arquivar este projeto' })).toBeTruthy();
+    cleanup();
+
+    const viewerFetch = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('viewer'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+    renderPage(viewerFetch);
+    await screen.findByText('Este projeto ainda não tem diagramas.');
+    expect(screen.queryByRole('button', { name: 'Arquivar este projeto' })).toBeNull();
+  });
+
+  it('archiving the current project DELETEs /projects/:id and navigates to /w/:workspaceId on 204 (NAV-21)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': (init) => {
+        if (init?.method === 'DELETE') return jsonResponse(204, null);
+        return projectDetailResponse('Project One');
+      },
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Arquivar este projeto' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar este projeto' }));
+    expect(screen.getByTestId('confirm-archive-item-name').textContent).toBe('Project One');
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() => expect(screen.getByTestId('location').textContent).toBe('/w/ws-1'));
+  });
+
+  it('archiving the current project on 403/404 announces failure and keeps the user on the page (NAV-21, NAV-20)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': (init) => {
+        if (init?.method === 'DELETE') return jsonResponse(404, {});
+        return projectDetailResponse('Project One');
+      },
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Arquivar este projeto' });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar este projeto' }));
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('diagram-announcement').textContent).toBe(
+        'Algo deu errado. Tente novamente.',
+      ),
+    );
+    expect(screen.getByText('Este projeto ainda não tem diagramas.')).toBeTruthy();
+  });
 });

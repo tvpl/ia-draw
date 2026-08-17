@@ -65,13 +65,15 @@
       "create": "Criar workspace",
       "conflict": "Já existe um workspace com esse nome.",
       "emptyState": "Você ainda não pertence a nenhum workspace.",
-      "emptyStateCta": "Criar seu primeiro workspace"
+      "emptyStateCta": "Criar seu primeiro workspace",
+      "archiveCurrent": "Arquivar este workspace"
     },
     "projects": {
       "title": "Projetos",
       "nameLabel": "Nome do projeto",
       "create": "Criar projeto",
-      "empty": "Este workspace ainda não tem projetos."
+      "empty": "Este workspace ainda não tem projetos.",
+      "archiveCurrent": "Arquivar este projeto"
     },
     "diagrams": {
       "title": "Diagramas",
