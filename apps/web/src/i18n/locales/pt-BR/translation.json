@@ -142,6 +142,46 @@
         "viewer": "Visualizador"
       }
     },
+    "webhooks": {
+      "link": "Webhooks",
+      "title": "Webhooks",
+      "empty": "Este workspace ainda não tem webhooks.",
+      "urlLabel": "URL do endpoint",
+      "eventsLabel": "Eventos",
+      "eventOptions": {
+        "diagram.created": "Diagrama criado",
+        "diagram.updated": "Diagrama atualizado",
+        "diagram.published": "Diagrama publicado",
+        "spec.generated": "Spec gerada",
+        "comment.mentioned": "Mencionado em um comentário"
+      },
+      "create": "Adicionar webhook",
+      "created": "Webhook adicionado.",
+      "urlRequired": "A URL do endpoint é obrigatória.",
+      "eventsRequired": "Escolha ao menos um evento.",
+      "enabled": "Ativo",
+      "disabled": "Inativo",
+      "toggleEnable": "Ativar",
+      "toggleDisable": "Desativar",
+      "edit": "Editar",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "updated": "Webhook atualizado.",
+      "remove": "Remover",
+      "removed": "Webhook removido.",
+      "rotate": "Rotacionar segredo",
+      "rotateConfirm": "Rotacionar agora",
+      "rotateWarning": "O segredo atual para de valer imediatamente, sem período de carência.",
+      "rotated": "Segredo rotacionado.",
+      "secret": {
+        "title": "Segredo de assinatura",
+        "warning": "Este é o único momento em que este segredo aparece. Copie agora — depois não dá para recuperá-lo.",
+        "copy": "Copiar segredo",
+        "copied": "Segredo copiado para a área de transferência.",
+        "copyFailed": "Não foi possível copiar automaticamente. Selecione o segredo acima e copie à mão.",
+        "dismiss": "Já guardei"
+      }
+    },
     "rename": "Renomear",
     "renameSave": "Salvar",
     "renameCancel": "Cancelar",

@@ -142,6 +142,46 @@
         "viewer": "Viewer"
       }
     },
+    "webhooks": {
+      "link": "Webhooks",
+      "title": "Webhooks",
+      "empty": "This workspace has no webhooks yet.",
+      "urlLabel": "Endpoint URL",
+      "eventsLabel": "Events",
+      "eventOptions": {
+        "diagram.created": "Diagram created",
+        "diagram.updated": "Diagram updated",
+        "diagram.published": "Diagram published",
+        "spec.generated": "Spec generated",
+        "comment.mentioned": "Mentioned in a comment"
+      },
+      "create": "Add webhook",
+      "created": "Webhook added.",
+      "urlRequired": "The endpoint URL is required.",
+      "eventsRequired": "Select at least one event.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "toggleEnable": "Enable",
+      "toggleDisable": "Disable",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "updated": "Webhook updated.",
+      "remove": "Remove",
+      "removed": "Webhook removed.",
+      "rotate": "Rotate secret",
+      "rotateConfirm": "Rotate now",
+      "rotateWarning": "The current secret stops working immediately, with no grace period.",
+      "rotated": "Secret rotated.",
+      "secret": {
+        "title": "Signing secret",
+        "warning": "This is the only time this secret is shown. Copy it now — it cannot be retrieved later.",
+        "copy": "Copy secret",
+        "copied": "Secret copied to the clipboard.",
+        "copyFailed": "Couldn't copy automatically. Select the secret above and copy it manually.",
+        "dismiss": "I saved it"
+      }
+    },
     "rename": "Rename",
     "renameSave": "Save",
     "renameCancel": "Cancel",

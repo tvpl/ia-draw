@@ -98,10 +98,10 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Both locale files (`en` and `pt-BR`) have an identical key set under `nav.webhooks`
-- [ ] Includes at minimum: `link`, `title`, `empty`, `urlLabel`, `eventsLabel`, `eventOptions.*` (5 keys, one per `WEBHOOK_EVENT_TYPES` value), `create`, `created`, `urlRequired`, `eventsRequired`, `enabled`, `disabled`, `toggleEnable`, `toggleDisable`, `edit`, `save`, `cancel`, `updated`, `remove`, `removed`, `rotate`, `rotateConfirm`, `rotateWarning`, `rotated`, `secret.title`, `secret.warning`, `secret.copy`, `secret.copied`, `secret.copyFailed`, `secret.dismiss`
-- [ ] No key added here duplicates an existing shared `nav.*` key
-- [ ] Gate check passes: `make lint`
+- [x] Both locale files (`en` and `pt-BR`) have an identical key set under `nav.webhooks`
+- [x] Includes at minimum: `link`, `title`, `empty`, `urlLabel`, `eventsLabel`, `eventOptions.*` (5 keys, one per `WEBHOOK_EVENT_TYPES` value), `create`, `created`, `urlRequired`, `eventsRequired`, `enabled`, `disabled`, `toggleEnable`, `toggleDisable`, `edit`, `save`, `cancel`, `updated`, `remove`, `removed`, `rotate`, `rotateConfirm`, `rotateWarning`, `rotated`, `secret.title`, `secret.warning`, `secret.copy`, `secret.copied`, `secret.copyFailed`, `secret.dismiss`
+- [x] No key added here duplicates an existing shared `nav.*` key
+- [x] Gate check passes: `make lint`
 
 **Tests**: none (build gate only — matrix says "none" for the i18n JSON layer)
 **Gate**: build

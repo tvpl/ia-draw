@@ -258,7 +258,7 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 | WHK-30 | P1: Remover | F10 | Implementing |
 | WHK-31 | P2: Teclado e idioma | F10 | Pending |
 | WHK-32 | P2: Teclado e idioma | F10 | Pending |
-| WHK-33 | P2: Teclado e idioma | F10 | Pending |
+| WHK-33 | P2: Teclado e idioma | F10 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
