@@ -112,9 +112,9 @@ T7 → T8
 
 **Done when**:
 
-- [ ] Os dois arquivos têm conjunto de chaves idêntico sob `comments`
-- [ ] Inclui no mínimo: `comments.title`, `tabs.ai`, `tabs.comments`, `loading`, `empty`, `error`, `notFound`, `composer.label`, `composer.submit`, `composer.anchor.{none,element,multiple}`, `anchorMissing`, `reply.{label,submit,action}`, `resolve`, `reopen`, `resolvedBadge`, `showResolved`, `refresh`, `announce.{created,replied,resolved,reopened,failed}`
-- [ ] `make lint` passa (formatação de JSON incluída)
+- [x] Os dois arquivos têm conjunto de chaves idêntico sob `comments`
+- [x] Inclui no mínimo: `comments.title`, `tabs.ai`, `tabs.comments`, `loading`, `empty`, `error`, `notFound`, `composer.label`, `composer.submit`, `composer.anchor.{none,element,multiple}`, `anchorMissing`, `reply.{label,submit,action}`, `resolve`, `reopen`, `resolvedBadge`, `showResolved`, `refresh`, `announce.{created,replied,resolved,reopened,failed}`
+- [x] `make lint` passa (formatação de JSON incluída)
 
 **Tests**: none (camada "JSON de i18n" da Test Coverage Matrix exige `none`; as strings são exercidas pelos testes de T4/T5/T6)
 **Gate**: build

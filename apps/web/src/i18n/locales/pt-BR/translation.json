@@ -48,6 +48,45 @@
     },
     "sensitiveChange": "Mudança sensível — revise com atenção antes de aprovar"
   },
+  "comments": {
+    "title": "Comentários",
+    "tabs": {
+      "ai": "IA",
+      "comments": "Comentários"
+    },
+    "loading": "Carregando comentários…",
+    "empty": "Nenhum comentário neste diagrama ainda.",
+    "error": "Algo deu errado. Tente de novo.",
+    "notFound": "Este diagrama não existe ou você não tem acesso a ele.",
+    "anchor": "Ancorado em {{elementId}}",
+    "anchorMissing": "Âncora removida ({{elementId}})",
+    "composer": {
+      "label": "Novo comentário",
+      "submit": "Comentar",
+      "anchor": {
+        "none": "Sem âncora — comentário geral do diagrama",
+        "element": "Será ancorado em {{elementId}}",
+        "multiple": "Vários elementos selecionados — o comentário não será ancorado"
+      }
+    },
+    "reply": {
+      "action": "Responder",
+      "label": "Sua resposta",
+      "submit": "Enviar resposta"
+    },
+    "resolve": "Resolver",
+    "reopen": "Reabrir",
+    "resolvedBadge": "Resolvido",
+    "showResolved": "Mostrar resolvidas",
+    "refresh": "Atualizar",
+    "announce": {
+      "created": "Comentário publicado.",
+      "replied": "Resposta publicada.",
+      "resolved": "Comentário resolvido.",
+      "reopened": "Comentário reaberto.",
+      "failed": "A ação falhou. Tente de novo."
+    }
+  },
   "auth": {
     "emailLabel": "E-mail",
     "passwordLabel": "Senha",

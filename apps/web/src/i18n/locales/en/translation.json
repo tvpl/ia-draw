@@ -48,6 +48,45 @@
     },
     "sensitiveChange": "Sensitive change — review carefully before approving"
   },
+  "comments": {
+    "title": "Comments",
+    "tabs": {
+      "ai": "AI",
+      "comments": "Comments"
+    },
+    "loading": "Loading comments…",
+    "empty": "No comments on this diagram yet.",
+    "error": "Something went wrong. Try again.",
+    "notFound": "This diagram doesn't exist or you don't have access to it.",
+    "anchor": "Anchored to {{elementId}}",
+    "anchorMissing": "Anchor removed ({{elementId}})",
+    "composer": {
+      "label": "New comment",
+      "submit": "Comment",
+      "anchor": {
+        "none": "No anchor — general diagram comment",
+        "element": "Will be anchored to {{elementId}}",
+        "multiple": "Several elements selected — this comment will not be anchored"
+      }
+    },
+    "reply": {
+      "action": "Reply",
+      "label": "Your reply",
+      "submit": "Send reply"
+    },
+    "resolve": "Resolve",
+    "reopen": "Reopen",
+    "resolvedBadge": "Resolved",
+    "showResolved": "Show resolved",
+    "refresh": "Refresh",
+    "announce": {
+      "created": "Comment posted.",
+      "replied": "Reply posted.",
+      "resolved": "Comment resolved.",
+      "reopened": "Comment reopened.",
+      "failed": "The action failed. Try again."
+    }
+  },
   "auth": {
     "emailLabel": "Email",
     "passwordLabel": "Password",
