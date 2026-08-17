@@ -19,6 +19,8 @@ import { DiagramEditorPage } from './DiagramEditorPage.js';
 let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefined;
 let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
+/** What `<Excalidraw/>` actually received for `viewModeEnabled` on its last render (SHR-22). */
+let capturedViewModeEnabled: boolean | undefined;
 
 vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@excalidraw/excalidraw')>();
@@ -27,10 +29,12 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
     Excalidraw: (props: {
       onChange?: (elements: unknown, appState: unknown) => void;
       onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
+      viewModeEnabled?: boolean;
       excalidrawAPI?: (api: { updateScene: typeof updateSceneSpy }) => void;
     }) => {
       capturedOnChange = props.onChange;
       capturedOnPointerUpdate = props.onPointerUpdate;
+      capturedViewModeEnabled = props.viewModeEnabled;
       props.excalidrawAPI?.({ updateScene: updateSceneSpy });
       return null;
     },
@@ -71,6 +75,7 @@ function renderPage() {
 describe('DiagramEditorPage (T9, integration)', () => {
   beforeEach(() => {
     capturedOnChange = undefined;
+    capturedViewModeEnabled = undefined;
     updateSceneSpy = vi.fn();
   });
 
@@ -1292,5 +1297,59 @@ describe('DiagramEditorPage reconnect catch-up (T13, LIVE-20..22)', () => {
     expect(screen.getByTestId('presence-connection-status').textContent).toBe(
       'Presença ao vivo conectada',
     );
+  });
+});
+
+
+/**
+ * Top-level, with its own setup: `capturedViewModeEnabled` must be reset per test
+ * here, otherwise a stale value left by an earlier test could make an assertion
+ * pass without the component ever rendering.
+ */
+describe('T11 (share-links): the canvas honours the role (SHR-22)', () => {
+  beforeEach(() => {
+    capturedOnChange = undefined;
+    capturedViewModeEnabled = undefined;
+    updateSceneSpy = vi.fn();
+  });
+
+  afterEach(() => {
+    cleanup();
+    vi.unstubAllGlobals();
+  });
+
+  function bootstrapWithMutate(allowed: boolean): typeof fetch {
+    return vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed, reason: allowed ? '' : 'role' },
+          }),
+        );
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  it('mounts the canvas with viewModeEnabled=true when the role cannot mutate', async () => {
+    vi.stubGlobal('fetch', bootstrapWithMutate(false));
+
+    renderPage();
+
+    await waitFor(() => expect(capturedViewModeEnabled).toBe(true));
+  });
+
+  it('mounts the canvas with viewModeEnabled=false when the role can mutate', async () => {
+    vi.stubGlobal('fetch', bootstrapWithMutate(true));
+
+    renderPage();
+
+    await waitFor(() => expect(capturedViewModeEnabled).toBe(false));
   });
 });

@@ -387,11 +387,11 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Com `mutatePermissions.allowed === false` no bootstrap, o `EditorSurface` do editor recebe `viewModeEnabled === true`
-- [ ] Com `mutatePermissions.allowed === true`, recebe `viewModeEnabled === false`
-- [ ] Nenhum outro comportamento da página muda (testes existentes de `DiagramEditorPage.spec.tsx` continuam passando sem alteração)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: 2 testes novos passam
+- [x] Com `mutatePermissions.allowed === false` no bootstrap, o `EditorSurface` do editor recebe `viewModeEnabled === true`
+- [x] Com `mutatePermissions.allowed === true`, recebe `viewModeEnabled === false`
+- [x] Nenhum outro comportamento da página muda (testes existentes de `DiagramEditorPage.spec.tsx` continuam passando sem alteração)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Test count: 2 testes novos passam
 
 **Tests**: unit
 **Gate**: full

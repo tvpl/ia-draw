@@ -282,6 +282,11 @@ export function DiagramEditorPage(): JSX.Element {
                 onDeltas={(deltas) => queue.getState().enqueue(deltas)}
                 onSelectionChange={setSelection}
                 onPointerMove={(pointer) => presenceClientRef.current?.sendCursor(pointer)}
+                // SHR-22: a role without `diagram:mutate` gets a genuinely
+                // read-only canvas. Before this, a reviewer/viewer could still
+                // draw and drag locally — every one of those edits was rejected
+                // by the server at flush time, silently losing the work.
+                viewModeEnabled={!canMutate}
               />
             </div>
           ) : (
