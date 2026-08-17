@@ -42,11 +42,11 @@ type Phase = 'idle' | 'previewing' | 'previewed' | 'invalid' | 'error' | 'confir
  * (spec.md's Assumptions table). Validation is by content, never by file extension (spec.md
  * Edge Cases): whatever `previewImport` accepts is accepted.
  *
- * INT-06..15 (interop-panel, R8): the same dialog also imports Mermaid/Structurizr DSL,
+ * INT-06..17 (interop-panel, R8): the same dialog also imports Mermaid/Structurizr DSL,
  * selected via a `<fieldset>` format radiogroup (`.excalidraw` default). Those two formats
  * have no server preview route — `handleFileChange` sets `previewed` from the raw text alone
  * (INT-08) — and `handleConfirmDsl` creates the diagram directly via `importDsl` (no
- * preview-then-confirm), with an optional title (INT-13) unlike `.excalidraw`'s required one.
+ * preview-then-confirm), with an optional title (INT-14) unlike `.excalidraw`'s required one.
  */
 export function ImportDialog({
   projectId,
@@ -166,12 +166,12 @@ export function ImportDialog({
   }
 
   async function handleConfirmDsl(dslFormat: InteropFormat): Promise<void> {
-    // INT-08: a zero-length file never emits the confirmation request either.
+    // INT-13: a zero-length file never emits the confirmation request either.
     if (!fileContent) return;
 
     setPhase('confirming');
     const trimmedTitle = title.trim();
-    // INT-13: title is optional for Mermaid/Structurizr — omitted entirely when blank, letting
+    // INT-14: title is optional for Mermaid/Structurizr — omitted entirely when blank, letting
     // the server apply its own per-format default (importDsl.ts's `defaultTitle`).
     const result = await client.importDsl(
       projectId,
@@ -208,8 +208,8 @@ export function ImportDialog({
 
   if (!canImport) return null;
 
-  // INT-08/13: Mermaid/Structurizr never require a title (server default applies); they only
-  // require non-empty file content. `.excalidraw` keeps its existing title-required rule.
+  // INT-09/13/14: Mermaid/Structurizr never require a title (server default applies); they
+  // only require non-empty file content. `.excalidraw` keeps its existing title-required rule.
   const canConfirm =
     phase === 'previewed' &&
     (format === 'excalidraw' ? title.trim().length > 0 : (fileContent?.length ?? 0) > 0);

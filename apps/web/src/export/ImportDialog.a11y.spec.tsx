@@ -88,7 +88,7 @@ describe('ImportDialog (XPRT-16..18)', () => {
     expect(seriousOrCriticalViolations(results)).toEqual([]);
   });
 
-  it('the open dialog with the Mermaid format selected and a preview showing has zero serious/critical axe violations (INT-15)', async () => {
+  it('the open dialog with the Mermaid format selected and a preview showing has zero serious/critical axe violations (INT-16)', async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
 
     const { container } = render(

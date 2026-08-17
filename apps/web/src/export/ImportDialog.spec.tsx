@@ -305,7 +305,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     expect(fetchImpl.mock.calls.length).toBe(callCountBeforeSubmit);
   });
 
-  it('the import trigger is absent when the role lacks diagram:write on the project (XPRT-12)', () => {
+  it('the import trigger is absent when the role lacks diagram:write on the project, for any format (XPRT-12/INT-15)', () => {
     renderDialog({ canImport: false });
 
     expect(screen.queryByRole('button', { name: 'Importar diagrama' })).toBeNull();
@@ -430,7 +430,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     await waitFor(() => expect(getCapturedPath()).toBe('/w/ws-1/d/diagram-9'));
   });
 
-  it('confirming a Structurizr import with a blank title omits "title" from the request body entirely (INT-09/13)', async () => {
+  it('confirming a Structurizr import with a blank title omits "title" from the request body entirely (INT-09/14)', async () => {
     const diagram = {
       id: 'diagram-9',
       projectId: 'project-1',
@@ -521,7 +521,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     expect(getCapturedPath()).toBeNull();
   });
 
-  it('a Mermaid file with empty content keeps the confirm button disabled without sending a request (INT-08 edge case)', async () => {
+  it('a Mermaid file with empty content keeps the confirm button disabled without sending a request (INT-13)', async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
     renderDialog({ fetchImpl });
 
@@ -541,7 +541,7 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     expect(fetchImpl).not.toHaveBeenCalled();
   });
 
-  it('the format radiogroup, DSL preview and confirm button are keyboard-focusable (INT-15)', async () => {
+  it('the format radiogroup, DSL preview and confirm button are keyboard-focusable (INT-16)', async () => {
     const fetchImpl = vi.fn() as unknown as typeof fetch;
     renderDialog({ fetchImpl });
 
