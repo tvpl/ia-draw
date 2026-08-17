@@ -46,6 +46,9 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
   const [createError, setCreateError] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
 
+  const [testingId, setTestingId] = useState<string | null>(null);
+  const [testMessages, setTestMessages] = useState<Record<string, string>>({});
+
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editBaseUrl, setEditBaseUrl] = useState('');
   const [editModel, setEditModel] = useState('');
@@ -166,6 +169,48 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
     setAnnouncement(t('nav.error.generic'));
   }
 
+  /**
+   * PROV-17..20. Never runs on its own: the `:test` route is rate limited to 10
+   * calls per 60s per user, so a test on page load would burn the operator's
+   * quota without being asked. It only ever fires from an explicit click.
+   */
+  async function handleTest(item: ProviderConfig): Promise<void> {
+    // Edge case: a second click while a test is in flight must not fire a second
+    // request. The guard holds even if the disabled attribute is bypassed.
+    if (testingId !== null) return;
+
+    setTestingId(item.id);
+    try {
+      const outcome = await client.testConnection(item.id);
+      let message: string;
+
+      if (outcome.status === 'done') {
+        message = outcome.result.success
+          ? t('adminProviders.testSuccess', {
+              modelAvailable: outcome.result.modelAvailable
+                ? t('adminProviders.yes')
+                : t('adminProviders.no'),
+              toolCalling: outcome.result.toolCallingSupported
+                ? t('adminProviders.yes')
+                : t('adminProviders.no'),
+            })
+          : // PROV-19: a 200 carrying `success: false` IS a failure — the HTTP
+            // status never decides the verdict here.
+            t('adminProviders.testFailure', { error: outcome.result.error ?? '' });
+      } else if (outcome.status === 'rate_limited') {
+        message = t('adminProviders.rateLimited');
+      } else {
+        message = t('nav.error.generic');
+      }
+
+      setTestMessages((previous) => ({ ...previous, [item.id]: message }));
+      setAnnouncement(message);
+    } finally {
+      // Always clears, so a network failure never leaves the button stuck.
+      setTestingId(null);
+    }
+  }
+
   if (notFound) {
     return (
       <div>
@@ -238,6 +283,16 @@ export function AiProviderAdminPage({ fetchImpl }: AiProviderAdminPageProps): JS
                   <button type="button" onClick={() => void toggleEnabled(item, !item.enabled)}>
                     {item.enabled ? t('adminProviders.deactivate') : t('adminProviders.activate')}
                   </button>
+                  <button
+                    type="button"
+                    disabled={testingId !== null}
+                    onClick={() => void handleTest(item)}
+                  >
+                    {t('adminProviders.test')}
+                  </button>
+                  {testMessages[item.id] && (
+                    <span data-testid={`ai-provider-test-${item.id}`}>{testMessages[item.id]}</span>
+                  )}
                 </>
               )}
             </li>

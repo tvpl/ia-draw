@@ -314,15 +314,15 @@ T13
 
 **Done when**:
 
-- [ ] O clique emite `POST /admin/ai-providers/:id:test`
-- [ ] `200` com `success: true` exibe sucesso citando `modelAvailable` e `toolCallingSupported`
-- [ ] `200` com `success: false` exibe falha com o texto de `error` — nunca sucesso
-- [ ] `429` exibe a mensagem de limite de testes atingido
-- [ ] Erro de rede exibe falha genérica e o botão volta a ficar disponível (não fica preso em carregamento)
-- [ ] Um segundo clique com um teste em voo não emite segunda requisição (caso de borda da spec)
-- [ ] A página nunca dispara um teste sozinha no carregamento (a cota é 10/60s por usuário)
-- [ ] Testes cobrem PROV-17..20 e os dois casos de borda acima
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] O clique emite `POST /admin/ai-providers/:id:test`
+- [x] `200` com `success: true` exibe sucesso citando `modelAvailable` e `toolCallingSupported`
+- [x] `200` com `success: false` exibe falha com o texto de `error` — nunca sucesso
+- [x] `429` exibe a mensagem de limite de testes atingido
+- [x] Erro de rede exibe falha genérica e o botão volta a ficar disponível (não fica preso em carregamento)
+- [x] Um segundo clique com um teste em voo não emite segunda requisição (caso de borda da spec)
+- [x] A página nunca dispara um teste sozinha no carregamento (a cota é 10/60s por usuário)
+- [x] Testes cobrem PROV-17..20 e os dois casos de borda acima
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

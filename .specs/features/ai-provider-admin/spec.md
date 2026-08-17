@@ -260,10 +260,10 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | PROV-14 | P1: Editar sem redigitar a chave | F10 | Implementing |
 | PROV-15 | P1: Editar sem redigitar a chave | F10 | Implementing |
 | PROV-16 | P1: Editar sem redigitar a chave | F10 | Implementing |
-| PROV-17 | P1: Testar a conexão | F10 | Pending |
-| PROV-18 | P1: Testar a conexão | F10 | Pending |
-| PROV-19 | P1: Testar a conexão | F10 | Pending |
-| PROV-20 | P1: Testar a conexão | F10 | Pending |
+| PROV-17 | P1: Testar a conexão | F10 | Implementing |
+| PROV-18 | P1: Testar a conexão | F10 | Implementing |
+| PROV-19 | P1: Testar a conexão | F10 | Implementing |
+| PROV-20 | P1: Testar a conexão | F10 | Implementing |
 | PROV-21 | P1: Alternar qual está ativa | F10 | Implementing |
 | PROV-22 | P1: Alternar qual está ativa | F10 | Implementing |
 | PROV-23 | P1: Alternar qual está ativa | F10 | Implementing |

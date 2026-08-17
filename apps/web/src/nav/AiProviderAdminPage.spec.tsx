@@ -430,3 +430,127 @@ describe('AiProviderAdminPage — switching the active config (PROV-21/22/26)', 
     expect(screen.getByTestId('ai-provider-state-cfg-2').textContent).toBe('Inativo');
   });
 });
+
+/** One listed config plus a scripted response for the `:test` call. */
+function renderWithTestResponse(testResponse: () => Promise<Response>) {
+  const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+    if (init?.method === 'POST' && url.endsWith(':test')) return testResponse();
+    return jsonResponse(200, { items: [providerConfig()] });
+  }) as unknown as typeof fetch;
+  renderGlobal(fetchImpl);
+  return fetchImpl;
+}
+
+describe('AiProviderAdminPage — connection test (PROV-17..20)', () => {
+  it('never fires a test on load — the rate-limited route is only called from a click (PROV-17)', async () => {
+    const fetchImpl = renderWithTestResponse(async () => jsonResponse(200, {}));
+    await screen.findByText('https://api.openai.com/v1');
+
+    expect(vi.mocked(fetchImpl).mock.calls.length).toBe(1);
+    expect(vi.mocked(fetchImpl).mock.calls[0]?.[0]).toBe('/admin/ai-providers?scope=global');
+  });
+
+  it('POSTs to /:id:test on click (PROV-17)', async () => {
+    const fetchImpl = renderWithTestResponse(async () =>
+      jsonResponse(200, { success: true, modelAvailable: true, toolCallingSupported: true }),
+    );
+    await screen.findByText('https://api.openai.com/v1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Testar conexão' }));
+
+    await waitFor(() => expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2));
+    expect(vi.mocked(fetchImpl).mock.calls[1]?.[0]).toBe('/admin/ai-providers/cfg-1:test');
+    const testInit = vi.mocked(fetchImpl).mock.calls[1]?.[1] as RequestInit;
+    expect(testInit.method).toBe('POST');
+  });
+
+  it('reports success with model availability and tool-calling support (PROV-18)', async () => {
+    renderWithTestResponse(async () =>
+      jsonResponse(200, { success: true, modelAvailable: true, toolCallingSupported: false }),
+    );
+    await screen.findByText('https://api.openai.com/v1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Testar conexão' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-test-cfg-1').textContent).toBe(
+        'Conexão OK. Modelo disponível: sim. Tool calling: não.',
+      ),
+    );
+  });
+
+  it('reports a 200 with success:false as a FAILURE, carrying the provider error (PROV-19)', async () => {
+    renderWithTestResponse(async () =>
+      jsonResponse(200, {
+        success: false,
+        modelAvailable: false,
+        toolCallingSupported: false,
+        error: 'provider responded with status 401',
+      }),
+    );
+    await screen.findByText('https://api.openai.com/v1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Testar conexão' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-test-cfg-1').textContent).toBe(
+        'Falha na conexão: provider responded with status 401',
+      ),
+    );
+    expect(screen.getByTestId('ai-provider-test-cfg-1').textContent).not.toContain('Conexão OK');
+  });
+
+  it('reports the connection-test rate limit on 429 (PROV-20)', async () => {
+    renderWithTestResponse(async () => jsonResponse(429, {}));
+    await screen.findByText('https://api.openai.com/v1');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Testar conexão' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-test-cfg-1').textContent).toBe(
+        'Limite de 10 testes de conexão por 60 segundos atingido. Tente de novo em instantes.',
+      ),
+    );
+  });
+
+  it('reports a generic failure on a network error and re-enables the button (edge case)', async () => {
+    renderWithTestResponse(async () => {
+      throw new Error('offline');
+    });
+    await screen.findByText('https://api.openai.com/v1');
+
+    const button = screen.getByRole('button', { name: 'Testar conexão' }) as HTMLButtonElement;
+    fireEvent.click(button);
+
+    await waitFor(() =>
+      expect(screen.getByTestId('ai-provider-test-cfg-1').textContent).toBe(
+        'Algo deu errado. Tente novamente.',
+      ),
+    );
+    expect(button.disabled).toBe(false);
+  });
+
+  it('a second click while a test is in flight fires no second request (edge case)', async () => {
+    const deferred: { release: () => void } = { release: () => {} };
+    const pending = new Promise<void>((resolve) => {
+      deferred.release = resolve;
+    });
+
+    const fetchImpl = renderWithTestResponse(async () => {
+      await pending;
+      return jsonResponse(200, { success: true, modelAvailable: true, toolCallingSupported: true });
+    });
+    await screen.findByText('https://api.openai.com/v1');
+
+    const button = screen.getByRole('button', { name: 'Testar conexão' }) as HTMLButtonElement;
+    fireEvent.click(button);
+    await waitFor(() => expect(button.disabled).toBe(true));
+
+    fireEvent.click(button);
+    expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2);
+
+    deferred.release();
+    await waitFor(() => expect(button.disabled).toBe(false));
+    expect(vi.mocked(fetchImpl).mock.calls.length).toBe(2);
+  });
+});
