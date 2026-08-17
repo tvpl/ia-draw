@@ -240,8 +240,8 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 | LIVE-23 | P1: Reconexão com catch-up | F10 | Implementing |
 | LIVE-24 | P2: Estado da conexão | F10 | Implementing |
 | LIVE-25 | P2: Estado da conexão | F10 | Implementing |
-| LIVE-26 | P2: Estado da conexão | F10 | Pending |
-| LIVE-27 | P2: Estado da conexão | F10 | Pending |
+| LIVE-26 | P2: Estado da conexão | F10 | Implementing |
+| LIVE-27 | P2: Estado da conexão | F10 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

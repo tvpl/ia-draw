@@ -378,12 +378,12 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] Zero violações sérias ou críticas de axe nas três fases
-- [ ] O indicador não está na ordem de tabulação (nenhum elemento focável é introduzido por ele)
-- [ ] `aria-live="polite"` afirmado como atributo, e o anúncio muda quando a fase muda
-- [ ] Renderiza no locale `en` além do `pt-BR`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 4 casos passam
+- [x] Zero violações sérias ou críticas de axe nas três fases
+- [x] O indicador não está na ordem de tabulação (nenhum elemento focável é introduzido por ele)
+- [x] `aria-live="polite"` afirmado como atributo, e o anúncio muda quando a fase muda
+- [x] Renderiza no locale `en` além do `pt-BR`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 4 casos passam
 
 **Tests**: unit
 **Gate**: quick
