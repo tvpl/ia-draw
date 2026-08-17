@@ -5,6 +5,7 @@ import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
 import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
+import { InventoryPage } from './diagram/InventoryPage.js';
 import { DiagramListPage } from './nav/DiagramListPage.js';
 import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
@@ -28,6 +29,11 @@ import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
  * as a fourth nested child, a sibling of `w/:workspaceId`/`w/:workspaceId/p/:projectId`
  * rather than nested under either — membership is a workspace-level concern, not
  * scoped to a project.
+ *
+ * T8 (component-library): `/w/:workspaceId/d/:diagramId/inventory` is a second
+ * unnested sibling, same tier as the editor route — `InventoryView` never mounts
+ * the canvas (design.md), so it gets its own bare route instead of a mode inside
+ * `DiagramEditorPage`; `DiagramEditorPage` links into it.
  */
 export function AppRoutes(): JSX.Element {
   return (
@@ -52,6 +58,14 @@ export function AppRoutes(): JSX.Element {
           element={
             <ProtectedRoute>
               <DiagramEditorPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/inventory"
+          element={
+            <ProtectedRoute>
+              <InventoryPage />
             </ProtectedRoute>
           }
         />

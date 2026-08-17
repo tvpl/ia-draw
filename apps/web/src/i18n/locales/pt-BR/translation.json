@@ -123,5 +123,39 @@
       "forbidden": "Você não tem permissão para fazer isso.",
       "generic": "Algo deu errado. Tente novamente."
     }
+  },
+  "library": {
+    "title": "Biblioteca de componentes",
+    "searchLabel": "Buscar componentes",
+    "insert": "Inserir",
+    "inserted": "{{name}} inserido no canvas",
+    "loading": "Carregando biblioteca…",
+    "error": "Não foi possível carregar a biblioteca.",
+    "retry": "Tentar de novo",
+    "emptySearch": "Nenhum componente encontrado para essa busca."
+  },
+  "metadata": {
+    "title": "Metadados do elemento",
+    "emptyState": "Selecione um elemento para ver ou editar seus metadados.",
+    "semanticTypeLabel": "Tipo semântico",
+    "metadataJsonLabel": "Metadados (JSON)",
+    "save": "Salvar",
+    "saved": "Metadados salvos",
+    "invalidJson": "Os metadados precisam ser um JSON válido.",
+    "error": "Não foi possível carregar ou salvar os metadados. Tente novamente."
+  },
+  "inventory": {
+    "title": "Inventário",
+    "open": "Ver inventário",
+    "exportCsv": "Exportar CSV",
+    "empty": "Nenhum elemento foi classificado ainda.",
+    "removed": "Removido do canvas",
+    "columns": {
+      "elementId": "Elemento",
+      "elementType": "Tipo",
+      "semanticType": "Tipo semântico",
+      "revision": "Revisão"
+    },
+    "error": "Não foi possível carregar o inventário."
   }
 }

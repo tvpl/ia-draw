@@ -208,6 +208,9 @@ importers:
       '@arch-canvas/editor-adapter':
         specifier: workspace:*
         version: link:../../packages/editor-adapter
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../../packages/library-content
       '@arch-canvas/shared-contracts':
         specifier: workspace:*
         version: link:../../packages/shared-contracts
@@ -466,6 +469,9 @@ importers:
 
   packages/editor-adapter:
     dependencies:
+      '@arch-canvas/library-content':
+        specifier: workspace:*
+        version: link:../library-content
       '@excalidraw/excalidraw':
         specifier: 0.18.1
         version: 0.18.1(@types/react-dom@19.2.4(@types/react@19.2.18))(@types/react@19.2.18)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)

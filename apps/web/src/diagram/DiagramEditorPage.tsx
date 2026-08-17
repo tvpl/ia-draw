@@ -3,11 +3,14 @@ import {
   type EditorSurfaceHandle,
   type SceneElement,
 } from '@arch-canvas/editor-adapter';
+import type { LibraryItem } from '@arch-canvas/library-content';
 import { type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { AiDock } from '../ai-dock/AiDock.js';
 import { useAuth } from '../auth/AuthProvider.js';
+import { LibraryPanel } from '../library/LibraryPanel.js';
+import { MetadataPanel } from '../library/MetadataPanel.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -26,7 +29,7 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * (non-reactive) `initialData` is correct on its one and only mount.
  *
  * T9: the layout is a row — this column (status + canvas) as a `flex:1, minHeight:0`
- * child, `<AiDock/>` as its sibling. `canMutate` comes from bootstrap's
+ * child, a sidebar column as its sibling. `canMutate` comes from bootstrap's
  * `mutatePermissions.allowed` (T1); `selection` comes from `EditorSurface`'s
  * `onSelectionChange` (T2). `AiDock`'s `onApproved` (reused for its undo-success path,
  * design.md) re-runs the SAME `DiagramSyncClient.bootstrap()` already used for the
@@ -35,9 +38,20 @@ import { DiagramSyncClient } from '../sync/syncClient.js';
  * the new server revision the AI patch just produced — then fuses the result onto the
  * canvas via `EditorSurface`'s imperative `applyRemoteScene` handle (T3), never before the
  * approve/restore call itself has resolved (DOCK-13/18).
+ *
+ * T8 (component-library): the sidebar column also hosts `LibraryPanel` and
+ * `MetadataPanel`, each collapsible via `<details>` (same toggle convention `AiDock`
+ * established), plus a link into the inventory route. `canMutate` — the SAME
+ * `diagram:mutate` decision `AiDock` already gates on — doubles as the `canWrite` prop
+ * for both new panels: `packages/auth/src/rbac.ts`'s `ROLE_GRANTS` never separates
+ * `diagram:write` from `diagram:mutate` for any role today (both land in `WRITE_ACTIONS`
+ * together), so reusing this single already-resolved boolean is equivalent to a second
+ * `diagram:write` check without adding one. `LibraryPanel.onInsert` is wired to
+ * `EditorSurfaceHandle.insertLibraryItem` via the same `editorSurfaceRef` `applyRemoteScene`
+ * already uses (design.md Approach A — no second ref/path onto the canvas, AD-010/EDT-07).
  */
 export function DiagramEditorPage(): JSX.Element {
-  const { diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
+  const { workspaceId, diagramId } = useParams<{ workspaceId: string; diagramId: string }>();
   const { t } = useTranslation();
   // T8/SSO-18: the actor id comes from AuthProvider's context (the app's one
   // `/me` call, resolved before this route can even render behind
@@ -92,6 +106,12 @@ export function DiagramEditorPage(): JSX.Element {
     editorSurfaceRef.current?.applyRemoteScene(refreshed.scene);
   }, []);
 
+  // CLIB-03/04: the only place `LibraryPanel` reaches the canvas — via the same
+  // imperative ref `applyRemoteScene` already uses, never a second path (AD-010).
+  const handleInsertLibraryItem = useCallback((item: LibraryItem) => {
+    editorSurfaceRef.current?.insertLibraryItem(item);
+  }, []);
+
   const kind = status((s) => s.kind);
   const pendingCount = status((s) => s.pendingCount);
 
@@ -118,12 +138,29 @@ export function DiagramEditorPage(): JSX.Element {
           <p>{t('diagram.loading')}</p>
         )}
       </div>
-      <AiDock
-        diagramId={diagramId}
-        canMutate={canMutate}
-        selection={selection}
-        onApproved={handleApproved}
-      />
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <AiDock
+          diagramId={diagramId}
+          canMutate={canMutate}
+          selection={selection}
+          onApproved={handleApproved}
+        />
+        <details>
+          <summary>{t('library.title')}</summary>
+          <LibraryPanel
+            workspaceId={workspaceId}
+            canWrite={canMutate}
+            onInsert={handleInsertLibraryItem}
+          />
+        </details>
+        <details>
+          <summary>{t('metadata.title')}</summary>
+          <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
+        </details>
+        {workspaceId && (
+          <Link to={`/w/${workspaceId}/d/${diagramId}/inventory`}>{t('inventory.open')}</Link>
+        )}
+      </div>
     </div>
   );
 }

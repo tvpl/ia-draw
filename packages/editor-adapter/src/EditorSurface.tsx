@@ -1,8 +1,23 @@
-import { Excalidraw } from '@excalidraw/excalidraw';
+import type { LibraryItem } from '@arch-canvas/library-content';
+import { convertToExcalidrawElements, Excalidraw } from '@excalidraw/excalidraw';
 import { forwardRef, type JSX, useImperativeHandle, useRef } from 'react';
 import { applyRemote } from './applyRemote.js';
 import { buildSceneIndex, computeDiff } from './computeDiff.js';
 import type { ElementDelta, SceneElement } from './types.js';
+
+/** Half-width/height of the inline-icon image element inserted by `insertLibraryItem` (CLIB-03). */
+const ICON_SIZE = 80;
+/** Width/height of the fallback rectangle inserted for `icon.kind === 'external'` items (CLIB-04). */
+const FALLBACK_RECT_WIDTH = 140;
+const FALLBACK_RECT_HEIGHT = 70;
+
+/** Base64-encodes a UTF-8 string for a `data:` URL — `btoa` alone mangles non-Latin1 characters (item SVGs are hand-authored ASCII today, but this stays correct if that ever changes). */
+function utf8ToBase64(value: string): string {
+  const bytes = new TextEncoder().encode(value);
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary);
+}
 
 export interface EditorSurfaceProps {
   /** Elements to seed the canvas with (e.g. the bootstrapped scene, EDT-01). */
@@ -21,6 +36,16 @@ export interface EditorSurfaceProps {
 export interface EditorSurfaceHandle {
   /** Fuses `remote` with the current local scene via `applyRemote` (LWW per element, AD-001) and pushes the result to Excalidraw's own `updateScene`. */
   applyRemoteScene: (remote: readonly SceneElement[]) => void;
+  /**
+   * Inserts a library item into the canvas as a real, editable element (CLIB-03/04, design.md
+   * "Approach A"), centered on the current visible viewport. `icon.kind === 'inline'` registers
+   * the item's SVG as a binary file (`addFiles`) and inserts an `image` element referencing it,
+   * plus a separate (grouped, not container-bound — images don't support bound text) text
+   * element carrying `item.name`. `icon.kind === 'external'` never touches `icon.sourceUrl` —
+   * it inserts the same rectangle+bound-label fallback `compile()` produces for every item
+   * today (spec.md Assumptions: no client-side fetch of external icon artwork, ever).
+   */
+  insertLibraryItem: (item: LibraryItem) => void;
 }
 
 /**
@@ -29,8 +54,25 @@ export interface EditorSurfaceHandle {
  * (internal-subpath-only) type, for the same reason `SceneElement` et al. are
  * derived structurally in `types.ts` rather than imported from a subpath.
  */
+interface ExcalidrawViewportAppState {
+  scrollX: number;
+  scrollY: number;
+  width: number;
+  height: number;
+  zoom: { value: number };
+}
+
+interface ExcalidrawBinaryFile {
+  id: string;
+  dataURL: string;
+  mimeType: string;
+  created: number;
+}
+
 interface ExcalidrawSceneApi {
   updateScene: (sceneData: { elements: readonly SceneElement[] }) => void;
+  getAppState: () => ExcalidrawViewportAppState;
+  addFiles: (files: ExcalidrawBinaryFile[]) => void;
 }
 
 /**
@@ -70,6 +112,75 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
         const local = Array.from(previousSceneRef.current.values());
         const merged = applyRemote(local, remote);
         apiRef.current?.updateScene({ elements: merged });
+      },
+      insertLibraryItem(item: LibraryItem) {
+        const api = apiRef.current;
+        if (!api) return;
+
+        // Center of the visible viewport in scene coordinates — same formula as the
+        // real (unmocked-in-tests) `viewportCoordsToSceneCoords` uses internally for a
+        // client point at the middle of the container: sceneX = clientX/zoom - scrollX,
+        // with clientX - offsetLeft = width/2 at the container's own center.
+        const appState = api.getAppState();
+        const zoomValue = appState.zoom.value;
+        const centerX = appState.width / (2 * zoomValue) - appState.scrollX;
+        const centerY = appState.height / (2 * zoomValue) - appState.scrollY;
+
+        // Bridges plain skeleton objects into Excalidraw's branded `ExcalidrawElementSkeleton`
+        // union without an internal subpath import — same rationale as `initialData`/`onChange`.
+        // biome-ignore lint/suspicious/noExplicitAny: see comment above
+        let skeleton: any[];
+
+        if (item.icon.kind === 'inline') {
+          const fileId = `library-${item.stableKey}-${crypto.randomUUID()}`;
+          const groupId = crypto.randomUUID();
+          api.addFiles([
+            {
+              id: fileId,
+              dataURL: `data:image/svg+xml;base64,${utf8ToBase64(item.icon.svg)}`,
+              mimeType: 'image/svg+xml',
+              created: Date.now(),
+            },
+          ]);
+          skeleton = [
+            {
+              type: 'image',
+              fileId,
+              x: centerX - ICON_SIZE / 2,
+              y: centerY - ICON_SIZE / 2,
+              width: ICON_SIZE,
+              height: ICON_SIZE,
+              groupIds: [groupId],
+            },
+            {
+              type: 'text',
+              text: item.name,
+              x: centerX - ICON_SIZE / 2,
+              y: centerY + ICON_SIZE / 2 + 4,
+              groupIds: [groupId],
+            },
+          ];
+        } else {
+          // CLIB-04: `icon.kind === 'external'` never fetches `icon.sourceUrl` — same
+          // rectangle + bound-label fallback `compile()` already produces server-side.
+          skeleton = [
+            {
+              type: 'rectangle',
+              x: centerX - FALLBACK_RECT_WIDTH / 2,
+              y: centerY - FALLBACK_RECT_HEIGHT / 2,
+              width: FALLBACK_RECT_WIDTH,
+              height: FALLBACK_RECT_HEIGHT,
+              backgroundColor: item.color,
+              label: { text: item.name },
+            },
+          ];
+        }
+
+        const inserted = convertToExcalidrawElements(
+          skeleton,
+        ) as unknown as readonly SceneElement[];
+        const local = Array.from(previousSceneRef.current.values());
+        api.updateScene({ elements: [...local, ...inserted] });
       },
     }));
 

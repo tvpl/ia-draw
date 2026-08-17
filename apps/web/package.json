@@ -13,6 +13,7 @@
   "dependencies": {
     "@arch-canvas/auth": "workspace:*",
     "@arch-canvas/editor-adapter": "workspace:*",
+    "@arch-canvas/library-content": "workspace:*",
     "@arch-canvas/shared-contracts": "workspace:*",
     "@excalidraw/excalidraw": "0.18.1",
     "i18next": "^26.3.6",
