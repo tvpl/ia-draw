@@ -79,6 +79,9 @@ describe('ExportMenu (T2, XPRT-01..04)', () => {
     expect(screen.getByText(/2\.0 KB/)).not.toBeNull();
     expect(screen.getByText(/1\.5 MB/)).not.toBeNull();
     expect(screen.getByText(/4\.0 KB/)).not.toBeNull();
+
+    // XPRT-17: the successful generation is announced too, not just failures.
+    expect(screen.getByTestId('export-menu-announcement').textContent).toBe('Exports prontos');
   });
 
   it('each link opens the signed URL directly (XPRT-02)', async () => {
@@ -158,5 +161,29 @@ describe('ExportMenu (T2, XPRT-01..04)', () => {
       await Promise.resolve();
     });
     await waitFor(() => expect(button).toHaveProperty('disabled', false));
+  });
+
+  it('the generate button and every download link are keyboard-focusable (XPRT-16)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, FORMATS_BODY)),
+    ) as unknown as typeof fetch;
+
+    render(<ExportMenu diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    openMenu();
+
+    const generateButton = screen.getByRole('button', { name: 'Gerar exports' });
+    generateButton.focus();
+    expect(document.activeElement).toBe(generateButton);
+
+    await act(async () => {
+      fireEvent.click(generateButton);
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getAllByRole('link')).toHaveLength(4));
+
+    for (const link of screen.getAllByRole('link')) {
+      link.focus();
+      expect(document.activeElement).toBe(link);
+    }
   });
 });

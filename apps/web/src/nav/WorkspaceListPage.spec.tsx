@@ -351,6 +351,12 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     archiveButton.focus();
     expect(document.activeElement).toBe(archiveButton);
 
+    // XPRT-16: the workspace bundle-request action (visible for this fixture's
+    // workspace_admin role) is keyboard-focusable too.
+    const bundleButton = screen.getByRole('button', { name: 'Solicitar bundle do workspace' });
+    bundleButton.focus();
+    expect(document.activeElement).toBe(bundleButton);
+
     fireEvent.click(archiveButton);
     const confirmButton = screen.getByTestId('confirm-archive-confirm');
     confirmButton.focus();
@@ -387,6 +393,8 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     expect(await screen.findByRole('button', { name: 'Create workspace' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Rename' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Archive' })).toBeTruthy();
+    // XPRT-18: the workspace bundle-request action's own i18n key renders in en too.
+    expect(screen.getByRole('button', { name: 'Request workspace bundle' })).toBeTruthy();
   });
 
   it('archiving the only remaining workspace returns to the zero-workspaces empty state (edge case)', async () => {

@@ -207,6 +207,52 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     await waitFor(() => expect(getCapturedPath()).toBe('/w/ws-1/d/diagram-9'));
   });
 
+  it('a successful import confirmation announces success in the aria-live region (XPRT-17)', async () => {
+    const fetchImpl = vi.fn((_url: string, init?: RequestInit) => {
+      const body = init?.body ? JSON.parse(init.body as string) : {};
+      if (body.confirm) {
+        return Promise.resolve(
+          jsonResponse(201, {
+            preview: { elementCount: 3, appState: {} },
+            diagram: { id: 'diagram-9', projectId: 'project-1', title: 'Imported' },
+          }),
+        );
+      }
+      return Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } }));
+    }) as unknown as typeof fetch;
+
+    // Rendered unconditionally (not gated behind a matched <Route>, unlike the production
+    // mount inside `ProjectListPage`) so this test can observe the announcement text the
+    // component sets right before `navigate()` fires, instead of losing it to the immediate
+    // unmount a real route-gated mount causes once navigation lands on an unmatched path.
+    render(
+      <MemoryRouter initialEntries={['/w/ws-1/p/project-1']}>
+        <ImportDialog projectId="project-1" workspaceId="ws-1" canImport fetchImpl={fetchImpl} />
+      </MemoryRouter>,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    await act(async () => {
+      selectFile('{"elements":[{},{},{}],"appState":{}}');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
+
+    fireEvent.change(screen.getByLabelText('Título do diagrama'), {
+      target: { value: 'Imported' },
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: 'Confirmar import' }));
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await waitFor(() =>
+      expect(screen.getByTestId('import-announcement').textContent).toBe('Diagrama importado'),
+    );
+  });
+
   it('confirming with a blank title never sends the confirmation request (XPRT-11)', async () => {
     const fetchImpl = vi.fn(() =>
       Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } })),
@@ -231,9 +277,64 @@ describe('ImportDialog (T4, XPRT-07..12)', () => {
     expect(fetchImpl.mock.calls.length).toBe(callCountBeforeSubmit);
   });
 
+  it('submitting the form directly with a blank title still never sends the confirmation request (XPRT-11)', async () => {
+    // Same scenario as above, but bypasses the disabled submit button entirely (a disabled
+    // native <button> never dispatches click/submit in jsdom, same as real browsers) —
+    // proves `handleConfirm`'s own guard blocks the request independently of the button's
+    // `disabled` attribute, not just via that attribute.
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } })),
+    );
+    const { container } = renderDialog({ fetchImpl: fetchImpl as unknown as typeof fetch });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+    await act(async () => {
+      selectFile('{"elements":[{},{},{}],"appState":{}}');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
+
+    const form = container.querySelector('form');
+    if (!form) throw new Error('expected the preview form to be rendered');
+    const callCountBeforeSubmit = fetchImpl.mock.calls.length;
+
+    fireEvent.submit(form);
+    await Promise.resolve();
+
+    expect(fetchImpl.mock.calls.length).toBe(callCountBeforeSubmit);
+  });
+
   it('the import trigger is absent when the role lacks diagram:write on the project (XPRT-12)', () => {
     renderDialog({ canImport: false });
 
     expect(screen.queryByRole('button', { name: 'Importar diagrama' })).toBeNull();
+  });
+
+  it('the file input and the confirm button are keyboard-focusable (XPRT-16)', async () => {
+    const fetchImpl = vi.fn(() =>
+      Promise.resolve(jsonResponse(200, { preview: { elementCount: 3, appState: {} } })),
+    ) as unknown as typeof fetch;
+    renderDialog({ fetchImpl });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Importar diagrama' }));
+
+    const fileInput = screen.getByLabelText('Arquivo');
+    fileInput.focus();
+    expect(document.activeElement).toBe(fileInput);
+
+    await act(async () => {
+      selectFile('{"elements":[{},{},{}],"appState":{}}');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await waitFor(() => expect(screen.getByText('3 elementos serão importados')).not.toBeNull());
+
+    fireEvent.change(screen.getByLabelText('Título do diagrama'), {
+      target: { value: 'Imported' },
+    });
+    const confirmButton = screen.getByRole('button', { name: 'Confirmar import' });
+    confirmButton.focus();
+    expect(document.activeElement).toBe(confirmButton);
   });
 });

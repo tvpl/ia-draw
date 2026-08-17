@@ -47,6 +47,8 @@ describe('BundleButton (T3, XPRT-05/06)', () => {
       expect.objectContaining({ method: 'POST' }),
     );
     expect(fetchImpl).toHaveBeenCalledTimes(1);
+    // XPRT-17: the successful generation is announced too, not just failures.
+    expect(screen.getByTestId('bundle-button-announcement').textContent).toBe('Bundle pronto');
   });
 
   it('shows a loading indicator on the button while the bundle is generating (XPRT-06)', async () => {
