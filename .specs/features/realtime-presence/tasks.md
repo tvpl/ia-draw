@@ -463,9 +463,9 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `/ws` está no conjunto proxiado e a sua entrada carrega `ws: true`
-- [ ] Os prefixos existentes continuam com o comportamento atual (sem `ws: true` desnecessário)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `/ws` está no conjunto proxiado e a sua entrada carrega `ws: true`
+- [x] Os prefixos existentes continuam com o comportamento atual (sem `ws: true` desnecessário)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: build
