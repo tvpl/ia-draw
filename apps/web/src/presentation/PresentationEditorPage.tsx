@@ -69,6 +69,11 @@ export function PresentationEditorPage({
   const [addError, setAddError] = useState<string | null>(null);
   const [addInFlight, setAddInFlight] = useState(false);
 
+  const [editingNotesId, setEditingNotesId] = useState<string | null>(null);
+  const [notesDraft, setNotesDraft] = useState('');
+  const [notesError, setNotesError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
   useEffect(() => {
     if (!presentationId) return;
     let cancelled = false;
@@ -138,6 +143,39 @@ export function PresentationEditorPage({
     }
   }
 
+  function startEditNotes(frame: FrameSummary): void {
+    setEditingNotesId(frame.id);
+    setNotesDraft(frame.notes ?? '');
+    setNotesError(null);
+  }
+
+  async function saveNotes(frameId: string): Promise<void> {
+    if (!presentationId || !frames) return;
+    const result = await client.updateFrame(presentationId, frameId, { notes: notesDraft });
+    if (result.status === 'ok') {
+      setFrames(frames.map((frame) => (frame.id === frameId ? result.frame : frame)));
+      setEditingNotesId(null);
+      setAnnouncement(t('presentation.editor.announcement.frameUpdated'));
+      return;
+    }
+    setNotesError(t('presentation.editor.error.generic'));
+    setAnnouncement(t('presentation.editor.error.generic'));
+  }
+
+  async function handleDeleteFrame(frame: FrameSummary): Promise<void> {
+    if (!presentationId || !frames) return;
+    if (!window.confirm(t('presentation.editor.deleteFrameConfirm'))) return;
+
+    const result = await client.deleteFrame(presentationId, frame.id);
+    if (result.status === 'ok') {
+      setFrames(frames.filter((f) => f.id !== frame.id));
+      setAnnouncement(t('presentation.editor.announcement.frameDeleted'));
+      return;
+    }
+    setDeleteError(t('presentation.editor.error.generic'));
+    setAnnouncement(t('presentation.editor.error.generic'));
+  }
+
   if (notFound) {
     return (
       <div>
@@ -160,16 +198,51 @@ export function PresentationEditorPage({
       </div>
 
       <h3>{t('presentation.editor.framesTitle')}</h3>
+      {deleteError && <p>{deleteError}</p>}
       {frames && frames.length === 0 && <p>{t('presentation.list.empty')}</p>}
       {frames && frames.length > 0 && (
         <ol data-testid="frame-list">
           {frames.map((frame, index) => {
             const descriptor = frameLabel(frame, index + 1);
+            const isEditingNotes = editingNotesId === frame.id;
             return (
               <li key={frame.id} data-testid={`frame-row-${frame.id}`}>
                 <span>{t(descriptor.key, descriptor.params)}</span>
-                {frame.notes !== null && canMutate && (
-                  <p data-testid={`frame-notes-${frame.id}`}>{frame.notes}</p>
+
+                {isEditingNotes ? (
+                  <form
+                    onSubmit={(event) => {
+                      event.preventDefault();
+                      void saveNotes(frame.id);
+                    }}
+                  >
+                    <label>
+                      {t('presentation.editor.notesLabel')}
+                      <textarea
+                        value={notesDraft}
+                        onChange={(event) => setNotesDraft(event.target.value)}
+                      />
+                    </label>
+                    <button type="submit">{t('presentation.editor.saveNotes')}</button>
+                    {notesError && <p>{notesError}</p>}
+                  </form>
+                ) : (
+                  canMutate &&
+                  frame.notes !== null && (
+                    <p data-testid={`frame-notes-${frame.id}`}>{frame.notes}</p>
+                  )
+                )}
+
+                {canMutate && !isEditingNotes && (
+                  <button type="button" onClick={() => startEditNotes(frame)}>
+                    {t('presentation.editor.editNotes')}
+                  </button>
+                )}
+
+                {canMutate && (
+                  <button type="button" onClick={() => void handleDeleteFrame(frame)}>
+                    {t('presentation.editor.deleteFrame')}
+                  </button>
                 )}
               </li>
             );

@@ -416,6 +416,7 @@
       "sourceLogicalLabel": "Or a logical label (no canvas frame)",
       "addFrame": "Add frame",
       "notesLabel": "Presenter notes (private)",
+      "editNotes": "Edit notes",
       "saveNotes": "Save notes",
       "deleteFrame": "Remove frame",
       "deleteFrameConfirm": "Remove this frame from the presentation?",

@@ -416,6 +416,7 @@
       "sourceLogicalLabel": "Ou um rótulo lógico (sem frame no canvas)",
       "addFrame": "Adicionar frame",
       "notesLabel": "Notas do apresentador (privadas)",
+      "editNotes": "Editar notas",
       "saveNotes": "Salvar notas",
       "deleteFrame": "Remover frame",
       "deleteFrameConfirm": "Remover este frame da apresentação?",

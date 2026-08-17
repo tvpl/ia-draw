@@ -55,9 +55,29 @@ function baseFetch({
         frame: { id: 'f-new', presentationId: 'p-1', notes: null, navLinksJson: [], ...body },
       });
     }
+    if (url.startsWith('/presentations/p-1/frames/') && init?.method === 'PATCH') {
+      const frameId = url.split('/').pop();
+      const body = JSON.parse(init.body as string);
+      return jsonResponse(200, {
+        frame: { id: frameId, presentationId: 'p-1', navLinksJson: [], ...body },
+      });
+    }
+    if (url.startsWith('/presentations/p-1/frames/') && init?.method === 'DELETE') {
+      return new Response(null, { status: 204 });
+    }
     throw new Error(`unexpected url ${url}`);
   }) as unknown as typeof fetch;
 }
+
+const editableFrame = {
+  id: 'f-1',
+  presentationId: 'p-1',
+  elementId: null,
+  frameId: 'intro',
+  position: 0,
+  notes: 'speaker note',
+  navLinksJson: [],
+};
 
 describe('PresentationEditorPage — load and list (PRZ-05)', () => {
   it('lists frames in the order the server returned them', async () => {
@@ -205,5 +225,65 @@ describe('PresentationEditorPage — add frame (PRZ-06..08, PRZ-11)', () => {
       await screen.findByText('Um dos links aponta para um frame que não existe mais.'),
     ).toBeTruthy();
     expect(screen.queryByTestId('frame-list')).toBeNull();
+  });
+});
+
+describe('PresentationEditorPage — edit notes and delete frame (PRZ-09..12)', () => {
+  it('shows the notes edit control only for canMutate, never a raw edit-notes control otherwise', async () => {
+    const fetchImpl = baseFetch({ frames: [editableFrame], canMutate: false });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    expect(screen.queryByRole('button', { name: 'Editar notas' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Remover frame' })).toBeNull();
+  });
+
+  it('saving edited notes PATCHes {notes} and updates the frame in place', async () => {
+    const fetchImpl = baseFetch({ frames: [editableFrame] });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-list')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'Editar notas' }));
+    const textarea = screen.getByLabelText('Notas do apresentador (privadas)');
+    fireEvent.change(textarea, { target: { value: 'updated note' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar notas' }));
+
+    await waitFor(() =>
+      expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1/frames/f-1', {
+        method: 'PATCH',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ notes: 'updated note' }),
+      }),
+    );
+  });
+
+  it('deleting a frame, after confirming, DELETEs and removes it from the list only on 204', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const fetchImpl = baseFetch({ frames: [editableFrame] });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-row-f-1')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'Remover frame' }));
+
+    await waitFor(() => expect(screen.queryByTestId('frame-row-f-1')).toBeNull());
+    expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1/frames/f-1', { method: 'DELETE' });
+    confirmSpy.mockRestore();
+  });
+
+  it('declining the confirmation never emits a DELETE request', async () => {
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    const fetchImpl = baseFetch({ frames: [editableFrame] });
+    renderPage(fetchImpl);
+
+    await waitFor(() => expect(screen.getByTestId('frame-row-f-1')).toBeTruthy());
+    fireEvent.click(screen.getByRole('button', { name: 'Remover frame' }));
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(screen.getByTestId('frame-row-f-1')).toBeTruthy();
+    expect(fetchImpl).not.toHaveBeenCalledWith(
+      '/presentations/p-1/frames/f-1',
+      expect.objectContaining({ method: 'DELETE' }),
+    );
+    confirmSpy.mockRestore();
   });
 });
