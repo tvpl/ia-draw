@@ -107,13 +107,13 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] `redactSensitiveUrl('/share/abc123')` devolve `/share/[REDACTED]`
-- [ ] `redactSensitiveUrl('/ws/diagrams/d-1?ticket=abc123')` devolve a mesma URL com o valor de `ticket` trocado por `[REDACTED]`
-- [ ] Uma URL sem `/share/` e sem `ticket=` volta idêntica
-- [ ] Com `NODE_ENV=development` e stream capturado, `GET /share/<token>` produz saída de log que NÃO contém o token e que contém `/share/[REDACTED]`
-- [ ] `request.url` real não é reatribuído: o corpo `problem+json` de um 404 continua trazendo a URL original com o token (prova de SHR-26)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
-- [ ] Test count: 5 testes novos passam (nenhum teste existente removido)
+- [x] `redactSensitiveUrl('/share/abc123')` devolve `/share/[REDACTED]`
+- [x] `redactSensitiveUrl('/ws/diagrams/d-1?ticket=abc123')` devolve a mesma URL com o valor de `ticket` trocado por `[REDACTED]`
+- [x] Uma URL sem `/share/` e sem `ticket=` volta idêntica
+- [x] Com `NODE_ENV=development` e stream capturado, `GET /share/<token>` produz saída de log que NÃO contém o token e que contém `/share/[REDACTED]`
+- [x] `request.url` real não é reatribuído: o corpo `problem+json` de um 404 continua trazendo a URL original com o token (prova de SHR-26)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/server run test:unit`
+- [x] Test count: 5 testes novos passam (nenhum teste existente removido)
 
 **Tests**: unit
 **Gate**: quick

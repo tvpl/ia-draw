@@ -261,10 +261,10 @@ abrir a visão pública no mesmo locale.
 | SHR-20 | P1: Somente leitura de verdade | F10 | Pending |
 | SHR-21 | P1: Somente leitura de verdade | F10 | Pending |
 | SHR-22 | P1: Editor autenticado respeita papel | F10 | Pending |
-| SHR-23 | P1: Token fora do log | F10 | Pending |
-| SHR-24 | P1: Token fora do log | F10 | Pending |
-| SHR-25 | P1: Token fora do log | F10 | Pending |
-| SHR-26 | P1: Token fora do log | F10 | Pending |
+| SHR-23 | P1: Token fora do log | F10 | Implementing |
+| SHR-24 | P1: Token fora do log | F10 | Implementing |
+| SHR-25 | P1: Token fora do log | F10 | Implementing |
+| SHR-26 | P1: Token fora do log | F10 | Implementing |
 | SHR-27 | P2: Link de apresentação | F10 | Pending |
 | SHR-28 | P2: Link de apresentação | F10 | Pending |
 | SHR-29 | P2: Teclado e idioma | F10 | Pending |
