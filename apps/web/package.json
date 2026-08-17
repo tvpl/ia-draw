@@ -11,6 +11,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@arch-canvas/auth": "workspace:*",
     "@arch-canvas/editor-adapter": "workspace:*",
     "@arch-canvas/shared-contracts": "workspace:*",
     "@excalidraw/excalidraw": "0.18.1",

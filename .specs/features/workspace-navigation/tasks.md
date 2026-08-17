@@ -239,13 +239,13 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] Lists workspaces from `GET /workspaces`, each item linking to `/w/:workspaceId`
-- [ ] Create action always visible; empty/whitespace name never submits; 409 shows conflict message with name preserved
-- [ ] Rename/archive shown per item only when that item's `role` grants `workspace:write` (via `can()`); archive routes through `ConfirmArchiveDialog`
-- [ ] `items.length === 0` renders the dedicated empty state (NAV-22) with the create CTA, not the normal empty list
-- [ ] `apps/web/package.json` gains `@arch-canvas/auth: workspace:*`
-- [ ] Unit tests cover all bullets above
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lists workspaces from `GET /workspaces`, each item linking to `/w/:workspaceId`
+- [x] Create action always visible; empty/whitespace name never submits; 409 shows conflict message with name preserved
+- [x] Rename/archive shown per item only when that item's `role` grants `workspace:write` (via `can()`); archive routes through `ConfirmArchiveDialog`
+- [x] `items.length === 0` renders the dedicated empty state (NAV-22) with the create CTA, not the normal empty list
+- [x] `apps/web/package.json` gains `@arch-canvas/auth: workspace:*`
+- [x] Unit tests cover all bullets above
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

@@ -202,6 +202,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@arch-canvas/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
       '@arch-canvas/editor-adapter':
         specifier: workspace:*
         version: link:../../packages/editor-adapter
