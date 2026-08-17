@@ -1,9 +1,10 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-// Side-effect import — initializes the shared i18next singleton. Default language is
-// pt-BR, so assertions below use the pt-BR strings.
-import '../i18n/index.js';
+// Also a side-effect import — initializes the shared i18next singleton. Default language is
+// pt-BR, so assertions below use the pt-BR strings unless a test explicitly switches locale
+// (NAV-26).
+import i18n from '../i18n/index.js';
 import { DiagramListPage } from './DiagramListPage.js';
 
 beforeAll(() => {
@@ -25,9 +26,12 @@ beforeAll(() => {
   }
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
+  // Restores the default locale in case a test switched it (NAV-26) and failed before
+  // switching back, so later tests in this file aren't left asserting the wrong strings.
+  await i18n.changeLanguage('pt-BR');
 });
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -346,5 +350,20 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
       ),
     );
     expect(screen.getByText('Este projeto ainda não tem diagramas.')).toBeTruthy();
+  });
+
+  it('renders in the en locale as well as pt-BR (NAV-26)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => jsonResponse(200, { items: [] }),
+    });
+
+    await i18n.changeLanguage('en');
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('This project has no diagrams yet.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Create diagram' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Archive this project' })).toBeTruthy();
   });
 });

@@ -1,10 +1,11 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-// Side-effect import — initializes the shared i18next singleton `useTranslation()` reads
-// from. Default language is pt-BR (`DEFAULT_LANGUAGE`), so assertions below use the pt-BR
-// strings ("Criar workspace", "Renomear", "Arquivar", ...).
-import '../i18n/index.js';
+// Also a side-effect import — initializes the shared i18next singleton `useTranslation()`
+// reads from. Default language is pt-BR (`DEFAULT_LANGUAGE`), so assertions below use the
+// pt-BR strings ("Criar workspace", "Renomear", "Arquivar", ...) unless a test explicitly
+// switches locale (NAV-26).
+import i18n from '../i18n/index.js';
 import { WorkspaceListPage } from './WorkspaceListPage.js';
 
 /**
@@ -31,9 +32,12 @@ beforeAll(() => {
   }
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   vi.unstubAllGlobals();
+  // Restores the default locale in case a test switched it (NAV-26) and failed before
+  // switching back, so later tests in this file aren't left asserting the wrong strings.
+  await i18n.changeLanguage('pt-BR');
 });
 
 function jsonResponse(status: number, body: unknown): Response {
@@ -370,5 +374,18 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
     fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
 
     await waitFor(() => expect(liveRegion.textContent).toBe('Arquivar'));
+  });
+
+  it('renders in the en locale as well as pt-BR (NAV-26)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, { items: [workspaceFixture()] }),
+    ) as unknown as typeof fetch;
+
+    await i18n.changeLanguage('en');
+    renderPage(fetchImpl);
+
+    expect(await screen.findByRole('button', { name: 'Create workspace' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Rename' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Archive' })).toBeTruthy();
   });
 });
