@@ -125,4 +125,10 @@ describe('ConfirmArchiveDialog (NAV-18)', () => {
     cancelButton.focus();
     expect(document.activeElement).toBe(cancelButton);
   });
+
+  it('states the action cannot be undone (NAV-18)', () => {
+    renderOpenDialog();
+
+    expect(screen.getByText('Essa ação não pode ser desfeita.')).toBeTruthy();
+  });
 });

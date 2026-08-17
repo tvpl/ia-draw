@@ -366,4 +366,28 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
     expect(screen.getByRole('button', { name: 'Create diagram' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Archive this project' })).toBeTruthy();
   });
+
+  it('announces archive completion in an aria-live=polite region (NAV-25)', async () => {
+    const fetchImpl = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () =>
+        jsonResponse(200, { items: [{ id: 'd-1', projectId: 'p-1', title: 'Diagram One' }] }),
+      '/diagrams/d-1': (init) => {
+        expect(init?.method).toBe('DELETE');
+        return jsonResponse(204, null);
+      },
+    });
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Diagram One' });
+
+    const liveRegion = screen.getByTestId('diagram-announcement');
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar' }));
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() => expect(liveRegion.textContent).toBe('Arquivar'));
+  });
 });

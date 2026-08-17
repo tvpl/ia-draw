@@ -354,4 +354,27 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
     expect(screen.getByRole('button', { name: 'Create project' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Archive this workspace' })).toBeTruthy();
   });
+
+  it('announces archive completion in an aria-live=polite region (NAV-25)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1' && !init)
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      if (url === '/projects/p-1' && init?.method === 'DELETE') return jsonResponse(204, null);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('link', { name: 'Project One' });
+
+    const liveRegion = screen.getByTestId('project-announcement');
+    expect(liveRegion.getAttribute('aria-live')).toBe('polite');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Arquivar' }));
+    fireEvent.click(screen.getByTestId('confirm-archive-confirm'));
+
+    await waitFor(() => expect(liveRegion.textContent).toBe('Arquivar'));
+  });
 });
