@@ -189,11 +189,11 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `jest-axe` run in at least 3 states — populated list, secret panel open, rotate-confirmation open — each with zero serious/critical violations
-- [ ] Explicit keyboard-focus assertions covering every interactive control of the page: back link, create URL input, event checkboxes, create submit, per-row edit/toggle/rotate/remove, secret-panel copy and dismiss, and the remove-dialog confirm button (WHK-31)
-- [ ] Asserts the outcome region carries `aria-live="polite"` and receives a real announcement after a completed action (WHK-32)
-- [ ] An explicit `en`-locale render test asserting English strings, alongside the default `pt-BR` (WHK-33)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` run in at least 3 states — populated list, secret panel open, rotate-confirmation open — each with zero serious/critical violations
+- [x] Explicit keyboard-focus assertions covering every interactive control of the page: back link, create URL input, event checkboxes, create submit, per-row edit/toggle/rotate/remove, secret-panel copy and dismiss, and the remove-dialog confirm button (WHK-31)
+- [x] Asserts the outcome region carries `aria-live="polite"` and receives a real announcement after a completed action (WHK-32)
+- [x] An explicit `en`-locale render test asserting English strings, alongside the default `pt-BR` (WHK-33)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
