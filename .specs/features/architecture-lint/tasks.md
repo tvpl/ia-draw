@@ -236,11 +236,11 @@ que `CommentsSidebar` já recebe — nenhuma segunda fonte de "quais elementos e
 
 **Done when**:
 
-- [ ] `LintPanel` recebe `diagramId` real da rota e `liveElementIds` (o memo já existente)
-- [ ] `onJumpToElement` chama `editorSurfaceRef.current?.focusElement(elementId)`, nenhum outro efeito colateral
-- [ ] Doc comment da página atualizado com a mesma convenção das demais fatias (uma frase explicando de onde `lintPanel` vem e por que reusa `editorSurfaceRef`)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
-- [ ] Test count: teste novo em `DiagramEditorPage.spec.tsx` confirmando a ligação (clique em "ir para o elemento" dentro do `LintPanel` renderizado chama `focusElement` com o id certo), nenhum teste existente quebra
+- [x] `LintPanel` recebe `diagramId` real da rota e `liveElementIds` (o memo já existente)
+- [x] `onJumpToElement` chama `editorSurfaceRef.current?.focusElement(elementId)`, nenhum outro efeito colateral
+- [x] Doc comment da página atualizado com a mesma convenção das demais fatias (uma frase explicando de onde `lintPanel` vem e por que reusa `editorSurfaceRef`)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit` (escopado a `@arch-canvas/web`, mais `pnpm -w build` para confirmar o workspace inteiro)
+- [x] Test count: teste novo em `DiagramEditorPage.spec.tsx` (ALNT-08/09/10) confirma a ligação fim a fim — clique em "ir para o elemento" na aba Lint chama `updateScene`/`scrollToContent` do mock do Excalidraw com o id certo; 32 testes no arquivo, nenhum existente quebrou
 
 **Tests**: unit
 **Gate**: full
