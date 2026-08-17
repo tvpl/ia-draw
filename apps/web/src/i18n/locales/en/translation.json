@@ -14,5 +14,379 @@
     "offline": "Offline — {{count}} pending changes",
     "conflict": "Conflict",
     "readOnly": "Read only"
+  },
+  "aiDock": {
+    "title": "AI dock",
+    "requestLabel": "Describe what you want to change",
+    "submit": "Send",
+    "status": {
+      "idle": "Idle",
+      "submitting": "Sending request…",
+      "awaiting_approval": "Awaiting your approval",
+      "approving": "Applying…",
+      "applied": "Applied",
+      "restoring": "Undoing…",
+      "error": "Something went wrong",
+      "rate_limited": "Rate limit reached",
+      "expired": "This proposal expired — send a new request"
+    },
+    "preview": {
+      "added": "Added ({{count}})",
+      "removed": "Removed ({{count}})",
+      "moved": "Moved ({{count}})",
+      "modified": "Modified ({{count}})",
+      "metadataChanged": "Metadata changed ({{count}})"
+    },
+    "approve": "Approve",
+    "discard": "Discard",
+    "undo": "Undo",
+    "rateLimited": "Limit of 20 requests per minute reached. Try again in 60 seconds.",
+    "conflict": "The diagram changed since your request. Send it again to try once more.",
+    "error": {
+      "no_provider_configured": "No AI provider is configured. Register one in the AI provider admin screen.",
+      "unknown": "Error: {{code}}"
+    },
+    "sensitiveChange": "Sensitive change — review carefully before approving"
+  },
+  "comments": {
+    "title": "Comments",
+    "tabs": {
+      "ai": "AI",
+      "comments": "Comments"
+    },
+    "loading": "Loading comments…",
+    "empty": "No comments on this diagram yet.",
+    "error": "Something went wrong. Try again.",
+    "notFound": "This diagram doesn't exist or you don't have access to it.",
+    "anchor": "Anchored to {{elementId}}",
+    "anchorMissing": "Anchor removed ({{elementId}})",
+    "composer": {
+      "label": "New comment",
+      "submit": "Comment",
+      "anchor": {
+        "none": "No anchor — general diagram comment",
+        "element": "Will be anchored to {{elementId}}",
+        "multiple": "Several elements selected — this comment will not be anchored"
+      }
+    },
+    "reply": {
+      "action": "Reply",
+      "label": "Your reply",
+      "submit": "Send reply"
+    },
+    "resolve": "Resolve",
+    "reopen": "Reopen",
+    "resolvedBadge": "Resolved",
+    "showResolved": "Show resolved",
+    "refresh": "Refresh",
+    "announce": {
+      "created": "Comment posted.",
+      "replied": "Reply posted.",
+      "resolved": "Comment resolved.",
+      "reopened": "Comment reopened.",
+      "failed": "The action failed. Try again."
+    }
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "passwordLabel": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "invalidCredentials": "Invalid email or password.",
+    "ssoButton": "Sign in with SSO",
+    "ssoFailed": "Corporate sign-in failed. Please try again.",
+    "logout": "Sign out"
+  },
+  "export": {
+    "menu": {
+      "title": "Export",
+      "generate": "Generate exports",
+      "success": "Exports ready",
+      "rateLimited": "Too many export requests — wait a moment and try again.",
+      "error": "Couldn't generate exports. Try again.",
+      "format": {
+        "excalidraw": ".excalidraw",
+        "svg": "SVG",
+        "png": "PNG",
+        "pdf": "PDF"
+      }
+    },
+    "bundle": {
+      "button": "Download bundle",
+      "loading": "Generating bundle…",
+      "success": "Bundle ready",
+      "error": "Couldn't generate the bundle. Try again."
+    }
+  },
+  "import": {
+    "trigger": "Import diagram",
+    "title": "Import .excalidraw file",
+    "fileLabel": "File",
+    "preview": "{{count}} elements will be imported",
+    "titleLabel": "Diagram title",
+    "confirm": "Confirm import",
+    "cancel": "Cancel",
+    "success": "Diagram imported"
+  },
+  "nav": {
+    "workspaces": {
+      "title": "Workspaces",
+      "nameLabel": "Workspace name",
+      "create": "Create workspace",
+      "conflict": "A workspace with that name already exists.",
+      "emptyState": "You don't belong to any workspace yet.",
+      "emptyStateCta": "Create your first workspace",
+      "archiveCurrent": "Archive this workspace"
+    },
+    "workspaceBundle": {
+      "action": "Request workspace bundle",
+      "queued": "Bundle requested — this product doesn't show when it finishes or where to download it; treat this as an operational follow-up.",
+      "unavailable": "Bulk bundle requests are temporarily unavailable."
+    },
+    "projects": {
+      "title": "Projects",
+      "nameLabel": "Project name",
+      "create": "Create project",
+      "empty": "This workspace has no projects yet.",
+      "archiveCurrent": "Archive this project"
+    },
+    "diagrams": {
+      "title": "Diagrams",
+      "nameLabel": "Diagram title",
+      "create": "Create diagram",
+      "empty": "This project has no diagrams yet."
+    },
+    "members": {
+      "link": "Members",
+      "title": "Members",
+      "emailLabel": "Email",
+      "roleLabel": "Role",
+      "roleSelectPlaceholder": "Select a role",
+      "invite": "Invite",
+      "notFound": "No account found with that email.",
+      "alreadyMember": "This person is already a member of this workspace.",
+      "added": "Member added.",
+      "remove": "Remove",
+      "removed": "Member removed.",
+      "roleChanged": "Role updated.",
+      "lastAdminBlock": {
+        "selfRemove": "You can't remove yourself — you are the only admin of this workspace.",
+        "selfDowngrade": "You can't change your own role — you are the only admin of this workspace."
+      },
+      "roleOptions": {
+        "orgAdmin": "Org Admin",
+        "workspaceAdmin": "Workspace Admin",
+        "editor": "Editor",
+        "reviewer": "Reviewer",
+        "viewer": "Viewer"
+      }
+    },
+    "webhooks": {
+      "link": "Webhooks",
+      "title": "Webhooks",
+      "empty": "This workspace has no webhooks yet.",
+      "urlLabel": "Endpoint URL",
+      "eventsLabel": "Events",
+      "eventOptions": {
+        "diagram.created": "Diagram created",
+        "diagram.updated": "Diagram updated",
+        "diagram.published": "Diagram published",
+        "spec.generated": "Spec generated",
+        "comment.mentioned": "Mentioned in a comment"
+      },
+      "create": "Add webhook",
+      "created": "Webhook added.",
+      "urlRequired": "The endpoint URL is required.",
+      "eventsRequired": "Select at least one event.",
+      "enabled": "Enabled",
+      "disabled": "Disabled",
+      "toggleEnable": "Enable",
+      "toggleDisable": "Disable",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "updated": "Webhook updated.",
+      "remove": "Remove",
+      "removed": "Webhook removed.",
+      "rotate": "Rotate secret",
+      "rotateConfirm": "Rotate now",
+      "rotateWarning": "The current secret stops working immediately, with no grace period.",
+      "rotated": "Secret rotated.",
+      "secret": {
+        "title": "Signing secret",
+        "warning": "This is the only time this secret is shown. Copy it now — it cannot be retrieved later.",
+        "copy": "Copy secret",
+        "copied": "Secret copied to the clipboard.",
+        "copyFailed": "Couldn't copy automatically. Select the secret above and copy it manually.",
+        "dismiss": "I saved it"
+      }
+    },
+    "rename": "Rename",
+    "renameSave": "Save",
+    "renameCancel": "Cancel",
+    "archive": "Archive",
+    "archiveConfirm": {
+      "title": "Archive this item?",
+      "body": "This cannot be undone.",
+      "confirm": "Archive",
+      "cancel": "Cancel"
+    },
+    "back": "Back",
+    "notFound": "This item doesn't exist or you don't have access to it.",
+    "error": {
+      "conflict": "That name is already taken.",
+      "forbidden": "You don't have permission to do that.",
+      "generic": "Something went wrong. Try again."
+    }
+  },
+  "library": {
+    "title": "Component library",
+    "searchLabel": "Search components",
+    "insert": "Insert",
+    "inserted": "{{name}} inserted into the canvas",
+    "loading": "Loading library…",
+    "error": "Couldn't load the library.",
+    "retry": "Retry",
+    "emptySearch": "No components match your search."
+  },
+  "metadata": {
+    "title": "Element metadata",
+    "emptyState": "Select an element to see or edit its metadata.",
+    "semanticTypeLabel": "Semantic type",
+    "metadataJsonLabel": "Metadata (JSON)",
+    "save": "Save",
+    "saved": "Metadata saved",
+    "invalidJson": "Metadata must be valid JSON.",
+    "error": "Couldn't load or save the metadata. Try again."
+  },
+  "inventory": {
+    "title": "Inventory",
+    "open": "View inventory",
+    "exportCsv": "Export CSV",
+    "empty": "No elements have been classified yet.",
+    "removed": "Removed from canvas",
+    "columns": {
+      "elementId": "Element",
+      "elementType": "Type",
+      "semanticType": "Semantic type",
+      "revision": "Revision"
+    },
+    "error": "Couldn't load the inventory."
+  },
+  "history": {
+    "panelToggle": "History",
+    "loading": "Loading history…",
+    "error": "Couldn't load the history.",
+    "emptyState": "No snapshots yet. Automatic snapshots appear as you edit the diagram.",
+    "kind": {
+      "auto": "Automatic",
+      "published": "Published",
+      "pre_ai": "Before AI edit",
+      "restore_point": "Restore point"
+    },
+    "unnamedSnapshot": "Unnamed snapshot",
+    "create": {
+      "nameLabel": "Snapshot name (optional)",
+      "submit": "Create snapshot",
+      "success": "Snapshot created.",
+      "error": "Couldn't create the snapshot."
+    },
+    "restoreAction": "Restore",
+    "restoreConfirm": {
+      "title": "Restore this snapshot?",
+      "body": "Restoring creates a new revision from this snapshot — no revision in between is deleted, everything stays on the timeline.",
+      "confirm": "Restore",
+      "cancel": "Cancel"
+    },
+    "restore": {
+      "success": "Restored. New revision: {{revision}}.",
+      "notFound": "That snapshot no longer exists. The list was refreshed.",
+      "error": "Couldn't restore the snapshot."
+    },
+    "diff": {
+      "title": "Compare revisions",
+      "fromLabel": "From",
+      "toLabel": "To",
+      "compare": "Compare",
+      "disabledExplanation": "You need at least two points on the timeline to compare.",
+      "noChanges": "No structural changes between these two revisions.",
+      "added": "Added ({{count}})",
+      "removed": "Removed ({{count}})",
+      "moved": "Moved ({{count}})",
+      "modified": "Modified ({{count}})",
+      "error": "Couldn't compare those revisions."
+    }
+  },
+  "presence": {
+    "status": {
+      "connecting": "Connecting to live presence…",
+      "connected": "Live presence connected",
+      "disconnected": "Live presence disconnected"
+    }
+  },
+  "adminProviders": {
+    "title": "AI providers",
+    "globalScope": "Global scope — applies to the whole instance",
+    "workspaceScope": "This workspace's scope — overrides the global provider",
+    "empty": "No provider registered in this scope.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "baseUrlLabel": "Provider endpoint",
+    "modelLabel": "Model",
+    "keyLabel": "API key",
+    "keyKeepHint": "Leave blank to keep the current key.",
+    "create": "Register provider",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "test": "Test connection",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "created": "Provider registered.",
+    "updated": "Provider updated.",
+    "activated": "Provider activated.",
+    "deactivated": "Provider deactivated.",
+    "rejectedUrl": "The server rejected that provider endpoint.",
+    "rateLimited": "Reached the limit of 10 connection tests per 60 seconds. Try again shortly.",
+    "testSuccess": "Connection OK. Model available: {{modelAvailable}}. Tool calling: {{toolCalling}}.",
+    "testFailure": "Connection failed: {{error}}",
+    "yes": "yes",
+    "no": "no",
+    "globalLink": "AI providers (global)",
+    "workspaceLink": "AI providers"
+  },
+  "share": {
+    "panelTitle": "Share link",
+    "roleLabel": "Role granted by the link",
+    "roleSelectPlaceholder": "Choose a role",
+    "roleOptions": {
+      "orgAdmin": "Organization admin",
+      "workspaceAdmin": "Workspace admin",
+      "editor": "Editor",
+      "reviewer": "Reviewer",
+      "viewer": "Viewer"
+    },
+    "expiresAtLabel": "Expires on",
+    "create": "Create link",
+    "createdListTitle": "Links created in this session",
+    "sessionOnlyNotice": "Only the links you created on this screen appear here. Reloading the page clears the list, and the URL cannot be recovered afterwards.",
+    "oneShotNotice": "Copy this URL now. It is shown only once and cannot be recovered.",
+    "urlLabel": "Share URL",
+    "revoke": "Revoke",
+    "revokedBadge": "Revoked",
+    "created": "Share link created.",
+    "revoked": "Share link revoked.",
+    "error": {
+      "roleCeiling": "You cannot grant a role above your own.",
+      "expiresInPast": "Choose an expiry date in the future.",
+      "generic": "Something went wrong. Try again."
+    },
+    "public": {
+      "loading": "Loading the shared diagram…",
+      "invalid": "This link is invalid, expired or revoked.",
+      "readOnlyNotice": "Read-only view. Nothing you do here is saved.",
+      "presentationTitle": "Presentation: {{name}}",
+      "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
+    }
   }
 }

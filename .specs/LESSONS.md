@@ -170,6 +170,84 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: tasks.md:525-535 (T17 orchestrator note); apps/server/src/openapi/registry.ts (task-planning)
 - last seen: 2026-08-16T17:46:09Z
 
+### L-027 - When an acceptance criterion has two clauses, assert both: the request emission is usually tested and the resulting state is usually skipped.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `web` · harmful: 0
+- features: ai-dock
+- evidence: DOCK-18, DOCK-14, DOCK-08, DOCK-04 (.specs/features/ai-dock/validation.md) (web)
+- last seen: 2026-08-16T21:47:52Z
+
+### L-028 - A generator that writes a committed artifact must run the repo formatter over its own output, or the next lint gate fails on a file nobody edited.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: ai-dock
+- evidence: .specs/features/ai-dock/validation.md Gate Check (docs/openapi.json format error, commit 9b1efae) (repo-tooling)
+- last seen: 2026-08-16T21:47:59Z
+
+### L-029 - When a criterion caps a visible list, state whether the remainder is rendered inside a scroll container or dropped — 'the rest reachable by scrolling' is not decidable against a slice.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `traceability` · harmful: 0
+- features: ai-dock
+- evidence: .specs/features/ai-dock/spec.md Edge Cases (>50 elements) vs apps/web/src/ai-dock/AiDock.tsx:160 (traceability)
+- last seen: 2026-08-16T21:47:59Z
+
+### L-030 - When an acceptance criterion names an ARIA attribute or live region, assert that attribute in the test, not just that the message text renders.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `a11y` · harmful: 0
+- features: sso-sign-in
+- evidence: apps/web/src/auth/LoginPage.tsx:115 (mutant M5, SSO-20) (a11y)
+- last seen: 2026-08-16T22:27:30Z
+
+### L-031 - When an acceptance criterion describes an action on the resource currently being viewed, scope a page-level action for it - per-row actions on that resource's children never satisfy it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `ui` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-21 (.specs/features/workspace-navigation/validation.md, P1 Arquivar table) (ui)
+- last seen: 2026-08-17T00:45:57Z
+
+### L-032 - Keyboard-reachability criteria need an explicit Tab/Enter test - an axe violations check evidences static accessibility properties only, never reachability.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `a11y` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-24 (.specs/features/workspace-navigation/validation.md, P2 table) (a11y)
+- last seen: 2026-08-17T00:45:57Z
+
+### L-033 - A criterion covering two locales needs a test that renders in the non-default locale - asserting only the default locale's strings leaves it uncovered.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `i18n` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-26 (.specs/features/workspace-navigation/validation.md, P2 table) (i18n)
+- last seen: 2026-08-17T00:45:58Z
+
+### L-034 - When a criterion names two required outcomes, assert both - a test covering only the first half leaves the criterion partly unevidenced.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `tests` · harmful: 0
+- features: workspace-navigation
+- evidence: NAV-18, NAV-25 (.specs/features/workspace-navigation/validation.md) (tests)
+- last seen: 2026-08-17T00:45:58Z
+
+### L-035 - When a spec requires an aria-live announcement on both success and failure of a write action, add a test that drives the client through the failure branch and asserts the failure announcement text, not just the success branch.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `web/a11y-announcements` · harmful: 0
+- features: component-library
+- evidence: apps/web/src/library/MetadataPanel.tsx:104-106 (web/a11y-announcements)
+- last seen: 2026-08-17T02:31:49Z
+
+### L-036 - When a spec requires every action to be keyboard-reachable, assert focusability for each named interactive control individually rather than only a sample of them.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `web/a11y-keyboard` · harmful: 0
+- features: component-library
+- evidence: CLIB-18 (web/a11y-keyboard)
+- last seen: 2026-08-17T02:31:49Z
+
+### L-037 - Trace an acceptance criterion phrased about the screen to a screen-level test; a child component's callback assertion does not cover it.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: workspace-webhooks
+- evidence: WHK-17 - WorkspaceWebhooksPage.tsx:246 (no screen-level evidence) (apps/web)
+- last seen: 2026-08-17T03:41:31Z
+
+### L-038 - Assert that dismissing a one-time reveal removes the sensitive value from the document, not just that the dismiss callback fired.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: workspace-webhooks
+- evidence: Sensor M2 - WorkspaceWebhooksPage.tsx:246 onDismiss no-op survived (apps/web)
+- last seen: 2026-08-17T03:41:31Z
+
+### L-039 - When a test asserts that a user-selected value reaches the request body, pick a value the code could not plausibly hardcode (never the field's default or first option), or an implementation that ignores the user's choice passes unchanged.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `web` · harmful: 0
+- features: share-links
+- evidence: .specs/features/share-links/validation.md:M7 (apps/web/src/share/ShareLinkPanel.spec.tsx:106) (web)
+- last seen: 2026-08-17T07:01:56Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

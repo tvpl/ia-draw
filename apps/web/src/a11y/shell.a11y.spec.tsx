@@ -39,7 +39,8 @@
 //     component's OWN loading/missing-id chrome can be scanned deterministically, which
 //     also means Excalidraw's internal markup is never reached here. (Excalidraw's own
 //     accessibility is upstream's responsibility, not this codebase's, in any case.)
-//   - the AI generation dock (AIC-01..03) — no React component exists for it yet.
+//   - the AI generation dock (AIC-01..03) — has its own component now (`AiDock`, T7) and
+//     its own dedicated a11y coverage in `../ai-dock/AiDock.a11y.spec.tsx` (T8), not here.
 //   - presentation/presenter mode (PRS-01..05) — no React component exists for it yet.
 //   - the comments UI (CMT-01/02) — no React component exists for it yet.
 // When any of those surfaces gain real UI, they need their own `*.a11y.spec.tsx` file —
@@ -52,6 +53,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppShell } from '../app-shell/AppShell.js';
 import { LanguageSwitcher } from '../app-shell/LanguageSwitcher.js';
+import { AuthProvider } from '../auth/AuthProvider.js';
 import { DiagramEditorPage } from '../diagram/DiagramEditorPage.js';
 // Side-effect import — initializes the shared i18next singleton `useTranslation()` reads
 // from, exactly like `main.tsx` does for the real app. Without this, `t()` calls in the
@@ -81,7 +83,21 @@ afterEach(() => {
 
 describe('AppShell (T95, A11Y-01)', () => {
   it('has zero serious/critical axe violations', async () => {
-    const { container } = render(<AppShell />);
+    // T9: `AppShell` now renders a logout button via `useLogout()`, which needs an
+    // `AuthProvider` in the tree — a permanently-pending fetch (same convention as the
+    // `DiagramEditorPage` describe below) keeps it deterministically in `status:
+    // 'loading'`, which is fine here since `useLogout()` itself doesn't depend on the
+    // resolved status, only on being inside a `AuthProvider`.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(() => new Promise<Response>(() => {})),
+    );
+
+    const { container } = render(
+      <AuthProvider>
+        <AppShell />
+      </AuthProvider>,
+    );
     const results = await axe(container);
     expect(seriousOrCriticalViolations(results)).toEqual([]);
   });
@@ -100,7 +116,10 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
     // A permanently-pending fetch keeps the component in its own real "loading" render
     // path deterministically (never resolves `/me`, so `<EditorSurface/>` never mounts) —
     // see this file's header disclosure for why the Excalidraw canvas itself is out of
-    // scope here.
+    // scope here. It also keeps `AuthProvider` (T8: now required to render
+    // `DiagramEditorPage`, which reads its actor id from `useAuth()`) parked in
+    // `status: 'loading'`, so `DiagramEditorPage`'s own effect never fires either —
+    // same deterministic loading render as before T8.
     vi.stubGlobal(
       'fetch',
       vi.fn(() => new Promise<Response>(() => {})),
@@ -110,9 +129,11 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
   it('renders the loading state (route params present) with zero serious/critical axe violations', async () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/w/ws-perf-1/d/diagram-perf-1']}>
-        <Routes>
-          <Route path="/w/:workspaceId/d/:diagramId" element={<DiagramEditorPage />} />
-        </Routes>
+        <AuthProvider>
+          <Routes>
+            <Route path="/w/:workspaceId/d/:diagramId" element={<DiagramEditorPage />} />
+          </Routes>
+        </AuthProvider>
       </MemoryRouter>,
     );
 
@@ -123,7 +144,9 @@ describe('DiagramEditorPage (T95, A11Y-01)', () => {
   it('renders the "missing diagram id" state (no route match) with zero serious/critical axe violations', async () => {
     const { container } = render(
       <MemoryRouter initialEntries={['/']}>
-        <DiagramEditorPage />
+        <AuthProvider>
+          <DiagramEditorPage />
+        </AuthProvider>
       </MemoryRouter>,
     );
 

@@ -1,7 +1,8 @@
 import { randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
-import { recordAuditEvent } from '@arch-canvas/database';
+import { recordAuditEvent, users } from '@arch-canvas/database';
 import fastifyCookie from '@fastify/cookie';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import * as client from 'openid-client';
 import { z } from 'zod';
@@ -71,10 +72,13 @@ function badOidcCallback(message: string): never {
   throw Object.assign(new Error(message), { statusCode: 400 });
 }
 
+const userLookupQuerySchema = z.object({ email: z.string().min(1) });
+
 /**
- * OpenAPI schema map for this module's 7 routes (T5, API-01). `/auth/logout`,
- * `/auth/refresh`, `/me` and the two OIDC routes take no query/params/body —
- * they act on the session cookie, never a Zod-validated payload.
+ * OpenAPI schema map for this module's 9 routes (T5, API-01; MEM-04..06 adds
+ * `GET /users:lookup`). `/auth/logout`, `/auth/refresh`, `/me` and the three
+ * OIDC routes take no query/params/body — they act on the session cookie,
+ * never a Zod-validated payload.
  */
 export const routeSchemas: RouteSchemaMap = {
   'POST /auth/login': { body: loginBodySchema },
@@ -84,6 +88,8 @@ export const routeSchemas: RouteSchemaMap = {
   'POST /diagrams/:id/ws-ticket': { params: diagramIdParamsSchema },
   'GET /auth/oidc/login': {},
   'GET /auth/oidc/callback': {},
+  'GET /auth/oidc/status': {},
+  'GET /users:lookup': { query: userLookupQuerySchema },
 };
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
@@ -165,6 +171,23 @@ export async function registerAuthModule(
     return { user: request.authContext?.user };
   });
 
+  // T1 (MEM-04..06): resolves an email to the account identity that owns
+  // it, so the workspace-members "invite by email" flow never needs the
+  // caller to already know a UUID. Session-gated only, no workspace/role
+  // check — knowing "this email has an account" is no more sensitive than
+  // what any login form already leaks indirectly (spec.md's Assumptions
+  // table), and the caller still needs `workspace:manage_members` to
+  // actually add the resolved id to a workspace.
+  app.get('/users:lookup', { preHandler: requireSession(db) }, async (request) => {
+    const { email } = userLookupQuerySchema.parse(request.query);
+    const [user] = await db
+      .select({ id: users.id, email: users.email, displayName: users.displayName })
+      .from(users)
+      .where(eq(users.email, email));
+    if (!user) notFound();
+    return { user };
+  });
+
   // Emission stub only (T15) — the WebSocket gateway that consumes these
   // tickets is out of scope for this wave (F1b).
   app.post('/diagrams/:id/ws-ticket', { preHandler: requireSession(db) }, async (request) => {
@@ -182,6 +205,14 @@ export async function registerAuthModule(
 
     const issued = await issueWsTicket(db, user.id, params.id);
     return { ticket: issued.ticket, expiresAt: issued.expiresAt.toISOString() };
+  });
+
+  // T1 (SSO-09/11): cheap, public discovery signal so the frontend knows
+  // whether to render the SSO button, without ever attempting the flow and
+  // risking a 503 mid-navigation. Never 401/403 — this is capability
+  // information about the deploy, not about the caller.
+  app.get('/auth/oidc/status', async () => {
+    return { configured: config.oidc !== undefined };
   });
 
   // T87 (OIDC-01/02/03): Authorization Code + PKCE flow against a
@@ -222,14 +253,19 @@ export async function registerAuthModule(
     const rawPkceState = request.cookies[OIDC_PKCE_COOKIE_NAME];
     reply.clearCookie(OIDC_PKCE_COOKIE_NAME, clearedOidcPkceCookieOptions(config));
     if (!rawPkceState) {
-      badOidcCallback('Missing or expired OIDC login state — please retry /auth/oidc/login');
+      // T2 (SSO-12): a missing/expired PKCE cookie ends the flow before the
+      // try/catch below even starts — redirect straight back to the SPA
+      // instead of throwing a raw problem+json error to the browser.
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
+      return;
     }
 
     let pkceState: OidcPkceState;
     try {
       pkceState = JSON.parse(rawPkceState) as OidcPkceState;
     } catch {
-      badOidcCallback('Malformed OIDC login state');
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
+      return;
     }
 
     const ipHash = hashToken(request.ip);
@@ -322,7 +358,14 @@ export async function registerAuthModule(
         },
       });
       metrics?.recordAuthFailure();
-      throw error;
+      // T2 (SSO-12): every failure inside the try above (token exchange,
+      // missing ID token via `badOidcCallback`, claims/userinfo issues)
+      // used to rethrow the raw error here, which Fastify turned into a
+      // bare problem+json response with no way back into the SPA. The
+      // audit/metrics calls above are unchanged — only what the browser
+      // receives changes, same redirect target as the two early-return
+      // cases above.
+      reply.redirect(`${config.publicUrl}/login?error=oidc_failed`);
     }
   });
 }

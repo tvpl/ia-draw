@@ -47,6 +47,32 @@ export const REDACT_PATHS: readonly string[] = [
 const REDACT_CENSOR = '[REDACTED]';
 
 /**
+ * Credential-bearing URL shapes this codebase actually registers. Pino's `redact`
+ * above is path-based — it replaces whole FIELDS, and never matches a substring
+ * inside a field's value — so a credential carried in the URL itself survives it
+ * untouched. Both routes below have to keep the credential in the URL: a share
+ * link must be a plain clickable URL (`GET /share/:token`), and the WebSocket
+ * handshake has no place to put a header from the browser (`GET
+ * /ws/diagrams/:diagramId?ticket=`).
+ */
+const SHARE_TOKEN_SEGMENT_RE = /\/share\/[^/?#]+/g;
+const TICKET_QUERY_PARAM_RE = /([?&]ticket=)[^&#]*/g;
+
+/**
+ * Replaces credentials carried in a URL with `[REDACTED]` (SHR-23/24/25).
+ *
+ * Applied ONLY to the value handed to the logger — `request.url` itself is never
+ * reassigned, so routing, the `instance` field of a problem+json body
+ * (`server.ts`) and the metrics route label (`request.routeOptions.url`) all keep
+ * seeing the original URL (SHR-26).
+ */
+export function redactSensitiveUrl(url: string): string {
+  return url
+    .replace(SHARE_TOKEN_SEGMENT_RE, `/share/${REDACT_CENSOR}`)
+    .replace(TICKET_QUERY_PARAM_RE, `$1${REDACT_CENSOR}`);
+}
+
+/**
  * Renames Fastify's default `reqId` log field to `requestId` (OPS-05: "every HTTP
  * request log line includes requestId"). `requestIdLogLabel` is deprecated in favor
  * of a `logController` option fastify@5.11.3's public types don't yet expose as a
@@ -84,7 +110,7 @@ export function buildLoggerOptions(
       req(request) {
         return {
           method: request.method,
-          url: request.url,
+          url: redactSensitiveUrl(request.url),
           host: request.headers.host,
           remoteAddress: request.ip,
           remotePort: request.socket?.remotePort,

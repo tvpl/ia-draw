@@ -146,6 +146,15 @@ A ordem é de execução. Toda dependência aponta para uma entrada anterior; ne
 **Rotas consumidas**: `POST /diagrams/:id/share-links`, `POST /presentations/:id/share-links`, `GET /share/:token`, `POST /share-links/:id:revoke`.
 **Depende de**: R4.
 **Tamanho**: 1,5 onda (4 rotas, mas inclui uma rota pública sem sessão, que é uma superfície de risco própria e uma segunda entrada de roteamento no `apps/web`).
+**Escopo real entregue** (decidido na rodada de Specify, ver `.specs/features/share-links/spec.md`):
+3 das 4 rotas. `POST /presentations/:id/share-links` fica com **R12**: o backend de apresentação
+está pronto, mas `apps/web` não tem nenhuma superfície de apresentação de onde tirar um
+`presentationId`, e um método de cliente sem chamador seria código morto. A visão pública já trata o
+`resourceType: 'presentation'` que a mesma rota pública pode devolver, com um estado explícito de
+"ainda não disponível" — o visualizador de frames é escopo declarado de R12. R11 também fechou duas
+lacunas fora da lista de rotas: modo somente-leitura real no `EditorSurface` (aplicado também ao
+editor autenticado de `reviewer`/`viewer`) e redação do token de share e do ticket de WebSocket na
+URL logada pelo servidor.
 
 ### R12 — Apresentação e protótipos navegáveis
 

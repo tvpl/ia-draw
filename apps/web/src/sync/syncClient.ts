@@ -8,6 +8,8 @@ export interface BootstrapResult {
   revision: number;
   assets: unknown[];
   permissions: { allowed: boolean; reason: string };
+  /** `diagram:mutate` decision (T1, DOCK-02) — additive alongside `permissions` (`diagram:read`), which stays unchanged. */
+  mutatePermissions: { allowed: boolean; reason: string };
 }
 
 interface ServerOperation {

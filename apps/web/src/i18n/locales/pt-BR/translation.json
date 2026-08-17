@@ -14,5 +14,379 @@
     "offline": "Offline — {{count}} alterações pendentes",
     "conflict": "Conflito",
     "readOnly": "Somente leitura"
+  },
+  "aiDock": {
+    "title": "Dock de IA",
+    "requestLabel": "Descreva o que você quer mudar",
+    "submit": "Enviar",
+    "status": {
+      "idle": "Ocioso",
+      "submitting": "Enviando pedido…",
+      "awaiting_approval": "Aguardando sua aprovação",
+      "approving": "Aplicando…",
+      "applied": "Aplicado",
+      "restoring": "Desfazendo…",
+      "error": "Algo deu errado",
+      "rate_limited": "Limite de pedidos atingido",
+      "expired": "Esta proposta expirou — envie um novo pedido"
+    },
+    "preview": {
+      "added": "Adicionados ({{count}})",
+      "removed": "Removidos ({{count}})",
+      "moved": "Movidos ({{count}})",
+      "modified": "Modificados ({{count}})",
+      "metadataChanged": "Metadados alterados ({{count}})"
+    },
+    "approve": "Aprovar",
+    "discard": "Descartar",
+    "undo": "Desfazer",
+    "rateLimited": "Limite de 20 pedidos por minuto atingido. Tente de novo em 60 segundos.",
+    "conflict": "O diagrama mudou desde o seu pedido. Envie de novo para tentar outra vez.",
+    "error": {
+      "no_provider_configured": "Nenhum provider de IA está configurado. Cadastre um na tela de administração de providers de IA.",
+      "unknown": "Erro: {{code}}"
+    },
+    "sensitiveChange": "Mudança sensível — revise com atenção antes de aprovar"
+  },
+  "comments": {
+    "title": "Comentários",
+    "tabs": {
+      "ai": "IA",
+      "comments": "Comentários"
+    },
+    "loading": "Carregando comentários…",
+    "empty": "Nenhum comentário neste diagrama ainda.",
+    "error": "Algo deu errado. Tente de novo.",
+    "notFound": "Este diagrama não existe ou você não tem acesso a ele.",
+    "anchor": "Ancorado em {{elementId}}",
+    "anchorMissing": "Âncora removida ({{elementId}})",
+    "composer": {
+      "label": "Novo comentário",
+      "submit": "Comentar",
+      "anchor": {
+        "none": "Sem âncora — comentário geral do diagrama",
+        "element": "Será ancorado em {{elementId}}",
+        "multiple": "Vários elementos selecionados — o comentário não será ancorado"
+      }
+    },
+    "reply": {
+      "action": "Responder",
+      "label": "Sua resposta",
+      "submit": "Enviar resposta"
+    },
+    "resolve": "Resolver",
+    "reopen": "Reabrir",
+    "resolvedBadge": "Resolvido",
+    "showResolved": "Mostrar resolvidas",
+    "refresh": "Atualizar",
+    "announce": {
+      "created": "Comentário publicado.",
+      "replied": "Resposta publicada.",
+      "resolved": "Comentário resolvido.",
+      "reopened": "Comentário reaberto.",
+      "failed": "A ação falhou. Tente de novo."
+    }
+  },
+  "auth": {
+    "emailLabel": "E-mail",
+    "passwordLabel": "Senha",
+    "submit": "Entrar",
+    "submitting": "Entrando…",
+    "invalidCredentials": "E-mail ou senha inválidos.",
+    "ssoButton": "Entrar com SSO",
+    "ssoFailed": "Falha ao entrar com o provedor corporativo. Tente novamente.",
+    "logout": "Sair"
+  },
+  "export": {
+    "menu": {
+      "title": "Exportar",
+      "generate": "Gerar exports",
+      "success": "Exports prontos",
+      "rateLimited": "Muitas solicitações de export — aguarde um momento e tente de novo.",
+      "error": "Não foi possível gerar os exports. Tente novamente.",
+      "format": {
+        "excalidraw": ".excalidraw",
+        "svg": "SVG",
+        "png": "PNG",
+        "pdf": "PDF"
+      }
+    },
+    "bundle": {
+      "button": "Baixar bundle",
+      "loading": "Gerando bundle…",
+      "success": "Bundle pronto",
+      "error": "Não foi possível gerar o bundle. Tente novamente."
+    }
+  },
+  "import": {
+    "trigger": "Importar diagrama",
+    "title": "Importar arquivo .excalidraw",
+    "fileLabel": "Arquivo",
+    "preview": "{{count}} elementos serão importados",
+    "titleLabel": "Título do diagrama",
+    "confirm": "Confirmar import",
+    "cancel": "Cancelar",
+    "success": "Diagrama importado"
+  },
+  "nav": {
+    "workspaces": {
+      "title": "Workspaces",
+      "nameLabel": "Nome do workspace",
+      "create": "Criar workspace",
+      "conflict": "Já existe um workspace com esse nome.",
+      "emptyState": "Você ainda não pertence a nenhum workspace.",
+      "emptyStateCta": "Criar seu primeiro workspace",
+      "archiveCurrent": "Arquivar este workspace"
+    },
+    "workspaceBundle": {
+      "action": "Solicitar bundle do workspace",
+      "queued": "Bundle solicitado — este produto não mostra quando termina ou onde baixar; trate como item de acompanhamento operacional.",
+      "unavailable": "Solicitações de bundle em lote estão temporariamente indisponíveis."
+    },
+    "projects": {
+      "title": "Projetos",
+      "nameLabel": "Nome do projeto",
+      "create": "Criar projeto",
+      "empty": "Este workspace ainda não tem projetos.",
+      "archiveCurrent": "Arquivar este projeto"
+    },
+    "diagrams": {
+      "title": "Diagramas",
+      "nameLabel": "Título do diagrama",
+      "create": "Criar diagrama",
+      "empty": "Este projeto ainda não tem diagramas."
+    },
+    "members": {
+      "link": "Membros",
+      "title": "Membros",
+      "emailLabel": "E-mail",
+      "roleLabel": "Papel",
+      "roleSelectPlaceholder": "Escolha um papel",
+      "invite": "Convidar",
+      "notFound": "Nenhuma conta encontrada com esse e-mail.",
+      "alreadyMember": "Essa pessoa já é membro deste workspace.",
+      "added": "Membro adicionado.",
+      "remove": "Remover",
+      "removed": "Membro removido.",
+      "roleChanged": "Papel atualizado.",
+      "lastAdminBlock": {
+        "selfRemove": "Você não pode se remover — você é o único admin deste workspace.",
+        "selfDowngrade": "Você não pode trocar seu próprio papel — você é o único admin deste workspace."
+      },
+      "roleOptions": {
+        "orgAdmin": "Admin da organização",
+        "workspaceAdmin": "Admin do workspace",
+        "editor": "Editor",
+        "reviewer": "Revisor",
+        "viewer": "Visualizador"
+      }
+    },
+    "webhooks": {
+      "link": "Webhooks",
+      "title": "Webhooks",
+      "empty": "Este workspace ainda não tem webhooks.",
+      "urlLabel": "URL do endpoint",
+      "eventsLabel": "Eventos",
+      "eventOptions": {
+        "diagram.created": "Diagrama criado",
+        "diagram.updated": "Diagrama atualizado",
+        "diagram.published": "Diagrama publicado",
+        "spec.generated": "Spec gerada",
+        "comment.mentioned": "Mencionado em um comentário"
+      },
+      "create": "Adicionar webhook",
+      "created": "Webhook adicionado.",
+      "urlRequired": "A URL do endpoint é obrigatória.",
+      "eventsRequired": "Escolha ao menos um evento.",
+      "enabled": "Ativo",
+      "disabled": "Inativo",
+      "toggleEnable": "Ativar",
+      "toggleDisable": "Desativar",
+      "edit": "Editar",
+      "save": "Salvar",
+      "cancel": "Cancelar",
+      "updated": "Webhook atualizado.",
+      "remove": "Remover",
+      "removed": "Webhook removido.",
+      "rotate": "Rotacionar segredo",
+      "rotateConfirm": "Rotacionar agora",
+      "rotateWarning": "O segredo atual para de valer imediatamente, sem período de carência.",
+      "rotated": "Segredo rotacionado.",
+      "secret": {
+        "title": "Segredo de assinatura",
+        "warning": "Este é o único momento em que este segredo aparece. Copie agora — depois não dá para recuperá-lo.",
+        "copy": "Copiar segredo",
+        "copied": "Segredo copiado para a área de transferência.",
+        "copyFailed": "Não foi possível copiar automaticamente. Selecione o segredo acima e copie à mão.",
+        "dismiss": "Já guardei"
+      }
+    },
+    "rename": "Renomear",
+    "renameSave": "Salvar",
+    "renameCancel": "Cancelar",
+    "archive": "Arquivar",
+    "archiveConfirm": {
+      "title": "Arquivar este item?",
+      "body": "Essa ação não pode ser desfeita.",
+      "confirm": "Arquivar",
+      "cancel": "Cancelar"
+    },
+    "back": "Voltar",
+    "notFound": "Este item não existe ou você não tem acesso a ele.",
+    "error": {
+      "conflict": "Esse nome já está em uso.",
+      "forbidden": "Você não tem permissão para fazer isso.",
+      "generic": "Algo deu errado. Tente novamente."
+    }
+  },
+  "library": {
+    "title": "Biblioteca de componentes",
+    "searchLabel": "Buscar componentes",
+    "insert": "Inserir",
+    "inserted": "{{name}} inserido no canvas",
+    "loading": "Carregando biblioteca…",
+    "error": "Não foi possível carregar a biblioteca.",
+    "retry": "Tentar de novo",
+    "emptySearch": "Nenhum componente encontrado para essa busca."
+  },
+  "metadata": {
+    "title": "Metadados do elemento",
+    "emptyState": "Selecione um elemento para ver ou editar seus metadados.",
+    "semanticTypeLabel": "Tipo semântico",
+    "metadataJsonLabel": "Metadados (JSON)",
+    "save": "Salvar",
+    "saved": "Metadados salvos",
+    "invalidJson": "Os metadados precisam ser um JSON válido.",
+    "error": "Não foi possível carregar ou salvar os metadados. Tente novamente."
+  },
+  "inventory": {
+    "title": "Inventário",
+    "open": "Ver inventário",
+    "exportCsv": "Exportar CSV",
+    "empty": "Nenhum elemento foi classificado ainda.",
+    "removed": "Removido do canvas",
+    "columns": {
+      "elementId": "Elemento",
+      "elementType": "Tipo",
+      "semanticType": "Tipo semântico",
+      "revision": "Revisão"
+    },
+    "error": "Não foi possível carregar o inventário."
+  },
+  "history": {
+    "panelToggle": "Histórico",
+    "loading": "Carregando histórico…",
+    "error": "Não foi possível carregar o histórico.",
+    "emptyState": "Nenhum snapshot ainda. Snapshots automáticos aparecem conforme você edita o diagrama.",
+    "kind": {
+      "auto": "Automático",
+      "published": "Publicado",
+      "pre_ai": "Antes da edição por IA",
+      "restore_point": "Ponto de restauração"
+    },
+    "unnamedSnapshot": "Snapshot sem nome",
+    "create": {
+      "nameLabel": "Nome do snapshot (opcional)",
+      "submit": "Criar snapshot",
+      "success": "Snapshot criado.",
+      "error": "Não foi possível criar o snapshot."
+    },
+    "restoreAction": "Restaurar",
+    "restoreConfirm": {
+      "title": "Restaurar este snapshot?",
+      "body": "Restaurar cria uma revisão nova a partir deste snapshot — nenhuma revisão intermediária é apagada, tudo continua na linha do tempo.",
+      "confirm": "Restaurar",
+      "cancel": "Cancelar"
+    },
+    "restore": {
+      "success": "Restaurado. Nova revisão: {{revision}}.",
+      "notFound": "Esse snapshot não existe mais. A lista foi atualizada.",
+      "error": "Não foi possível restaurar o snapshot."
+    },
+    "diff": {
+      "title": "Comparar revisões",
+      "fromLabel": "De",
+      "toLabel": "Para",
+      "compare": "Comparar",
+      "disabledExplanation": "É preciso pelo menos dois pontos na linha do tempo para comparar.",
+      "noChanges": "Nenhuma mudança estrutural entre essas duas revisões.",
+      "added": "Adicionados ({{count}})",
+      "removed": "Removidos ({{count}})",
+      "moved": "Movidos ({{count}})",
+      "modified": "Modificados ({{count}})",
+      "error": "Não foi possível comparar essas revisões."
+    }
+  },
+  "presence": {
+    "status": {
+      "connecting": "Conectando à presença ao vivo…",
+      "connected": "Presença ao vivo conectada",
+      "disconnected": "Presença ao vivo desconectada"
+    }
+  },
+  "adminProviders": {
+    "title": "Providers de IA",
+    "globalScope": "Escopo global — vale para toda a instância",
+    "workspaceScope": "Escopo deste workspace — sobrepõe o provider global",
+    "empty": "Nenhum provider cadastrado neste escopo.",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "baseUrlLabel": "Endpoint do provider",
+    "modelLabel": "Modelo",
+    "keyLabel": "Chave da API",
+    "keyKeepHint": "Deixe em branco para manter a chave atual.",
+    "create": "Cadastrar provider",
+    "edit": "Editar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "test": "Testar conexão",
+    "activate": "Ativar",
+    "deactivate": "Desativar",
+    "created": "Provider cadastrado.",
+    "updated": "Provider atualizado.",
+    "activated": "Provider ativado.",
+    "deactivated": "Provider desativado.",
+    "rejectedUrl": "O endpoint informado foi rejeitado pelo servidor.",
+    "rateLimited": "Limite de 10 testes de conexão por 60 segundos atingido. Tente de novo em instantes.",
+    "testSuccess": "Conexão OK. Modelo disponível: {{modelAvailable}}. Tool calling: {{toolCalling}}.",
+    "testFailure": "Falha na conexão: {{error}}",
+    "yes": "sim",
+    "no": "não",
+    "globalLink": "Providers de IA (global)",
+    "workspaceLink": "Providers de IA"
+  },
+  "share": {
+    "panelTitle": "Link de compartilhamento",
+    "roleLabel": "Papel concedido pelo link",
+    "roleSelectPlaceholder": "Escolha um papel",
+    "roleOptions": {
+      "orgAdmin": "Admin da organização",
+      "workspaceAdmin": "Admin do workspace",
+      "editor": "Editor",
+      "reviewer": "Revisor",
+      "viewer": "Leitor"
+    },
+    "expiresAtLabel": "Expira em",
+    "create": "Criar link",
+    "createdListTitle": "Links criados nesta sessão",
+    "sessionOnlyNotice": "Só aparecem aqui os links que você criou nesta tela. Recarregar a página limpa a lista, e a URL não pode ser recuperada depois.",
+    "oneShotNotice": "Copie esta URL agora. Ela é exibida uma única vez e não pode ser recuperada.",
+    "urlLabel": "URL de compartilhamento",
+    "revoke": "Revogar",
+    "revokedBadge": "Revogado",
+    "created": "Link de compartilhamento criado.",
+    "revoked": "Link de compartilhamento revogado.",
+    "error": {
+      "roleCeiling": "Você não pode conceder um papel acima do seu.",
+      "expiresInPast": "Escolha uma data de expiração no futuro.",
+      "generic": "Algo deu errado. Tente de novo."
+    },
+    "public": {
+      "loading": "Carregando o diagrama compartilhado…",
+      "invalid": "Este link é inválido, expirou ou foi revogado.",
+      "readOnlyNotice": "Visualização somente leitura. Nada do que você fizer aqui é salvo.",
+      "presentationTitle": "Apresentação: {{name}}",
+      "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
+    }
   }
 }

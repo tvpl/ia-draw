@@ -92,6 +92,8 @@ describe('GET /diagrams/:id/bootstrap (T21, EDT-01)', () => {
     expect(body.assets).toEqual([]);
     // Owner auto-became workspace_admin on workspace creation — diagram:read is granted.
     expect(body.permissions).toMatchObject({ allowed: true });
+    // workspace_admin also grants diagram:mutate (DOCK-02) — the mutate-capable case.
+    expect(body.mutatePermissions).toMatchObject({ allowed: true });
   });
 
   it("a viewer's bootstrap also succeeds (diagram:read) with permissions reflecting the role", async () => {
@@ -110,7 +112,10 @@ describe('GET /diagrams/:id/bootstrap (T21, EDT-01)', () => {
     });
 
     expect(response.statusCode).toBe(200);
-    expect(response.json().permissions).toMatchObject({ allowed: true });
+    const body = response.json();
+    expect(body.permissions).toMatchObject({ allowed: true });
+    // viewer never holds diagram:mutate (AUTH-03) — DOCK-02's non-render signal.
+    expect(body.mutatePermissions).toMatchObject({ allowed: false });
   });
 
   it('a user outside the diagram workspace receives 404, never 403 (IDOR, AUTH-04)', async () => {

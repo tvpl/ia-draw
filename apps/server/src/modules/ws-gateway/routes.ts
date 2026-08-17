@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import { can } from '@arch-canvas/auth';
+import { users } from '@arch-canvas/database';
 import { parseOperationEnvelope } from '@arch-canvas/diagram-domain';
 import {
   MAX_WS_MESSAGE_BYTES,
@@ -9,6 +10,7 @@ import {
   WsMessageParseError,
 } from '@arch-canvas/shared-contracts';
 import websocketPlugin from '@fastify/websocket';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import type { WebSocket } from 'ws';
 import { z } from 'zod';
@@ -61,6 +63,21 @@ export const routeSchemas: RouteSchemaMap = {
 
 function unauthorized(): never {
   throw Object.assign(new Error('Unauthorized'), { statusCode: 401 });
+}
+
+/**
+ * LIVE-02: the display name stamped on every presence event this connection
+ * publishes. Called exactly once per WebSocket connection — never per message.
+ * Returns `undefined` when the row is missing or the name is blank, which the
+ * wire schema treats as "no display name" (the field is optional) rather than
+ * shipping an empty string that would fail the client's own payload validation.
+ */
+async function resolveDisplayName(db: Db, userId: string): Promise<string | undefined> {
+  const [row] = await db
+    .select({ displayName: users.displayName })
+    .from(users)
+    .where(eq(users.id, userId));
+  return row?.displayName ? row.displayName : undefined;
 }
 
 function buildEnvelope(diagramId: string, type: string, payload: unknown) {
@@ -148,6 +165,12 @@ export async function registerWsGatewayModule(
 
       send(socket, diagramId, 'hello', { userId: actorId, diagramId });
 
+      // LIVE-02: resolved ONCE per connection, not per presence message —
+      // presence is the highest-frequency message on this socket, so a
+      // per-message lookup would put a query on the cursor-move path. Every
+      // event this connection publishes is stamped with this value.
+      let actorDisplayName: string | undefined;
+
       // RFC 6455 readyState 1 == OPEN — checked as a plain number rather than
       // pulling in a value import of `ws`'s `WebSocket` class (this module only
       // needs the type) just for its `OPEN` constant.
@@ -172,12 +195,37 @@ export async function registerWsGatewayModule(
           cursor: event.cursor,
           selection: event.selection,
           status: event.status,
+          // LIVE-01/02: the receiving client cannot render a name or a stable
+          // per-person color without these. They were dropped here before
+          // `realtime-presence` (R10), which made the whole feature
+          // unbuildable client-side.
+          senderId: event.senderId,
+          displayName: event.displayName,
         });
       };
-      const unsubscribePresence = presence.subscribe(diagramId, handlePresenceEvent);
+
+      let unsubscribePresence: (() => void) | undefined;
+      let closed = false;
       socket.on('close', () => {
-        unsubscribePresence();
+        closed = true;
+        unsubscribePresence?.();
       });
+
+      // Resolved before subscribing, and awaited by the `presence` case, so no
+      // event is ever published or relayed with a half-initialized identity.
+      const identityReady = resolveDisplayName(db, actorId)
+        .then((name) => {
+          actorDisplayName = name;
+        })
+        .catch((error) => {
+          // A display name is a nicety; losing it must never cost the whole
+          // presence session (same best-effort posture as `presence.publish`).
+          request.log.warn({ err: error }, 'ws-gateway: display name resolution failed');
+        })
+        .then(() => {
+          if (closed) return;
+          unsubscribePresence = presence.subscribe(diagramId, handlePresenceEvent);
+        });
 
       // Message handler is attached synchronously here (before any async
       // work below runs) per @fastify/websocket's own guidance, so no
@@ -321,10 +369,16 @@ export async function registerWsGatewayModule(
           }
 
           case 'presence': {
+            await identityReady;
             try {
               await presence.publish(diagramId, {
                 type: 'presence_update',
+                // LIVE-04: never `message.payload.senderId`/`displayName` — the
+                // ticket-authenticated connection is the only source of
+                // identity here, exactly as `mutation` above refuses to trust
+                // an `actorId` from the wire.
                 senderId: actorId,
+                displayName: actorDisplayName,
                 cursor: message.payload.cursor,
                 selection: message.payload.selection,
                 status: message.payload.status,

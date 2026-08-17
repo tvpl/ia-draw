@@ -162,6 +162,77 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
     );
   });
 
+  describe('role in GET /workspaces and GET /workspaces/:id (NAV-13, NAV-17, NAV-09..12)', () => {
+    it('GET /workspaces includes each item’s own distinct role for the caller', async () => {
+      const owner = await seedUserWithSession('multi-role-owner');
+      const wsA = await createWorkspaceAs(owner.cookies, `multi-role-a-${Date.now()}`);
+      const wsB = await createWorkspaceAs(owner.cookies, `multi-role-b-${Date.now()}`);
+      const workspaceAId = wsA.json().workspace.id;
+      const workspaceBId = wsB.json().workspace.id;
+
+      const actor = await seedUserWithSession('multi-role-actor');
+      await db.insert(schema.workspaceMembers).values([
+        { workspaceId: workspaceAId, userId: actor.user.id, role: 'editor' },
+        { workspaceId: workspaceBId, userId: actor.user.id, role: 'viewer' },
+      ]);
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/workspaces',
+        cookies: actor.cookies,
+      });
+      expect(response.statusCode).toBe(200);
+
+      const items = response.json().items as Array<{
+        id: string;
+        organizationId: string;
+        name: string;
+        slug: string;
+        accessPolicy: string;
+        createdAt: string;
+        updatedAt: string;
+        role: string;
+      }>;
+
+      const itemA = items.find((item) => item.id === workspaceAId);
+      const itemB = items.find((item) => item.id === workspaceBId);
+      expect(itemA?.role).toBe('editor');
+      expect(itemB?.role).toBe('viewer');
+      // Existing fields stay byte-for-byte present alongside the new one.
+      expect(itemA).toMatchObject({
+        id: workspaceAId,
+        organizationId: expect.any(String),
+        name: expect.any(String),
+        slug: expect.any(String),
+        accessPolicy: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+      });
+    });
+
+    it('GET /workspaces/:id includes the caller’s role for a non-admin member', async () => {
+      const admin = await seedUserWithSession('detail-role-admin');
+      const create = await createWorkspaceAs(admin.cookies, `detail-role-${Date.now()}`);
+      const workspaceId = create.json().workspace.id;
+
+      const actor = await seedUserWithSession('detail-role-actor');
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: actor.user.id, role: 'reviewer' });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/workspaces/${workspaceId}`,
+        cookies: actor.cookies,
+      });
+      expect(response.statusCode).toBe(200);
+      expect(response.json().workspace).toMatchObject({
+        id: workspaceId,
+        role: 'reviewer',
+      });
+    });
+  });
+
   it('a successful mutation records one row in audit_events', async () => {
     const admin = await seedUserWithSession('audit-owner');
     const slug = `audit-ws-${Date.now()}`;

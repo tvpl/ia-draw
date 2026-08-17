@@ -151,29 +151,29 @@ Toda ambiguidade está resolvida ou registrada aqui — nada fica silenciosament
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| DOCK-01 | P1: Pedido em linguagem natural | F10 | Pending |
-| DOCK-02 | P1: Pedido em linguagem natural | F10 | Pending |
-| DOCK-03 | P1: Pedido em linguagem natural | F10 | Pending |
-| DOCK-04 | P1: Pedido em linguagem natural | F10 | Pending |
-| DOCK-05 | P1: Pedido em linguagem natural | F10 | Pending |
-| DOCK-06 | P1: Prévia antes de aplicar | F10 | Pending |
-| DOCK-07 | P1: Prévia antes de aplicar | F10 | Pending |
-| DOCK-08 | P1: Prévia antes de aplicar | F10 | Pending |
-| DOCK-09 | P1: Prévia antes de aplicar | F10 | Pending |
-| DOCK-10 | P1: Prévia antes de aplicar | F10 | Pending |
-| DOCK-11 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-12 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-13 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-14 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-15 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-16 | P1: Aprovação explícita | F10 | Pending |
-| DOCK-17 | P1: Desfazer a última aplicação | F10 | Pending |
-| DOCK-18 | P1: Desfazer a última aplicação | F10 | Pending |
-| DOCK-19 | P1: Desfazer a última aplicação | F10 | Pending |
-| DOCK-20 | P1: Desfazer a última aplicação | F10 | Pending |
-| DOCK-21 | P2: Teclado e idioma | F10 | Pending |
-| DOCK-22 | P2: Teclado e idioma | F10 | Pending |
-| DOCK-23 | P2: Teclado e idioma | F10 | Pending |
+| DOCK-01 | P1: Pedido em linguagem natural | F10 | ✅ Verified |
+| DOCK-02 | P1: Pedido em linguagem natural | F10 | ✅ Verified |
+| DOCK-03 | P1: Pedido em linguagem natural | F10 | ✅ Verified |
+| DOCK-04 | P1: Pedido em linguagem natural | F10 | ✅ Verified |
+| DOCK-05 | P1: Pedido em linguagem natural | F10 | ✅ Verified |
+| DOCK-06 | P1: Prévia antes de aplicar | F10 | ✅ Verified |
+| DOCK-07 | P1: Prévia antes de aplicar | F10 | ✅ Verified |
+| DOCK-08 | P1: Prévia antes de aplicar | F10 | ✅ Verified |
+| DOCK-09 | P1: Prévia antes de aplicar | F10 | ✅ Verified |
+| DOCK-10 | P1: Prévia antes de aplicar | F10 | ✅ Verified |
+| DOCK-11 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-12 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-13 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-14 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-15 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-16 | P1: Aprovação explícita | F10 | ✅ Verified |
+| DOCK-17 | P1: Desfazer a última aplicação | F10 | ✅ Verified |
+| DOCK-18 | P1: Desfazer a última aplicação | F10 | ✅ Verified |
+| DOCK-19 | P1: Desfazer a última aplicação | F10 | ✅ Verified |
+| DOCK-20 | P1: Desfazer a última aplicação | F10 | ✅ Verified |
+| DOCK-21 | P2: Teclado e idioma | F10 | ✅ Verified |
+| DOCK-22 | P2: Teclado e idioma | F10 | ✅ Verified |
+| DOCK-23 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
