@@ -152,22 +152,22 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] Lists webhooks from `GET /workspaces/:id/webhooks` showing URL, subscribed events and enabled state (WHK-01)
-- [ ] Any non-2xx on the list renders the shared `nav.notFound` message, with no 403/404 distinction (WHK-03)
-- [ ] An empty list renders `nav.webhooks.empty`, never a bare blank list (WHK-04)
-- [ ] Create form offers exactly the 5 `WEBHOOK_EVENT_TYPES` as checkboxes (WHK-05)
-- [ ] Blocks submit with no `POST` emitted when the URL is empty after `trim` (WHK-06) and when zero events are checked (WHK-07), each with its own message
-- [ ] Valid submit emits `POST` with `{url, events}` (WHK-08); on 201 appends the returned webhook and clears the form (WHK-09); on non-201 announces failure and appends nothing (WHK-10)
-- [ ] Inline edit emits `PATCH` with current `url`/`events`/`enabled` (WHK-18); emits nothing when nothing changed (WHK-19); reflects new values only after 200 (WHK-20); keeps previous values on non-200 (WHK-21)
-- [ ] Enabled toggle emits `PATCH {enabled}` and flips only after 200 (WHK-22)
-- [ ] Rotate requires in-row confirmation before any request (WHK-23); confirming emits `PATCH .../:webhookId:rotate-secret` (WHK-24); on 200 opens the secret panel with the new secret (WHK-25); on non-200 announces failure and opens no panel (WHK-26); cancelling emits nothing and restores the row (WHK-27)
-- [ ] Remove opens `ConfirmArchiveDialog` with the webhook URL as `itemName` (WHK-28); confirming emits `DELETE` and on 204 drops the row (WHK-29); non-204 announces failure and keeps the row (WHK-30)
-- [ ] A second create submit while one is in flight emits no second `POST` (edge case 1)
-- [ ] A rotation while a create's secret panel is open replaces the shown secret, never stacking two panels (edge case 2)
-- [ ] Unchecking the last event during an edit blocks the save with no `PATCH` emitted (edge case 4)
-- [ ] `aria-live="polite"` region announces every outcome (WHK-32)
-- [ ] Unit tests cover every bullet above
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lists webhooks from `GET /workspaces/:id/webhooks` showing URL, subscribed events and enabled state (WHK-01)
+- [x] Any non-2xx on the list renders the shared `nav.notFound` message, with no 403/404 distinction (WHK-03)
+- [x] An empty list renders `nav.webhooks.empty`, never a bare blank list (WHK-04)
+- [x] Create form offers exactly the 5 `WEBHOOK_EVENT_TYPES` as checkboxes (WHK-05)
+- [x] Blocks submit with no `POST` emitted when the URL is empty after `trim` (WHK-06) and when zero events are checked (WHK-07), each with its own message
+- [x] Valid submit emits `POST` with `{url, events}` (WHK-08); on 201 appends the returned webhook and clears the form (WHK-09); on non-201 announces failure and appends nothing (WHK-10)
+- [x] Inline edit emits `PATCH` with current `url`/`events`/`enabled` (WHK-18); emits nothing when nothing changed (WHK-19); reflects new values only after 200 (WHK-20); keeps previous values on non-200 (WHK-21)
+- [x] Enabled toggle emits `PATCH {enabled}` and flips only after 200 (WHK-22)
+- [x] Rotate requires in-row confirmation before any request (WHK-23); confirming emits `PATCH .../:webhookId:rotate-secret` (WHK-24); on 200 opens the secret panel with the new secret (WHK-25); on non-200 announces failure and opens no panel (WHK-26); cancelling emits nothing and restores the row (WHK-27)
+- [x] Remove opens `ConfirmArchiveDialog` with the webhook URL as `itemName` (WHK-28); confirming emits `DELETE` and on 204 drops the row (WHK-29); non-204 announces failure and keeps the row (WHK-30)
+- [x] A second create submit while one is in flight emits no second `POST` (edge case 1)
+- [x] A rotation while a create's secret panel is open replaces the shown secret, never stacking two panels (edge case 2)
+- [x] Unchecking the last event during an edit blocks the save with no `PATCH` emitted (edge case 4)
+- [x] `aria-live="polite"` region announces every outcome (WHK-32)
+- [x] Unit tests cover every bullet above
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
