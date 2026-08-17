@@ -232,6 +232,7 @@ export function WorkspaceMembersPage({
               {canManage ? (
                 <>
                   <select
+                    aria-label={`${t('nav.members.roleLabel')} — ${item.displayName}`}
                     value={item.role}
                     onChange={(event) => void handleRoleChange(item, event.target.value as Role)}
                   >

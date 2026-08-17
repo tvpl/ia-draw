@@ -174,9 +174,9 @@ T4 → T6
 - Skill: NONE
 
 **Done when**:
-- [ ] `jest-axe` run against the page in at least 2 states (populated list, invite form open)
-- [ ] Zero serious/critical violations
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `jest-axe` run against the page in at least 2 states (populated list, invite form open)
+- [x] Zero serious/critical violations
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
