@@ -260,6 +260,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: INT-17 (apps/web/src/i18n)
 - last seen: 2026-08-17T10:05:45Z
 
+### L-042 - A web HTTP client's local fetch binding must be named literally 'fetchImpl' (never aliased, e.g. 'doFetch') or repo-tools' web-consumer extractor (tools/repo-tools/src/webConsumers.ts) silently fails to detect its routes as consumed in docs/route-inventory.md.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `repo-tooling` · harmful: 0
+- features: living-docs
+- evidence: apps/web/src/docs/docgenClient.ts (T6 fix, commit 02873c5) (repo-tooling)
+- last seen: 2026-08-17T10:20:26Z
+
+### L-043 - A transient loading-state AC exercised only implicitly on the way to the final assertion (never asserted at the moment it is true) can pass every test while remaining uncovered - assert it explicitly, synchronously, before the awaited resolution, the same way the list's own loading state is asserted.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `tests` · harmful: 0
+- features: living-docs
+- evidence: spec.md LDC-13 (tests)
+- last seen: 2026-08-17T10:20:33Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -174,6 +174,11 @@ describe('docgen module — single-section regeneration (T63, DOC-04)', () => {
     expect(regenerate.statusCode).toBe(201);
     const newSpec = regenerate.json().spec;
     expect(newSpec.version).toBe(baseSpec.version + 1);
+    // living-docs (LDC-12): `:regenerate-section`'s response also carries `markdownUrl`, same as
+    // `:generate`'s.
+    expect(newSpec.markdownUrl).toBe(
+      `https://fake-storage.test/${EXPORT_BUCKET}/${newSpec.markdownKey}`,
+    );
 
     // Prior version's storage object is untouched.
     expect(storage.objects.get(`${EXPORT_BUCKET}/${baseSpec.markdownKey}`)).toBe(baseMarkdown);

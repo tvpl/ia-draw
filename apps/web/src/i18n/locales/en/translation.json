@@ -405,5 +405,41 @@
       "presentationTitle": "Presentation: {{name}}",
       "presentationUnavailable": "The presentation view is not available yet. This link points at a presentation with {{count}} frame(s), which a future release will be able to show."
     }
+  },
+  "docs": {
+    "title": "Living documentation",
+    "loading": "Loading documentation…",
+    "error": "Couldn't load the documentation.",
+    "emptyState": "No document generated yet.",
+    "loadMore": "Load more",
+    "generate": "Generate document",
+    "versionLabel": "Version {{version}}",
+    "status": {
+      "draft": "Draft",
+      "current": "Current",
+      "superseded": "Superseded"
+    },
+    "contentLoading": "Loading content…",
+    "contentError": "Couldn't load this version's content.",
+    "announce": {
+      "generated": "Document generated.",
+      "generateForbidden": "You don't have permission to generate a document.",
+      "generateError": "Something went wrong. Try again.",
+      "regenerated": "Section regenerated.",
+      "regenerateForbidden": "You don't have permission to regenerate this section.",
+      "regenerateNotFound": "That version no longer exists.",
+      "regenerateError": "Something went wrong. Try again."
+    },
+    "sections": {
+      "overview": "Overview",
+      "components": "Components",
+      "flows": "Flows",
+      "decisions": "Decisions"
+    },
+    "reference": {
+      "element": "Element: {{elementId}}",
+      "removed": "Element removed ({{elementId}})"
+    },
+    "regenerateSection": "Regenerate this section"
   }
 }

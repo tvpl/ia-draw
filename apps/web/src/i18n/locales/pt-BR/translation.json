@@ -405,5 +405,41 @@
       "presentationTitle": "Apresentação: {{name}}",
       "presentationUnavailable": "A visualização de apresentação ainda não está disponível. Este link aponta para uma apresentação com {{count}} frame(s), que uma versão futura vai conseguir exibir."
     }
+  },
+  "docs": {
+    "title": "Documentação viva",
+    "loading": "Carregando documentação…",
+    "error": "Não foi possível carregar a documentação.",
+    "emptyState": "Nenhum documento gerado ainda.",
+    "loadMore": "Carregar mais",
+    "generate": "Gerar documento",
+    "versionLabel": "Versão {{version}}",
+    "status": {
+      "draft": "Rascunho",
+      "current": "Atual",
+      "superseded": "Substituída"
+    },
+    "contentLoading": "Carregando conteúdo…",
+    "contentError": "Não foi possível carregar o conteúdo desta versão.",
+    "announce": {
+      "generated": "Documento gerado.",
+      "generateForbidden": "Você não tem permissão para gerar um documento.",
+      "generateError": "Algo deu errado. Tente de novo.",
+      "regenerated": "Seção regenerada.",
+      "regenerateForbidden": "Você não tem permissão para regenerar esta seção.",
+      "regenerateNotFound": "Essa versão não existe mais.",
+      "regenerateError": "Algo deu errado. Tente de novo."
+    },
+    "sections": {
+      "overview": "Visão Geral",
+      "components": "Componentes",
+      "flows": "Fluxos",
+      "decisions": "Decisões"
+    },
+    "reference": {
+      "element": "Elemento: {{elementId}}",
+      "removed": "Elemento removido ({{elementId}})"
+    },
+    "regenerateSection": "Regenerar esta seção"
   }
 }
