@@ -165,9 +165,9 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] `setItems`, `setError`, `addItem`, `removeItem`, `replaceItem` all implemented and independently tested
-- [ ] `status` transitions correctly (`loading` → `ready`/`error`)
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `setItems`, `setError`, `addItem`, `removeItem`, `replaceItem` all implemented and independently tested
+- [x] `status` transitions correctly (`loading` → `ready`/`error`)
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
