@@ -90,11 +90,11 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] `generateExports(diagramId)` devolve `{exportId, revision, formats}`, cobre `429`
-- [ ] `generateBundle(diagramId)` devolve `{bundleId, url, sizeBytes, manifest}`
-- [ ] `previewImport(projectId, fileContent)` envia sem `confirm`, devolve `{preview}`; `confirmImport(projectId, fileContent, title)` envia com `confirm: true`, devolve `{preview, diagram}` (`201`); ambos cobrem `400`
-- [ ] `requestWorkspaceBundle(workspaceId)` devolve `{jobId, status}`, cobre `503`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `generateExports(diagramId)` devolve `{exportId, revision, formats}`, cobre `429`
+- [x] `generateBundle(diagramId)` devolve `{bundleId, url, sizeBytes, manifest}`
+- [x] `previewImport(projectId, fileContent)` envia sem `confirm`, devolve `{preview}`; `confirmImport(projectId, fileContent, title)` envia com `confirm: true`, devolve `{preview, diagram}` (`201`); ambos cobrem `400`
+- [x] `requestWorkspaceBundle(workspaceId)` devolve `{jobId, status}`, cobre `503`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

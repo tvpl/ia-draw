@@ -172,21 +172,21 @@ importar sem mouse.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| XPRT-01 | P1: Exportar 4 formatos | Tasks | Pending |
+| XPRT-01 | P1: Exportar 4 formatos | Tasks | Implementing |
 | XPRT-02 | P1: Exportar 4 formatos | Tasks | Pending |
 | XPRT-03 | P1: Exportar 4 formatos | Tasks | Pending |
 | XPRT-04 | P1: Exportar 4 formatos | Tasks | Pending |
-| XPRT-05 | P1: Bundle de diagrama | Tasks | Pending |
+| XPRT-05 | P1: Bundle de diagrama | Tasks | Implementing |
 | XPRT-06 | P1: Bundle de diagrama | Tasks | Pending |
-| XPRT-07 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-08 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-09 | P1: Importar com prévia | Tasks | Pending |
+| XPRT-07 | P1: Importar com prévia | Tasks | Implementing |
+| XPRT-08 | P1: Importar com prévia | Tasks | Implementing |
+| XPRT-09 | P1: Importar com prévia | Tasks | Implementing |
 | XPRT-10 | P1: Importar com prévia | Tasks | Pending |
 | XPRT-11 | P1: Importar com prévia | Tasks | Pending |
 | XPRT-12 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-13 | P2: Bundle de workspace | Tasks | Pending |
+| XPRT-13 | P2: Bundle de workspace | Tasks | Implementing |
 | XPRT-14 | P2: Bundle de workspace | Tasks | Pending |
-| XPRT-15 | P2: Bundle de workspace | Tasks | Pending |
+| XPRT-15 | P2: Bundle de workspace | Tasks | Implementing |
 | XPRT-16 | P2: Teclado e idioma | Tasks | Pending |
 | XPRT-17 | P2: Teclado e idioma | Tasks | Pending |
 | XPRT-18 | P2: Teclado e idioma | Tasks | Pending |
