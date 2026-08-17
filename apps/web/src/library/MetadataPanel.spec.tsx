@@ -104,6 +104,36 @@ describe('MetadataPanel (CLIB-08..13)', () => {
     expect(screen.getByTestId('metadata-announcement').textContent).toBe('Metadados salvos');
   });
 
+  it('CLIB-19: a failed save (e.g. role revoked mid-session, 403) announces the generic error via aria-live, never silently', async () => {
+    const fetchImpl = vi.fn(async (_url: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') return jsonResponse(403, {});
+      return jsonResponse(200, { metadata: SAVED_METADATA });
+    }) as unknown as typeof fetch;
+
+    render(
+      <MetadataPanel
+        diagramId="diagram-1"
+        selection={['el-1']}
+        canWrite={true}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await waitFor(() =>
+      expect((screen.getByLabelText('Tipo semântico') as HTMLInputElement).value).toBe('service'),
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Salvar' }));
+
+    await waitFor(() =>
+      expect(screen.getByTestId('metadata-announcement').textContent).toBe(
+        'Não foi possível carregar ou salvar os metadados. Tente novamente.',
+      ),
+    );
+    // Never optimistic: the field the failed save reflects is still the last known-good
+    // server value, not silently blanked or left in some undefined state.
+    expect((screen.getByLabelText('Tipo semântico') as HTMLInputElement).value).toBe('service');
+  });
+
   it('CLIB-11: canWrite=false renders the fetched values read-only, no form/save button', async () => {
     const fetchImpl = vi.fn(async () =>
       jsonResponse(200, { metadata: SAVED_METADATA }),
@@ -233,5 +263,31 @@ describe('MetadataPanel (CLIB-08..13)', () => {
         screen.getByText('Não foi possível carregar ou salvar os metadados. Tente novamente.'),
       ).not.toBeNull(),
     );
+  });
+
+  it('CLIB-18: the semantic-type field and the "Salvar" button are keyboard-focusable', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, { metadata: SAVED_METADATA }),
+    ) as unknown as typeof fetch;
+
+    render(
+      <MetadataPanel
+        diagramId="diagram-1"
+        selection={['el-1']}
+        canWrite={true}
+        fetchImpl={fetchImpl}
+      />,
+    );
+    await waitFor(() =>
+      expect((screen.getByLabelText('Tipo semântico') as HTMLInputElement).value).toBe('service'),
+    );
+
+    const semanticTypeField = screen.getByLabelText('Tipo semântico');
+    semanticTypeField.focus();
+    expect(document.activeElement).toBe(semanticTypeField);
+
+    const saveButton = screen.getByRole('button', { name: 'Salvar' });
+    saveButton.focus();
+    expect(document.activeElement).toBe(saveButton);
   });
 });

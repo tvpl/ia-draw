@@ -193,4 +193,30 @@ describe('LibraryPanel (CLIB-01..07)', () => {
 
     await waitFor(() => expect(screen.getAllByText('Server')).toHaveLength(2));
   });
+
+  it('CLIB-18: the "Inserir" button and the retry button are keyboard-focusable', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, { items: [GLOBAL_ROW] }),
+    ) as unknown as typeof fetch;
+
+    const { rerender } = render(
+      <LibraryPanel canWrite={true} onInsert={vi.fn()} fetchImpl={fetchImpl} />,
+    );
+    await waitFor(() => expect(screen.getByText('Server')).not.toBeNull());
+
+    const insertButton = screen.getAllByRole('button', { name: 'Inserir' })[0] as HTMLElement;
+    insertButton.focus();
+    expect(document.activeElement).toBe(insertButton);
+
+    // A second, independent render for the error state's retry button — a real error
+    // response is required to reach it, so this isn't reachable from the same mount above.
+    const errorFetchImpl = vi.fn(async () => jsonResponse(500, {})) as unknown as typeof fetch;
+    rerender(<LibraryPanel canWrite={true} onInsert={vi.fn()} fetchImpl={errorFetchImpl} />);
+    await waitFor(() =>
+      expect(screen.getByText('Não foi possível carregar a biblioteca.')).not.toBeNull(),
+    );
+    const retryButton = screen.getByRole('button', { name: 'Tentar de novo' });
+    retryButton.focus();
+    expect(document.activeElement).toBe(retryButton);
+  });
 });

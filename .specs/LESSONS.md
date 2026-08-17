@@ -218,6 +218,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: NAV-18, NAV-25 (.specs/features/workspace-navigation/validation.md) (tests)
 - last seen: 2026-08-17T00:45:58Z
 
+### L-035 - When a spec requires an aria-live announcement on both success and failure of a write action, add a test that drives the client through the failure branch and asserts the failure announcement text, not just the success branch.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `web/a11y-announcements` · harmful: 0
+- features: component-library
+- evidence: apps/web/src/library/MetadataPanel.tsx:104-106 (web/a11y-announcements)
+- last seen: 2026-08-17T02:31:49Z
+
+### L-036 - When a spec requires every action to be keyboard-reachable, assert focusability for each named interactive control individually rather than only a sample of them.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `web/a11y-keyboard` · harmful: 0
+- features: component-library
+- evidence: CLIB-18 (web/a11y-keyboard)
+- last seen: 2026-08-17T02:31:49Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

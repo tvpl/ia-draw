@@ -118,4 +118,17 @@ describe('InventoryView (CLIB-14..17)', () => {
       expect(screen.getByText('Não foi possível carregar o inventário.')).not.toBeNull(),
     );
   });
+
+  it('CLIB-18: the "Exportar CSV" button is keyboard-focusable', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, { items: ROWS }),
+    ) as unknown as typeof fetch;
+
+    render(<InventoryView diagramId="diagram-1" fetchImpl={fetchImpl} />);
+    await waitFor(() => expect(screen.getByText('el-1')).not.toBeNull());
+
+    const exportButton = screen.getByRole('button', { name: 'Exportar CSV' });
+    exportButton.focus();
+    expect(document.activeElement).toBe(exportButton);
+  });
 });
