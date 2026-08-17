@@ -166,13 +166,13 @@ T7
 - Skill: NONE
 
 **Done when**:
-- [ ] Seleção de arquivo lê como texto e chama `previewImport`, exibe `elementCount`
-- [ ] `400` (JSON inválido ou não reconhecido) exibe a mensagem sem permitir confirmar
-- [ ] `400` de limite de elementos exibe a mensagem sem truncar
-- [ ] Confirmar com título preenchido chama `confirmImport` e navega para `/w/:workspaceId/d/:diagramId` do diagrama criado
-- [ ] Confirmar sem título preenchido não emite requisição (validação client-side)
-- [ ] Ação de importar oculta quando `role` não concede `diagram:write` no projeto
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Seleção de arquivo lê como texto e chama `previewImport`, exibe `elementCount`
+- [x] `400` (JSON inválido ou não reconhecido) exibe a mensagem sem permitir confirmar
+- [x] `400` de limite de elementos exibe a mensagem sem truncar
+- [x] Confirmar com título preenchido chama `confirmImport` e navega para `/w/:workspaceId/d/:diagramId` do diagrama criado
+- [x] Confirmar sem título preenchido não emite requisição (validação client-side)
+- [x] Ação de importar oculta quando `role` não concede `diagram:write` no projeto
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

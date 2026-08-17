@@ -181,9 +181,9 @@ importar sem mouse.
 | XPRT-07 | P1: Importar com prévia | Tasks | Implementing |
 | XPRT-08 | P1: Importar com prévia | Tasks | Implementing |
 | XPRT-09 | P1: Importar com prévia | Tasks | Implementing |
-| XPRT-10 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-11 | P1: Importar com prévia | Tasks | Pending |
-| XPRT-12 | P1: Importar com prévia | Tasks | Pending |
+| XPRT-10 | P1: Importar com prévia | Tasks | Implementing |
+| XPRT-11 | P1: Importar com prévia | Tasks | Implementing |
+| XPRT-12 | P1: Importar com prévia | Tasks | Implementing |
 | XPRT-13 | P2: Bundle de workspace | Tasks | Implementing |
 | XPRT-14 | P2: Bundle de workspace | Tasks | Pending |
 | XPRT-15 | P2: Bundle de workspace | Tasks | Implementing |
