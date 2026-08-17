@@ -3,16 +3,20 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 28
-- Pendentes de produto (`pending-product`): 62
+- Com consumidor de UI (`consumed`): 32
+- Pendentes de produto (`pending-product`): 58
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (28)
+## consumed (32)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
 | POST | `/diagrams/:id/ai/runs` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
 | POST | `/ai/runs/:runRef` | `apps/server/src/modules/ai-engine/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
+| GET | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
+| POST | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
+| PATCH | `/admin/ai-providers/:id` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
+| POST | `/admin/ai-providers/:id(^[^:]+):test` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
 | POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
 | GET | `/users:lookup` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/presence/presenceClient.ts` |
@@ -40,17 +44,13 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (62)
+## pending-product (58)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
 | GET | `/health/live` | `apps/server/src/core/server.ts` |
 | GET | `/health/ready` | `apps/server/src/core/server.ts` |
 | GET | `/metrics` | `apps/server/src/core/server.ts` |
-| GET | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` |
-| POST | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` |
-| PATCH | `/admin/ai-providers/:id` | `apps/server/src/modules/ai-provider/routes.ts` |
-| POST | `/admin/ai-providers/:id(^[^:]+):test` | `apps/server/src/modules/ai-provider/routes.ts` |
 | POST | `/diagrams/:id/assets:initiate` | `apps/server/src/modules/asset/routes.ts` |
 | POST | `/diagrams/:id/assets/:assetId(^[^:]+):complete` | `apps/server/src/modules/asset/routes.ts` |
 | POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` |

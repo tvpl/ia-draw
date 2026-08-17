@@ -61,8 +61,6 @@ export interface AiProviderClient {
   testConnection(id: string): Promise<TestOutcome>;
 }
 
-const BASE_URL = '/admin/ai-providers';
-
 /**
  * Dedicated HTTP client for the 4 `/admin/ai-providers` routes (design.md's
  * Components) — deliberately NOT the generic `resourceClient`: the create body
@@ -73,13 +71,18 @@ const BASE_URL = '/admin/ai-providers';
  * Every call site reads `fetchImpl(...)` literally, matching `memberClient.ts` —
  * `repo-tools`' route-inventory extractor only recognizes literal `fetch(`/
  * `fetchImpl(` calls, so a locally-aliased wrapper would keep these routes in
- * the `pending-product` bucket even though the product consumes them.
+ * the `pending-product` bucket even though the product consumes them. The path
+ * prefix is written out at every call site rather than pulled from a shared
+ * constant for the same reason: the extractor normalizes an unresolved `${...}`
+ * to `:param`, so a `${BASE_URL}/${id}` url reads as `:param/:param` and matches
+ * every two-segment route in the repo, mis-attributing unrelated endpoints to
+ * this file.
  */
 export function createAiProviderClient(fetchImplOption?: typeof fetch): AiProviderClient {
   const fetchImpl = fetchImplOption ?? fetch.bind(globalThis);
 
   async function list(scope: string): Promise<ProviderConfig[]> {
-    const response = await fetchImpl(`${BASE_URL}?scope=${encodeURIComponent(scope)}`);
+    const response = await fetchImpl(`/admin/ai-providers?scope=${encodeURIComponent(scope)}`);
     if (!response.ok) throw new Error(`list provider configs failed: ${response.status}`);
     const body = (await response.json()) as { items: ProviderConfig[] };
     return body.items;
@@ -88,7 +91,7 @@ export function createAiProviderClient(fetchImplOption?: typeof fetch): AiProvid
   async function create(input: CreateProviderInput): Promise<CreateResult> {
     let response: Response;
     try {
-      response = await fetchImpl(BASE_URL, {
+      response = await fetchImpl('/admin/ai-providers', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify(input),
@@ -109,7 +112,7 @@ export function createAiProviderClient(fetchImplOption?: typeof fetch): AiProvid
   async function update(id: string, patch: UpdateProviderInput): Promise<UpdateResult> {
     let response: Response;
     try {
-      response = await fetchImpl(`${BASE_URL}/${id}`, {
+      response = await fetchImpl(`/admin/ai-providers/${id}`, {
         method: 'PATCH',
         headers: { 'content-type': 'application/json' },
         // `JSON.stringify` drops `undefined` properties, so an omitted `token`
@@ -128,7 +131,7 @@ export function createAiProviderClient(fetchImplOption?: typeof fetch): AiProvid
   async function testConnection(id: string): Promise<TestOutcome> {
     let response: Response;
     try {
-      response = await fetchImpl(`${BASE_URL}/${id}:test`, { method: 'POST' });
+      response = await fetchImpl(`/admin/ai-providers/${id}:test`, { method: 'POST' });
     } catch {
       return { status: 'error' };
     }
