@@ -215,33 +215,33 @@ A numeração de AC dentro de cada história é local; o ID de requisito é glob
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| LIVE-01 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-02 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-03 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-04 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-05 | P1: Identidade na retransmissão | F10 | Implementing |
-| LIVE-06 | P1: Sessão de presença | F10 | Implementing |
-| LIVE-07 | P1: Sessão de presença | F10 | Implementing |
-| LIVE-08 | P1: Sessão de presença | F10 | Implementing |
-| LIVE-09 | P1: Transmitir presença | F10 | Implementing |
-| LIVE-10 | P1: Transmitir presença | F10 | Implementing |
-| LIVE-11 | P1: Transmitir presença | F10 | Implementing |
-| LIVE-12 | P1: Transmitir presença | F10 | Implementing |
-| LIVE-13 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-14 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-15 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-16 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-17 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-18 | P1: Renderizar presença remota | F10 | Implementing |
-| LIVE-19 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-20 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-21 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-22 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-23 | P1: Reconexão com catch-up | F10 | Implementing |
-| LIVE-24 | P2: Estado da conexão | F10 | Implementing |
-| LIVE-25 | P2: Estado da conexão | F10 | Implementing |
-| LIVE-26 | P2: Estado da conexão | F10 | Implementing |
-| LIVE-27 | P2: Estado da conexão | F10 | Implementing |
+| LIVE-01 | P1: Identidade na retransmissão | F10 | ✅ Verified |
+| LIVE-02 | P1: Identidade na retransmissão | F10 | ✅ Verified |
+| LIVE-03 | P1: Identidade na retransmissão | F10 | ✅ Verified |
+| LIVE-04 | P1: Identidade na retransmissão | F10 | ✅ Verified |
+| LIVE-05 | P1: Identidade na retransmissão | F10 | ✅ Verified |
+| LIVE-06 | P1: Sessão de presença | F10 | ✅ Verified |
+| LIVE-07 | P1: Sessão de presença | F10 | ✅ Verified |
+| LIVE-08 | P1: Sessão de presença | F10 | ✅ Verified |
+| LIVE-09 | P1: Transmitir presença | F10 | ✅ Verified |
+| LIVE-10 | P1: Transmitir presença | F10 | ✅ Verified |
+| LIVE-11 | P1: Transmitir presença | F10 | ✅ Verified |
+| LIVE-12 | P1: Transmitir presença | F10 | ✅ Verified |
+| LIVE-13 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-14 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-15 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-16 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-17 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-18 | P1: Renderizar presença remota | F10 | ✅ Verified |
+| LIVE-19 | P1: Reconexão com catch-up | F10 | ✅ Verified |
+| LIVE-20 | P1: Reconexão com catch-up | F10 | ✅ Verified |
+| LIVE-21 | P1: Reconexão com catch-up | F10 | ✅ Verified |
+| LIVE-22 | P1: Reconexão com catch-up | F10 | ✅ Verified |
+| LIVE-23 | P1: Reconexão com catch-up | F10 | ✅ Verified |
+| LIVE-24 | P2: Estado da conexão | F10 | ✅ Verified |
+| LIVE-25 | P2: Estado da conexão | F10 | ✅ Verified |
+| LIVE-26 | P2: Estado da conexão | F10 | ✅ Verified |
+| LIVE-27 | P2: Estado da conexão | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
