@@ -90,6 +90,21 @@ export interface EditorSurfaceHandle {
    * deliberately omitted — this call never touches scene content.
    */
   applyCollaborators: (collaborators: ReadonlyMap<string, RemoteCollaborator>) => void;
+  /**
+   * presentation-mode/T2 (AD-010, PRZ-37): moves the viewport to fit the
+   * elements belonging to one canvas frame, for the presenter mode's
+   * frame-by-frame navigation. `elementId` is matched against the CURRENT
+   * local scene by the same rule
+   * `apps/server/src/modules/presentation/exportPdf.ts`'s `sceneForFrame`
+   * uses server-side (kept in sync by cross-reference comment in both
+   * files): every element whose `frameId` equals `elementId`, plus the
+   * frame element itself. `elementId: null`, or no elements found (frame
+   * deleted since, or a purely logical frame with no real `elementId`),
+   * both no-op — same "show the whole scene rather than an empty crop"
+   * fallback the server documents, except here there is nothing to crop:
+   * the viewport simply stays where it is.
+   */
+  scrollToFrame: (elementId: string | null) => void;
 }
 
 /**
@@ -120,6 +135,26 @@ interface ExcalidrawSceneApi {
   }) => void;
   getAppState: () => ExcalidrawViewportAppState;
   addFiles: (files: ExcalidrawBinaryFile[]) => void;
+  /**
+   * Real, public Excalidraw imperative-API method (`ExcalidrawImperativeAPI.
+   * scrollToContent`), declared here structurally like every other method on
+   * this interface (EDT-07/AD-008: no internal subpath import). Optional —
+   * a mocked-in-test API that omits it is a legitimate degrade, never a crash
+   * (`scrollToFrame` below calls it defensively).
+   */
+  scrollToContent?: (
+    target: readonly SceneElement[],
+    opts?: { fitToViewport?: boolean; animate?: boolean },
+  ) => void;
+}
+
+/** Mirrors `apps/server/src/modules/presentation/exportPdf.ts`'s `sceneForFrame` —
+ * keep the two in sync; this copy decides viewport only, never what gets exported. */
+function elementsForFrame(
+  scene: readonly SceneElement[],
+  elementId: string,
+): readonly SceneElement[] {
+  return scene.filter((el) => el.frameId === elementId || el.id === elementId);
 }
 
 /**
@@ -168,6 +203,13 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
       },
       applyCollaborators(collaborators: ReadonlyMap<string, RemoteCollaborator>) {
         apiRef.current?.updateScene({ collaborators });
+      },
+      scrollToFrame(elementId: string | null) {
+        if (!elementId) return;
+        const local = Array.from(previousSceneRef.current.values());
+        const target = elementsForFrame(local, elementId);
+        if (target.length === 0) return;
+        apiRef.current?.scrollToContent?.(target, { fitToViewport: true, animate: true });
       },
       insertLibraryItem(item: LibraryItem) {
         const api = apiRef.current;

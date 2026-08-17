@@ -24,6 +24,7 @@ let capturedViewModeEnabled: boolean | undefined;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 let addFilesSpy: ReturnType<typeof vi.fn>;
 let getAppStateMock: ReturnType<typeof vi.fn>;
+let scrollToContentSpy: ReturnType<typeof vi.fn> | undefined;
 
 const DEFAULT_MOCK_APP_STATE = {
   scrollX: 0,
@@ -45,16 +46,20 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
         updateScene: typeof updateSceneSpy;
         getAppState: typeof getAppStateMock;
         addFiles: typeof addFilesSpy;
+        scrollToContent?: (...args: unknown[]) => void;
       }) => void;
     }) => {
       capturedOnChange = props.onChange;
       capturedOnPointerUpdate = props.onPointerUpdate;
       capturedViewModeEnabled = props.viewModeEnabled;
       // Mirrors what the real Excalidraw does on mount: hands the caller its imperative API.
+      // `scrollToContent` is included only when a test opts in (`scrollToContentSpy` set before
+      // mount) — proves EditorSurface never assumes the method exists (T2).
       props.excalidrawAPI?.({
         updateScene: updateSceneSpy,
         getAppState: getAppStateMock,
         addFiles: addFilesSpy,
+        ...(scrollToContentSpy ? { scrollToContent: scrollToContentSpy } : {}),
       });
       return null;
     },
@@ -80,6 +85,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     updateSceneSpy = vi.fn();
     addFilesSpy = vi.fn();
     getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
+    scrollToContentSpy = undefined;
     container = document.createElement('div');
     document.body.appendChild(container);
   });
@@ -418,6 +424,79 @@ describe('EditorSurface (T94, DOCK-03)', () => {
       mount({});
 
       expect(capturedViewModeEnabled).toBeUndefined();
+    });
+  });
+
+  describe('scrollToFrame (presentation-mode/T2, AD-010, PRZ-37)', () => {
+    it('matches elements by frameId and calls scrollToContent with just those elements', () => {
+      scrollToContentSpy = vi.fn();
+      const frameElement: SceneElement = { ...base, id: 'frame-1', frameId: null };
+      const memberA: SceneElement = { ...base, id: 'child-a', frameId: 'frame-1' };
+      const memberB: SceneElement = { ...base, id: 'child-b', frameId: 'frame-1' };
+      const outsider: SceneElement = { ...base, id: 'child-outside', frameId: null };
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [frameElement, memberA, memberB, outsider] }, ref);
+
+      act(() => {
+        ref.current?.scrollToFrame('frame-1');
+      });
+
+      expect(scrollToContentSpy).toHaveBeenCalledTimes(1);
+      const [target] = scrollToContentSpy.mock.calls[0] as [SceneElement[]];
+      // Includes the frame element itself, same as the server's `sceneForFrame` — the OR's
+      // `el.id === elementId` branch, tested here distinctly from the `frameId` branch above.
+      expect(target.map((el) => el.id).sort()).toEqual(['child-a', 'child-b', 'frame-1']);
+    });
+
+    it('matches the frame element itself by id when nothing has that frameId (empty frame)', () => {
+      scrollToContentSpy = vi.fn();
+      const frameElement: SceneElement = { ...base, id: 'frame-empty', frameId: null };
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [frameElement] }, ref);
+
+      act(() => {
+        ref.current?.scrollToFrame('frame-empty');
+      });
+
+      expect(scrollToContentSpy).toHaveBeenCalledTimes(1);
+      const [target] = scrollToContentSpy.mock.calls[0] as [SceneElement[]];
+      expect(target.map((el) => el.id)).toEqual(['frame-empty']);
+    });
+
+    it('falls back to a no-op when elementId matches nothing in the current scene', () => {
+      scrollToContentSpy = vi.fn();
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [{ ...base, id: 'unrelated', frameId: null }] }, ref);
+
+      act(() => {
+        ref.current?.scrollToFrame('does-not-exist');
+      });
+
+      expect(scrollToContentSpy).not.toHaveBeenCalled();
+    });
+
+    it('elementId: null is a no-op', () => {
+      scrollToContentSpy = vi.fn();
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [{ ...base, id: 'frame-1', frameId: null }] }, ref);
+
+      act(() => {
+        ref.current?.scrollToFrame(null);
+      });
+
+      expect(scrollToContentSpy).not.toHaveBeenCalled();
+    });
+
+    it('never throws when the mounted API has no scrollToContent method at all', () => {
+      // scrollToContentSpy stays undefined (beforeEach) — the mock omits the method entirely.
+      const ref = createRef<EditorSurfaceHandle>();
+      mount({ initialElements: [{ ...base, id: 'frame-1', frameId: null }] }, ref);
+
+      expect(() => {
+        act(() => {
+          ref.current?.scrollToFrame('frame-1');
+        });
+      }).not.toThrow();
     });
   });
 });
