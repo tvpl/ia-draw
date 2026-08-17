@@ -15,14 +15,45 @@ import { SESSION_COOKIE_NAME } from '../auth/cookie.js';
 import { registerAuthModule } from '../auth/routes.js';
 import { createSession } from '../auth/session.js';
 import { registerDiagramSyncModule } from '../diagram-sync/routes.js';
+import { registerPresentationPublishModule } from '../presentation/publishRoutes.js';
 import { registerPresentationModule } from '../presentation/routes.js';
+import type { StorageClient } from '../storage/signedUrl.js';
 import { registerWorkspaceModule } from '../workspace/index.js';
 import { registerShareModule } from './routes.js';
+
+/** Same in-memory fake as `presentation/publish.int.spec.ts` — real object storage
+ * is CI-only (AD-007), and this module only ever reads what `publishRoutes.ts`
+ * already wrote through the same fake in prior tests of that file. */
+function createFakeStorage(): StorageClient & { objects: Map<string, string> } {
+  const objects = new Map<string, string>();
+  return {
+    objects,
+    async putSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async getSignedUrl(bucket, key) {
+      return `https://fake-storage.test/${bucket}/${key}`;
+    },
+    async headObject(bucket, key) {
+      const value = objects.get(`${bucket}/${key}`);
+      return value !== undefined ? { exists: true, sizeBytes: value.length } : { exists: false };
+    },
+    async putObject(bucket, key, body) {
+      objects.set(`${bucket}/${key}`, Buffer.isBuffer(body) ? body.toString('utf8') : String(body));
+    },
+    async getObject(bucket, key) {
+      const value = objects.get(`${bucket}/${key}`);
+      if (value === undefined) throw new Error(`object ${bucket}/${key} not found`);
+      return Buffer.from(value, 'utf8');
+    },
+  };
+}
 
 describe('share module — capped-role, expiring share links (T78, EXT-01)', () => {
   let client: PGlite;
   let db: PgliteDatabase<typeof schema>;
   let app: FastifyInstance;
+  let storage: ReturnType<typeof createFakeStorage>;
 
   beforeAll(async () => {
     client = new PGlite();
@@ -35,7 +66,9 @@ describe('share module — capped-role, expiring share links (T78, EXT-01)', () 
     registerWorkspaceModule(app, { db });
     registerDiagramSyncModule(app, { db });
     registerPresentationModule(app, { db });
-    registerShareModule(app, { db });
+    storage = createFakeStorage();
+    registerPresentationPublishModule(app, { db, storage });
+    registerShareModule(app, { db, storage });
     await app.ready();
   });
 
@@ -386,5 +419,152 @@ describe('share module — capped-role, expiring share links (T78, EXT-01)', () 
       payload: { role: 'viewer', expiresAt: futureIso() },
     });
     expect(response.statusCode).toBe(404);
+  });
+
+  describe('presentation-mode/T1 — published scene on the public presentation branch', () => {
+    async function addRectangle(
+      cookies: Record<string, string>,
+      diagramId: string,
+      actorId: string,
+      elementId: string,
+    ) {
+      return app.inject({
+        method: 'POST',
+        url: `/diagrams/${diagramId}/operations:batch`,
+        cookies,
+        payload: {
+          clientMutationId: randomUUID(),
+          baseRevision: 0,
+          actorId,
+          deltas: [
+            {
+              elementId,
+              kind: 'upsert' as const,
+              element: {
+                id: elementId,
+                type: 'rectangle',
+                x: 0,
+                y: 0,
+                version: 1,
+                versionNonce: 1,
+              },
+              version: 1,
+              versionNonce: 1,
+            },
+          ],
+        },
+      });
+    }
+
+    it('a published presentation share link includes the FROZEN scene, never the live one', async () => {
+      const owner = await seedUserWithSession('pub-scene-owner');
+      const { diagramId } = await seedDiagramAs(owner.cookies, 'pub-scene');
+      await addRectangle(owner.cookies, diagramId, owner.user.id, 'el-1');
+
+      const createPresentation = await app.inject({
+        method: 'POST',
+        url: '/presentations',
+        cookies: owner.cookies,
+        payload: { diagramId, name: 'Published deck' },
+      });
+      const presentationId = createPresentation.json().presentation.id as string;
+
+      await app.inject({
+        method: 'POST',
+        url: `/presentations/${presentationId}:publish`,
+        cookies: owner.cookies,
+      });
+
+      const link = await app.inject({
+        method: 'POST',
+        url: `/presentations/${presentationId}/share-links`,
+        cookies: owner.cookies,
+        payload: { role: 'viewer', expiresAt: futureIso() },
+      });
+      const token = link.json().token as string;
+
+      // Mutate the LIVE scene AFTER publishing and creating the link.
+      await addRectangle(owner.cookies, diagramId, owner.user.id, 'el-2');
+
+      const resolved = await app.inject({ method: 'GET', url: `/share/${token}` });
+      expect(resolved.statusCode).toBe(200);
+      const body = resolved.json();
+      expect(body.published).toBe(true);
+      const sceneIds = (body.scene as Array<{ id: string }>).map((el) => el.id).sort();
+      expect(sceneIds).toEqual(['el-1']);
+    });
+
+    it('a NOT-yet-published presentation share link stays exactly as before — no scene, no published field', async () => {
+      const owner = await seedUserWithSession('unpub-scene-owner');
+      const { diagramId } = await seedDiagramAs(owner.cookies, 'unpub-scene');
+      await addRectangle(owner.cookies, diagramId, owner.user.id, 'el-1');
+
+      const createPresentation = await app.inject({
+        method: 'POST',
+        url: '/presentations',
+        cookies: owner.cookies,
+        payload: { diagramId, name: 'Unpublished deck' },
+      });
+      const presentationId = createPresentation.json().presentation.id as string;
+
+      const link = await app.inject({
+        method: 'POST',
+        url: `/presentations/${presentationId}/share-links`,
+        cookies: owner.cookies,
+        payload: { role: 'viewer', expiresAt: futureIso() },
+      });
+      const token = link.json().token as string;
+
+      const resolved = await app.inject({ method: 'GET', url: `/share/${token}` });
+      expect(resolved.statusCode).toBe(200);
+      const body = resolved.json();
+      expect(body.resourceType).toBe('presentation');
+      expect(body.scene).toBeUndefined();
+      expect(body.published).toBeUndefined();
+    });
+
+    it('a publishedSnapshotId that fails to resolve degrades to the unpublished shape, never a 500', async () => {
+      const owner = await seedUserWithSession('missing-snapshot-owner');
+      const { diagramId } = await seedDiagramAs(owner.cookies, 'missing-snapshot');
+
+      const createPresentation = await app.inject({
+        method: 'POST',
+        url: '/presentations',
+        cookies: owner.cookies,
+        payload: { diagramId, name: 'Dangling snapshot deck' },
+      });
+      const presentationId = createPresentation.json().presentation.id as string;
+
+      await app.inject({
+        method: 'POST',
+        url: `/presentations/${presentationId}:publish`,
+        cookies: owner.cookies,
+      });
+
+      const link = await app.inject({
+        method: 'POST',
+        url: `/presentations/${presentationId}/share-links`,
+        cookies: owner.cookies,
+        payload: { role: 'viewer', expiresAt: futureIso() },
+      });
+      const token = link.json().token as string;
+
+      // Simulate a dangling snapshot object (never happens in practice — storage writes
+      // are synchronous with the snapshot row — but the route must never 500 on it).
+      const [presentationRow] = await db
+        .select()
+        .from(schema.presentations)
+        .where(eq(schema.presentations.id, presentationId));
+      const snapshotId = presentationRow?.publishedSnapshotId as string;
+      const [snapshotRow] = await db
+        .select()
+        .from(schema.diagramSnapshots)
+        .where(eq(schema.diagramSnapshots.id, snapshotId));
+      storage.objects.delete(`exports/${snapshotRow?.sceneJsonKey}`);
+
+      const resolved = await app.inject({ method: 'GET', url: `/share/${token}` });
+      expect(resolved.statusCode).toBe(200);
+      expect(resolved.json().scene).toBeUndefined();
+    });
   });
 });

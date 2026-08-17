@@ -160,7 +160,7 @@ export async function registerAllModules(
   registerPresentationModule(app, { db });
   registerPresentationPublishModule(app, { db, storage, jobs: deps.jobs });
   registerCommentModule(app, { db, jobs: deps.jobs });
-  registerShareModule(app, { db });
+  registerShareModule(app, { db, storage });
   registerWebhookModule(app, { db, encryptionKey: config.encryptionKey });
   await registerWsGatewayModule(app, { db, jobs: deps.jobs, presence, metrics, tracing });
 
