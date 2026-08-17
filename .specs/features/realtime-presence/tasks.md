@@ -158,12 +158,12 @@ T12 → T15
 - Skill: NONE
 
 **Done when**:
-- [ ] `EditorSurfaceHandle.applyCollaborators(map)` existe e chama `updateScene({collaborators})`
-- [ ] O tipo `RemoteCollaborator` é declarado localmente e reexportado por `packages/editor-adapter/src/index.ts`
-- [ ] `applyRemoteScene` e `insertLibraryItem` continuam funcionando sem mudança de assinatura
-- [ ] Teste unitário afirma o conteúdo do mapa entregue a `updateScene` (chaves, `pointer`, `username`, `color`, `selectedElementIds`), não apenas que foi chamado
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
-- [ ] Test count: 2 novos casos passam
+- [x] `EditorSurfaceHandle.applyCollaborators(map)` existe e chama `updateScene({collaborators})`
+- [x] O tipo `RemoteCollaborator` é declarado localmente e reexportado por `packages/editor-adapter/src/index.ts`
+- [x] `applyRemoteScene` e `insertLibraryItem` continuam funcionando sem mudança de assinatura
+- [x] Teste unitário afirma o conteúdo do mapa entregue a `updateScene` (chaves, `pointer`, `username`, `color`, `selectedElementIds`), não apenas que foi chamado
+- [x] Gate check passes: `pnpm --filter @arch-canvas/editor-adapter run test:unit`
+- [x] Test count: 2 novos casos passam
 
 **Tests**: unit
 **Gate**: quick

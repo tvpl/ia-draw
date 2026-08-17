@@ -29,6 +29,23 @@ export interface EditorSurfaceProps {
 }
 
 /**
+ * The slice of Excalidraw's own `Collaborator` type this project actually
+ * populates (LIVE-13/14). Declared structurally here, for the same reason
+ * `SceneElement` is derived structurally in `types.ts` rather than imported:
+ * naming the upstream type would require an internal-subpath import
+ * (`@excalidraw/excalidraw/types`), which `no-internal-import.spec.ts`
+ * forbids (EDT-07/AD-008). `updateScene({collaborators})` itself is public API.
+ */
+export interface RemoteCollaborator {
+  /** Excalidraw renders both the cursor and the `username` label at this point. `tool` is required upstream; this project only ever sends `'pointer'` (laser is out of scope). */
+  pointer?: { x: number; y: number; tool: 'pointer' };
+  selectedElementIds?: Record<string, true>;
+  username?: string;
+  color?: { background: string; stroke: string };
+  id?: string;
+}
+
+/**
  * The imperative handle exposed via `ref` (AD-010) — the only way a caller
  * (e.g. `AiDock`'s approve/undo flow) reflects a remote scene onto the
  * canvas without discarding whatever the user is mid-edit on locally.
@@ -46,6 +63,15 @@ export interface EditorSurfaceHandle {
    * today (spec.md Assumptions: no client-side fetch of external icon artwork, ever).
    */
   insertLibraryItem: (item: LibraryItem) => void;
+  /**
+   * Pushes the current set of remote collaborators to Excalidraw's own
+   * cursor/selection rendering (`updateScene({collaborators})`, LIVE-13/14).
+   * Imperative rather than a reactive prop on purpose: a prop would re-render
+   * `<Excalidraw/>` on every remote cursor move, and this is the same handle
+   * AD-010 already established for remote-origin canvas updates. `elements` is
+   * deliberately omitted — this call never touches scene content.
+   */
+  applyCollaborators: (collaborators: ReadonlyMap<string, RemoteCollaborator>) => void;
 }
 
 /**
@@ -70,7 +96,10 @@ interface ExcalidrawBinaryFile {
 }
 
 interface ExcalidrawSceneApi {
-  updateScene: (sceneData: { elements: readonly SceneElement[] }) => void;
+  updateScene: (sceneData: {
+    elements?: readonly SceneElement[];
+    collaborators?: ReadonlyMap<string, RemoteCollaborator>;
+  }) => void;
   getAppState: () => ExcalidrawViewportAppState;
   addFiles: (files: ExcalidrawBinaryFile[]) => void;
 }
@@ -112,6 +141,9 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
         const local = Array.from(previousSceneRef.current.values());
         const merged = applyRemote(local, remote);
         apiRef.current?.updateScene({ elements: merged });
+      },
+      applyCollaborators(collaborators: ReadonlyMap<string, RemoteCollaborator>) {
+        apiRef.current?.updateScene({ collaborators });
       },
       insertLibraryItem(item: LibraryItem) {
         const api = apiRef.current;

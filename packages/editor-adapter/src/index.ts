@@ -4,6 +4,7 @@ export {
   EditorSurface,
   type EditorSurfaceHandle,
   type EditorSurfaceProps,
+  type RemoteCollaborator,
 } from './EditorSurface.js';
 export { sanitizeAppState } from './sanitizeAppState.js';
 export { parseScene, type SerializedScene, serializeScene } from './serializeScene.js';

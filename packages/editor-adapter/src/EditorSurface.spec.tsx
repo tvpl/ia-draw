@@ -7,6 +7,7 @@ import {
   EditorSurface,
   type EditorSurfaceHandle,
   type EditorSurfaceProps,
+  type RemoteCollaborator,
 } from './EditorSurface.js';
 import type { SceneElement } from './types.js';
 
@@ -177,6 +178,58 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     // normalizes its own version/versionNonce on merge, so only presence is asserted —
     // same convention as applyRemote.spec.ts's "local-only element" case).
     expect(byId.has('el-remote-added')).toBe(true);
+  });
+
+  it('applyCollaborators hands Excalidraw the exact collaborator map, entry by entry (LIVE-13, LIVE-14)', () => {
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ initialElements: [base] }, ref);
+
+    const collaborators = new Map<string, RemoteCollaborator>([
+      [
+        'user-a',
+        {
+          id: 'user-a',
+          username: 'Ana',
+          pointer: { x: 12, y: 34, tool: 'pointer' },
+          selectedElementIds: { 'el-7': true },
+          color: { background: '#ff0000', stroke: '#aa0000' },
+        },
+      ],
+      ['user-b', { id: 'user-b', username: 'Bruno', pointer: { x: 1, y: 2, tool: 'pointer' } }],
+    ]);
+
+    act(() => {
+      ref.current?.applyCollaborators(collaborators);
+    });
+
+    expect(updateSceneSpy).toHaveBeenCalledTimes(1);
+    const [sceneData] = updateSceneSpy.mock.calls[0] as [
+      { collaborators: Map<string, RemoteCollaborator> },
+    ];
+    expect([...sceneData.collaborators.keys()]).toEqual(['user-a', 'user-b']);
+    expect(sceneData.collaborators.get('user-a')).toEqual({
+      id: 'user-a',
+      username: 'Ana',
+      pointer: { x: 12, y: 34, tool: 'pointer' },
+      selectedElementIds: { 'el-7': true },
+      color: { background: '#ff0000', stroke: '#aa0000' },
+    });
+    expect(sceneData.collaborators.get('user-b')?.username).toBe('Bruno');
+  });
+
+  it('applyCollaborators with an empty map clears the collaborators without touching elements (LIVE-23)', () => {
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ initialElements: [base] }, ref);
+
+    act(() => {
+      ref.current?.applyCollaborators(new Map());
+    });
+
+    const [sceneData] = updateSceneSpy.mock.calls[0] as [
+      { collaborators: Map<string, RemoteCollaborator>; elements?: unknown },
+    ];
+    expect(sceneData.collaborators.size).toBe(0);
+    expect(sceneData.elements).toBeUndefined();
   });
 
   const INLINE_ITEM: LibraryItem = {
