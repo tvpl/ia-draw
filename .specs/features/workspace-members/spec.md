@@ -160,27 +160,27 @@ remover e readicionar.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| MEM-01 | P1: Ver membros | F10 | Implementing |
-| MEM-02 | P1: Ver membros | F10 | Implementing |
-| MEM-03 | P1: Ver membros | F10 | Implementing |
-| MEM-04 | P1: Convidar | F10 | Implementing |
-| MEM-05 | P1: Convidar | F10 | Implementing |
-| MEM-06 | P1: Convidar | F10 | Implementing |
-| MEM-07 | P1: Convidar | F10 | Implementing |
-| MEM-08 | P1: Convidar | F10 | Implementing |
-| MEM-09 | P1: Convidar | F10 | Implementing |
-| MEM-10 | P1: Trocar papel | F10 | Implementing |
-| MEM-11 | P1: Trocar papel | F10 | Implementing |
-| MEM-12 | P1: Trocar papel | F10 | Implementing |
-| MEM-13 | P1: Trocar papel | F10 | Implementing |
-| MEM-14 | P1: Remover | F10 | Implementing |
-| MEM-15 | P1: Remover | F10 | Implementing |
-| MEM-16 | P1: Remover | F10 | Implementing |
-| MEM-17 | P1: Remover | F10 | Implementing |
-| MEM-18 | P1: Remover | F10 | Implementing |
-| MEM-19 | P2: Teclado e idioma | F10 | Implementing |
-| MEM-20 | P2: Teclado e idioma | F10 | Implementing |
-| MEM-21 | P2: Teclado e idioma | F10 | Implementing |
+| MEM-01 | P1: Ver membros | F10 | ✅ Verified |
+| MEM-02 | P1: Ver membros | F10 | ✅ Verified |
+| MEM-03 | P1: Ver membros | F10 | ✅ Verified |
+| MEM-04 | P1: Convidar | F10 | ✅ Verified |
+| MEM-05 | P1: Convidar | F10 | ✅ Verified |
+| MEM-06 | P1: Convidar | F10 | ✅ Verified |
+| MEM-07 | P1: Convidar | F10 | ✅ Verified |
+| MEM-08 | P1: Convidar | F10 | ✅ Verified |
+| MEM-09 | P1: Convidar | F10 | ✅ Verified |
+| MEM-10 | P1: Trocar papel | F10 | ✅ Verified |
+| MEM-11 | P1: Trocar papel | F10 | ✅ Verified |
+| MEM-12 | P1: Trocar papel | F10 | ✅ Verified |
+| MEM-13 | P1: Trocar papel | F10 | ✅ Verified |
+| MEM-14 | P1: Remover | F10 | ✅ Verified |
+| MEM-15 | P1: Remover | F10 | ✅ Verified |
+| MEM-16 | P1: Remover | F10 | ✅ Verified |
+| MEM-17 | P1: Remover | F10 | ✅ Verified |
+| MEM-18 | P1: Remover | F10 | ✅ Verified |
+| MEM-19 | P2: Teclado e idioma | F10 | ✅ Verified |
+| MEM-20 | P2: Teclado e idioma | F10 | ✅ Verified |
+| MEM-21 | P2: Teclado e idioma | F10 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 
