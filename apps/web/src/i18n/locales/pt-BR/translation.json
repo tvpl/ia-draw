@@ -323,5 +323,36 @@
       "connected": "Presença ao vivo conectada",
       "disconnected": "Presença ao vivo desconectada"
     }
+  },
+  "adminProviders": {
+    "title": "Providers de IA",
+    "globalScope": "Escopo global — vale para toda a instância",
+    "workspaceScope": "Escopo deste workspace — sobrepõe o provider global",
+    "empty": "Nenhum provider cadastrado neste escopo.",
+    "active": "Ativo",
+    "inactive": "Inativo",
+    "baseUrlLabel": "Endpoint do provider",
+    "modelLabel": "Modelo",
+    "keyLabel": "Chave da API",
+    "keyKeepHint": "Deixe em branco para manter a chave atual.",
+    "create": "Cadastrar provider",
+    "edit": "Editar",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "test": "Testar conexão",
+    "activate": "Ativar",
+    "deactivate": "Desativar",
+    "created": "Provider cadastrado.",
+    "updated": "Provider atualizado.",
+    "activated": "Provider ativado.",
+    "deactivated": "Provider desativado.",
+    "rejectedUrl": "O endpoint informado foi rejeitado pelo servidor.",
+    "rateLimited": "Limite de 10 testes de conexão por 60 segundos atingido. Tente de novo em instantes.",
+    "testSuccess": "Conexão OK. Modelo disponível: {{modelAvailable}}. Tool calling: {{toolCalling}}.",
+    "testFailure": "Falha na conexão: {{error}}",
+    "yes": "sim",
+    "no": "não",
+    "globalLink": "Providers de IA (global)",
+    "workspaceLink": "Providers de IA"
   }
 }

@@ -323,5 +323,36 @@
       "connected": "Live presence connected",
       "disconnected": "Live presence disconnected"
     }
+  },
+  "adminProviders": {
+    "title": "AI providers",
+    "globalScope": "Global scope — applies to the whole instance",
+    "workspaceScope": "This workspace's scope — overrides the global provider",
+    "empty": "No provider registered in this scope.",
+    "active": "Active",
+    "inactive": "Inactive",
+    "baseUrlLabel": "Provider endpoint",
+    "modelLabel": "Model",
+    "keyLabel": "API key",
+    "keyKeepHint": "Leave blank to keep the current key.",
+    "create": "Register provider",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "test": "Test connection",
+    "activate": "Activate",
+    "deactivate": "Deactivate",
+    "created": "Provider registered.",
+    "updated": "Provider updated.",
+    "activated": "Provider activated.",
+    "deactivated": "Provider deactivated.",
+    "rejectedUrl": "The server rejected that provider endpoint.",
+    "rateLimited": "Reached the limit of 10 connection tests per 60 seconds. Try again shortly.",
+    "testSuccess": "Connection OK. Model available: {{modelAvailable}}. Tool calling: {{toolCalling}}.",
+    "testFailure": "Connection failed: {{error}}",
+    "yes": "yes",
+    "no": "no",
+    "globalLink": "AI providers (global)",
+    "workspaceLink": "AI providers"
   }
 }

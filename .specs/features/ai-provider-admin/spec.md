@@ -272,7 +272,7 @@ e confirmar que nenhuma das duas mensagens diz que a configuração é feita for
 | PROV-26 | P1: Alternar qual está ativa | F10 | Pending |
 | PROV-27 | P2: Teclado e idiomas | F10 | Pending |
 | PROV-28 | P2: Teclado e idiomas | F10 | Pending |
-| PROV-29 | P2: Teclado e idiomas | F10 | Pending |
+| PROV-29 | P2: Teclado e idiomas | F10 | Implementing |
 | PROV-30 | P2: Dock aponta para a tela | F10 | Pending |
 
 **ID format:** `[CATEGORY]-[NUMBER]`

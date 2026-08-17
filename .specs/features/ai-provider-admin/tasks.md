@@ -170,9 +170,9 @@ T13
 
 **Done when**:
 
-- [ ] Bloco `adminProviders` presente nos dois locales, com o mesmo conjunto de chaves em ambos
-- [ ] Nenhuma chave existente removida ou renomeada
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/server run test:integration`
+- [x] Bloco `adminProviders` presente nos dois locales, com o mesmo conjunto de chaves em ambos
+- [x] Nenhuma chave existente removida ou renomeada
+- [x] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/server run test:integration`
 
 **Tests**: none
 **Gate**: build
