@@ -168,15 +168,15 @@ inserir um item, classificar um elemento e ver o inventário sem mouse.
 | CLIB-05 | P1: Navegar e inserir | Design | Pending |
 | CLIB-06 | P1: Navegar e inserir | Design | Pending |
 | CLIB-07 | P1: Navegar e inserir | Design | Pending |
-| CLIB-08 | P1: Classificar elemento | Design | Pending |
-| CLIB-09 | P1: Classificar elemento | Design | Pending |
-| CLIB-10 | P1: Classificar elemento | Design | Pending |
+| CLIB-08 | P1: Classificar elemento | Tasks | Implementing |
+| CLIB-09 | P1: Classificar elemento | Tasks | Implementing |
+| CLIB-10 | P1: Classificar elemento | Tasks | Implementing |
 | CLIB-11 | P1: Classificar elemento | Design | Pending |
 | CLIB-12 | P1: Classificar elemento | Design | Pending |
 | CLIB-13 | P1: Classificar elemento | Design | Pending |
-| CLIB-14 | P2: Inventário | Design | Pending |
+| CLIB-14 | P2: Inventário | Tasks | Implementing |
 | CLIB-15 | P2: Inventário | Design | Pending |
-| CLIB-16 | P2: Inventário | Design | Pending |
+| CLIB-16 | P2: Inventário | Tasks | Implementing |
 | CLIB-17 | P2: Inventário | Design | Pending |
 | CLIB-18 | P2: Teclado e idioma | Design | Pending |
 | CLIB-19 | P2: Teclado e idioma | Design | Pending |

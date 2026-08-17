@@ -141,10 +141,10 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] `get(diagramId, elementId)` devolve `null` no `404` (nunca lança), objeto no `200`
-- [ ] `patch(diagramId, elementId, body)` devolve o objeto salvo (nunca otimista)
-- [ ] `inventory(diagramId, format)` devolve `InventoryRow[]` pra `'json'` e `string` pra `'csv'`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] `get(diagramId, elementId)` devolve `null` no `404` (nunca lança), objeto no `200`
+- [x] `patch(diagramId, elementId, body)` devolve o objeto salvo (nunca otimista)
+- [x] `inventory(diagramId, format)` devolve `InventoryRow[]` pra `'json'` e `string` pra `'csv'`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
