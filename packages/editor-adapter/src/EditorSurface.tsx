@@ -90,6 +90,16 @@ export interface EditorSurfaceHandle {
    * deliberately omitted — this call never touches scene content.
    */
   applyCollaborators: (collaborators: ReadonlyMap<string, RemoteCollaborator>) => void;
+  /**
+   * Selects `elementId` and centers/zooms the viewport on it (ALNT-08/09/10) — the "jump to
+   * element" action the lint panel (and any future consumer) drives through this single handle,
+   * never a second path onto the canvas (AD-010/EDT-07). Looks the id up in the CURRENT local
+   * scene (`previousSceneRef`, the same source `applyRemoteScene`/`insertLibraryItem` already
+   * read); when the id isn't there (the element was deleted since the caller last saw the scene),
+   * this is a no-op that returns `false` — it never throws and never touches `elements`, only
+   * `appState.selectedElementIds` (selection) and the viewport (via `scrollToContent`).
+   */
+  focusElement: (elementId: string) => boolean;
 }
 
 /**
@@ -117,9 +127,12 @@ interface ExcalidrawSceneApi {
   updateScene: (sceneData: {
     elements?: readonly SceneElement[];
     collaborators?: ReadonlyMap<string, RemoteCollaborator>;
+    appState?: { selectedElementIds?: Record<string, true> };
   }) => void;
   getAppState: () => ExcalidrawViewportAppState;
   addFiles: (files: ExcalidrawBinaryFile[]) => void;
+  /** ALNT-08/09/10: centers/zooms the viewport on the given element(s), Excalidraw's own animated scroll-into-view. */
+  scrollToContent: (target: SceneElement, opts?: { animate?: boolean; duration?: number }) => void;
 }
 
 /**
@@ -168,6 +181,18 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
       },
       applyCollaborators(collaborators: ReadonlyMap<string, RemoteCollaborator>) {
         apiRef.current?.updateScene({ collaborators });
+      },
+      focusElement(elementId: string): boolean {
+        const api = apiRef.current;
+        if (!api) return false;
+        const element = previousSceneRef.current.get(elementId);
+        // Excalidraw keeps deleted elements as tombstones in its own elements array — a
+        // tombstone is exactly the "already removed from the scene" case this method must
+        // treat as absent (spec.md's Assumptions: "não existe mais na cena").
+        if (!element || (element as { isDeleted?: boolean }).isDeleted) return false;
+        api.updateScene({ appState: { selectedElementIds: { [elementId]: true } } });
+        api.scrollToContent(element, { animate: true });
+        return true;
       },
       insertLibraryItem(item: LibraryItem) {
         const api = apiRef.current;
