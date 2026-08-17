@@ -300,19 +300,19 @@ T13 -> T14
 - Skill: NONE
 
 **Done when**:
-- [ ] Com papel ou expiração vazios, o envio não emite requisição nenhuma
-- [ ] Com expiração no passado, o envio é bloqueado com mensagem própria e nenhuma requisição é emitida
-- [ ] Com papel e expiração futura, emite `POST /diagrams/:id/share-links` com `{role, expiresAt}`
-- [ ] No `201`, exibe `${origin}/share/${token}` e o aviso de revelação única
-- [ ] No `403`, exibe a mensagem de teto de papel e a lista continua vazia
-- [ ] Em qualquer outro erro, exibe falha genérica e a lista continua vazia
-- [ ] A tela declara visivelmente que a lista só contém os links criados nesta sessão
-- [ ] Revogar emite `POST /share-links/:id:revoke`; no `200` o item vira revogado e a URL some da tela
-- [ ] Revogar com `403`/`404` anuncia falha e o item continua exibido como ativo, com a URL
-- [ ] Um segundo envio enquanto a criação está em voo não emite segunda requisição
-- [ ] Toda mensagem de resultado passa pela região `aria-live="polite"`
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
-- [ ] Test count: 11 testes novos passam
+- [x] Com papel ou expiração vazios, o envio não emite requisição nenhuma
+- [x] Com expiração no passado, o envio é bloqueado com mensagem própria e nenhuma requisição é emitida
+- [x] Com papel e expiração futura, emite `POST /diagrams/:id/share-links` com `{role, expiresAt}`
+- [x] No `201`, exibe `${origin}/share/${token}` e o aviso de revelação única
+- [x] No `403`, exibe a mensagem de teto de papel e a lista continua vazia
+- [x] Em qualquer outro erro, exibe falha genérica e a lista continua vazia
+- [x] A tela declara visivelmente que a lista só contém os links criados nesta sessão
+- [x] Revogar emite `POST /share-links/:id:revoke`; no `200` o item vira revogado e a URL some da tela
+- [x] Revogar com `403`/`404` anuncia falha e o item continua exibido como ativo, com a URL
+- [x] Um segundo envio enquanto a criação está em voo não emite segunda requisição
+- [x] Toda mensagem de resultado passa pela região `aria-live="polite"`
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Test count: 11 testes novos passam
 
 **Tests**: unit
 **Gate**: quick

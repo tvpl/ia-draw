@@ -240,13 +240,13 @@ abrir a visão pública no mesmo locale.
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | SHR-01 | P1: Criar link | F10 | Pending |
-| SHR-02 | P1: Criar link | F10 | Pending |
-| SHR-03 | P1: Criar link | F10 | Pending |
+| SHR-02 | P1: Criar link | F10 | Implementing |
+| SHR-03 | P1: Criar link | F10 | Implementing |
 | SHR-04 | P1: Criar link | F10 | Implementing |
 | SHR-05 | P1: Criar link | F10 | Implementing |
 | SHR-06 | P1: Criar link | F10 | Implementing |
 | SHR-07 | P1: Criar link | F10 | Implementing |
-| SHR-08 | P1: Revogar link | F10 | Pending |
+| SHR-08 | P1: Revogar link | F10 | Implementing |
 | SHR-09 | P1: Revogar link | F10 | Implementing |
 | SHR-10 | P1: Revogar link | F10 | Implementing |
 | SHR-11 | P1: Revogar link | F10 | Implementing |
@@ -268,7 +268,7 @@ abrir a visão pública no mesmo locale.
 | SHR-27 | P2: Link de apresentação | F10 | Implementing |
 | SHR-28 | P2: Link de apresentação | F10 | Implementing |
 | SHR-29 | P2: Teclado e idioma | F10 | Implementing |
-| SHR-30 | P2: Teclado e idioma | F10 | Pending |
+| SHR-30 | P2: Teclado e idioma | F10 | Implementing |
 | SHR-31 | P2: Teclado e idioma | F10 | Implementing |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
