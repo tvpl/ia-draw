@@ -3,11 +3,11 @@
 Gerado por `repo-tools audit`. Não editar à mão.
 
 - Rotas registradas: 89
-- Com consumidor de UI (`consumed`): 8
-- Pendentes de produto (`pending-product`): 81
+- Com consumidor de UI (`consumed`): 14
+- Pendentes de produto (`pending-product`): 75
 - Consumidores órfãos (`orphan-consumer`): 0
 
-## consumed (8)
+## consumed (14)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -19,8 +19,14 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
+| GET | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` | `apps/web/src/nav/DiagramListPage.tsx` |
+| PATCH | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` | `apps/web/src/nav/DiagramListPage.tsx` |
+| DELETE | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` | `apps/web/src/nav/DiagramListPage.tsx` |
+| GET | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
+| PATCH | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
+| DELETE | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/DiagramListPage.tsx`, `apps/web/src/nav/ProjectListPage.tsx` |
 
-## pending-product (81)
+## pending-product (75)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -87,9 +93,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/webhooks/:webhookId(^[^:]+):rotate-secret` | `apps/server/src/modules/webhook/routes.ts` |
 | GET | `/projects` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | POST | `/projects` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
-| GET | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
-| PATCH | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
-| DELETE | `/projects/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | GET | `/diagrams` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | POST | `/diagrams` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | GET | `/diagrams/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
@@ -97,9 +100,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | DELETE | `/diagrams/:id` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | GET | `/workspaces` | `apps/server/src/modules/workspace/routes.ts` |
 | POST | `/workspaces` | `apps/server/src/modules/workspace/routes.ts` |
-| GET | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` |
-| PATCH | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` |
-| DELETE | `/workspaces/:id` | `apps/server/src/modules/workspace/routes.ts` |
 | GET | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` |
 | POST | `/workspaces/:id/members` | `apps/server/src/modules/workspace/routes.ts` |
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` |

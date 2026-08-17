@@ -46,15 +46,20 @@ export interface ProjectListPageProps {
  * (NAV-09..11). A 404 on the workspace lookup renders the shared "not found or no access"
  * message (NAV-04), never distinguishing the two cases.
  */
-export function ProjectListPage({ fetchImpl }: ProjectListPageProps): JSX.Element | null {
+export function ProjectListPage({
+  fetchImpl: fetchImplProp,
+}: ProjectListPageProps): JSX.Element | null {
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const { t } = useTranslation();
-  const doFetch = useMemo(() => fetchImpl ?? fetch.bind(globalThis), [fetchImpl]);
+  // Named `fetchImpl` (not the generic `doFetch`) so the repo-tools route-inventory
+  // extractor — which only recognizes literal `fetch(`/`fetchImpl(` call sites — can
+  // resolve this page's own direct `GET /workspaces/:id` lookup below.
+  const fetchImpl = useMemo(() => fetchImplProp ?? fetch.bind(globalThis), [fetchImplProp]);
 
   const store = useMemo(() => createResourceListStore<ProjectItem>(), []);
   const client = useMemo(
-    () => createResourceClient<ProjectItem>(projectsConfig(workspaceId ?? ''), fetchImpl),
-    [workspaceId, fetchImpl],
+    () => createResourceClient<ProjectItem>(projectsConfig(workspaceId ?? ''), fetchImplProp),
+    [workspaceId, fetchImplProp],
   );
 
   const items = store((s) => s.items);
@@ -84,7 +89,7 @@ export function ProjectListPage({ fetchImpl }: ProjectListPageProps): JSX.Elemen
     let cancelled = false;
 
     (async () => {
-      const response = await doFetch(`/workspaces/${workspaceId}`);
+      const response = await fetchImpl(`/workspaces/${workspaceId}`);
       if (cancelled) return;
       if (!response.ok) {
         setNotFound(true);
@@ -105,7 +110,7 @@ export function ProjectListPage({ fetchImpl }: ProjectListPageProps): JSX.Elemen
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, client, doFetch, setItems, setError]);
+  }, [workspaceId, client, fetchImpl, setItems, setError]);
 
   useEffect(() => {
     if (archiveTarget) dialogRef.current?.showModal();

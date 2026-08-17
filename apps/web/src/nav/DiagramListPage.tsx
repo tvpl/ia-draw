@@ -46,16 +46,21 @@ export interface DiagramListPageProps {
  * (`/w/:workspaceId/d/:diagramId`, unmodified) rather than staying on this list — the only
  * one of the three create flows that leaves the page, matching NAV-06..12's per-story ACs.
  */
-export function DiagramListPage({ fetchImpl }: DiagramListPageProps): JSX.Element | null {
+export function DiagramListPage({
+  fetchImpl: fetchImplProp,
+}: DiagramListPageProps): JSX.Element | null {
   const { workspaceId, projectId } = useParams<{ workspaceId: string; projectId: string }>();
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const doFetch = useMemo(() => fetchImpl ?? fetch.bind(globalThis), [fetchImpl]);
+  // Named `fetchImpl` (not the generic `doFetch`) so the repo-tools route-inventory
+  // extractor — which only recognizes literal `fetch(`/`fetchImpl(` call sites — can
+  // resolve this page's own direct `GET /projects/:id` and `GET /workspaces/:id` lookups.
+  const fetchImpl = useMemo(() => fetchImplProp ?? fetch.bind(globalThis), [fetchImplProp]);
 
   const store = useMemo(() => createResourceListStore<DiagramItem>(), []);
   const client = useMemo(
-    () => createResourceClient<DiagramItem>(diagramsConfig(projectId ?? ''), fetchImpl),
-    [projectId, fetchImpl],
+    () => createResourceClient<DiagramItem>(diagramsConfig(projectId ?? ''), fetchImplProp),
+    [projectId, fetchImplProp],
   );
 
   const items = store((s) => s.items);
@@ -86,8 +91,8 @@ export function DiagramListPage({ fetchImpl }: DiagramListPageProps): JSX.Elemen
 
     (async () => {
       const [projectResponse, workspaceResponse] = await Promise.all([
-        doFetch(`/projects/${projectId}`),
-        doFetch(`/workspaces/${workspaceId}`),
+        fetchImpl(`/projects/${projectId}`),
+        fetchImpl(`/workspaces/${workspaceId}`),
       ]);
       if (cancelled) return;
       if (!projectResponse.ok || !workspaceResponse.ok) {
@@ -111,7 +116,7 @@ export function DiagramListPage({ fetchImpl }: DiagramListPageProps): JSX.Elemen
     return () => {
       cancelled = true;
     };
-  }, [workspaceId, projectId, client, doFetch, setItems, setError]);
+  }, [workspaceId, projectId, client, fetchImpl, setItems, setError]);
 
   useEffect(() => {
     if (archiveTarget) dialogRef.current?.showModal();

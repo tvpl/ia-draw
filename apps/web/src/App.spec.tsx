@@ -183,3 +183,127 @@ describe('App wiring (T8, SSO-13..18 integration)', () => {
     expect(meCalls).toBe(1);
   });
 });
+
+/** `/me` mock shared by the T11 nested-routing tests below — every one of them needs an authenticated session before `ProtectedRoute` renders `AppShell`. */
+function authenticatedMe() {
+  return jsonResponse(200, { user: { id: 'user-1', email: 'a@b.com', displayName: 'A' } });
+}
+
+describe('T11: nested workspace/project/diagram routes render inside AppShell per URL depth', () => {
+  it('/ renders WorkspaceListPage (index) inside AppShell chrome', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/workspaces')
+          return Promise.resolve(
+            jsonResponse(200, {
+              items: [
+                {
+                  id: 'ws-1',
+                  organizationId: 'org-1',
+                  name: 'Acme Workspace',
+                  slug: 'acme',
+                  accessPolicy: null,
+                  createdAt: '',
+                  updatedAt: '',
+                  role: 'workspace_admin',
+                },
+              ],
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/');
+
+    // AppShell's own chrome (T11's parent route) renders alongside the nested page.
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByRole('link', { name: 'Acme Workspace' })).toBeTruthy();
+  });
+
+  it('/w/:workspaceId renders ProjectListPage inside AppShell chrome', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/workspaces/ws-1')
+          return Promise.resolve(
+            jsonResponse(200, {
+              workspace: { id: 'ws-1', name: 'Acme Workspace', role: 'editor' },
+            }),
+          );
+        if (url === '/projects?workspaceId=ws-1')
+          return Promise.resolve(
+            jsonResponse(200, { items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }] }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByText('Acme Workspace')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Project One' })).toBeTruthy();
+  });
+
+  it('/w/:workspaceId/p/:projectId renders DiagramListPage inside AppShell chrome', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/projects/p-1')
+          return Promise.resolve(
+            jsonResponse(200, { project: { id: 'p-1', workspaceId: 'ws-1', name: 'Project One' } }),
+          );
+        if (url === '/workspaces/ws-1')
+          return Promise.resolve(
+            jsonResponse(200, {
+              workspace: { id: 'ws-1', name: 'Acme Workspace', role: 'editor' },
+            }),
+          );
+        if (url === '/diagrams?projectId=p-1')
+          return Promise.resolve(
+            jsonResponse(200, { items: [{ id: 'd-1', projectId: 'p-1', title: 'Diagram One' }] }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/p/p-1');
+
+    expect(await screen.findByRole('heading', { name: 'Architecture Canvas' })).toBeTruthy();
+    expect(await screen.findByText('Project One')).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Diagram One' })).toBeTruthy();
+  });
+
+  it('/w/:workspaceId/d/:diagramId still renders bare DiagramEditorPage, with no AppShell chrome', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/diagrams/diag-1/bootstrap')
+          return Promise.resolve(
+            jsonResponse(200, {
+              scene: [],
+              revision: 1,
+              assets: [],
+              permissions: { allowed: true, reason: '' },
+              mutatePermissions: { allowed: true, reason: '' },
+            }),
+          );
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/d/diag-1');
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/w/ws-1/d/diag-1'),
+    );
+    // AppShell's chrome (header/logout button) never renders on the unnested editor route.
+    expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+  });
+});

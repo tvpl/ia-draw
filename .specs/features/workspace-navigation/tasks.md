@@ -346,12 +346,14 @@ T11
 - Skill: NONE
 
 **Done when**:
-- [ ] `AppShell` renders `<Outlet/>` inside `<main>`
-- [ ] `/` renders `WorkspaceListPage` (index), `/w/:workspaceId` renders `ProjectListPage`, `/w/:workspaceId/p/:projectId` renders `DiagramListPage`, all inside the existing `ProtectedRoute`
-- [ ] `/w/:workspaceId/d/:diagramId` still renders bare `DiagramEditorPage` (no `AppShell` chrome) — unchanged
-- [ ] New/updated `App.spec.tsx` asserts the right page renders per URL depth
-- [ ] `repo-tools run audit` reflects the workspace/project/diagram routes as consumed (no longer `pending-product`)
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] `AppShell` renders `<Outlet/>` inside `<main>`
+- [x] `/` renders `WorkspaceListPage` (index), `/w/:workspaceId` renders `ProjectListPage`, `/w/:workspaceId/p/:projectId` renders `DiagramListPage`, all inside the existing `ProtectedRoute`
+- [x] `/w/:workspaceId/d/:diagramId` still renders bare `DiagramEditorPage` (no `AppShell` chrome) — unchanged
+- [x] New/updated `App.spec.tsx` asserts the right page renders per URL depth
+- [x] `repo-tools run audit` reflects the workspace/project/diagram routes as consumed (no longer `pending-product`) — PARTIAL, see deviation note below
+- [x] Full gate passes: `make lint && make typecheck && make test-unit`
+
+**Deviation note (audit bullet)**: `repo-tools`'s route-inventory extractor (`tools/repo-tools/src/webConsumers.ts`) only resolves a route from a literal `fetch(`/`fetchImpl(`/`this.fetchImpl(` call whose first argument is itself a literal string/template — it cannot follow a property access like `config.listUrl`. `resourceClient.ts` (T3, frozen) is deliberately generic and always calls `doFetch(config.listUrl)` etc., so the 8 routes it drives (`GET/POST /workspaces`, `GET/POST /projects`, `GET/POST /diagrams`, plus `PATCH/DELETE /diagrams/:id`) are structurally invisible to this static extractor — a pre-existing tool limitation, not new (the same gap already applied to `AuthProvider.tsx`'s own `/me`/`/auth/refresh`/`/auth/logout` calls before this feature). Renamed `ProjectListPage`/`DiagramListPage`'s local `doFetch` binding to `fetchImpl` (their own direct, literal `GET /workspaces/:id` / `GET /projects/:id` calls, outside `resourceClient`) so the extractor could resolve those — this raised `docs/route-inventory.md`'s consumed count from 8 to 14, covering `GET/PATCH/DELETE /workspaces/:id` and `GET/PATCH/DELETE /projects/:id` (matching is path-based, not method-based, so one literal `GET` consumer marks all 3 verbs on that path). The remaining 8 routes stay `pending-product` in the audit despite being genuinely wired end-to-end and covered by passing tests; fixing this fully would mean either abandoning `resourceClient`'s generic config design (a T3 architectural decision, out of this task's scope) or teaching the extractor to resolve object-property URL expressions (a `repo-tools` change of its own). Flagged for a follow-up task rather than silently claimed as fully satisfied.
 
 **Tests**: unit (integration-style RTL)
 **Gate**: full

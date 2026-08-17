@@ -5,6 +5,9 @@ import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
 import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
+import { DiagramListPage } from './nav/DiagramListPage.js';
+import { ProjectListPage } from './nav/ProjectListPage.js';
+import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 
 /**
  * The route table itself, router-agnostic (T8, SSO-13..18) — split out from
@@ -12,6 +15,13 @@ import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
  * `BrowserRouter` (see `App.spec.tsx`). `/login` is the only unguarded
  * route; `/` and the diagram editor route are wrapped in `ProtectedRoute`,
  * with `AuthProvider` mounted once above all of them (AD-011).
+ *
+ * T11 (workspace-navigation): `/` is now a parent route rendering `AppShell`'s
+ * `<Outlet/>`, with three nested children mirroring the workspace -> project ->
+ * diagram hierarchy — `index` (`WorkspaceListPage`), `w/:workspaceId`
+ * (`ProjectListPage`), `w/:workspaceId/p/:projectId` (`DiagramListPage`). The
+ * diagram-editor route stays an unnested sibling, unchanged: it renders bare,
+ * without `AppShell`'s chrome.
  */
 export function AppRoutes(): JSX.Element {
   return (
@@ -25,7 +35,11 @@ export function AppRoutes(): JSX.Element {
               <AppShell />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<WorkspaceListPage />} />
+          <Route path="w/:workspaceId" element={<ProjectListPage />} />
+          <Route path="w/:workspaceId/p/:projectId" element={<DiagramListPage />} />
+        </Route>
         <Route
           path="/w/:workspaceId/d/:diagramId"
           element={
