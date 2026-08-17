@@ -426,11 +426,11 @@ T13
 
 **Done when**:
 
-- [ ] Estado com lista populada e estado com formulário de edição aberto: zero violações serious/critical
-- [ ] Todo controle interativo (voltar, campos de cadastro, salvar, testar, ativar/desativar, editar) recebe foco por teclado, com asserção de `document.activeElement`
-- [ ] A região de resultado tem `aria-live="polite"` (asserção sobre o atributo) e anuncia o desfecho de uma ação completada
-- [ ] Um teste renderiza a página no locale `en` e afirma os rótulos traduzidos
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Estado com lista populada e estado com formulário de edição aberto: zero violações serious/critical
+- [x] Todo controle interativo (voltar, campos de cadastro, salvar, testar, ativar/desativar, editar) recebe foco por teclado, com asserção de `document.activeElement`
+- [x] A região de resultado tem `aria-live="polite"` (asserção sobre o atributo) e anuncia o desfecho de uma ação completada
+- [x] Um teste renderiza a página no locale `en` e afirma os rótulos traduzidos
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick
