@@ -238,4 +238,140 @@ describe('createExportClient (T1, XPRT-01/05/07/13)', () => {
       expect(result).toEqual({ status: 'error' });
     });
   });
+
+  describe('exportDsl', () => {
+    it('sends POST /diagrams/:id/export:mermaid with no body and returns dsl/limitations on 200 (INT-01)', async () => {
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(200, { dsl: 'flowchart TD\n  A --> B', limitations: [] }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.exportDsl('diagram-1', 'mermaid');
+
+      expect(fetchImpl).toHaveBeenCalledWith(
+        '/diagrams/diagram-1/export:mermaid',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+      expect(result).toEqual({
+        status: 'ok',
+        dsl: 'flowchart TD\n  A --> B',
+        limitations: [],
+      });
+    });
+
+    it('sends POST /diagrams/:id/export:structurizr and passes non-empty limitations through (INT-02/03)', async () => {
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(200, {
+          dsl: 'workspace { ... }',
+          limitations: ["edge 'conn' mode 'data' has no Structurizr equivalent"],
+        }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.exportDsl('diagram-1', 'structurizr');
+
+      expect(fetchImpl).toHaveBeenCalledWith(
+        '/diagrams/diagram-1/export:structurizr',
+        expect.objectContaining({ method: 'POST' }),
+      );
+      expect(result).toEqual({
+        status: 'ok',
+        dsl: 'workspace { ... }',
+        limitations: ["edge 'conn' mode 'data' has no Structurizr equivalent"],
+      });
+    });
+
+    it('maps a non-200 response to status "error" (INT-04)', async () => {
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(404, { title: 'Not Found' }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.exportDsl('diagram-1', 'mermaid');
+
+      expect(result).toEqual({ status: 'error' });
+    });
+  });
+
+  describe('importDsl', () => {
+    it('sends POST /projects/:id/import:mermaid with {dsl} (no title) when title is omitted, returns diagramId/diagram/limitations on 201 (INT-09/10)', async () => {
+      const diagram = {
+        id: 'diagram-9',
+        projectId: 'project-1',
+        title: 'Imported Mermaid flowchart',
+      };
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(201, { diagramId: 'diagram-9', diagram, limitations: [] }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.importDsl('project-1', 'mermaid', 'flowchart TD\n  A --> B');
+
+      expect(fetchImpl).toHaveBeenCalledWith(
+        '/projects/project-1/import:mermaid',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ dsl: 'flowchart TD\n  A --> B' }),
+        }),
+      );
+      expect(result).toEqual({
+        status: 'ok',
+        diagramId: 'diagram-9',
+        diagram,
+        limitations: [],
+      });
+    });
+
+    it('sends POST /projects/:id/import:structurizr with {dsl, title} when title is provided (INT-09)', async () => {
+      const diagram = { id: 'diagram-9', projectId: 'project-1', title: 'My import' };
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(201, { diagramId: 'diagram-9', diagram, limitations: [] }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.importDsl(
+        'project-1',
+        'structurizr',
+        'workspace { ... }',
+        'My import',
+      );
+
+      expect(fetchImpl).toHaveBeenCalledWith(
+        '/projects/project-1/import:structurizr',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ dsl: 'workspace { ... }', title: 'My import' }),
+        }),
+      );
+      expect(result).toEqual({
+        status: 'ok',
+        diagramId: 'diagram-9',
+        diagram,
+        limitations: [],
+      });
+    });
+
+    it('maps a 400 response to status "invalid" with the server message (INT-11)', async () => {
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(400, { title: 'unsupported interop format' }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.importDsl('project-1', 'mermaid', '');
+
+      expect(result).toEqual({ status: 'invalid', message: 'unsupported interop format' });
+    });
+
+    it('maps a non-201/400 response to status "error" (INT-12)', async () => {
+      const fetchImpl = vi.fn(async () =>
+        jsonResponse(500, { title: 'boom' }),
+      ) as unknown as typeof fetch;
+      const client = createExportClient(fetchImpl);
+
+      const result = await client.importDsl('project-1', 'mermaid', 'flowchart TD\n  A --> B');
+
+      expect(result).toEqual({ status: 'error' });
+    });
+  });
 });
