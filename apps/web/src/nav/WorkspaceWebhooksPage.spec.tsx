@@ -262,6 +262,23 @@ describe('WorkspaceWebhooksPage — one-time secret reveal wiring (WHK-25, edge 
     );
   });
 
+  it('removes the secret panel from the document once dismissed (WHK-17)', async () => {
+    const fetchImpl = fetchWith([], (url, init) => {
+      if (url === '/workspaces/ws-1/webhooks' && init?.method === 'POST')
+        return jsonResponse(201, { webhookEndpoint: { ...hookA, id: 'wh-9' }, secret: 'whsec_A' });
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    renderPage(fetchImpl);
+    await screen.findByText('Este workspace ainda não tem webhooks.');
+
+    fireEvent.submit(await fillCreateForm('https://c.example.com/hook', ['Diagrama criado']));
+    await screen.findByTestId('webhook-secret-panel');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Já guardei' }));
+
+    expect(screen.queryByTestId('webhook-secret-panel')).toBeNull();
+  });
+
   it('replaces the shown secret on a later rotation instead of stacking two panels (edge case 2)', async () => {
     const fetchImpl = fetchWith([], (url, init) => {
       if (url === '/workspaces/ws-1/webhooks' && init?.method === 'POST')
