@@ -108,7 +108,6 @@ export function MetadataPanel({
 
   return (
     <div>
-      <h2>{t('metadata.title')}</h2>
       <div aria-live="polite" data-testid="metadata-announcement">
         {announcement}
       </div>

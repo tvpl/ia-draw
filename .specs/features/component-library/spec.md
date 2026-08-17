@@ -178,8 +178,8 @@ inserir um item, classificar um elemento e ver o inventário sem mouse.
 | CLIB-15 | P2: Inventário | Tasks | Implementing |
 | CLIB-16 | P2: Inventário | Tasks | Implementing |
 | CLIB-17 | P2: Inventário | Tasks | Implementing |
-| CLIB-18 | P2: Teclado e idioma | Design | Pending |
-| CLIB-19 | P2: Teclado e idioma | Design | Pending |
+| CLIB-18 | P2: Teclado e idioma | Tasks | Implementing |
+| CLIB-19 | P2: Teclado e idioma | Tasks | Implementing |
 | CLIB-20 | P2: Teclado e idioma | Tasks | Implementing |
 
 **ID format:** `CLIB-NN` (Component LIBrary — fatia de frontend distinta de `LIB-NN`, que já

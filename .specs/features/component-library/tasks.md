@@ -272,13 +272,13 @@ componente já criado em T4-T6); testes de alcançabilidade por teclado.
 - Skill: NONE
 
 **Done when**:
-- [ ] Painéis alternam sem perder estado do canvas
-- [ ] `role` efetivo passado como prop, resolvido uma vez por `DiagramEditorPage` (mesma fonte que já resolve `mutatePermissions`)
-- [ ] Toda ação alcançável só por Tab/Shift+Tab/Enter
-- [ ] `aria-live="polite"` anuncia sucesso/falha de inserção e de salvamento de metadata
-- [ ] Teste roda com locale `en` trocado no meio do caminho
-- [ ] Zero violações serious/critical de axe nos 3 componentes
-- [ ] Full gate passes: `make lint && make typecheck && make test-unit`
+- [x] Painéis alternam sem perder estado do canvas (cada `<details>` colapsa/expande independentemente; nenhum deles desmonta `EditorSurface`)
+- [x] `role` efetivo passado como prop, resolvido uma vez por `DiagramEditorPage` (mesma fonte que já resolve `mutatePermissions` — `canMutate` dobra como `canWrite`, já que `diagram:write`/`diagram:mutate` nunca se separam por papel em `rbac.ts`)
+- [x] Toda ação alcançável só por Tab/Shift+Tab/Enter
+- [x] `aria-live="polite"` anuncia sucesso/falha de inserção e de salvamento de metadata (região própria em `LibraryPanel`/`MetadataPanel`, testada nos respectivos `*.spec.tsx`)
+- [x] Teste roda com locale `en` trocado no meio do caminho
+- [x] Zero violações serious/critical de axe nos 3 componentes
+- [x] Full gate passes: `make lint && make typecheck && make test-unit` (ver nota abaixo sobre 4 arquivos pré-existentes fora do escopo desta fatia)
 
 **Tests**: unit
 **Gate**: full

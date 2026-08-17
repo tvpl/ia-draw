@@ -117,7 +117,6 @@ export function LibraryPanel({
 
   return (
     <div>
-      <h2>{t('library.title')}</h2>
       <div aria-live="polite" data-testid="library-announcement">
         {announcement}
       </div>
