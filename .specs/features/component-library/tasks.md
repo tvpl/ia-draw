@@ -221,11 +221,11 @@ via `api.getAppState()`.
 - Skill: NONE
 
 **Done when**:
-- [ ] Lista via `metadataClient.inventory(diagramId, 'json')`
-- [ ] Elemento com `elementType: null` marcado como "removido do canvas", não escondido
-- [ ] Botão de export CSV chama `format=csv` e dispara download via `Blob`
-- [ ] Estado vazio quando nenhum elemento classificado
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
+- [x] Lista via `metadataClient.inventory(diagramId, 'json')`
+- [x] Elemento com `elementType: null` marcado como "removido do canvas", não escondido
+- [x] Botão de export CSV chama `format=csv` e dispara download via `Blob`
+- [x] Estado vazio quando nenhum elemento classificado
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:unit`
 
 **Tests**: unit
 **Gate**: quick

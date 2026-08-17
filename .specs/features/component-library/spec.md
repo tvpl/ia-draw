@@ -175,9 +175,9 @@ inserir um item, classificar um elemento e ver o inventário sem mouse.
 | CLIB-12 | P1: Classificar elemento | Tasks | Implementing |
 | CLIB-13 | P1: Classificar elemento | Tasks | Implementing |
 | CLIB-14 | P2: Inventário | Tasks | Implementing |
-| CLIB-15 | P2: Inventário | Design | Pending |
+| CLIB-15 | P2: Inventário | Tasks | Implementing |
 | CLIB-16 | P2: Inventário | Tasks | Implementing |
-| CLIB-17 | P2: Inventário | Design | Pending |
+| CLIB-17 | P2: Inventário | Tasks | Implementing |
 | CLIB-18 | P2: Teclado e idioma | Design | Pending |
 | CLIB-19 | P2: Teclado e idioma | Design | Pending |
 | CLIB-20 | P2: Teclado e idioma | Tasks | Implementing |
