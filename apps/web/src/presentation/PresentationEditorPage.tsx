@@ -84,6 +84,10 @@ export function PresentationEditorPage({
   const [publishInFlight, setPublishInFlight] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
 
+  const [exportInFlight, setExportInFlight] = useState(false);
+  const [exportError, setExportError] = useState<string | null>(null);
+  const [exportResult, setExportResult] = useState<{ url: string; pageCount: number } | null>(null);
+
   useEffect(() => {
     if (!presentationId) return;
     let cancelled = false;
@@ -264,6 +268,35 @@ export function PresentationEditorPage({
       setAnnouncement(t('presentation.editor.error.generic'));
     } finally {
       setPublishInFlight(false);
+    }
+  }
+
+  /** T24 (PRZ-42..45): disabled (with the reason shown) until the presentation is both
+   * published and has at least one frame — same two-condition gate `presentButton`
+   * checks, plus the publish requirement export alone adds. */
+  async function handleExportPdf(): Promise<void> {
+    if (!presentationId || exportInFlight) return;
+
+    setExportInFlight(true);
+    setExportError(null);
+    setExportResult(null);
+    try {
+      const result = await client.exportPdf(presentationId);
+      if (result.status === 'ok') {
+        setExportResult({ url: result.url, pageCount: result.pageCount });
+        setAnnouncement(t('presentation.editor.announcement.exported'));
+        return;
+      }
+      if (result.status === 'no_frames') {
+        setExportError(t('presentation.editor.error.noFrames'));
+      } else if (result.status === 'not_published') {
+        setExportError(t('presentation.editor.error.notPublished'));
+      } else {
+        setExportError(t('presentation.editor.error.generic'));
+      }
+      setAnnouncement(t('presentation.editor.error.generic'));
+    } finally {
+      setExportInFlight(false);
     }
   }
 
@@ -471,6 +504,36 @@ export function PresentationEditorPage({
             published={presentation.publishedSnapshotId !== null}
             fetchImpl={fetchImplProp}
           />
+
+          <div>
+            <button
+              type="button"
+              disabled={
+                exportInFlight || presentation.publishedSnapshotId === null || frames?.length === 0
+              }
+              onClick={() => void handleExportPdf()}
+            >
+              {exportInFlight
+                ? t('presentation.editor.exportPdfLoading')
+                : t('presentation.editor.exportPdf')}
+            </button>
+            {presentation.publishedSnapshotId === null && (
+              <p>{t('presentation.editor.exportPdfDisabledNotPublished')}</p>
+            )}
+            {presentation.publishedSnapshotId !== null && frames?.length === 0 && (
+              <p>{t('presentation.editor.exportPdfDisabledNoFrames')}</p>
+            )}
+            {exportError && <p>{exportError}</p>}
+            {exportResult && (
+              <p>
+                <a href={exportResult.url} target="_blank" rel="noreferrer">
+                  {t('presentation.editor.exportPdfResultLink', {
+                    pageCount: exportResult.pageCount,
+                  })}
+                </a>
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>

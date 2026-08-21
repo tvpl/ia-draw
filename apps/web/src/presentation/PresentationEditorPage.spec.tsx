@@ -588,3 +588,107 @@ describe('PresentationEditorPage — "Apresentar" launcher (T20, PRZ-35, PRZ-41)
     expect(await screen.findByTestId('presenter-page')).toBeTruthy();
   });
 });
+
+const publishedPresentation = { ...presentation, publishedSnapshotId: 'snap-1' };
+
+function exportFetch({
+  frames = threeFrames as unknown[],
+  exportResponse,
+}: {
+  frames?: unknown[];
+  exportResponse: () => Response;
+}) {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === '/presentations/p-1') {
+      return jsonResponse(200, { presentation: publishedPresentation, frames });
+    }
+    if (url === '/diagrams/d-1/bootstrap') {
+      return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+    }
+    if (url === '/presentations/p-1:export-pdf' && init?.method === 'POST') {
+      return exportResponse();
+    }
+    throw new Error(`unexpected url ${url}`);
+  }) as unknown as typeof fetch;
+}
+
+describe('PresentationEditorPage — export PDF (T24, PRZ-42..45)', () => {
+  it('is disabled with a reason when the presentation is not published', async () => {
+    renderPage(baseFetch({ frames: threeFrames }));
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Publique a apresentação antes de exportar.')).toBeTruthy();
+  });
+
+  it('is disabled with a reason when published but has 0 frames', async () => {
+    renderPage(exportFetch({ frames: [], exportResponse: () => jsonResponse(400, {}) }));
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Adicione ao menos um frame para exportar.')).toBeTruthy();
+  });
+
+  it('confirming emits POST :export-pdf and shows a loading state until it resolves', async () => {
+    let resolveExport: (response: Response) => void = () => {
+      throw new Error('resolveExport called before the promise executor ran');
+    };
+    const pending = new Promise<Response>((resolve) => {
+      resolveExport = resolve;
+    });
+    const fetchImpl = exportFetch({ exportResponse: () => pending as unknown as Response });
+    renderPage(fetchImpl);
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', false);
+    fireEvent.click(exportButton);
+
+    expect(await screen.findByRole('button', { name: 'Gerando PDF…' })).toBeTruthy();
+    expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1:export-pdf', { method: 'POST' });
+
+    resolveExport(jsonResponse(200, { url: '/exports/p-1.pdf', sizeBytes: 1024, pageCount: 3 }));
+    expect(await screen.findByRole('button', { name: 'Exportar PDF' })).toBeTruthy();
+  });
+
+  it('200 shows a link to url (opens in a new tab) with pageCount, no automatic download', async () => {
+    renderPage(
+      exportFetch({
+        exportResponse: () =>
+          jsonResponse(200, { url: '/exports/p-1.pdf', sizeBytes: 2048, pageCount: 3 }),
+      }),
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+
+    const link = (await screen.findByRole('link', {
+      name: 'Abrir PDF (3 página(s))',
+    })) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/exports/p-1.pdf');
+    expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('400/404/error responses show distinct messages, never leaving the control stuck loading', async () => {
+    const { unmount } = renderPage(exportFetch({ exportResponse: () => jsonResponse(400, {}) }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    expect(await screen.findByText('Esta apresentação não tem frames para exportar.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toHaveProperty('disabled', false);
+    unmount();
+
+    const { unmount: unmount2 } = renderPage(
+      exportFetch({ exportResponse: () => jsonResponse(404, {}) }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    expect(await screen.findByText('Publique a apresentação antes de exportar.')).toBeTruthy();
+    unmount2();
+
+    renderPage(exportFetch({ exportResponse: () => jsonResponse(500, {}) }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    // The generic error text also appears in the aria-live announcement region, so
+    // this asserts at least one — not exactly one — match (a11y region and the
+    // inline error legitimately share the same string, unlike the two other cases).
+    await waitFor(() =>
+      expect(screen.getAllByText('Algo deu errado. Tente de novo.').length).toBeGreaterThan(0),
+    );
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toHaveProperty('disabled', false);
+  });
+});
