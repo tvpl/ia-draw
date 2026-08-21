@@ -108,11 +108,13 @@ export interface EditorSurfaceHandle {
    * `apps/server/src/modules/presentation/exportPdf.ts`'s `sceneForFrame`
    * uses server-side (kept in sync by cross-reference comment in both
    * files): every element whose `frameId` equals `elementId`, plus the
-   * frame element itself. `elementId: null`, or no elements found (frame
-   * deleted since, or a purely logical frame with no real `elementId`),
-   * both no-op — same "show the whole scene rather than an empty crop"
-   * fallback the server documents, except here there is nothing to crop:
-   * the viewport simply stays where it is.
+   * frame element itself. `elementId: null` (a purely logical frame with no
+   * real canvas backing) is a true no-op — there is nothing to scroll to.
+   * A real `elementId` that matches nothing in the current scene (its frame
+   * was deleted since) falls back to fitting the WHOLE local scene — same
+   * "show everything rather than an empty crop" heuristic the server
+   * documents and `cropSceneForFrame.ts` already implements client-side, so
+   * the presenter never gets stuck on a stale viewport pointed at nothing.
    */
   scrollToFrame: (elementId: string | null) => void;
 }
@@ -234,8 +236,10 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
         if (!elementId) return;
         const local = Array.from(previousSceneRef.current.values());
         const target = elementsForFrame(local, elementId);
-        if (target.length === 0) return;
-        apiRef.current?.scrollToContent?.(target, { fitToViewport: true, animate: true });
+        apiRef.current?.scrollToContent?.(target.length > 0 ? target : local, {
+          fitToViewport: true,
+          animate: true,
+        });
       },
       insertLibraryItem(item: LibraryItem) {
         const api = apiRef.current;
