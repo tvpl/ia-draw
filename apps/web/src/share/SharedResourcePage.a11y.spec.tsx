@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -65,6 +65,39 @@ function diagramFetch(): typeof fetch {
   ) as unknown as typeof fetch;
 }
 
+function publishedPresentationFetch(): typeof fetch {
+  return vi.fn(async () =>
+    jsonResponse(200, {
+      resourceType: 'presentation',
+      role: 'viewer',
+      presentation: { id: 'p-1', name: 'Roadmap' },
+      frames: [
+        {
+          id: 'f-1',
+          position: 0,
+          elementId: 'frame-a',
+          frameId: null,
+          notes: null,
+          navLinksJson: [],
+        },
+        {
+          id: 'f-2',
+          position: 1,
+          elementId: 'frame-b',
+          frameId: null,
+          notes: null,
+          navLinksJson: [],
+        },
+      ],
+      scene: [
+        { id: 'frame-a', type: 'frame', version: 1, versionNonce: 1 },
+        { id: 'frame-b', type: 'frame', version: 1, versionNonce: 1 },
+      ],
+      published: true,
+    }),
+  ) as unknown as typeof fetch;
+}
+
 describe('SharedResourcePage accessibility (T7, SHR-29, SHR-31)', () => {
   it('the diagram state has zero serious/critical axe violations', async () => {
     const { container } = renderPage(diagramFetch());
@@ -117,5 +150,25 @@ describe('SharedResourcePage accessibility (T7, SHR-29, SHR-31)', () => {
     renderPage(fetchImpl);
 
     expect(await screen.findByText('This link is invalid, expired or revoked.')).toBeTruthy();
+  });
+
+  it('the published-presentation frame-viewer state has zero serious/critical axe violations (T23)', async () => {
+    const { container } = renderPage(publishedPresentationFetch());
+    await screen.findByText('Frame 1 de 2');
+
+    const results = await axe(container);
+    expect(seriousOrCriticalViolations(results)).toEqual([]);
+  });
+
+  it('frame navigation in the published state is reachable only by keyboard, with no AuthProvider mounted (T23)', async () => {
+    renderPage(publishedPresentationFetch());
+    await screen.findByText('Frame 1 de 2');
+
+    const next = screen.getByRole('button', { name: 'Próximo' });
+    next.focus();
+    expect(document.activeElement).toBe(next);
+    fireEvent.click(next);
+
+    expect(await screen.findByText('Frame 2 de 2')).toBeTruthy();
   });
 });
