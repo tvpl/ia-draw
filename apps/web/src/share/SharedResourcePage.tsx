@@ -2,6 +2,8 @@ import { EditorSurface } from '@arch-canvas/editor-adapter';
 import { type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
+import { cropSceneForFrame } from '../presentation/cropSceneForFrame.js';
+import { FrameViewer } from '../presentation/FrameViewer.js';
 import { PublicShell } from './PublicShell.js';
 import { createShareLinkClient, type ResolveResult } from './shareLinkClient.js';
 
@@ -16,10 +18,10 @@ export interface SharedResourcePageProps {
  * `GET /me` or redirect to `/login` (SHR-12/13).
  *
  * Four states, all rendered inside `PublicShell`: loading, diagram (the live
- * scene on a read-only canvas), presentation (an explicit placeholder — the real
- * viewer is R12's job), and invalid. `404` folds "unknown token", "expired" and
- * "revoked" into one message, mirroring the server's own IDOR-safe response
- * (SHR-16).
+ * scene on a read-only canvas), presentation (the real frame viewer once
+ * published — T22 — or the R11 placeholder unchanged when it isn't), and
+ * invalid. `404` folds "unknown token", "expired" and "revoked" into one
+ * message, mirroring the server's own IDOR-safe response (SHR-16).
  *
  * The canvas is mounted with `viewModeEnabled` hard-coded to `true`, never
  * derived from the link's role: a link granting `editor` still opens read-only,
@@ -33,10 +35,12 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
   const client = useMemo(() => createShareLinkClient(fetchImpl), [fetchImpl]);
 
   const [result, setResult] = useState<ResolveResult | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
     if (!token) return;
     let cancelled = false;
+    setCurrentIndex(0);
 
     (async () => {
       const resolved = await client.resolve(token);
@@ -65,6 +69,27 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
   }
 
   if (result.status === 'presentation') {
+    // T22: `scene` is present only once the presentation has been published (T1,
+    // server-side) — before that, or if the snapshot never resolved, the placeholder
+    // stays byte-for-byte what R11 already rendered (SHR-27/28 unaffected).
+    if (result.scene) {
+      const scene = result.scene;
+      return (
+        <PublicShell>
+          <h2>{t('share.public.presentationTitle', { name: result.presentation.name })}</h2>
+          <FrameViewer
+            frames={result.frames}
+            currentIndex={currentIndex}
+            onNavigate={setCurrentIndex}
+            renderCanvas={(frame) => (
+              <div style={{ height: '80vh' }}>
+                <EditorSurface initialElements={cropSceneForFrame(scene, frame)} viewModeEnabled />
+              </div>
+            )}
+          />
+        </PublicShell>
+      );
+    }
     return (
       <PublicShell>
         <h2>{t('share.public.presentationTitle', { name: result.presentation.name })}</h2>
