@@ -240,7 +240,7 @@ que `CommentsSidebar` já recebe — nenhuma segunda fonte de "quais elementos e
 - [x] `onJumpToElement` chama `editorSurfaceRef.current?.focusElement(elementId)`, nenhum outro efeito colateral
 - [x] Doc comment da página atualizado com a mesma convenção das demais fatias (uma frase explicando de onde `lintPanel` vem e por que reusa `editorSurfaceRef`)
 - [x] Gate check passes: `make lint && make typecheck && make test-unit` (escopado a `@arch-canvas/web`, mais `pnpm -w build` para confirmar o workspace inteiro)
-- [x] Test count: teste novo em `DiagramEditorPage.spec.tsx` (ALNT-08/09/10) confirma a ligação fim a fim — clique em "ir para o elemento" na aba Lint chama `updateScene`/`scrollToContent` do mock do Excalidraw com o id certo; 32 testes no arquivo, nenhum existente quebrou
+- [x] Test count: teste novo em `DiagramEditorPage.spec.tsx` (ALNT-08/09/10) confirma a ligação fim a fim — clique em "ir para o elemento" na aba Lint chama `updateScene`/`scrollToContent` do mock do Excalidraw com o id certo; 33 testes no arquivo (não 32 — corrigido pelo Verifier round 1, doc/count drift cosmético), nenhum existente quebrou. Um teste adicional (ALNT-07, fix do Verifier round 1) trouxe o total para 34.
 
 **Tests**: unit
 **Gate**: full

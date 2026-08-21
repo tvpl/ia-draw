@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 44,
+  "next_id": 46,
   "lessons": [
     {
       "id": "L-001",
@@ -780,6 +780,42 @@
       ],
       "created": "2026-08-17T10:20:33Z",
       "last_seen": "2026-08-17T10:20:33Z"
+    },
+    {
+      "id": "L-044",
+      "key": "spec_precision_gap::when a spec s independent test names a concrete end to end scenario e g draw with warnings visible and confirm it still works write that literal test proving the invariant only by the absence of a coupling prop callback is not equivalent evidence for the verifier",
+      "text": "When a spec's Independent Test names a concrete end-to-end scenario (e.g. 'draw with warnings visible and confirm it still works'), write that literal test — proving the invariant only by the absence of a coupling prop/callback is not equivalent evidence for the Verifier.",
+      "signal": "spec_precision_gap",
+      "scope": "apps/web",
+      "status": "candidate",
+      "features": [
+        "architecture-lint"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/architecture-lint/spec.md AC P1-7 (ALNT-07) (apps/web)"
+      ],
+      "created": "2026-08-21T10:41:22Z",
+      "last_seen": "2026-08-21T10:41:22Z"
+    },
+    {
+      "id": "L-045",
+      "key": "spec_precision_gap::keyboard only operable acceptance criteria need a real sequential tab shift tab walk across every control the ac names not just focus click on one element a11y specs should simulate the actual traversal order",
+      "text": "Keyboard-only-operable acceptance criteria need a real sequential Tab/Shift+Tab walk across every control the AC names, not just .focus()+click on one element — a11y specs should simulate the actual traversal order.",
+      "signal": "spec_precision_gap",
+      "scope": "apps/web",
+      "status": "candidate",
+      "features": [
+        "architecture-lint"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/architecture-lint/spec.md AC P2-13 (ALNT-13) (apps/web)"
+      ],
+      "created": "2026-08-21T10:41:22Z",
+      "last_seen": "2026-08-21T10:41:22Z"
     }
   ]
 }

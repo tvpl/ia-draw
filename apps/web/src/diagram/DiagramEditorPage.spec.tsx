@@ -861,6 +861,65 @@ describe('DiagramEditorPage (T9, integration)', () => {
       { animate: true },
     );
   });
+
+  it('ALNT-07: an active lint warning never gates a normal canvas interaction (selecting an element still updates MetadataPanel)', async () => {
+    const fetchImpl = vi.fn((url: string) => {
+      if (url === '/me') return Promise.resolve(jsonResponse(200, { user: { id: 'user-1' } }));
+      if (url === '/diagrams/diagram-1/bootstrap') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            scene: [baseElement],
+            revision: 1,
+            assets: [],
+            permissions: { allowed: true, reason: '' },
+            mutatePermissions: { allowed: true, reason: '' },
+          }),
+        );
+      }
+      if (url.startsWith('/libraries')) return Promise.resolve(jsonResponse(200, { items: [] }));
+      if (url === '/diagrams/diagram-1/comments') {
+        return Promise.resolve(jsonResponse(200, { comments: [] }));
+      }
+      if (url === '/diagrams/diagram-1/lint') {
+        return Promise.resolve(
+          jsonResponse(200, {
+            warnings: [
+              {
+                rule: 'orphan-component',
+                severity: 'warning',
+                message: '1 componente(s) sem nenhum edge conectado.',
+                elementIds: [baseElement.id],
+              },
+            ],
+          }),
+        );
+      }
+      if (url === `/diagrams/diagram-1/elements/${baseElement.id}/metadata`) {
+        return Promise.resolve(jsonResponse(404, {}));
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+    vi.stubGlobal('fetch', fetchImpl);
+
+    renderPage();
+    await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+    // Open the Lint tab and confirm the warning is showing before touching the canvas.
+    fireEvent.click(screen.getByRole('tab', { name: 'Lint' }));
+    await screen.findByText('1 componente(s) sem nenhum edge conectado.');
+
+    // A warning is visible; an ordinary canvas selection must still flow through
+    // unimpeded — no gating, confirmation, or blocked state introduced by lint.
+    act(() => {
+      capturedOnChange?.([baseElement], { selectedElementIds: { [baseElement.id]: true } });
+    });
+
+    await waitFor(() =>
+      expect(fetchImpl).toHaveBeenCalledWith(
+        `/diagrams/diagram-1/elements/${baseElement.id}/metadata`,
+      ),
+    );
+  });
 });
 
 describe('DiagramEditorPage history integration (T6, SNAP-08/14/16)', () => {
