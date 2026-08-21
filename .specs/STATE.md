@@ -182,7 +182,7 @@ comporta N sem colisão de merge — cada frente edita só a sua própria subse�
 - **Mudança de instrução do usuário (2026-08-17)**: o usuário interrompeu a espera pelo ciclo completo de Verificação em R14/R12 e pediu para pausar a execução e mergear tudo direto para `main` — incluindo push pra `origin/main` — sem esperar o Verifier. Confirmado explicitamente via pergunta de esclarecimento antes de agir (as duas sessões de sub-agente de R14 e R12 foram paradas via `TaskStop`, sem perda de trabalho: tudo já estava commitado nas branches `feature/architecture-lint`/`feature/presentation-mode`, só 2 arquivos ficaram com edição em andamento — ambos revisados, testados e commitados pelo orquestrador antes do merge, um deles (`FrameViewer.a11y.spec.tsx` de R12) tinha um bug genuíno de fixture de teste, corrigido).
 - **Entregue em F10 — R14 `architecture-lint` (mergeada em `claude/platform-maturity-r8-r14-av3mgj`, SEM Verifier PASS)**:
   - `LintPanel`/`lintClient` (`apps/web/src/lint/`) — painel de avisos de lint arquitetural, sempre consultivo, nunca bloqueia o desenho; aba "Lint" nova em `EditorSidePanel` ao lado de Docs/Comments/AiDock. "Salto pro elemento" via `focusElement` novo no handle imperativo de `EditorSurface` (mesmo padrão AD-010, reusado, não reinventado).
-  - **Sem `validation.md`, sem Verifier PASS** — mergeada por decisão explícita do usuário de não esperar a Verificação. Os testes unitários da feature (LintPanel, lintClient, EditorSurface) passam e o gate completo (lint/typecheck/test-unit) roda verde pós-merge, mas nenhum critério de aceite foi conferido individualmente com evidência `file:line`, e nenhum sensor de discriminação rodou. Débito registrado aqui explicitamente — uma rodada de Verificação real ainda deveria rodar numa sessão futura antes de considerar R14 genuinamente fechada no mesmo padrão do resto do roadmap.
+  - **Fechada e verificada em 2026-08-21** (sessão `claude/tlc-spec-driven-continuation-76lvir`) — ver entrada dedicada mais abaixo. Débito original ("sem `validation.md`, sem Verifier PASS") não se aplica mais.
   - Fix aplicado pelo orquestrador antes do merge (trabalho do sub-agente parado no meio): `LintPanel.tsx` passou a mostrar `warning.rule` (categoria estável) junto da mensagem, não só a mensagem — 10/10 testes de `LintPanel.spec.tsx` verdes.
   - Conflito de merge: só em i18n (`en`/`pt-BR` `translation.json`) — chave `docs` (R13) e `lint` (R14) preservadas como irmãs. `packages/editor-adapter` foi tocado (`focusElement`) — `pnpm -w build` rodado antes dos testes de `apps/web`, por precaução (lição já registrada).
   - Achado não-bloqueante: 1 teste pré-existente de `packages/editor-adapter` (`EditorSurface.spec.tsx`, "icon.kind external... inserts the rectangle+label fallback") falha de forma idêntica em `main` antes deste merge (confirmado numa worktree scratch) — quebra de medição de wrap de texto (`'Amazon\nEC2'` vs `'Amazon EC2'`), não relacionada a nenhuma mudança desta rodada.
@@ -191,11 +191,95 @@ comporta N sem colisão de merge — cada frente edita só a sua própria subse�
   - `presentationClient.ts` — cliente para as 8 rotas do módulo `presentation` (`GET|POST /presentations`, `GET|PATCH /presentations/:id`, `POST|PATCH .../frames`, `PATCH|DELETE .../frames/:frameId`, `POST .../:publish`, `GET .../published`, `POST .../:export-pdf`).
   - `packages/editor-adapter/src/EditorSurface.tsx` ganhou `scrollToFrame` no handle imperativo (mesmo padrão AD-010) — usado pelo modo apresentador pra mover o viewport pro frame atual, casando com `apps/server/src/modules/presentation/exportPdf.ts`'s `sceneForFrame` (comentário cross-referenciado nos dois arquivos).
   - Mudança de backend decidida e documentada: `POST /presentations` (criar a partir de um diagrama) e `resolve()` da visão pública ganharam a cena publicada (`published scene`), gap real de contrato sem o qual o viewer não teria o que renderizar.
-  - **Sem `validation.md`, sem Verifier PASS** — mergeada por decisão explícita do usuário de não esperar a Verificação, mesma decisão que fechou R14 sem verificação. É a maior peça de código de todo o roadmap platform-maturity sem uma rodada de Verificação real — débito registrado com destaque aqui.
+  - **Fechada e verificada em 2026-08-21** (sessão `claude/tlc-spec-driven-continuation-76lvir`) — ver entrada dedicada mais abaixo, incluindo uma rodada 1 real (FAIL, achado sério: T19-T28 nunca tinham sido executados) e uma rodada 2 (PASS 48/48) depois de uma onda de fix completa. Débito original ("maior peça de código sem verificação de todo o roadmap") não se aplica mais.
   - Fix aplicado pelo orquestrador antes do merge (trabalho do sub-agente parado no meio da task T18): `FrameViewer.a11y.spec.tsx` tinha um bug de fixture — testava foco de teclado no botão "Próximo" com `currentIndex` no último frame, onde o botão fica `disabled` por design (não pode receber foco); corrigido usando um terceiro frame e testando a partir do frame do meio. 3/3 testes verdes depois do fix.
   - Conflito de merge real (não só aditivo) em `packages/editor-adapter/src/EditorSurface.tsx`: R14 e R12 estenderam o mesmo método `ExcalidrawSceneApi.scrollToContent` com assinaturas incompatíveis — R14 (`focusElement`) exigia um único elemento, obrigatório; R12 (`scrollToFrame`) aceitava um array, opcional. Reconciliado numa assinatura só, batendo com a API real do Excalidraw upstream (que aceita elemento único OU array): `scrollToContent?: (target: SceneElement | readonly SceneElement[], opts?) => void`, opcional. `focusElement` passou a chamar com `?.()` defensivo, igual `scrollToFrame` já fazia. `EditorSurface.spec.tsx` também tinha conflito real no mock (R14 assumia `scrollToContentSpy` sempre presente via `beforeEach`; R12 tinha o padrão mais defensivo de opt-in por teste, com um teste dedicado provando que a ausência do método nunca quebra) — resolvido adotando o padrão de R12 (mais defensivo e testado) e adicionando `scrollToContentSpy = vi.fn()` explícito nos 4 testes de `focusElement` que precisavam dele. Validado rodando os testes reais antes de commitar o merge: 79/80 verdes (a 1 falha é a mesma flake pré-existente de wrap de texto já registrada na entrada de R14 acima).
   - Conflito de i18n: mesma resolução de sempre — `docs`/`lint` (já mergeados) e `presentation` como chaves irmãs em `en`/`pt-BR`.
-- **Próximo passo**: as 16 entradas do roadmap (R1-R16) estão todas com código mergeado em `claude/platform-maturity-r8-r14-av3mgj`, que por sua vez foi mergeada em `main` local e enviada (`git push`) para `origin/main` nesta sessão, por pedido explícito do usuário. **Duas delas (R14, R12) não têm Verifier PASS nem `validation.md`** — ficou como débito explícito para uma sessão futura rodar a Verificação real (spec-anchored, sensor de discriminação) e fechar essas duas no mesmo padrão de rigor das outras 14. R12 em particular merece prioridade nesse follow-up: é a maior peça de código sem verificação de todo o roadmap.
+- **As 16 entradas do roadmap (R1-R16) estão todas com código mergeado e agora todas com `validation.md` PASS** — ver a entrada de 2026-08-21 abaixo, que fecha o débito de R14/R12 registrado aqui.
+
+### Fechamento de R14 e R12 — sessão `claude/tlc-spec-driven-continuation-76lvir` (2026-08-21)
+
+Trabalho autônomo (`@tlc-spec-driven`, "continue o plano, engenharia em loop, garanta completude,
+decida sozinho") fechando o débito explícito de duas ondas anteriores: R14 (`architecture-lint`) e
+R12 (`presentation-mode`) tinham código mergeado em `main` mas nunca passaram por uma rodada real
+de Verificação (o usuário pediu para pular a espera numa sessão passada). Esta sessão rodou os dois
+Verifiers pela primeira vez, de verdade, cada um como sub-agente fresco (author ≠ verifier).
+
+**R14 `architecture-lint`**: PASS round 1 (12/14 ACs batendo exatamente, 3/3 mutações do sensor
+mortas), com 2 gaps de precisão de spec sinalizados — ALNT-07 (aviso nunca bloqueia o canvas) e
+ALNT-13 (painel inteiro só por teclado) provados só estruturalmente/parcialmente, não pelo teste
+fim-a-fim exato que a Independent Test de cada um pede. Fix aplicado no mesmo turno (2 testes novos:
+um em `DiagramEditorPage.spec.tsx` que desenha/edita com um aviso visível e confirma sucesso; um em
+`LintPanel.a11y.spec.tsx` que percorre a sequência real abrir aba → ler → Atualizar → salto só por
+teclado) + 1 correção cosmética de contagem de teste em `tasks.md`. 14/14 ACs verificados no
+`validation.md` atualizado. **F14 está fechada.**
+
+**R12 `presentation-mode`**: round 1 do Verifier deu **FAIL** — achado sério, não cosmético: as
+tasks T19-T28 (metade do plano de 28 tasks da onda) **nunca tinham sido executadas**, apesar do
+`STATE.md` (entrada antiga acima) descrever a feature como entregue com as "4 superfícies novas".
+Na prática: `PresenterModePage` não existia em lugar nenhum do repositório; `SharedResourcePage` (a
+visão pública de `/share/:token`) nunca foi tocada para renderizar apresentações publicadas, mesmo
+com o lado de backend (T1) pronto e testado; exportar PDF tinha cliente HTTP testado mas zero UI; e
+o achado mais grave — **a rota `/present/:presentationId` nunca foi registrada em `App.tsx`**,
+deixando as ~1500 linhas já implementadas e testadas de T9-T14 (criar/editar/reordenar/publicar
+frames) inalcançáveis a partir do app real rodando. 28/48 ACs batiam, 19 com zero evidência. Esta é
+exatamente a classe de falha que a separação author≠verifier existe para pegar — e pegou.
+
+Fix wave completa nesta mesma sessão, executada diretamente pelo orquestrador (sem sub-agentes de
+batch — o volume de contexto já acumulado tornava mais barato continuar na mesma sessão do que
+re-derivar tudo num worker novo), retomando exatamente os itens T19-T28 do `tasks.md` original (o
+plano nunca foi invalidado, só nunca executado) mais os 6 Fix Plans do round 1:
+
+- **T19 `PresenterModePage`** + **G1**: página nova (`apps/web/src/presentation/PresenterModePage.tsx`) — cena viva
+  somente leitura, `EditorSurface` com `viewModeEnabled` sempre `true`, navegação por teclado
+  (setas/PageUp/PageDown/Space/Escape) via listener a nível de `document` (não um handler JSX num
+  elemento estático — evita `noStaticElementInteractions` do biome e casa melhor com "funciona em
+  qualquer lugar da tela"). G1: `EditorSurfaceHandle.scrollToFrame` tinha um no-op verdadeiro quando
+  `elementId` não casava com nada na cena — contradizia o próprio Done-when de T2 e o Edge Case do
+  spec ("cair no fallback de mostrar a cena inteira") — corrigido para usar o mesmo heurístico que
+  `cropSceneForFrame.ts` já usava.
+- **Fix 1 + T20**: `/present/:presentationId` e `/present/:presentationId/presenter` registradas em
+  `App.tsx` (a lacuna raiz do FAIL) + botão "Apresentar" em `PresentationEditorPage`, desabilitado
+  com 0 frames.
+- **T22 + T25**: `SharedResourcePage`'s ramo `presentation` passa a checar `result.scene` — presente
+  monta o `FrameViewer` real com a cena recortada por `cropSceneForFrame`; ausente mantém o
+  placeholder de R11 byte a byte (SHR-27/28 sem alteração de asserção). Edge cases cobertos:
+  `elementId` órfão cai no fallback de cena inteira; cena publicada vazia renderiza canvas vazio, não
+  a mensagem de link inválido.
+- **T23**: a11y estendida para o novo estado publicado (zero violação axe, navegação só por teclado,
+  sem `AuthProvider` montado — AD-012).
+- **T24**: controle de exportar PDF em `PresentationEditorPage` — desabilitado com motivo até
+  publicada + ≥1 frame; `200` mostra link (nova aba) + `pageCount`, nunca dispara download; `400`/
+  `404`/erro mostram mensagens distintas, nunca trava carregando.
+- **T26 + T27**: sweep de i18n confirmou os dois locales já com as mesmas 416 chaves (nenhuma nova
+  necessária — T6 já tinha plantado tudo, só não estava sendo consumido); 1 changeset novo para o
+  único pacote `packages/*/src` tocado (`editor-adapter`, o fix de G1); `capability-map.yaml` perde
+  `status: backend-only`, `repo-tools audit` confirma as rotas do módulo como consumidas.
+- **Fix 6 (G2/G3, Minor)**: teste de duplo-envio do formulário de adicionar frame (guarda
+  `addInFlight` já existia, nunca tinha teste); teste de dupla-revogação idempotente de um link de
+  apresentação (mesma rota `:revoke` de R11, agora provada também no escopo de apresentação).
+
+**Round 2 do Verifier — PASS 48/48**, sensor 5/5 mutações mortas (alvo: handler de teclado do
+presenter, fallback do `scrollToFrame`, ramo de gating por `result.scene`, condição de desabilitar
+o export, registro da rota do presenter). Gate completo: `make lint`/`make typecheck` verdes;
+`test-unit` por pacote (`web` 905/905, `server` 400/400 unit + 373/373 integration via PGlite,
+`editor-adapter` 79/80 — a 1 falha é a mesma quebra de medição de wrap de texto pré-existente já
+registrada em F10/R14) — nenhuma falha atribuível a esta feature. `route-inventory.md` regenerado.
+
+**Flake confirmado nesta sessão (não é regressão)**: sob `make test-unit`/execução paralela completa
+do `apps/web`, exatamente 1 arquivo de teste falha por vez, um arquivo diferente a cada corrida
+(`PresenterModePage.spec.tsx`, depois `DiagramEditorPage.spec.tsx`'s teste de "discard" pré-existente)
+— sempre passa limpo isolado e numa terceira corrida completa (905/905). Mesma classe de contenção de
+recursos sob execução paralela já registrada em ondas anteriores (T2's nota sobre `V8CoverageProvider`).
+
+`tasks.md` de `architecture-lint` teve sua nota de contagem de teste (T5, 32→33) corrigida junto do
+fix. `spec.md` de ambas as features teve a tabela de Requirement Traceability atualizada de
+`Pending`/`Implementing` para `✅ Verified` (ALNT-01..14, PRZ-01..48).
+
+2 lições novas registradas nesta sessão (`L-044`, `L-045`, `candidate`, pelo Verifier round 1 de
+R14): sobre o padrão de gap "provado estruturalmente, não pelo teste fim-a-fim que o Independent
+Test da história pede". Nenhuma lição nova do round 2 de R12 (PASS limpo, sem sinal — a lição real
+já estava implícita no próprio achado do round 1, não repetida aqui).
 - **Residuais nao bloqueantes de F6** (registrados em `validation.md`, nenhum vira fix task): piso de cobertura declaravel sem `coverage.enabled`; piso de `0` aceito; texto da AC UIX-02 mais forte que a entrega; orcamento de saude do `compose-smoke` chega a 7 min por causa do `redis`; nada protege o proprio `ci.yaml` de ser esvaziado.
 - **Residuais nao bloqueantes de F7** (registrados em `validation.md`): nada lint-a o conteudo em prosa do `CLAUDE.md` (uma invariante removida silenciosamente nao e pega por nada); nada faz dry-run do corpo de um slash command antes de commitar — foi exatamente assim que o bug do `/audit` sobreviveu ate a verificacao.
 - **Residual nao bloqueante de F8** (achado incidental do Verifier round 2, fora do escopo do Fix Plan 1, nao vira fix task): `tasks.md:476` (nota "Done when" de T27) ainda afirma que o gate "sai 1 só pelo mesmo piso de cobertura global pré-existente já registrado na nota de T26" — isso ficou desatualizado depois do Fix Plan 1 (o gate agora sai 0, e a nota de T26 que T27 cita ja nao diz "pré-existente"). Cosmetico — o checkbox de T27 continua `[x]` corretamente e a afirmacao nao afeta nenhuma AC, gate ou a tabela de rastreabilidade — mas vale um ajuste de uma linha na proxima onda que tocar `tasks.md`.
