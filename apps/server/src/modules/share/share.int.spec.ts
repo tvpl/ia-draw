@@ -407,6 +407,42 @@ describe('share module — capped-role, expiring share links (T78, EXT-01)', () 
     expect(editorRead.json().frames[0].notes).toBe('secret speaker notes');
   });
 
+  it('revoking a presentation share link twice is idempotent — the second revoke also succeeds (edge case, G3)', async () => {
+    const owner = await seedUserWithSession('presentation-revoke-owner');
+    const { diagramId } = await seedDiagramAs(owner.cookies, 'presentation-revoke');
+
+    const createPresentation = await app.inject({
+      method: 'POST',
+      url: '/presentations',
+      cookies: owner.cookies,
+      payload: { diagramId, name: 'Revoke test presentation' },
+    });
+    const presentationId = createPresentation.json().presentation.id as string;
+
+    const link = await app.inject({
+      method: 'POST',
+      url: `/presentations/${presentationId}/share-links`,
+      cookies: owner.cookies,
+      payload: { role: 'viewer', expiresAt: futureIso() },
+    });
+    const shareLinkId = link.json().shareLink.id as string;
+
+    const firstRevoke = await app.inject({
+      method: 'POST',
+      url: `/share-links/${shareLinkId}:revoke`,
+      cookies: owner.cookies,
+    });
+    expect(firstRevoke.statusCode).toBe(200);
+
+    const secondRevoke = await app.inject({
+      method: 'POST',
+      url: `/share-links/${shareLinkId}:revoke`,
+      cookies: owner.cookies,
+    });
+    expect(secondRevoke.statusCode).toBe(200);
+    expect(secondRevoke.json().shareLink.revokedAt).toBe(firstRevoke.json().shareLink.revokedAt);
+  });
+
   it('creating a share link for a diagram outside the actor workspace is 404 (IDOR)', async () => {
     const outsider = await seedUserWithSession('idor-outsider');
     const owner = await seedUserWithSession('idor-owner');

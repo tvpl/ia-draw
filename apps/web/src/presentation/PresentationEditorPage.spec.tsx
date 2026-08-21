@@ -276,6 +276,43 @@ describe('PresentationEditorPage — add frame (PRZ-06..08, PRZ-11)', () => {
     ).toBeTruthy();
     expect(screen.queryByTestId('frame-list')).toBeNull();
   });
+
+  it('a second submit while the first add-frame request is in flight never emits a second POST (edge case, G2)', async () => {
+    let postCount = 0;
+    let resolveFirst: (response: Response) => void = () => {
+      throw new Error('resolveFirst called before the promise executor ran');
+    };
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/presentations/p-1') return jsonResponse(200, { presentation, frames: [] });
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      if (url === '/presentations/p-1/frames' && init?.method === 'POST') {
+        postCount += 1;
+        return new Promise<Response>((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    const input = await screen.findByLabelText('Ou um rótulo lógico (sem frame no canvas)');
+    fireEvent.change(input, { target: { value: 'x' } });
+    const submit = screen.getByRole('button', { name: 'Adicionar frame' });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+
+    expect(postCount).toBe(1);
+    resolveFirst(
+      jsonResponse(201, {
+        frame: { id: 'f-new', presentationId: 'p-1', frameId: 'x', notes: null, navLinksJson: [] },
+      }),
+    );
+    await waitFor(() => expect(screen.getByTestId('frame-row-f-new')).toBeTruthy());
+    expect(postCount).toBe(1);
+  });
 });
 
 describe('PresentationEditorPage — edit notes and delete frame (PRZ-09..12)', () => {
