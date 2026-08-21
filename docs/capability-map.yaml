@@ -96,8 +96,7 @@ capabilities:
   - capability: Apresentações navegáveis e protótipos
     requirements: [PRS-01, PRS-02, PRS-03, PRS-04, PRS-05]
     backend_evidence: apps/server/src/modules/presentation/routes.ts
-    ui_surface: null
-    status: backend-only
+    ui_surface: apps/web/src/presentation/PresentationEditorPage.tsx
 
   - capability: Lint arquitetural e checagem C4
     requirements: [LNT-01, LNT-02, LNT-03]

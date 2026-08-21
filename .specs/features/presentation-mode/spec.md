@@ -279,54 +279,54 @@ inteiro usando só Tab/Enter/setas, com o locale trocado para `en`.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PRZ-01 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-02 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-03 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-04 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-05 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-06 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-07 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-08 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-09 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-10 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-11 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-12 | P1: Criar apresentação e montar frames | F12 | Pending |
-| PRZ-13 | P1: Reordenar frames | F12 | Pending |
-| PRZ-14 | P1: Reordenar frames | F12 | Pending |
-| PRZ-15 | P1: Reordenar frames | F12 | Pending |
-| PRZ-16 | P1: Reordenar frames | F12 | Pending |
-| PRZ-17 | P1: Reordenar frames | F12 | Pending |
-| PRZ-18 | P1: Navegação de protótipo (configuração) | F12 | Pending |
-| PRZ-19 | P1: Navegação de protótipo (configuração) | F12 | Pending |
-| PRZ-20 | P1: Navegação de protótipo (configuração) | F12 | Pending |
-| PRZ-21 | P1: Navegação de protótipo (configuração) | F12 | Pending |
-| PRZ-22 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-23 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-24 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-25 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-26 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-27 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-28 | P1: Publicar link imutável | F12 | Pending |
-| PRZ-29 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-30 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-31 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-32 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-33 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-34 | P1: Visão pública dos frames | F12 | Pending |
-| PRZ-35 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-36 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-37 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-38 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-39 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-40 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-41 | P1: Modo apresentador em tela cheia | F12 | Pending |
-| PRZ-42 | P2: Exportar PDF | F12 | Pending |
-| PRZ-43 | P2: Exportar PDF | F12 | Pending |
-| PRZ-44 | P2: Exportar PDF | F12 | Pending |
-| PRZ-45 | P2: Exportar PDF | F12 | Pending |
-| PRZ-46 | P2: Teclado e idioma | F12 | Pending |
-| PRZ-47 | P2: Teclado e idioma | F12 | Pending |
-| PRZ-48 | P2: Teclado e idioma | F12 | Pending |
+| PRZ-01 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-02 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-03 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-04 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-05 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-06 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-07 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-08 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-09 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-10 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-11 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-12 | P1: Criar apresentação e montar frames | F12 | ✅ Verified |
+| PRZ-13 | P1: Reordenar frames | F12 | ✅ Verified |
+| PRZ-14 | P1: Reordenar frames | F12 | ✅ Verified |
+| PRZ-15 | P1: Reordenar frames | F12 | ✅ Verified |
+| PRZ-16 | P1: Reordenar frames | F12 | ✅ Verified |
+| PRZ-17 | P1: Reordenar frames | F12 | ✅ Verified |
+| PRZ-18 | P1: Navegação de protótipo (configuração) | F12 | ✅ Verified |
+| PRZ-19 | P1: Navegação de protótipo (configuração) | F12 | ✅ Verified |
+| PRZ-20 | P1: Navegação de protótipo (configuração) | F12 | ✅ Verified |
+| PRZ-21 | P1: Navegação de protótipo (configuração) | F12 | ✅ Verified |
+| PRZ-22 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-23 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-24 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-25 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-26 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-27 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-28 | P1: Publicar link imutável | F12 | ✅ Verified |
+| PRZ-29 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-30 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-31 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-32 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-33 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-34 | P1: Visão pública dos frames | F12 | ✅ Verified |
+| PRZ-35 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-36 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-37 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-38 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-39 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-40 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-41 | P1: Modo apresentador em tela cheia | F12 | ✅ Verified |
+| PRZ-42 | P2: Exportar PDF | F12 | ✅ Verified |
+| PRZ-43 | P2: Exportar PDF | F12 | ✅ Verified |
+| PRZ-44 | P2: Exportar PDF | F12 | ✅ Verified |
+| PRZ-45 | P2: Exportar PDF | F12 | ✅ Verified |
+| PRZ-46 | P2: Teclado e idioma | F12 | ✅ Verified |
+| PRZ-47 | P2: Teclado e idioma | F12 | ✅ Verified |
+| PRZ-48 | P2: Teclado e idioma | F12 | ✅ Verified |
 
 **ID format:** `[CATEGORY]-[NUMBER]`
 

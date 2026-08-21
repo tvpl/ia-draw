@@ -272,6 +272,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: spec.md LDC-13 (tests)
 - last seen: 2026-08-17T10:20:33Z
 
+### L-044 - When a spec's Independent Test names a concrete end-to-end scenario (e.g. 'draw with warnings visible and confirm it still works'), write that literal test — proving the invariant only by the absence of a coupling prop/callback is not equivalent evidence for the Verifier.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: architecture-lint
+- evidence: .specs/features/architecture-lint/spec.md AC P1-7 (ALNT-07) (apps/web)
+- last seen: 2026-08-21T10:41:22Z
+
+### L-045 - Keyboard-only-operable acceptance criteria need a real sequential Tab/Shift+Tab walk across every control the AC names, not just .focus()+click on one element — a11y specs should simulate the actual traversal order.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `apps/web` · harmful: 0
+- features: architecture-lint
+- evidence: .specs/features/architecture-lint/spec.md AC P2-13 (ALNT-13) (apps/web)
+- last seen: 2026-08-21T10:41:22Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

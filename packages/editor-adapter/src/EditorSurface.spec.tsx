@@ -570,16 +570,23 @@ describe('EditorSurface (T94, DOCK-03)', () => {
       expect(target.map((el) => el.id)).toEqual(['frame-empty']);
     });
 
-    it('falls back to a no-op when elementId matches nothing in the current scene', () => {
+    it('falls back to fitting the whole scene when elementId matches nothing in the current scene (G1)', () => {
       scrollToContentSpy = vi.fn();
+      const unrelated: SceneElement = { ...base, id: 'unrelated', frameId: null };
       const ref = createRef<EditorSurfaceHandle>();
-      mount({ initialElements: [{ ...base, id: 'unrelated', frameId: null }] }, ref);
+      mount({ initialElements: [unrelated] }, ref);
 
       act(() => {
         ref.current?.scrollToFrame('does-not-exist');
       });
 
-      expect(scrollToContentSpy).not.toHaveBeenCalled();
+      expect(scrollToContentSpy).toHaveBeenCalledTimes(1);
+      const [target, opts] = scrollToContentSpy.mock.calls[0] as [
+        SceneElement[],
+        { fitToViewport?: boolean; animate?: boolean },
+      ];
+      expect(target.map((el) => el.id)).toEqual(['unrelated']);
+      expect(opts).toEqual({ fitToViewport: true, animate: true });
     });
 
     it('elementId: null is a no-op', () => {

@@ -28,6 +28,10 @@ function renderPage(fetchImpl: typeof fetch) {
           path="/w/:workspaceId/d/:diagramId/present"
           element={<div data-testid="list-page" />}
         />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
+          element={<div data-testid="presenter-page" />}
+        />
       </Routes>
     </MemoryRouter>,
   );
@@ -271,6 +275,43 @@ describe('PresentationEditorPage — add frame (PRZ-06..08, PRZ-11)', () => {
       await screen.findByText('Um dos links aponta para um frame que não existe mais.'),
     ).toBeTruthy();
     expect(screen.queryByTestId('frame-list')).toBeNull();
+  });
+
+  it('a second submit while the first add-frame request is in flight never emits a second POST (edge case, G2)', async () => {
+    let postCount = 0;
+    let resolveFirst: (response: Response) => void = () => {
+      throw new Error('resolveFirst called before the promise executor ran');
+    };
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/presentations/p-1') return jsonResponse(200, { presentation, frames: [] });
+      if (url === '/diagrams/d-1/bootstrap') {
+        return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+      }
+      if (url === '/presentations/p-1/frames' && init?.method === 'POST') {
+        postCount += 1;
+        return new Promise<Response>((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      throw new Error(`unexpected url ${url}`);
+    }) as unknown as typeof fetch;
+    renderPage(fetchImpl);
+
+    const input = await screen.findByLabelText('Ou um rótulo lógico (sem frame no canvas)');
+    fireEvent.change(input, { target: { value: 'x' } });
+    const submit = screen.getByRole('button', { name: 'Adicionar frame' });
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+    fireEvent.click(submit);
+
+    expect(postCount).toBe(1);
+    resolveFirst(
+      jsonResponse(201, {
+        frame: { id: 'f-new', presentationId: 'p-1', frameId: 'x', notes: null, navLinksJson: [] },
+      }),
+    );
+    await waitFor(() => expect(screen.getByTestId('frame-row-f-new')).toBeTruthy());
+    expect(postCount).toBe(1);
   });
 });
 
@@ -561,5 +602,130 @@ describe('PresentationEditorPage — publish/republish (PRZ-22..25)', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(fetchImpl).not.toHaveBeenCalledWith('/presentations/p-1:publish', expect.anything());
     confirmSpy.mockRestore();
+  });
+});
+
+describe('PresentationEditorPage — "Apresentar" launcher (T20, PRZ-35, PRZ-41)', () => {
+  it('is disabled with an explanatory reason when the presentation has 0 frames', async () => {
+    renderPage(baseFetch({ frames: [] }));
+
+    const presentButton = await screen.findByRole('button', { name: 'Apresentar' });
+    expect(presentButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Adicione ao menos um frame para apresentar.')).toBeTruthy();
+  });
+
+  it('is enabled and navigates to the presenter route when the presentation has frames', async () => {
+    renderPage(baseFetch({ frames: threeFrames }));
+
+    const presentButton = await screen.findByRole('button', { name: 'Apresentar' });
+    expect(presentButton).toHaveProperty('disabled', false);
+    expect(screen.queryByText('Adicione ao menos um frame para apresentar.')).toBeNull();
+
+    fireEvent.click(presentButton);
+    expect(await screen.findByTestId('presenter-page')).toBeTruthy();
+  });
+});
+
+const publishedPresentation = { ...presentation, publishedSnapshotId: 'snap-1' };
+
+function exportFetch({
+  frames = threeFrames as unknown[],
+  exportResponse,
+}: {
+  frames?: unknown[];
+  exportResponse: () => Response;
+}) {
+  return vi.fn(async (url: string, init?: RequestInit) => {
+    if (url === '/presentations/p-1') {
+      return jsonResponse(200, { presentation: publishedPresentation, frames });
+    }
+    if (url === '/diagrams/d-1/bootstrap') {
+      return jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } });
+    }
+    if (url === '/presentations/p-1:export-pdf' && init?.method === 'POST') {
+      return exportResponse();
+    }
+    throw new Error(`unexpected url ${url}`);
+  }) as unknown as typeof fetch;
+}
+
+describe('PresentationEditorPage — export PDF (T24, PRZ-42..45)', () => {
+  it('is disabled with a reason when the presentation is not published', async () => {
+    renderPage(baseFetch({ frames: threeFrames }));
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Publique a apresentação antes de exportar.')).toBeTruthy();
+  });
+
+  it('is disabled with a reason when published but has 0 frames', async () => {
+    renderPage(exportFetch({ frames: [], exportResponse: () => jsonResponse(400, {}) }));
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Adicione ao menos um frame para exportar.')).toBeTruthy();
+  });
+
+  it('confirming emits POST :export-pdf and shows a loading state until it resolves', async () => {
+    let resolveExport: (response: Response) => void = () => {
+      throw new Error('resolveExport called before the promise executor ran');
+    };
+    const pending = new Promise<Response>((resolve) => {
+      resolveExport = resolve;
+    });
+    const fetchImpl = exportFetch({ exportResponse: () => pending as unknown as Response });
+    renderPage(fetchImpl);
+
+    const exportButton = await screen.findByRole('button', { name: 'Exportar PDF' });
+    expect(exportButton).toHaveProperty('disabled', false);
+    fireEvent.click(exportButton);
+
+    expect(await screen.findByRole('button', { name: 'Gerando PDF…' })).toBeTruthy();
+    expect(fetchImpl).toHaveBeenCalledWith('/presentations/p-1:export-pdf', { method: 'POST' });
+
+    resolveExport(jsonResponse(200, { url: '/exports/p-1.pdf', sizeBytes: 1024, pageCount: 3 }));
+    expect(await screen.findByRole('button', { name: 'Exportar PDF' })).toBeTruthy();
+  });
+
+  it('200 shows a link to url (opens in a new tab) with pageCount, no automatic download', async () => {
+    renderPage(
+      exportFetch({
+        exportResponse: () =>
+          jsonResponse(200, { url: '/exports/p-1.pdf', sizeBytes: 2048, pageCount: 3 }),
+      }),
+    );
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+
+    const link = (await screen.findByRole('link', {
+      name: 'Abrir PDF (3 página(s))',
+    })) as HTMLAnchorElement;
+    expect(link.getAttribute('href')).toBe('/exports/p-1.pdf');
+    expect(link.getAttribute('target')).toBe('_blank');
+  });
+
+  it('400/404/error responses show distinct messages, never leaving the control stuck loading', async () => {
+    const { unmount } = renderPage(exportFetch({ exportResponse: () => jsonResponse(400, {}) }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    expect(await screen.findByText('Esta apresentação não tem frames para exportar.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toHaveProperty('disabled', false);
+    unmount();
+
+    const { unmount: unmount2 } = renderPage(
+      exportFetch({ exportResponse: () => jsonResponse(404, {}) }),
+    );
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    expect(await screen.findByText('Publique a apresentação antes de exportar.')).toBeTruthy();
+    unmount2();
+
+    renderPage(exportFetch({ exportResponse: () => jsonResponse(500, {}) }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Exportar PDF' }));
+    // The generic error text also appears in the aria-live announcement region, so
+    // this asserts at least one — not exactly one — match (a11y region and the
+    // inline error legitimately share the same string, unlike the two other cases).
+    await waitFor(() =>
+      expect(screen.getAllByText('Algo deu errado. Tente de novo.').length).toBeGreaterThan(0),
+    );
+    expect(screen.getByRole('button', { name: 'Exportar PDF' })).toHaveProperty('disabled', false);
   });
 });

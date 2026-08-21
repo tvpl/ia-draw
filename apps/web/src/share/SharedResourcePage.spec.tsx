@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Initializes the shared i18next singleton `useTranslation()` reads from. Default
@@ -177,5 +177,148 @@ describe('SharedResourcePage (T6, SHR-14..16, SHR-19..21, SHR-27, SHR-28)', () =
     ).toBeTruthy();
     expect(container.textContent).not.toContain('private speaker note');
     expect(excalidrawRenders).toBe(0);
+  });
+});
+
+describe('SharedResourcePage — published presentation frame viewer (T22, PRZ-29..34)', () => {
+  const publishedScene = [
+    { id: 'frame-a', type: 'frame', version: 1, versionNonce: 1 },
+    { id: 'child-a', type: 'rectangle', frameId: 'frame-a', version: 1, versionNonce: 1 },
+    { id: 'frame-b', type: 'frame', version: 1, versionNonce: 1 },
+    { id: 'child-b', type: 'rectangle', frameId: 'frame-b', version: 1, versionNonce: 1 },
+  ];
+  const publishedFrames = [
+    {
+      id: 'f-1',
+      position: 0,
+      elementId: 'frame-a',
+      frameId: null,
+      notes: null,
+      navLinksJson: [{ targetFrameId: 'f-2' }],
+    },
+    { id: 'f-2', position: 1, elementId: 'frame-b', frameId: null, notes: null, navLinksJson: [] },
+  ];
+
+  function publishedFetch(callLog?: string[]): typeof fetch {
+    return vi.fn(async (url: string) => {
+      callLog?.push(url);
+      return jsonResponse(200, {
+        resourceType: 'presentation',
+        role: 'viewer',
+        presentation: { id: 'p-1', name: 'Roadmap' },
+        frames: publishedFrames,
+        scene: publishedScene,
+        published: true,
+      });
+    }) as unknown as typeof fetch;
+  }
+
+  it('renders the FrameViewer with frame 1 first, canvas cropped to that frame (PRZ-29, PRZ-31)', async () => {
+    renderPage(publishedFetch());
+
+    expect(await screen.findByRole('heading', { name: 'Apresentação: Roadmap' })).toBeTruthy();
+    expect(await screen.findByText('Frame 1 de 2')).toBeTruthy();
+    await waitFor(() =>
+      expect(capturedInitialElements?.map((el) => (el as { id: string }).id).sort()).toEqual([
+        'child-a',
+        'frame-a',
+      ]),
+    );
+  });
+
+  it('never renders notes, even though scene is present (PRZ-32)', async () => {
+    const { container } = renderPage(publishedFetch());
+    await screen.findByText('Frame 1 de 2');
+    expect(container.textContent).not.toContain('private speaker note');
+  });
+
+  it('a prototype nav link jumps to its target frame, cropping the canvas to the new frame (PRZ-33)', async () => {
+    renderPage(publishedFetch());
+    await screen.findByText('Frame 1 de 2');
+
+    fireEvent.click(screen.getByRole('button', { name: /Ir para:/ }));
+
+    expect(await screen.findByText('Frame 2 de 2')).toBeTruthy();
+    await waitFor(() =>
+      expect(capturedInitialElements?.map((el) => (el as { id: string }).id).sort()).toEqual([
+        'child-b',
+        'frame-b',
+      ]),
+    );
+  });
+
+  it('navigating frames never emits a second request beyond the initial resolve (PRZ-34)', async () => {
+    const calls: string[] = [];
+    renderPage(publishedFetch(calls));
+    await screen.findByText('Frame 1 de 2');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo' }));
+    await screen.findByText('Frame 2 de 2');
+    fireEvent.click(screen.getByRole('button', { name: 'Anterior' }));
+    await screen.findByText('Frame 1 de 2');
+
+    expect(calls).toEqual(['/share/tok-1']);
+  });
+
+  it('falls back to the whole scene when a frame elementId no longer matches anything (edge case, G1-equivalent)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        resourceType: 'presentation',
+        role: 'viewer',
+        presentation: { id: 'p-1', name: 'Roadmap' },
+        frames: [
+          {
+            id: 'f-1',
+            position: 0,
+            elementId: 'deleted-frame',
+            frameId: null,
+            notes: null,
+            navLinksJson: [],
+          },
+        ],
+        scene: publishedScene,
+        published: true,
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByText('Frame 1 de 1');
+
+    await waitFor(() =>
+      expect(capturedInitialElements?.map((el) => (el as { id: string }).id).sort()).toEqual([
+        'child-a',
+        'child-b',
+        'frame-a',
+        'frame-b',
+      ]),
+    );
+  });
+
+  it('an empty published scene renders an empty canvas, never the invalid-link message (edge case)', async () => {
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        resourceType: 'presentation',
+        role: 'viewer',
+        presentation: { id: 'p-1', name: 'Roadmap' },
+        frames: [
+          {
+            id: 'f-1',
+            position: 0,
+            elementId: null,
+            frameId: 'logical',
+            notes: null,
+            navLinksJson: [],
+          },
+        ],
+        scene: [],
+        published: true,
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByText('Frame 1 de 1');
+
+    await waitFor(() => expect(capturedInitialElements).toEqual([]));
+    expect(screen.queryByText('Este link é inválido, expirou ou foi revogado.')).toBeNull();
   });
 });
