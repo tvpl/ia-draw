@@ -24,7 +24,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
 | GET | `/diagrams/:id/comments` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
 | PATCH | `/diagrams/:id/comments/:commentId` | `apps/server/src/modules/comment/routes.ts` | `apps/web/src/comments/commentClient.ts` |
-| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/presentation/PresentationEditorPage.tsx`, `apps/web/src/presentation/PresentationListPage.tsx`, `apps/web/src/sync/syncClient.ts` |
+| GET | `/diagrams/:id/bootstrap` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/presentation/PresentationEditorPage.tsx`, `apps/web/src/presentation/PresentationListPage.tsx`, `apps/web/src/presentation/PresenterModePage.tsx`, `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/operations:batch` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | GET | `/diagrams/:id/operations` | `apps/server/src/modules/diagram-sync/routes.ts` | `apps/web/src/sync/syncClient.ts` |
 | POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
