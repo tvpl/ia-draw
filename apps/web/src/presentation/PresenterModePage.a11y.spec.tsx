@@ -30,16 +30,46 @@ function jsonResponse(status: number, body: unknown): Response {
   });
 }
 
-const presentation = { id: 'p-1', diagramId: 'd-1', name: 'Roadmap', publishedSnapshotId: 'snap-1' };
+const presentation = {
+  id: 'p-1',
+  diagramId: 'd-1',
+  name: 'Roadmap',
+  publishedSnapshotId: 'snap-1',
+};
 const threeFrames = [
-  { id: 'f-1', presentationId: 'p-1', elementId: null, frameId: 'a', position: 0, notes: null, navLinksJson: [] },
-  { id: 'f-2', presentationId: 'p-1', elementId: null, frameId: 'b', position: 1, notes: null, navLinksJson: [{ targetFrameId: 'f-1' }] },
-  { id: 'f-3', presentationId: 'p-1', elementId: null, frameId: 'c', position: 2, notes: null, navLinksJson: [] },
+  {
+    id: 'f-1',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'a',
+    position: 0,
+    notes: null,
+    navLinksJson: [],
+  },
+  {
+    id: 'f-2',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'b',
+    position: 1,
+    notes: null,
+    navLinksJson: [{ targetFrameId: 'f-1' }],
+  },
+  {
+    id: 'f-3',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'c',
+    position: 2,
+    notes: null,
+    navLinksJson: [],
+  },
 ];
 
 function baseFetch(): typeof fetch {
   return vi.fn(async (url: string) => {
-    if (url === '/presentations/p-1') return jsonResponse(200, { presentation, frames: threeFrames });
+    if (url === '/presentations/p-1')
+      return jsonResponse(200, { presentation, frames: threeFrames });
     if (url === '/diagrams/d-1/bootstrap') return jsonResponse(200, { scene: [] });
     throw new Error(`unexpected url ${url}`);
   }) as unknown as typeof fetch;

@@ -12,7 +12,9 @@ import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
 import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
+import { PresentationEditorPage } from './presentation/PresentationEditorPage.js';
 import { PresentationListPage } from './presentation/PresentationListPage.js';
+import { PresenterModePage } from './presentation/PresenterModePage.js';
 import { SharedResourcePage } from './share/SharedResourcePage.js';
 
 /**
@@ -62,9 +64,10 @@ function AuthLayout(): JSX.Element {
  * T8 (presentation-mode): `/w/:workspaceId/d/:diagramId/present` joins as a third
  * unnested sibling of the same tier, same rationale as `/inventory` — the
  * presentation editor is its own surface, not a mode inside `DiagramEditorPage`.
- * `/present/:presentationId` (the presentation editor itself) and
- * `/present/:presentationId/presenter` (tela cheia, no `AppShell` at all) join
- * once their pages exist (design.md).
+ * `/present/:presentationId` (the presentation editor itself, T9-T14) and
+ * `/present/:presentationId/presenter` (tela cheia, T19 — no `AppShell` at all,
+ * a `ProtectedRoute` still guards it since it reads the live diagram scene) join
+ * as two more unnested siblings, same tier again.
  *
  * T6 (workspace-webhooks): `w/:workspaceId/webhooks` (`WorkspaceWebhooksPage`)
  * joins as a fifth nested child, on the same level as `members` — webhooks are
@@ -120,6 +123,22 @@ export function AppRoutes(): JSX.Element {
           element={
             <ProtectedRoute>
               <PresentationListPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/present/:presentationId"
+          element={
+            <ProtectedRoute>
+              <PresentationEditorPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
+          element={
+            <ProtectedRoute>
+              <PresenterModePage />
             </ProtectedRoute>
           }
         />

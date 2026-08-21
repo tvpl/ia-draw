@@ -28,6 +28,10 @@ function renderPage(fetchImpl: typeof fetch) {
           path="/w/:workspaceId/d/:diagramId/present"
           element={<div data-testid="list-page" />}
         />
+        <Route
+          path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
+          element={<div data-testid="presenter-page" />}
+        />
       </Routes>
     </MemoryRouter>,
   );
@@ -561,5 +565,26 @@ describe('PresentationEditorPage — publish/republish (PRZ-22..25)', () => {
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(fetchImpl).not.toHaveBeenCalledWith('/presentations/p-1:publish', expect.anything());
     confirmSpy.mockRestore();
+  });
+});
+
+describe('PresentationEditorPage — "Apresentar" launcher (T20, PRZ-35, PRZ-41)', () => {
+  it('is disabled with an explanatory reason when the presentation has 0 frames', async () => {
+    renderPage(baseFetch({ frames: [] }));
+
+    const presentButton = await screen.findByRole('button', { name: 'Apresentar' });
+    expect(presentButton).toHaveProperty('disabled', true);
+    expect(screen.getByText('Adicione ao menos um frame para apresentar.')).toBeTruthy();
+  });
+
+  it('is enabled and navigates to the presenter route when the presentation has frames', async () => {
+    renderPage(baseFetch({ frames: threeFrames }));
+
+    const presentButton = await screen.findByRole('button', { name: 'Apresentar' });
+    expect(presentButton).toHaveProperty('disabled', false);
+    expect(screen.queryByText('Adicione ao menos um frame para apresentar.')).toBeNull();
+
+    fireEvent.click(presentButton);
+    expect(await screen.findByTestId('presenter-page')).toBeTruthy();
   });
 });

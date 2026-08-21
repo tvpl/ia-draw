@@ -488,6 +488,90 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
     expect(await screen.findByRole('heading', { name: 'Apresentações' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
   });
+
+  it('/w/:workspaceId/d/:diagramId/present/:presentationId renders PresentationEditorPage through the real route table (Fix 1, validation.md)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/presentations/pres-1') {
+          return Promise.resolve(
+            jsonResponse(200, {
+              presentation: {
+                id: 'pres-1',
+                diagramId: 'diag-1',
+                name: 'Roadmap',
+                publishedSnapshotId: null,
+              },
+              frames: [],
+            }),
+          );
+        }
+        if (url === '/diagrams/diag-1/bootstrap') {
+          return Promise.resolve(
+            jsonResponse(200, { scene: [], mutatePermissions: { allowed: true } }),
+          );
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/d/diag-1/present/pres-1');
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe('/w/ws-1/d/diag-1/present/pres-1'),
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Editor de apresentação: Roadmap' }),
+    ).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+  });
+
+  it('/w/:workspaceId/d/:diagramId/present/:presentationId/presenter renders PresenterModePage through the real route table (T20)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        if (url === '/me') return Promise.resolve(authenticatedMe());
+        if (url === '/presentations/pres-1') {
+          return Promise.resolve(
+            jsonResponse(200, {
+              presentation: {
+                id: 'pres-1',
+                diagramId: 'diag-1',
+                name: 'Roadmap',
+                publishedSnapshotId: null,
+              },
+              frames: [
+                {
+                  id: 'f-1',
+                  presentationId: 'pres-1',
+                  elementId: null,
+                  frameId: 'a',
+                  position: 0,
+                  notes: null,
+                  navLinksJson: [],
+                },
+              ],
+            }),
+          );
+        }
+        if (url === '/diagrams/diag-1/bootstrap') {
+          return Promise.resolve(jsonResponse(200, { scene: [] }));
+        }
+        throw new Error(`unexpected fetch: ${url}`);
+      }) as unknown as typeof fetch,
+    );
+
+    renderApp('/w/ws-1/d/diag-1/present/pres-1/presenter');
+
+    await waitFor(() =>
+      expect(screen.getByTestId('location').textContent).toBe(
+        '/w/ws-1/d/diag-1/present/pres-1/presenter',
+      ),
+    );
+    expect(await screen.findByText('Frame 1 de 1')).toBeTruthy();
+    expect(screen.queryByRole('heading', { name: 'Architecture Canvas' })).toBeNull();
+  });
 });
 
 describe('T10 (share-links): /share/:token is public — outside AuthProvider (SHR-12, SHR-13)', () => {

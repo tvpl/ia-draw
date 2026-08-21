@@ -3,7 +3,7 @@ import {
   type EditorSurfaceHandle,
   type SceneElement,
 } from '@arch-canvas/editor-adapter';
-import { type JSX, type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { type JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 import { FrameViewer } from './FrameViewer.js';
@@ -62,7 +62,9 @@ export function PresenterModePage({
       }
       setFrames(result.frames);
 
-      const bootstrapResponse = await fetchImpl(`/diagrams/${result.presentation.diagramId}/bootstrap`);
+      const bootstrapResponse = await fetchImpl(
+        `/diagrams/${result.presentation.diagramId}/bootstrap`,
+      );
       if (cancelled || !bootstrapResponse.ok) return;
       const body = (await bootstrapResponse.json()) as BootstrapResponseBody;
       if (cancelled) return;
@@ -84,31 +86,39 @@ export function PresenterModePage({
     editorSurfaceRef.current?.scrollToFrame(currentFrame.elementId);
   }, [currentFrame]);
 
-  function exitToEditor(): void {
-    navigate(`/w/${workspaceId}/d/${diagramId}/present/${presentationId}`);
-  }
+  const exitPath = `/w/${workspaceId}/d/${diagramId}/present/${presentationId}`;
 
-  function handleKeyDown(event: KeyboardEvent): void {
+  // PRZ-38/39: a document-level listener (not a JSX handler on one element) so the
+  // shortcuts work no matter where focus currently sits in this fullscreen page —
+  // the same reasoning any "works anywhere in the view" keyboard shortcut needs.
+  useEffect(() => {
     if (!frames) return;
-    switch (event.key) {
-      case 'ArrowRight':
-      case 'PageDown':
-      case ' ':
-        event.preventDefault();
-        setCurrentIndex((index) => Math.min(index + 1, frames.length - 1));
-        return;
-      case 'ArrowLeft':
-      case 'PageUp':
-        event.preventDefault();
-        setCurrentIndex((index) => Math.max(index - 1, 0));
-        return;
-      case 'Escape':
-        event.preventDefault();
-        exitToEditor();
-        return;
-      default:
+    const frameCount = frames.length;
+
+    function onKeyDown(event: KeyboardEvent): void {
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'PageDown':
+        case ' ':
+          event.preventDefault();
+          setCurrentIndex((index) => Math.min(index + 1, frameCount - 1));
+          return;
+        case 'ArrowLeft':
+        case 'PageUp':
+          event.preventDefault();
+          setCurrentIndex((index) => Math.max(index - 1, 0));
+          return;
+        case 'Escape':
+          event.preventDefault();
+          navigate(exitPath);
+          return;
+        default:
+      }
     }
-  }
+
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [frames, navigate, exitPath]);
 
   if (!workspaceId || !diagramId || !presentationId) return null;
 
@@ -129,11 +139,12 @@ export function PresenterModePage({
   }
 
   return (
-    // biome-ignore lint/a11y/noNoninteractiveElementInteractions: fullscreen presenter
-    // shell — keyboard navigation must work anywhere focus lands inside it, not on a
-    // single interactive descendant; PRZ-38/39 describe this exact behavior.
-    <div onKeyDown={handleKeyDown} data-testid="presenter-shell">
-      <button type="button" onClick={exitToEditor} aria-label={t('presentation.presenter.exitLabel')}>
+    <div data-testid="presenter-shell">
+      <button
+        type="button"
+        onClick={() => navigate(exitPath)}
+        aria-label={t('presentation.presenter.exitLabel')}
+      >
         {t('presentation.presenter.exit')}
       </button>
       <FrameViewer

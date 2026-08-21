@@ -1,7 +1,7 @@
 import type { SceneElement } from '@arch-canvas/editor-adapter';
 import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { frameLabel } from './frameLabel.js';
 import { PresentationSharePanel } from './PresentationSharePanel.js';
 import {
@@ -55,6 +55,7 @@ export function PresentationEditorPage({
     presentationId: string;
   }>();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const fetchImpl = useMemo(() => fetchImplProp ?? fetch.bind(globalThis), [fetchImplProp]);
   const client = useMemo(() => createPresentationClient(fetchImplProp), [fetchImplProp]);
 
@@ -286,6 +287,21 @@ export function PresentationEditorPage({
       <div aria-live="polite" data-testid="presentation-editor-announcement">
         {announcement}
       </div>
+
+      {frames && (
+        <div>
+          <button
+            type="button"
+            disabled={frames.length === 0}
+            onClick={() =>
+              navigate(`/w/${workspaceId}/d/${diagramId}/present/${presentationId}/presenter`)
+            }
+          >
+            {t('presentation.editor.presentButton')}
+          </button>
+          {frames.length === 0 && <p>{t('presentation.editor.presentDisabledNoFrames')}</p>}
+        </div>
+      )}
 
       <h3>{t('presentation.editor.framesTitle')}</h3>
       {deleteError && <p>{deleteError}</p>}

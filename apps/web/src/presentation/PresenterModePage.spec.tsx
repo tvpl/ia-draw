@@ -16,7 +16,10 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
     ...actual,
     Excalidraw: (props: {
       viewModeEnabled?: boolean;
-      excalidrawAPI?: (api: { updateScene: () => void; scrollToContent: typeof scrollToContentSpy }) => void;
+      excalidrawAPI?: (api: {
+        updateScene: () => void;
+        scrollToContent: typeof scrollToContentSpy;
+      }) => void;
     }) => {
       capturedViewModeEnabled = props.viewModeEnabled;
       props.excalidrawAPI?.({ updateScene: vi.fn(), scrollToContent: scrollToContentSpy });
@@ -49,13 +52,42 @@ function renderPage(fetchImpl: typeof fetch) {
   );
 }
 
-const presentation = { id: 'p-1', diagramId: 'd-1', name: 'Roadmap', publishedSnapshotId: 'snap-1' };
+const presentation = {
+  id: 'p-1',
+  diagramId: 'd-1',
+  name: 'Roadmap',
+  publishedSnapshotId: 'snap-1',
+};
 const sceneElement = { id: 'frame-a', type: 'frame', version: 1, versionNonce: 1 };
 
 const threeFrames = [
-  { id: 'f-1', presentationId: 'p-1', elementId: 'frame-a', frameId: null, position: 0, notes: 'n1', navLinksJson: [] },
-  { id: 'f-2', presentationId: 'p-1', elementId: null, frameId: 'b', position: 1, notes: null, navLinksJson: [{ targetFrameId: 'f-1' }] },
-  { id: 'f-3', presentationId: 'p-1', elementId: null, frameId: 'c', position: 2, notes: null, navLinksJson: [] },
+  {
+    id: 'f-1',
+    presentationId: 'p-1',
+    elementId: 'frame-a',
+    frameId: null,
+    position: 0,
+    notes: 'n1',
+    navLinksJson: [],
+  },
+  {
+    id: 'f-2',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'b',
+    position: 1,
+    notes: null,
+    navLinksJson: [{ targetFrameId: 'f-1' }],
+  },
+  {
+    id: 'f-3',
+    presentationId: 'p-1',
+    elementId: null,
+    frameId: 'c',
+    position: 2,
+    notes: null,
+    navLinksJson: [],
+  },
 ];
 
 function baseFetch(writeSpy?: (url: string, method: string | undefined) => void) {
