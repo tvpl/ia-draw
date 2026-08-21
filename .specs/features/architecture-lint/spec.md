@@ -143,20 +143,20 @@ Tab/Shift+Tab/Enter, com o locale trocado para `en` no meio do caminho.
 
 | Requirement ID | Story | Phase | Status |
 | --------------- | ----- | ----- | ------ |
-| ALNT-01 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-02 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-03 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-04 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-05 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-06 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-07 | P1: Ver os avisos | Tasks | Implementing |
-| ALNT-08 | P1: Saltar para o elemento | Tasks | Implementing |
-| ALNT-09 | P1: Saltar para o elemento | Tasks | Implementing |
-| ALNT-10 | P1: Saltar para o elemento | Tasks | Implementing |
-| ALNT-11 | P1: Saltar para o elemento | Tasks | Implementing |
-| ALNT-12 | P1: Saltar para o elemento | Tasks | Implementing |
-| ALNT-13 | P2: Teclado e idioma | Tasks | Implementing |
-| ALNT-14 | P2: Teclado e idioma | Tasks | Implementing |
+| ALNT-01 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-02 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-03 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-04 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-05 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-06 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-07 | P1: Ver os avisos | Tasks | ✅ Verified |
+| ALNT-08 | P1: Saltar para o elemento | Tasks | ✅ Verified |
+| ALNT-09 | P1: Saltar para o elemento | Tasks | ✅ Verified |
+| ALNT-10 | P1: Saltar para o elemento | Tasks | ✅ Verified |
+| ALNT-11 | P1: Saltar para o elemento | Tasks | ✅ Verified |
+| ALNT-12 | P1: Saltar para o elemento | Tasks | ✅ Verified |
+| ALNT-13 | P2: Teclado e idioma | Tasks | ✅ Verified |
+| ALNT-14 | P2: Teclado e idioma | Tasks | ✅ Verified |
 
 **ID format:** `ALNT-NN` (Architecture LiNT panel — fatia de frontend distinta de `LNT-NN`, que já
 nomeia os requisitos de backend em `architecture-canvas/spec.md`, mesma convenção que `CLIB` vs
