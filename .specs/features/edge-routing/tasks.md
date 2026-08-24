@@ -79,11 +79,11 @@ separada, porque é upgrade de WebSocket e não HTTP simples.
 
 **Done when**:
 
-- [ ] A lista é exportada pelo índice do pacote e consumível por `apps/web` e por `repo-tools`
-- [ ] Nenhum item duplicado, todo item começa com `/`, nenhum contém dois-pontos
-- [ ] `/users` cobre `/users:lookup` conforme a decisão registrada em `spec.md`
-- [ ] Changeset criado para `@arch-canvas/shared-contracts`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] A lista é exportada pelo índice do pacote e consumível por `apps/web` e por `repo-tools`
+- [x] Nenhum item duplicado, todo item começa com `/`, nenhum contém dois-pontos
+- [x] `/users` cobre `/users:lookup` conforme a decisão registrada em `spec.md`
+- [x] Changeset criado para `@arch-canvas/shared-contracts`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `shared-contracts` 38/38 com cobertura 100% de linhas (o piso CIQ-04 nao foi tocado; a linha nova no barrel foi coberta de verdade, provando o proprio criterio de export deste `Done when`)
 
 **Tests**: unit
 **Gate**: full

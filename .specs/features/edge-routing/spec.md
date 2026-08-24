@@ -122,7 +122,7 @@ roteá-lo nas duas bordas reprove o gate.
 | EDGE-06 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
 | EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
 | EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
-| EDGE-09 | P2: A divergência não volta | Design | Pending |
+| EDGE-09 | P2: A divergência não volta | Implementing | Implementing (T1) |
 | EDGE-10 | P2: A divergência não volta | Design | Pending |
 | EDGE-11 | P2: A divergência não volta | Design | Pending |
 | EDGE-12 | P2: A divergência não volta | Design | Pending |
