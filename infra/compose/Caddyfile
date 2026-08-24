@@ -1,9 +1,25 @@
+# EDGE-01..05: one `handle` per prefix that belongs to `apps/server`, mirroring
+# `packages/shared-contracts/src/routePrefixes.ts`. Caddy cannot import that list, so
+# `tools/repo-tools`' edge-parity test is what keeps this file and the dev proxy in step —
+# a prefix registered on the server and missing here fails the gate by name.
+#
+# There is deliberately no `/api` rule. It routed a namespace no route has ever used, so
+# every API call fell through to the SPA below and `POST /auth/login` came back as a 405
+# from nginx: the stack booted healthy and could not be logged into.
 :80 {
-	handle /api/* {
+	handle /admin* {
 		reverse_proxy server:3000
 	}
 
-	handle /ws* {
+	handle /ai* {
+		reverse_proxy server:3000
+	}
+
+	handle /auth* {
+		reverse_proxy server:3000
+	}
+
+	handle /diagrams* {
 		reverse_proxy server:3000
 	}
 
@@ -11,7 +27,49 @@
 	# SPA fallback (try_files ... /index.html) answers 200 with the frontend
 	# HTML instead of the server's real liveness/readiness JSON — a false
 	# positive for anyone pointing an external health check at this path.
-	handle /health/* {
+	handle /health* {
+		reverse_proxy server:3000
+	}
+
+	handle /libraries* {
+		reverse_proxy server:3000
+	}
+
+	handle /mcp-tokens* {
+		reverse_proxy server:3000
+	}
+
+	handle /me* {
+		reverse_proxy server:3000
+	}
+
+	handle /metrics* {
+		reverse_proxy server:3000
+	}
+
+	handle /presentations* {
+		reverse_proxy server:3000
+	}
+
+	handle /projects* {
+		reverse_proxy server:3000
+	}
+
+	handle /share* {
+		reverse_proxy server:3000
+	}
+
+	# Covers /users:lookup — matched by path prefix, never by the colon.
+	handle /users* {
+		reverse_proxy server:3000
+	}
+
+	handle /workspaces* {
+		reverse_proxy server:3000
+	}
+
+	# WebSocket upgrade (LIVE-06). Caddy proxies the upgrade with no extra config.
+	handle /ws* {
 		reverse_proxy server:3000
 	}
 
