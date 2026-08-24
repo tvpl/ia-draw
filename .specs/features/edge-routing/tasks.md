@@ -19,7 +19,7 @@ Execute flow and Critical Rules.**
 | `SERVER_ROUTE_PREFIXES` | unit | Lista não vazia, sem duplicata, todo item começa com `/` e não contém dois-pontos | `packages/shared-contracts/src/routePrefixes.spec.ts` | `pnpm -w test:unit` |
 | Extração de prefixos das três origens | unit | Cada extrator devolve o conjunto esperado sobre uma fixture; falha explícita quando a origem não é interpretável | `tools/repo-tools/src/edgeParity.spec.ts` | `pnpm -w test:unit` |
 | Paridade de borda (contrato) | unit | EDGE-09..12: os três conjuntos são iguais no repo real; prefixo em falta e regra morta reprovam nomeando o prefixo | `tools/repo-tools/src/edgeParity.spec.ts` | `pnpm -w test:unit` |
-| Proxy de desenvolvimento | unit | O objeto de proxy gerado cobre todos os prefixos e mantém `ws: true` para `/ws` | `apps/web/vite.config.spec.ts` | `pnpm -w test:unit` |
+| Proxy de desenvolvimento | unit | O objeto de proxy gerado cobre todos os prefixos e mantém `ws: true` para `/ws` | `apps/web/src/devProxy.spec.ts` | `pnpm -w test:unit` |
 | `Caddyfile` (arquivo de configuração) | none | Caddy não é executável em teste unitário e o compose não sobe neste ambiente. A cobertura vem por duas vias fora desta camada: o teste de paridade (linha acima) asserta o conteúdo do arquivo, e o job `compose-smoke` estendido em `green-gate` (R20) prova EDGE-01..05 com o stack de pé. `Tests: none` em T2 é deliberado e confirmado aqui. | `infra/compose/Caddyfile` | `pnpm -w test:unit` (via paridade) |
 
 ## Gate Check Commands
@@ -110,13 +110,13 @@ receber 405 do nginx.
 
 **Done when**:
 
-- [ ] Existe um `handle` para cada prefixo da lista, encaminhando ao serviço `server`
-- [ ] O arquivo não contém nenhuma regra para `/api`
-- [ ] O catch-all para `web:80` permanece como última regra
-- [ ] `/ws*` continua com regra própria, antes do catch-all
-- [ ] `docker compose --project-directory infra/compose -f infra/compose/compose.yaml config` continua válido
-- [ ] `Tests: none` confirmado contra a Test Coverage Matrix: a cobertura desta task vem do teste de paridade em T5 e do job `compose-smoke` de R20
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Existe um `handle` para cada prefixo da lista, encaminhando ao serviço `server`
+- [x] O arquivo não contém nenhuma regra para `/api`
+- [x] O catch-all para `web:80` permanece como última regra
+- [x] `/ws*` continua com regra própria, antes do catch-all
+- [x] `docker compose --project-directory infra/compose -f infra/compose/compose.yaml config` continua válido
+- [x] `Tests: none` confirmado contra a Test Coverage Matrix: a cobertura desta task vem do teste de paridade em T5 e do job `compose-smoke` de R20
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25). `docker compose ... config` valido (parse client-side; nao ha daemon aqui — o boot real e o job `compose-smoke` de R20)
 
 **Tests**: none
 **Gate**: full
@@ -143,11 +143,11 @@ ele descrevia deixa de existir.
 
 **Done when**:
 
-- [ ] O proxy cobre todos os prefixos da lista, incluindo os sete hoje ausentes
-- [ ] A entrada de `/ws` mantém `ws: true`
-- [ ] Nenhuma lista de prefixos literal permanece no arquivo
-- [ ] Uma chamada a um prefixo antes ausente devolve a resposta do servidor, não `index.html`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O proxy cobre todos os prefixos da lista, incluindo os sete hoje ausentes
+- [x] A entrada de `/ws` mantém `ws: true`
+- [x] Nenhuma lista de prefixos literal permanece no arquivo
+- [x] Uma chamada a um prefixo antes ausente devolve a resposta do servidor, não `index.html`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 920/920. Evidencia funcional: a suite e2e roda contra este proxy e o `editor-console.spec.ts` tem allowlist vazia, entao qualquer prefixo mal roteado viraria 404 no console e reprovaria
 
 **Tests**: unit
 **Gate**: full

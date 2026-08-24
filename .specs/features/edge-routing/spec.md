@@ -114,14 +114,14 @@ roteá-lo nas duas bordas reprove o gate.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EDGE-01 | P1: A API é alcançável pelo proxy público | Design | Pending |
-| EDGE-02 | P1: A API é alcançável pelo proxy público | Design | Pending |
-| EDGE-03 | P1: A API é alcançável pelo proxy público | Design | Pending |
-| EDGE-04 | P1: A API é alcançável pelo proxy público | Design | Pending |
-| EDGE-05 | P1: A API é alcançável pelo proxy público | Design | Pending |
-| EDGE-06 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
-| EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
-| EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Design | Pending |
+| EDGE-01 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
+| EDGE-02 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
+| EDGE-03 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
+| EDGE-04 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
+| EDGE-05 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
+| EDGE-06 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
+| EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
+| EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
 | EDGE-09 | P2: A divergência não volta | Implementing | Implementing (T1) |
 | EDGE-10 | P2: A divergência não volta | Design | Pending |
 | EDGE-11 | P2: A divergência não volta | Design | Pending |
