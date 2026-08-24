@@ -125,7 +125,7 @@ roteá-lo nas duas bordas reprove o gate.
 | EDGE-09 | P2: A divergência não volta | Implementing | Implementing (T1) |
 | EDGE-10 | P2: A divergência não volta | Design | Pending |
 | EDGE-11 | P2: A divergência não volta | Design | Pending |
-| EDGE-12 | P2: A divergência não volta | Design | Pending |
+| EDGE-12 | P2: A divergência não volta | Implementing | Implementing (T4) |
 
 **Coverage:** 12 total, 12 mapeados para tasks, 0 sem mapeamento.
 

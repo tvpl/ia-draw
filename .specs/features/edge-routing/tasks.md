@@ -174,10 +174,10 @@ devolve conjunto vazio silenciosamente.
 
 **Done when**:
 
-- [ ] Os três extratores devolvem o conjunto esperado sobre fixtures controladas
-- [ ] Um `Caddyfile` ilegível ou não interpretável produz erro, nunca conjunto vazio
-- [ ] O extrator de rotas reusa `serverRoutes.ts` sem duplicar a varredura
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Os três extratores devolvem o conjunto esperado sobre fixtures controladas
+- [x] Um `Caddyfile` ilegível ou não interpretável produz erro, nunca conjunto vazio
+- [x] O extrator de rotas reusa `serverRoutes.ts` sem duplicar a varredura
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `repo-tools` 64/65 — a unica falha e a pre-existente `webConsumers.spec.ts` que `green-gate` T1 fecha
 
 **Tests**: unit
 **Gate**: full

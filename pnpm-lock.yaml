@@ -563,6 +563,9 @@ importers:
 
   tools/repo-tools:
     dependencies:
+      '@arch-canvas/shared-contracts':
+        specifier: workspace:*
+        version: link:../../packages/shared-contracts
       yaml:
         specifier: ^2.9.0
         version: 2.9.0
