@@ -175,11 +175,11 @@ recebe seu próprio boundary — nunca um único global.
 
 **Done when**:
 
-- [ ] Toda rota da tabela renderiza dentro de um `RouteErrorBoundary`
-- [ ] Um filho que lança deixa o shell renderizado e visível
-- [ ] Duas rotas que estouram em sequência mostram a tela de recuperação cada uma, sem estado residual
-- [ ] `/share/:token` continua fora de `AuthProvider` (AD-012 preservada)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Toda rota da tabela renderiza dentro de um `RouteErrorBoundary`
+- [x] Um filho que lança deixa o shell renderizado e visível
+- [x] Duas rotas que estouram em sequência mostram a tela de recuperação cada uma, sem estado residual
+- [x] `/share/:token` continua fora de `AuthProvider` (AD-012 preservada)
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 915/915. Mutacao de discriminacao: remover `guarded` da rota index reprova o teste de shell sobrevivente, confirmado e revertido.
 
 **Tests**: unit
 **Gate**: full

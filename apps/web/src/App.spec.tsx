@@ -574,6 +574,65 @@ describe('T11: nested workspace/project/diagram routes render inside AppShell pe
   });
 });
 
+describe('ESTB-09: every route renders inside its own error boundary', () => {
+  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
+
+  beforeEach(() => {
+    consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    consoleErrorSpy.mockRestore();
+  });
+
+  it('a throwing nested page shows the recovery screen and keeps the AppShell chrome', async () => {
+    // WorkspaceListPage renders from `GET /workspaces`; a malformed body makes it throw
+    // during render, which is the shape of failure ESTB-09 has to survive.
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        if (url.includes('/me')) return jsonResponse(200, { user: { id: 'u-1' } });
+        if (url.includes('/workspaces')) return jsonResponse(200, { workspaces: 'not-an-array' });
+        return jsonResponse(404, {});
+      }),
+    );
+
+    renderApp('/');
+
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined();
+    });
+    // The shell survived: its heading and the sign-out control are still on screen.
+    expect(screen.getByRole('heading', { name: 'Architecture Canvas' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Sair' })).toBeDefined();
+  });
+
+  it('two routes that throw in sequence each show the recovery screen, with no residual state', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (input: RequestInfo | URL) => {
+        const url = typeof input === 'string' ? input : input.toString();
+        if (url.includes('/me')) return jsonResponse(200, { user: { id: 'u-1' } });
+        if (url.includes('/workspaces')) return jsonResponse(200, { workspaces: 'not-an-array' });
+        return jsonResponse(404, {});
+      }),
+    );
+
+    const first = renderApp('/');
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined();
+    });
+    first.unmount();
+
+    renderApp('/');
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeDefined();
+    });
+    expect(screen.getAllByRole('alert')).toHaveLength(1);
+  });
+});
+
 describe('T10 (share-links): /share/:token is public — outside AuthProvider (SHR-12, SHR-13)', () => {
   it('renders the public share view for a visitor with no session, without redirecting to /login', async () => {
     vi.stubGlobal(

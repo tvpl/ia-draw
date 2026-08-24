@@ -1,6 +1,7 @@
 import type { JSX } from 'react';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './app-shell/AppShell.js';
+import { RouteErrorBoundary } from './app-shell/RouteErrorBoundary.js';
 import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
@@ -80,67 +81,80 @@ function AuthLayout(): JSX.Element {
  * layout route's SIBLING — the first page in this app that works with no session
  * (AD-012, SHR-12/13).
  */
+/**
+ * ESTB-09: every route element renders inside its own boundary, never a single global
+ * one. The boundaries nest — a throw in a nested child is caught by that child's
+ * boundary, so `AppShell`'s own boundary never fires and the header and navigation stay
+ * on screen for the person to navigate out of the broken screen.
+ */
+function guarded(element: JSX.Element): JSX.Element {
+  return <RouteErrorBoundary>{element}</RouteErrorBoundary>;
+}
+
 export function AppRoutes(): JSX.Element {
   return (
     <Routes>
-      <Route path="/share/:token" element={<SharedResourcePage />} />
+      <Route path="/share/:token" element={guarded(<SharedResourcePage />)} />
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={guarded(<LoginPage />)} />
         <Route
           path="/"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <AppShell />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         >
-          <Route index element={<WorkspaceListPage />} />
-          <Route path="w/:workspaceId" element={<ProjectListPage />} />
-          <Route path="w/:workspaceId/members" element={<WorkspaceMembersPage />} />
-          <Route path="w/:workspaceId/webhooks" element={<WorkspaceWebhooksPage />} />
-          <Route path="w/:workspaceId/p/:projectId" element={<DiagramListPage />} />
-          <Route path="admin/ai-providers" element={<AiProviderAdminPage />} />
-          <Route path="w/:workspaceId/admin/ai-providers" element={<AiProviderAdminPage />} />
+          <Route index element={guarded(<WorkspaceListPage />)} />
+          <Route path="w/:workspaceId" element={guarded(<ProjectListPage />)} />
+          <Route path="w/:workspaceId/members" element={guarded(<WorkspaceMembersPage />)} />
+          <Route path="w/:workspaceId/webhooks" element={guarded(<WorkspaceWebhooksPage />)} />
+          <Route path="w/:workspaceId/p/:projectId" element={guarded(<DiagramListPage />)} />
+          <Route path="admin/ai-providers" element={guarded(<AiProviderAdminPage />)} />
+          <Route
+            path="w/:workspaceId/admin/ai-providers"
+            element={guarded(<AiProviderAdminPage />)}
+          />
         </Route>
         <Route
           path="/w/:workspaceId/d/:diagramId"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <DiagramEditorPage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/inventory"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <InventoryPage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <PresentationListPage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present/:presentationId"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <PresentationEditorPage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <PresenterModePage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
       </Route>
     </Routes>

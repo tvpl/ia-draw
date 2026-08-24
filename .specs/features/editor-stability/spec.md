@@ -124,7 +124,7 @@ emitir erro de console, para que esta classe de falha nunca mais chegue a `main`
 | ESTB-06 | P1: O editor abre | Implementing | Implementing (T1) |
 | ESTB-07 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
 | ESTB-08 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
-| ESTB-09 | P1: Uma falha não vira tela branca | Tasks | Pending |
+| ESTB-09 | P1: Uma falha não vira tela branca | Implementing | Implementing (T4) |
 | ESTB-10 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
 | ESTB-11 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
 | ESTB-12 | P2: O defeito não volta silenciosamente | Tasks | Pending |
