@@ -195,6 +195,7 @@ montar e falha se qualquer `console.error` ou `pageerror` tiver sido emitido. A 
 mensagens toleradas nasce vazia e qualquer entrada futura exige justificativa escrita no próprio
 arquivo.
 **Where**: `apps/web/e2e/editor-console.spec.ts`
+**Also touched (SPEC_DEVIATION)**: `apps/web/e2e/support/runTestServer.ts` — o harness registrava so 3 modulos, entao o editor recebia 404 em comments/lint/specs e falha de upgrade em /ws. Cada um desses e ruido que so existe no harness, e tolera-lo exigiria justamente a entrada de allowlist que ESTB-13 proibe. O harness passa a chamar `registerAllModules`, o mesmo conjunto que o servidor real registra.
 **Depends on**: T1, T2, T4
 **Reuses**: `e2e/support/runTestServer.ts` e `fixedSeed.ts`, o harness que já boota um servidor real
 sobre PGlite (AD-007).
@@ -207,11 +208,11 @@ sobre PGlite (AD-007).
 
 **Done when**:
 
-- [ ] O teste abre a rota do editor autenticado e o seletor do canvas do Excalidraw resolve
-- [ ] Qualquer `console.error` ou `pageerror` durante o carregamento reprova o teste
-- [ ] A allowlist declarada no arquivo está vazia
-- [ ] Revertendo T1 localmente, o teste reprova — confirmado antes do commit
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/web test:e2e`
+- [x] O teste abre a rota do editor autenticado e o seletor do canvas do Excalidraw resolve
+- [x] Qualquer `console.error` ou `pageerror` durante o carregamento reprova o teste
+- [x] A allowlist declarada no arquivo está vazia
+- [x] Revertendo T1 localmente (guarda removida, `dist` reconstruido), o teste reprova com `Maximum update depth exceeded` e o canvas nunca fica visivel — confirmado e revertido antes do commit
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), suite e2e 2/2 verde
 
 **Tests**: e2e
 **Gate**: build

@@ -10,11 +10,7 @@
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
 import { buildServer, loadConfig } from '@arch-canvas/server/dist/core/index.js';
-import {
-  createLocalAccount,
-  registerAuthModule,
-} from '@arch-canvas/server/dist/modules/auth/index.js';
-import { registerWorkspaceModule } from '@arch-canvas/server/dist/modules/workspace/index.js';
+import { createLocalAccount } from '@arch-canvas/server/dist/modules/auth/index.js';
 import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
@@ -29,14 +25,18 @@ import {
   TEST_SERVER_PORT,
 } from './fixedSeed.js';
 
-// Only diagram-sync transitively imports @excalidraw/excalidraw (via
-// diagram-domain -> editor-adapter, for server-side LWW reconciliation) — installed
-// before that dynamic import runs, never before it, since the shim itself doesn't need
-// to exist for auth/workspace/database/pglite above.
+// diagram-sync transitively imports @excalidraw/excalidraw (via diagram-domain ->
+// editor-adapter, for server-side LWW reconciliation) — the shim is installed before
+// that import runs, never before it, since the shim itself doesn't need to exist for
+// database/pglite above.
+//
+// ESTB-12: this registers the SAME module set the real server registers, rather than a
+// hand-picked subset. The editor route calls comments, lint and docgen on mount and opens
+// a presence socket; a subset makes those 404, and a 404 the real server never returns is
+// exactly the kind of harness-only noise that would force an allowlist entry into
+// editor-console.spec.ts.
 installDomShim();
-const { registerDiagramSyncModule } = await import(
-  '@arch-canvas/server/dist/modules/diagram-sync/index.js'
-);
+const { registerAllModules } = await import('@arch-canvas/server/dist/core/index.js');
 
 async function main(): Promise<void> {
   const client = new PGlite();
@@ -77,9 +77,9 @@ async function main(): Promise<void> {
 
   const config = loadConfig({ NODE_ENV: 'test', PORT: String(TEST_SERVER_PORT) });
   const app = buildServer(config);
-  await registerAuthModule(app, { db, config });
-  registerWorkspaceModule(app, { db });
-  registerDiagramSyncModule(app, { db });
+  // No `jobs` dependency: pg-boss needs a real Postgres connection string and nothing on
+  // the editor route depends on a job having run. Everything else is wired as in production.
+  await registerAllModules(app, db, config);
   await app.ready();
   await app.listen({ port: TEST_SERVER_PORT, host: '127.0.0.1' });
 
