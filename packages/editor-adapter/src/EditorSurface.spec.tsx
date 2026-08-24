@@ -21,6 +21,8 @@ let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefin
 let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 /** What `<Excalidraw/>` actually received for `viewModeEnabled` on its last render (SHR-18). */
 let capturedViewModeEnabled: boolean | undefined;
+/** What `<Excalidraw/>` actually received for `initialData` on its last render (ESTB-04). */
+let capturedInitialData: unknown;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 let addFilesSpy: ReturnType<typeof vi.fn>;
 let getAppStateMock: ReturnType<typeof vi.fn>;
@@ -39,6 +41,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
   return {
     ...actual,
     Excalidraw: (props: {
+      initialData?: unknown;
       onChange?: (elements: unknown, appState: unknown) => void;
       onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
       viewModeEnabled?: boolean;
@@ -50,6 +53,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
       }) => void;
     }) => {
       capturedOnChange = props.onChange;
+      capturedInitialData = props.initialData;
       capturedOnPointerUpdate = props.onPointerUpdate;
       capturedViewModeEnabled = props.viewModeEnabled;
       // Mirrors what the real Excalidraw does on mount: hands the caller its imperative API.
@@ -82,6 +86,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     capturedOnChange = undefined;
     capturedOnPointerUpdate = undefined;
     capturedViewModeEnabled = undefined;
+    capturedInitialData = undefined;
     updateSceneSpy = vi.fn();
     addFilesSpy = vi.fn();
     getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
@@ -218,6 +223,55 @@ describe('EditorSurface (T94, DOCK-03)', () => {
         capturedOnChange?.([], { selectedElementIds: { 'el-1': true } });
       }),
     ).not.toThrow();
+  });
+
+  it('keeps the imperative handle referentially stable across renders of the same mount (ESTB-03)', () => {
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ viewModeEnabled: false }, ref);
+    const handleAfterMount = ref.current;
+
+    act(() => {
+      root.render(<EditorSurface ref={ref} viewModeEnabled={true} />);
+    });
+
+    expect(handleAfterMount).not.toBeNull();
+    expect(ref.current).toBe(handleAfterMount);
+  });
+
+  it('keeps initialData referentially stable across renders of the same mount (ESTB-04)', () => {
+    const element: SceneElement = { ...base, version: 1, versionNonce: 1 };
+    mount({ initialElements: [element], viewModeEnabled: false });
+    const initialDataAfterMount = capturedInitialData;
+
+    act(() => {
+      root.render(<EditorSurface initialElements={[element]} viewModeEnabled={true} />);
+    });
+
+    expect(initialDataAfterMount).toBeDefined();
+    expect(capturedInitialData).toBe(initialDataAfterMount);
+  });
+
+  it('the stable handle still operates on the scene as of the latest change, not the first render (ESTB-03)', () => {
+    const element: SceneElement = { ...base, id: 'el-stable', version: 1, versionNonce: 1 };
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ initialElements: [element] }, ref);
+
+    act(() => {
+      root.render(<EditorSurface ref={ref} initialElements={[element]} viewModeEnabled={true} />);
+    });
+
+    const editedAfterRerender: SceneElement = { ...element, version: 5, versionNonce: 5 };
+    act(() => {
+      capturedOnChange?.([editedAfterRerender], { selectedElementIds: {} });
+    });
+
+    act(() => {
+      ref.current?.applyRemoteScene([{ ...element, version: 2, versionNonce: 1 }]);
+    });
+
+    const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+    expect(sceneData.elements).toHaveLength(1);
+    expect(sceneData.elements[0]?.version).toBe(5);
   });
 
   it('regression: onDeltas still fires with the correct upsert delta when an element changes', () => {

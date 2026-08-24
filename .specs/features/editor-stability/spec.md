@@ -118,8 +118,8 @@ emitir erro de console, para que esta classe de falha nunca mais chegue a `main`
 | -------------- | ----- | ----- | ------ |
 | ESTB-01 | P1: O editor abre | Implementing | Implementing (T1) |
 | ESTB-02 | P1: O editor abre | Implementing | Implementing (T1) |
-| ESTB-03 | P1: O editor abre | Tasks | Pending |
-| ESTB-04 | P1: O editor abre | Tasks | Pending |
+| ESTB-03 | P1: O editor abre | Implementing | Implementing (T2) |
+| ESTB-04 | P1: O editor abre | Implementing | Implementing (T2) |
 | ESTB-05 | P1: O editor abre | Tasks | Pending |
 | ESTB-06 | P1: O editor abre | Implementing | Implementing (T1) |
 | ESTB-07 | P1: Uma falha não vira tela branca | Tasks | Pending |

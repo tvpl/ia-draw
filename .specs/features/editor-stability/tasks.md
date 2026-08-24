@@ -114,11 +114,11 @@ mount. Nenhum método do handle muda de assinatura — AD-010 permanece intacta.
 
 **Done when**:
 
-- [ ] O objeto exposto pelo `ref` mantém identidade referencial entre dois renders do mesmo mount
-- [ ] `initialData` mantém identidade referencial entre dois renders do mesmo mount
-- [ ] Todo método do handle continua operando sobre a cena atual, não sobre a do primeiro render
-- [ ] Nenhum teste existente de `EditorSurface.spec.tsx` muda de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O objeto exposto pelo `ref` mantém identidade referencial entre dois renders do mesmo mount
+- [x] `initialData` mantém identidade referencial entre dois renders do mesmo mount
+- [x] Todo método do handle continua operando sobre a cena atual, não sobre a do primeiro render
+- [x] Nenhum teste existente de `EditorSurface.spec.tsx` muda de asserção
+- [x] Gate check passes: `make lint` (0 erros) e `make typecheck` (25/25) verdes; `editor-adapter` 88/89, a unica falha e a mesma pre-existente da T1 (green-gate T8)
 
 **Tests**: unit
 **Gate**: full
