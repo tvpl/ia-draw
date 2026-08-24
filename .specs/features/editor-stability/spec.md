@@ -129,7 +129,7 @@ emitir erro de console, para que esta classe de falha nunca mais chegue a `main`
 | ESTB-11 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
 | ESTB-12 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T5) |
 | ESTB-13 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T5) |
-| ESTB-14 | P2: O defeito não volta silenciosamente | Tasks | Pending |
+| ESTB-14 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T6) |
 
 **Coverage:** 14 total, 14 mapeados para tasks, 0 sem mapeamento.
 

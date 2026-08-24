@@ -238,10 +238,10 @@ sem alteração, a task registra isso e commita apenas a atualização de rastre
 
 **Done when**:
 
-- [ ] `pnpm --filter @arch-canvas/web test:e2e` passa com os dois arquivos de teste
-- [ ] Nenhuma asserção de `crash-recovery.spec.ts` foi enfraquecida, pulada ou removida
-- [ ] A tabela de Requirement Traceability de `spec.md` está atualizada
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/web test:e2e`
+- [x] `pnpm --filter @arch-canvas/web test:e2e` passa com os dois arquivos de teste
+- [x] Nenhuma asserção de `crash-recovery.spec.ts` foi enfraquecida, pulada ou removida — **o arquivo nao mudou uma linha**: ele falhava apenas porque `.excalidraw` nunca montava, e volta ao verde com a correcao de T1
+- [x] A tabela de Requirement Traceability de `spec.md` está atualizada
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 915/915 unit, suite e2e 2/2 verde
 
 **Tests**: e2e
 **Gate**: build
