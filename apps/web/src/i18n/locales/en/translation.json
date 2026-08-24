@@ -556,5 +556,10 @@
       "exit": "Exit (Esc)",
       "exitLabel": "Exit presenter mode"
     }
+  },
+  "errorBoundary": {
+    "title": "Something broke on this screen",
+    "message": "This screen stopped responding because of an unexpected error. The rest of the app still works.",
+    "reload": "Reload the screen"
   }
 }

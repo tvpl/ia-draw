@@ -144,12 +144,12 @@ mensagem e ação de recarregar, todos vindos do i18n. Não tenta re-render auto
 
 **Done when**:
 
-- [ ] Um filho que lança durante render produz a tela de recuperação, e não propaga
-- [ ] A exceção e o stack de componentes são registrados exatamente uma vez
-- [ ] A tela de recuperação expõe `role="alert"` e uma ação de recarregar acionável por teclado
-- [ ] Todo texto vem do i18n, com chaves presentes em `en` e `pt-BR`
-- [ ] Sem violação `jest-axe` na tela de recuperação
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Um filho que lança durante render produz a tela de recuperação, e não propaga
+- [x] A exceção e o stack de componentes são registrados exatamente uma vez
+- [x] A tela de recuperação expõe `role="alert"` e uma ação de recarregar acionável por teclado
+- [x] Todo texto vem do i18n, com chaves presentes em `en` e `pt-BR`
+- [x] Sem violação `jest-axe` na tela de recuperação
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 913/913 (905 antes desta task, mais os 8 testes novos)
 
 **Tests**: unit
 **Gate**: full

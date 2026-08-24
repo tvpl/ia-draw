@@ -556,5 +556,10 @@
       "exit": "Sair (Esc)",
       "exitLabel": "Sair do modo apresentador"
     }
+  },
+  "errorBoundary": {
+    "title": "Algo quebrou nesta tela",
+    "message": "Esta tela parou de responder por um erro inesperado. O restante do aplicativo continua funcionando.",
+    "reload": "Recarregar a tela"
   }
 }
