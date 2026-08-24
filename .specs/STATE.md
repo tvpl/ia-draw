@@ -98,10 +98,63 @@
 - **Date**: 2026-08-17
 - **Status**: active
 
+### AD-013
+- **Decision**: Os prefixos de caminho que pertencem ao servidor vivem numa fonte única (`packages/shared-contracts/src/routePrefixes.ts`). O proxy de desenvolvimento importa a lista; o `Caddyfile` do compose continua escrito à mão, mas um teste de paridade em `repo-tools` exige que rotas registradas, `Caddyfile` e proxy de desenvolvimento descrevam exatamente o mesmo conjunto. As rotas do servidor continuam sem prefixo `/api`.
+- **Reason**: o `Caddyfile` roteava `/api/*`, um namespace que nenhuma das 90 rotas usa, então toda chamada de API no stack do Docker caía no catch-all e recebia a SPA — `POST /auth/login` respondia 405 do nginx. O `vite.config.ts` já tinha detectado a divergência (`SPEC_DEVIATION`) e corrigido só a si mesmo, deixando a outra borda errada e a própria lista incompleta em 7 prefixos. Sem fonte comum e sem teste, as duas bordas divergem de novo na próxima rota.
+- **Trade-off**: o `Caddyfile` não é gerado, então uma mudança de prefixo exige editar dois arquivos — em troca ele continua legível e `infra/` não ganha passo de build. Prefixar as rotas com `/api` foi descartado: quebraria `docs/openapi.json`, o módulo MCP e todo consumidor externo.
+- **Scope**: `infra/compose/Caddyfile`, `apps/web/vite.config.ts`, `packages/shared-contracts`, `tools/repo-tools`, e toda rota nova de `apps/server`.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-014
+- **Decision**: `apps/web` adota Tailwind CSS v4 com configuração CSS-first: os tokens de cor, espaçamento, raio, tipografia e sombra são declarados uma única vez num bloco `@theme` em `apps/web/src/styles/theme.css`, e componentes consomem apenas utilitários. Nenhum valor literal de cor existe em componente de produção e nenhum `style={{}}` permanece. A folha da aplicação é carregada depois da do Excalidraw, e nenhuma regra da aplicação seleciona dentro do canvas.
+- **Reason**: o produto não tinha camada de estilo nenhuma — 0 arquivos CSS, 0 `className`, 9 `style={{}}` inline, todos concentrados na rota do editor, onde produziram a sobreposição entre painel lateral e canvas. Com 41 componentes esperando, CSS Modules exigiria escrever escalas, estados e densidade à mão antes de estilizar a primeira tela.
+- **Trade-off**: uma dependência de build nova, e o Biome não ordena classes de Tailwind (nenhum segundo linter será adicionado só para isso). Tema escuro fica fora até a paleta clara estabilizar.
+- **Scope**: `apps/web` inteiro; toda tela futura estiliza por tokens e utilitários, nunca por valor literal.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-015
+- **Decision**: A criação do administrador inicial é uma rota pública autolimitada (`GET`/`POST /auth/first-run`), disponível apenas enquanto a tabela `users` está vazia e respondendo `404` em ambas as verbas assim que deixa de estar. A operação é transacional (conta + organização + workspace + associação `org_admin`) e a corrida é resolvida pelo banco, não pela aplicação: a perdedora recebe `409`. O papel nunca vem de parâmetro do cliente.
+- **Reason**: `createLocalAccount` não tinha nenhum chamador de produção — só testes e o harness e2e. Uma instância recém-subida ficava com tela de login e nenhuma conta, e a única saída era inserir hash no banco à mão. Provisionar por variável de ambiente foi descartado por manter segredo em variável persistida e duplicar o caminho de criação.
+- **Trade-off**: uma superfície pública nova no módulo de auth, cuja segurança depende inteiramente da guarda de instância vazia — por isso a guarda é do banco, a resposta indisponível é `404` (não `403`, que confirmaria estado) e a rota reusa o limitador de taxa já aplicado às demais rotas de auth.
+- **Scope**: `apps/server/src/modules/auth`, `apps/web/src/auth`, `infra/compose` (smoke), `README.md` (Quick start e deploy).
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-016
+- **Decision**: O papel efetivo de um ator sobre um workspace é resolvido por uma única função no servidor, que considera a associação em `workspace_members` e o papel na organização dona, aplicando o mais permissivo dos dois. `org_admin` passa a valer em todo workspace da sua organização sem exigir associação. `reviewer` passa a conceder `comment:resolve`, que `viewer` deixa de conceder. A guarda que impede um workspace de ficar sem administrador roda dentro da mesma transação da alteração.
+- **Reason**: os cinco papéis colapsavam em três conjuntos idênticos — `org_admin` ≡ `workspace_admin` e `reviewer` ≡ `viewer` — e `org_admin` não tinha nenhum poder além do workspace onde possuía linha, o que tornava o nome uma promessa que a API não cumpria. A ausência de guarda no servidor permitia remover o último administrador por chamada direta; a proteção existia só no cliente, e o próprio código admitia isso.
+- **Trade-off**: mexer em autorização exige reescrever a matriz de teste para cobrir os cinco papéis contra todas as ações, incluindo ator sem associação. Reduzir para três papéis foi descartado: exigiria migração destrutiva de enum e quebra do contrato público da API. Nenhum valor de papel muda — apenas os grants associados a eles.
+- **Scope**: `packages/auth/src/rbac.ts`, `apps/server/src/modules/workspace`, `apps/web/src/nav`.
+- **Date**: 2026-08-24
+- **Status**: active
+
 ## Handoffs
 
 Uma subseção por frente ativa (GOV-06). Hoje só há uma frente (`platform-maturity`); o formato
 comporta N sem colisão de merge — cada frente edita só a sua própria subseção.
+
+### platform-remediation (branch: claude/project-failures-analysis-ij346k)
+
+- **Feature**: onda **F11 — remediação**, indexada em `.specs/features/platform-maturity/remediation-roadmap.md` (R17–R23). Ao contrário de `ui-roadmap.md`, que decompunha capacidade ausente, esta onda decompõe **defeito confirmado**: cada entrada sai de um achado reproduzido na análise de 2026-08-24, nenhuma de suspeita.
+- **Branch**: `claude/project-failures-analysis-ij346k`, cortada de `main` em `434259e`.
+- **Phase / Task**: **Specify, Design e Tasks concluídos para as 7 entradas; Execute não começou.** Nenhuma linha de código de produto foi tocada nesta sessão — a árvore só ganhou artefatos de planejamento.
+- **Achados que originaram a onda** (todos verificados, não inferidos):
+  - Rota do editor aborta com React #185 (*Maximum update depth exceeded*), reproduzido com Playwright contra `e2e/support/runTestServer.ts`. Causa isolada por patch experimental: `EditorSurface.onChange` chama `onSelectionChange` com um array novo a cada `onChange`, o consumidor faz `setSelection`, o re-render volta ao `onChange`. Com uma guarda de estabilidade de seleção o crash desaparece por completo e o canvas monta.
+  - `infra/compose/Caddyfile` roteia `/api/*`; nenhuma das 90 rotas do servidor usa `/api`. No stack do Docker toda chamada de API cai no catch-all e recebe a SPA. O proxy do Vite cobre 6 prefixos e omite 7.
+  - `createLocalAccount` sem chamador de produção: instância nova não tem como criar o primeiro usuário.
+  - `apps/web/src`: 0 arquivos CSS, 0 `className`, 9 `style={{}}`.
+  - `make test-unit` sai 1 (`webConsumers.spec.ts` asserta 4 consumidores; são 53). `make test-integration` sai 1 (`infra/backup` exige cluster Postgres real, contra a promessa da ADR-0007).
+  - **As 5 execuções do CI em `main` falharam**, desde o primeiro merge (13/08 a 17/08). No run mais recente reprovam `Unit tests`, `Integration tests` e `End-to-end`. O job `Compose stack smoke` passa, mas só verifica `/health/ready` — o único caminho que o Caddy roteia certo.
+  - `repo-tools audit` mede 90 rotas e 49 consumidas; o README afirma 82 e 4.
+- **Decisões de produto tomadas com o usuário nesta sessão**: escopo da onda completo (7 specs); Tailwind v4 com tokens como camada de estilo; first-run wizard como bootstrap (descartadas variável de ambiente e CLI); diferenciar os cinco papéis de verdade (descartada a redução para três). Registradas como AD-013..AD-016 acima; as ADRs em `docs/adr/` são a task T6 de `docs-truth`.
+- **Artefatos entregues**: `remediation-roadmap.md`; 7 × `spec.md` (todos passando `validate_spec.py` com 0 erro e 0 aviso); 3 × `design.md` (`edge-routing`, `ui-foundations`, `rbac-clarity` — os demais têm Design explicitamente pulado com justificativa); 7 × `tasks.md` (todos passando `validate_tasks.py` com 0 erro). Total: **58 tasks** em 7 features.
+- **Avisos residuais dos validadores**: 10 avisos, todos da classe `Tests: none - confirm the Test Coverage Matrix says 'none'`. Cada um corresponde a uma camada que a Test Coverage Matrix declara `none` explicitamente com justificativa escrita (arquivo de configuração do Caddy, workflow de CI, alvos de Make, prosa de documentação, build de estilo). Confirmados, não pendentes.
+- **Next step**: aprovação do usuário nos `tasks.md` e então Execute de R17 e R18, que são independentes entre si. R19 depois de R18; R20 depois de R17+R18+R19; R21 depois de R17; R22 depois de R18+R19; R23 por último.
+- **Sub-agentes**: 58 tasks passam do orçamento de um batch (~8). Na hora do Execute, o oferecimento de sub-agentes é obrigatório antes de despachar qualquer worker — nunca automático.
+- **Blockers**: nenhum.
+- **Uncommitted files**: nenhum.
 
 ### platform-maturity (branch: feature/improvements-3)
 
