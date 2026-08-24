@@ -238,17 +238,31 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     expect(ref.current).toBe(handleAfterMount);
   });
 
-  it('keeps initialData referentially stable across renders of the same mount (ESTB-04)', () => {
-    const element: SceneElement = { ...base, version: 1, versionNonce: 1 };
-    mount({ initialElements: [element], viewModeEnabled: false });
+  it('keeps initialData referentially stable while initialElements is unchanged (ESTB-04)', () => {
+    const elements: readonly SceneElement[] = [{ ...base, version: 1, versionNonce: 1 }];
+    mount({ initialElements: elements, viewModeEnabled: false });
     const initialDataAfterMount = capturedInitialData;
 
     act(() => {
-      root.render(<EditorSurface initialElements={[element]} viewModeEnabled={true} />);
+      root.render(<EditorSurface initialElements={elements} viewModeEnabled={true} />);
     });
 
     expect(initialDataAfterMount).toBeDefined();
     expect(capturedInitialData).toBe(initialDataAfterMount);
+  });
+
+  it('hands <Excalidraw/> the new scene when initialElements actually changes (ESTB-04)', () => {
+    // `SharedResourcePage` swaps the cropped scene per presentation frame without
+    // remounting this component, so a frozen initialData would pin it to the first frame.
+    const frameA: readonly SceneElement[] = [{ ...base, id: 'frame-a' }];
+    const frameB: readonly SceneElement[] = [{ ...base, id: 'frame-b' }];
+    mount({ initialElements: frameA });
+
+    act(() => {
+      root.render(<EditorSurface initialElements={frameB} />);
+    });
+
+    expect((capturedInitialData as { elements: SceneElement[] }).elements).toBe(frameB);
   });
 
   it('the stable handle still operates on the scene as of the latest change, not the first render (ESTB-03)', () => {

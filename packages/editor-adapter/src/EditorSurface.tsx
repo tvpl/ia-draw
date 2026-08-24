@@ -1,6 +1,6 @@
 import type { LibraryItem } from '@arch-canvas/library-content';
 import { convertToExcalidrawElements, Excalidraw } from '@excalidraw/excalidraw';
-import { forwardRef, type JSX, useImperativeHandle, useRef } from 'react';
+import { forwardRef, type JSX, useImperativeHandle, useMemo, useRef } from 'react';
 import { applyRemote } from './applyRemote.js';
 import { buildSceneIndex, computeDiff } from './computeDiff.js';
 import type { ElementDelta, SceneElement } from './types.js';
@@ -215,11 +215,16 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
     // when nothing is selected.
     const emittedSelectionRef = useRef<string | null>(null);
     const apiRef = useRef<ExcalidrawSceneApi | null>(null);
-    // ESTB-04: `<Excalidraw/>` reads `initialData` on its one and only mount, so a fresh
-    // object literal per render is churn React has to diff for nothing. Frozen at mount,
-    // which is also the only moment its value is meaningful.
-    // biome-ignore lint/suspicious/noExplicitAny: same bridging as the cast below — Excalidraw's ExcalidrawInitialDataState is branded and only importable via an internal subpath.
-    const initialDataRef = useRef<{ elements: any }>({ elements: initialElements as any });
+    // ESTB-04: a fresh object literal per render is churn React has to diff for nothing.
+    // Tied to `initialElements` rather than frozen at mount, because `SharedResourcePage`
+    // legitimately hands this component a different scene per frame without remounting it
+    // (`apps/web/src/share/SharedResourcePage.tsx`) — freezing would silently pin that
+    // surface to its first frame.
+    const initialData = useMemo(
+      // biome-ignore lint/suspicious/noExplicitAny: same bridging as the cast below — Excalidraw's ExcalidrawInitialDataState is branded and only importable via an internal subpath.
+      () => ({ elements: initialElements as any }),
+      [initialElements],
+    );
 
     // ESTB-03: every method below reads `previousSceneRef`/`apiRef`, never a captured
     // prop, so the handle has nothing per-render to close over. An empty dependency list
@@ -332,7 +337,7 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
     return (
       <Excalidraw
         viewModeEnabled={viewModeEnabled}
-        initialData={initialDataRef.current}
+        initialData={initialData}
         // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own imperative API type is branded and only importable via an internal subpath.
         excalidrawAPI={(api: any) => {
           apiRef.current = api as ExcalidrawSceneApi;
