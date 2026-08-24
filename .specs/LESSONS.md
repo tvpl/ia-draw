@@ -302,6 +302,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/editor-stability/tasks.md T1 Done-when 'Changeset criado' (process/verification)
 - last seen: 2026-08-24T22:50:46Z
 
+### L-049 - Um guard que confere presenca de IDENTIFICADOR por substring aprova a redefinicao local com o mesmo nome: exija a forma sintatica que carrega a garantia (o import, a chamada), nunca a mencao do nome.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `tooling/guards` · harmful: 0
+- features: edge-routing
+- evidence: tools/repo-tools/src/edgeParity.ts prefixesFromViteConfig (tooling/guards)
+- last seen: 2026-08-24T23:04:30Z
+
+### L-050 - Quando uma AC exige resposta de um servico que nao sobe no ambiente, marque estrutural e nomeie a spec que a prova por execucao; arredondar para verde e o padrao de lacuna de L-044/L-045.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `verification` · harmful: 0
+- features: edge-routing
+- evidence: EDGE-03/EDGE-04 (verification)
+- last seen: 2026-08-24T23:04:30Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

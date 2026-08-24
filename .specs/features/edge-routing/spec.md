@@ -114,18 +114,18 @@ roteá-lo nas duas bordas reprove o gate.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| EDGE-01 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
-| EDGE-02 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
-| EDGE-03 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
-| EDGE-04 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
-| EDGE-05 | P1: A API é alcançável pelo proxy público | Implementing | Implementing (T2) |
-| EDGE-06 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
-| EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
-| EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
-| EDGE-09 | P2: A divergência não volta | Implementing | Implementing (T1) |
-| EDGE-10 | P2: A divergência não volta | Implementing | Implementing (T5) |
-| EDGE-11 | P2: A divergência não volta | Implementing | Implementing (T5) |
-| EDGE-12 | P2: A divergência não volta | Implementing | Implementing (T4) |
+| EDGE-01 | P1: A API é alcançável pelo proxy público | Verified | ✅ Verified |
+| EDGE-02 | P1: A API é alcançável pelo proxy público | Verified | ✅ Verified |
+| EDGE-03 | P1: A API é alcançável pelo proxy público | Verified | ⚠️ Verified (estrutural — execução em R20/GATE-10) |
+| EDGE-04 | P1: A API é alcançável pelo proxy público | Verified | ⚠️ Verified (estrutural — execução em R20/GATE-10) |
+| EDGE-05 | P1: A API é alcançável pelo proxy público | Verified | ✅ Verified |
+| EDGE-06 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Verified | ✅ Verified |
+| EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Verified | ✅ Verified |
+| EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Verified | ✅ Verified |
+| EDGE-09 | P2: A divergência não volta | Verified | ✅ Verified |
+| EDGE-10 | P2: A divergência não volta | Verified | ✅ Verified |
+| EDGE-11 | P2: A divergência não volta | Verified | ✅ Verified |
+| EDGE-12 | P2: A divergência não volta | Verified | ✅ Verified |
 
 **Coverage:** 12 total, 12 mapeados para tasks, 0 sem mapeamento.
 

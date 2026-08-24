@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 49,
+  "next_id": 51,
   "lessons": [
     {
       "id": "L-001",
@@ -870,6 +870,42 @@
       ],
       "created": "2026-08-24T22:50:46Z",
       "last_seen": "2026-08-24T22:50:46Z"
+    },
+    {
+      "id": "L-049",
+      "key": "surviving_mutant::um guard que confere presenca de identificador por substring aprova a redefinicao local com o mesmo nome exija a forma sintatica que carrega a garantia o import a chamada nunca a mencao do nome",
+      "text": "Um guard que confere presenca de IDENTIFICADOR por substring aprova a redefinicao local com o mesmo nome: exija a forma sintatica que carrega a garantia (o import, a chamada), nunca a mencao do nome.",
+      "signal": "surviving_mutant",
+      "scope": "tooling/guards",
+      "status": "candidate",
+      "features": [
+        "edge-routing"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/edgeParity.ts prefixesFromViteConfig (tooling/guards)"
+      ],
+      "created": "2026-08-24T23:04:30Z",
+      "last_seen": "2026-08-24T23:04:30Z"
+    },
+    {
+      "id": "L-050",
+      "key": "ac_gap::quando uma ac exige resposta de um servico que nao sobe no ambiente marque estrutural e nomeie a spec que a prova por execucao arredondar para verde e o padrao de lacuna de l 044 l 045",
+      "text": "Quando uma AC exige resposta de um servico que nao sobe no ambiente, marque estrutural e nomeie a spec que a prova por execucao; arredondar para verde e o padrao de lacuna de L-044/L-045.",
+      "signal": "ac_gap",
+      "scope": "verification",
+      "status": "candidate",
+      "features": [
+        "edge-routing"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EDGE-03/EDGE-04 (verification)"
+      ],
+      "created": "2026-08-24T23:04:30Z",
+      "last_seen": "2026-08-24T23:04:30Z"
     }
   ]
 }
