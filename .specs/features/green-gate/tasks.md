@@ -18,6 +18,7 @@ decisões com alternativa real estão em `spec.md`'s Assumptions.
 
 | Code Layer | Required Test Type | Coverage Expectation | Location Pattern | Run Command |
 | ---------- | ------------------ | -------------------- | ---------------- | ----------- |
+| `EditorSurface` (medição de texto sob jsdom) | unit | GATE-01: a asserção de rótulo inserido para de depender da medição de fonte do ambiente, sem deixar de provar que o rótulo carrega o nome do item | `packages/editor-adapter/src/EditorSurface.spec.tsx` | `pnpm -w test:unit` |
 | Extrator de consumidores de rota | unit | GATE-02 e o edge case de zero consumidores: formato de cada consumidor, ausência de duplicata, todo consumidor apontando rota registrada, e falha explícita se o extrator devolver conjunto vazio | `tools/repo-tools/src/webConsumers.spec.ts` | `pnpm -w test:unit` |
 | Suíte de integração padrão | integration | GATE-03: roda inteira num host sem cluster Postgres instalado, sem erro de spawn | `apps/server/src/**/*.int.spec.ts` | `make test-integration` |
 | Suíte de integração de backup | integration | Continua cobrindo criação, verificação e restore, agora em alvo próprio com Postgres real | `infra/backup/src/*.int.spec.ts` | `pnpm --filter @arch-canvas/backup run test:integration` |
@@ -42,6 +43,7 @@ decisões com alternativa real estão em `spec.md`'s Assumptions.
 
 ```
 T1
+T8
 T2 -> T3
 ```
 
@@ -92,6 +94,39 @@ conjunto extraído nunca é vazio.
 **Gate**: full
 
 **Commit**: `test(repo-tools): assert route-consumer invariants instead of a frozen count`
+
+---
+
+### T8: Asserção de rótulo independente da medição de fonte
+
+**What**: `EditorSurface.spec.tsx` asserta que o rótulo do item inserido é exatamente
+`'Amazon EC2'`, mas `convertToExcalidrawElements` quebra a linha do rótulo para caber no
+retângulo usando medição de fonte, e sob jsdom essa medição difere — o valor real é
+`'Amazon\nEC2'`. A asserção passa a provar o que a spec de `component-library` realmente exige
+(o rótulo carrega o nome do item) sem depender de onde a biblioteca decide quebrar a linha.
+Falha pré-existente, registrada em `STATE.md` desde a onda F10/R14, e o segundo dos dois motivos
+pelos quais `make test-unit` sai 1 hoje.
+**Where**: `packages/editor-adapter/src/EditorSurface.spec.tsx`
+**Depends on**: None
+**Reuses**: o próprio teste; nenhuma asserção é removida.
+**Requirement**: GATE-01, GATE-05
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] A asserção continua provando que o rótulo carrega o nome do item, normalizando apenas a quebra de linha
+- [ ] Nenhuma outra asserção do teste foi alterada, enfraquecida ou removida
+- [ ] `pnpm --filter @arch-canvas/editor-adapter run test:unit` sai 0
+- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+
+**Tests**: unit
+**Gate**: full
+
+**Commit**: `test(editor-adapter): stop asserting on environment-dependent text wrapping`
 
 ---
 
