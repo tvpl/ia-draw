@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 48,
+  "next_id": 49,
   "lessons": [
     {
       "id": "L-001",
@@ -852,6 +852,24 @@
       ],
       "created": "2026-08-24T22:49:35Z",
       "last_seen": "2026-08-24T22:49:35Z"
+    },
+    {
+      "id": "L-048",
+      "key": "gate_fail::um item de done when que produz um artefato changeset arquivo gerado entrada de registro deve ser conferido contra o disco antes de marcar x conferir so as acs contra testes deixa passar criterios que nenhum teste cobre",
+      "text": "Um item de Done-when que produz um ARTEFATO (changeset, arquivo gerado, entrada de registro) deve ser conferido contra o disco antes de marcar [x]; conferir so as ACs contra testes deixa passar criterios que nenhum teste cobre.",
+      "signal": "gate_fail",
+      "scope": "process/verification",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/editor-stability/tasks.md T1 Done-when 'Changeset criado' (process/verification)"
+      ],
+      "created": "2026-08-24T22:50:46Z",
+      "last_seen": "2026-08-24T22:50:46Z"
     }
   ]
 }

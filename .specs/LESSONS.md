@@ -296,6 +296,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/web/src/share/SharedResourcePage.spec.tsx mock de <Excalidraw/> (testing/mocks)
 - last seen: 2026-08-24T22:49:35Z
 
+### L-048 - Um item de Done-when que produz um ARTEFATO (changeset, arquivo gerado, entrada de registro) deve ser conferido contra o disco antes de marcar [x]; conferir so as ACs contra testes deixa passar criterios que nenhum teste cobre.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `process/verification` · harmful: 0
+- features: editor-stability
+- evidence: .specs/features/editor-stability/tasks.md T1 Done-when 'Changeset criado' (process/verification)
+- last seen: 2026-08-24T22:50:46Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

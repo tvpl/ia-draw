@@ -87,7 +87,7 @@ hoje derruba a rota do editor com o erro React #185.
 - [x] Um `onChange` com conjunto diferente produz exatamente uma chamada com a nova lista
 - [x] Dois `onChange` seguidos sem nenhum elemento selecionado produzem exatamente uma chamada, com lista vazia (a transição vazia→vazia não emite; a primeira emissão sempre acontece)
 - [x] `onDeltas` mantém o comportamento atual, inalterado
-- [x] Changeset criado para `@arch-canvas/editor-adapter`
+- [x] Changeset criado para `@arch-canvas/editor-adapter` (`.changeset/editor-stability-selection-guard.md`) — marcado como feito prematuramente em T1 e corrigido depois, ver `validation.md` Gap 4
 - [x] Gate check passes: `make lint` (0 erros) e `make typecheck` (25/25) verdes; `editor-adapter` 85/86 — a única falha e a pre-existente `icon.kind "external"` (`'Amazon\nEC2'` vs `'Amazon EC2'`, quebra de linha por medicao de fonte sob jsdom), confirmada numa baseline limpa ANTES desta task e ja registrada em `STATE.md` (F10/R14). `make test-unit` completo segue vermelho pelas duas falhas pre-existentes que R20 fecha (nova task T8).
 
 **Tests**: unit

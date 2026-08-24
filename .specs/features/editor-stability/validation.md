@@ -150,6 +150,19 @@ está fora do escopo de `editor-stability` e não tem spec. **Precisa virar entr
 
 ---
 
+### Gap 4 — Critério marcado como feito sem ter sido (Minor, fechado)
+
+O `Done when` de T1 incluía "Changeset criado para `@arch-canvas/editor-adapter`" e foi marcado
+`[x]` sem que o changeset existisse. Isso teria reprovado o job `changeset-check` do CI. Corrigido
+depois do passe de validação, em commit próprio.
+
+**Causa raiz relevante para o processo**: este passe foi standalone, com autor e verificador sendo
+o mesmo agente, e a checagem de `Done when` item a item contra o disco não foi feita — só a
+checagem de ACs contra testes. Um Verifier separado teria comparado a lista de critérios com a
+árvore. Registrado como lição.
+
+---
+
 ## Requirement Traceability Update
 
 ESTB-01 a ESTB-14: `Pending` → `✅ Verified`.
