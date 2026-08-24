@@ -284,6 +284,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/architecture-lint/spec.md AC P2-13 (ALNT-13) (apps/web)
 - last seen: 2026-08-21T10:41:22Z
 
+### L-046 - Antes de estabilizar a identidade de uma prop, procure todo consumidor que a passa: amarre a memoizacao ao valor da prop, nunca ao mount, porque um consumidor pode trocar a prop sem remontar.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `react/props` · harmful: 0
+- features: editor-stability
+- evidence: apps/web/src/share/SharedResourcePage.spec.tsx (regressao de T2, corrigida em ac1c9aa) (react/props)
+- last seen: 2026-08-24T22:49:35Z
+
+### L-047 - Um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde: ancore o mock no contrato documentado da lib (initialData so e lido no mount), nao no que e conveniente para a assercao.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `testing/mocks` · harmful: 0
+- features: editor-stability
+- evidence: apps/web/src/share/SharedResourcePage.spec.tsx mock de <Excalidraw/> (testing/mocks)
+- last seen: 2026-08-24T22:49:35Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

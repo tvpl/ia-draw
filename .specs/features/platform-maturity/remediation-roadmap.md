@@ -48,6 +48,12 @@ porque o gate só pode ser declarado verde quando os testes que ele roda exercit
 R21 depois de R17 porque estilizar a rota do editor exige que ela monte. R23 por último porque a
 documentação só pode afirmar números depois que eles pararem de mudar.
 
+## Descoberto durante a execução
+
+| Achado | Onde apareceu | Estado |
+| ------ | ------------- | ------ |
+| `SharedResourcePage` navega entre frames trocando `initialElements`, mas o `<Excalidraw/>` real lê `initialData` só no mount. O mock do teste relê a prop a cada render, então PRZ-33 passa no teste e não funciona no produto. | Verifier de R17, `editor-stability/validation.md` Gap 3 | **Aberto** — precisa de entrada própria (candidata a R24), fora do escopo de toda spec atual |
+
 ## Fora do escopo da onda
 
 | Item | Razão |

@@ -116,20 +116,20 @@ emitir erro de console, para que esta classe de falha nunca mais chegue a `main`
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| ESTB-01 | P1: O editor abre | Implementing | Implementing (T1) |
-| ESTB-02 | P1: O editor abre | Implementing | Implementing (T1) |
-| ESTB-03 | P1: O editor abre | Implementing | Implementing (T2) |
-| ESTB-04 | P1: O editor abre | Implementing | Implementing (T2) |
-| ESTB-05 | P1: O editor abre | Implementing | Implementing (T5) |
-| ESTB-06 | P1: O editor abre | Implementing | Implementing (T1) |
-| ESTB-07 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
-| ESTB-08 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
-| ESTB-09 | P1: Uma falha não vira tela branca | Implementing | Implementing (T4) |
-| ESTB-10 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
-| ESTB-11 | P1: Uma falha não vira tela branca | Implementing | Implementing (T3) |
-| ESTB-12 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T5) |
-| ESTB-13 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T5) |
-| ESTB-14 | P2: O defeito não volta silenciosamente | Implementing | Implementing (T6) |
+| ESTB-01 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-02 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-03 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-04 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-05 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-06 | P1: O editor abre | Verified | ✅ Verified |
+| ESTB-07 | P1: Uma falha não vira tela branca | Verified | ✅ Verified |
+| ESTB-08 | P1: Uma falha não vira tela branca | Verified | ✅ Verified |
+| ESTB-09 | P1: Uma falha não vira tela branca | Verified | ✅ Verified |
+| ESTB-10 | P1: Uma falha não vira tela branca | Verified | ✅ Verified |
+| ESTB-11 | P1: Uma falha não vira tela branca | Verified | ✅ Verified |
+| ESTB-12 | P2: O defeito não volta silenciosamente | Verified | ✅ Verified |
+| ESTB-13 | P2: O defeito não volta silenciosamente | Verified | ✅ Verified |
+| ESTB-14 | P2: O defeito não volta silenciosamente | Verified | ✅ Verified |
 
 **Coverage:** 14 total, 14 mapeados para tasks, 0 sem mapeamento.
 

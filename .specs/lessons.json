@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 46,
+  "next_id": 48,
   "lessons": [
     {
       "id": "L-001",
@@ -816,6 +816,42 @@
       ],
       "created": "2026-08-21T10:41:22Z",
       "last_seen": "2026-08-21T10:41:22Z"
+    },
+    {
+      "id": "L-046",
+      "key": "gate_fail::antes de estabilizar a identidade de uma prop procure todo consumidor que a passa amarre a memoizacao ao valor da prop nunca ao mount porque um consumidor pode trocar a prop sem remontar",
+      "text": "Antes de estabilizar a identidade de uma prop, procure todo consumidor que a passa: amarre a memoizacao ao valor da prop, nunca ao mount, porque um consumidor pode trocar a prop sem remontar.",
+      "signal": "gate_fail",
+      "scope": "react/props",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/share/SharedResourcePage.spec.tsx (regressao de T2, corrigida em ac1c9aa) (react/props)"
+      ],
+      "created": "2026-08-24T22:49:35Z",
+      "last_seen": "2026-08-24T22:49:35Z"
+    },
+    {
+      "id": "L-047",
+      "key": "spec_precision_gap::um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde ancore o mock no contrato documentado da lib initialdata so e lido no mount nao no que e conveniente para a assercao",
+      "text": "Um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde: ancore o mock no contrato documentado da lib (initialData so e lido no mount), nao no que e conveniente para a assercao.",
+      "signal": "spec_precision_gap",
+      "scope": "testing/mocks",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/share/SharedResourcePage.spec.tsx mock de <Excalidraw/> (testing/mocks)"
+      ],
+      "created": "2026-08-24T22:49:35Z",
+      "last_seen": "2026-08-24T22:49:35Z"
     }
   ]
 }
