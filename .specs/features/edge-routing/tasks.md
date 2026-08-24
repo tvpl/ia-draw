@@ -203,13 +203,24 @@ prefixo em falta e a borda que o omitiu, além de nomear regra de borda sem rota
 
 **Done when**:
 
-- [ ] O teste passa contra o repositório real depois de T2 e T3
-- [ ] Removendo um `handle` do `Caddyfile` localmente, o teste reprova nomeando o prefixo — confirmado antes do commit
-- [ ] Removendo um prefixo do proxy de desenvolvimento localmente, o teste reprova nomeando o prefixo — confirmado antes do commit
-- [ ] Uma regra de borda sem rota correspondente reprova o teste
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && pnpm --filter @arch-canvas/repo-tools run audit`
+- [x] O teste passa contra o repositório real depois de T2 e T3
+- [x] Removendo um `handle` do `Caddyfile` localmente, o teste reprova nomeando o prefixo — confirmado antes do commit
+- [x] Removendo um prefixo do proxy de desenvolvimento localmente, o teste reprova nomeando o prefixo — confirmado antes do commit
+- [x] Uma regra de borda sem rota correspondente reprova o teste
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `repo-tools` 65/66 — a unica falha e a pre-existente `webConsumers.spec.ts` (green-gate T1)
 
 **Tests**: unit
 **Gate**: build
 
 **Commit**: `test(repo-tools): fail when the two edges diverge from the registered routes`
+
+**Achado desta task**: o teste reprovou de primeira contra o repositorio real e nomeou `/share-links`,
+um prefixo registrado em `apps/server/src/modules/share/routes.ts:275` que nem o `Caddyfile` nem a
+lista de T1 declaravam. Caddy o alcancava por acidente (`/share*` casa `/share-links`), o que e
+exatamente o tipo de correcao-por-coincidencia que este teste existe para eliminar. Declarado e
+roteado explicitamente nesta task.
+
+**Sensor de discriminacao aplicado nesta task**: 3 mutacoes. A terceira (proxy de dev volta a listar
+prefixos num literal local com o mesmo nome) **sobreviveu** na primeira rodada, porque o extrator so
+procurava a string `SERVER_ROUTE_PREFIXES`. O guard foi reescrito para exigir o `import` real do
+pacote, um teste novo cobre a redefinicao local, e a mutacao passou a ser morta.

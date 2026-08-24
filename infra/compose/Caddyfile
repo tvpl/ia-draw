@@ -59,6 +59,10 @@
 		reverse_proxy server:3000
 	}
 
+	handle /share-links* {
+		reverse_proxy server:3000
+	}
+
 	# Covers /users:lookup — matched by path prefix, never by the colon.
 	handle /users* {
 		reverse_proxy server:3000

@@ -30,6 +30,10 @@ export const SERVER_ROUTE_PREFIXES: readonly string[] = [
   '/presentations',
   '/projects',
   '/share',
+  // Distinct from `/share` above: `POST /share-links/:id:revoke` is registered at the top
+  // level, not under `/share`. Caddy's `/share*` would match it by accident, but relying on
+  // that would leave the dev proxy correct only by coincidence.
+  '/share-links',
   // Covers `/users:lookup`. Both edges match by path prefix, and a literal colon in a
   // match expression is fragile in Caddy and in Vite alike.
   '/users',

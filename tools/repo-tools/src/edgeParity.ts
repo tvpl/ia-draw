@@ -87,11 +87,20 @@ export function prefixesFromViteConfig(
   // The config is required to build its proxy map from the shared list rather than from a
   // literal of its own — that IS the contract (EDGE-06). A config that restated the
   // prefixes inline would drift again, so anything else is a failure, not a different set.
-  if (!source.includes('SERVER_ROUTE_PREFIXES')) {
-    throw new Error(`edge-parity: ${path} does not derive its proxy from SERVER_ROUTE_PREFIXES`);
+  // Matching the IMPORT, not merely a mention of the identifier: a local
+  // `const SERVER_ROUTE_PREFIXES = [...]` satisfies a substring check while reintroducing
+  // exactly the drift this guards against (found by the discrimination sensor).
+  const imported =
+    /import\s*\{([^}]*)\}\s*from\s*'@arch-canvas\/shared-contracts'/.exec(source)?.[1] ?? '';
+  if (!imported.includes('SERVER_ROUTE_PREFIXES')) {
+    throw new Error(
+      `edge-parity: ${path} does not import SERVER_ROUTE_PREFIXES from @arch-canvas/shared-contracts`,
+    );
   }
-  if (!source.includes('WS_ROUTE_PREFIX')) {
-    throw new Error(`edge-parity: ${path} does not proxy the websocket prefix`);
+  if (!imported.includes('WS_ROUTE_PREFIX')) {
+    throw new Error(
+      `edge-parity: ${path} does not import WS_ROUTE_PREFIX from @arch-canvas/shared-contracts`,
+    );
   }
   return new Set([...declaredPrefixes, wsPrefix]);
 }

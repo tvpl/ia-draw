@@ -123,8 +123,8 @@ roteá-lo nas duas bordas reprove o gate.
 | EDGE-07 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
 | EDGE-08 | P1: O proxy de desenvolvimento cobre as mesmas rotas | Implementing | Implementing (T3) |
 | EDGE-09 | P2: A divergência não volta | Implementing | Implementing (T1) |
-| EDGE-10 | P2: A divergência não volta | Design | Pending |
-| EDGE-11 | P2: A divergência não volta | Design | Pending |
+| EDGE-10 | P2: A divergência não volta | Implementing | Implementing (T5) |
+| EDGE-11 | P2: A divergência não volta | Implementing | Implementing (T5) |
 | EDGE-12 | P2: A divergência não volta | Implementing | Implementing (T4) |
 
 **Coverage:** 12 total, 12 mapeados para tasks, 0 sem mapeamento.
