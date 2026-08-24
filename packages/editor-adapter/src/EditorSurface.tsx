@@ -209,6 +209,11 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
     ref,
   ): JSX.Element {
     const previousSceneRef = useRef(buildSceneIndex(initialElements));
+    // ESTB-01: the last selection already handed to `onSelectionChange`, as an
+    // order-independent key. `null` means "nothing emitted yet", which is distinct
+    // from the empty selection (`''`) — the first change always propagates, even
+    // when nothing is selected.
+    const emittedSelectionRef = useRef<string | null>(null);
     const apiRef = useRef<ExcalidrawSceneApi | null>(null);
 
     useImperativeHandle(ref, () => ({
@@ -335,16 +340,29 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
             previousSceneRef.current = buildSceneIndex(next);
             onDeltas?.(deltas);
           }
-          // DOCK-03: selection propagates on every change, including selection-only
-          // changes that produce no element delta (the `if` above gates `onDeltas`,
-          // never this call).
+          // DOCK-03: selection propagates on every change of the SELECTION, including
+          // selection-only changes that produce no element delta (the `if` above gates
+          // `onDeltas`, never this call).
+          //
+          // ESTB-01/06: an unchanged selection is never re-emitted. Emitting a fresh
+          // array on every `onChange` made a consumer that lifts it into state
+          // (`DiagramEditorPage`) re-render, which re-rendered `<Excalidraw/>`, which
+          // fired `onChange` again — the render loop that aborted the editor route with
+          // React error #185.
           const selectedElementIds = (appState?.selectedElementIds ?? {}) as Record<
             string,
             boolean
           >;
-          onSelectionChange?.(
-            Object.keys(selectedElementIds).filter((id) => selectedElementIds[id]),
+          const selectedIds = Object.keys(selectedElementIds).filter(
+            (id) => selectedElementIds[id],
           );
+          // Compared sorted so a reordered `selectedElementIds` is not a change; emitted
+          // unsorted so the order callers already receive is unchanged.
+          const selectionKey = [...selectedIds].sort().join('\u0000');
+          if (selectionKey !== emittedSelectionRef.current) {
+            emittedSelectionRef.current = selectionKey;
+            onSelectionChange?.(selectedIds);
+          }
         }}
       />
     );

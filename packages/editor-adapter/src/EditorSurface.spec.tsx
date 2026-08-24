@@ -104,7 +104,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     });
   }
 
-  it('calls onSelectionChange with the ids whose selectedElementIds[id] is truthy, on every onChange firing', () => {
+  it('calls onSelectionChange with the ids whose selectedElementIds[id] is truthy', () => {
     const onSelectionChange = vi.fn();
     mount({ onSelectionChange });
 
@@ -141,6 +141,83 @@ describe('EditorSurface (T94, DOCK-03)', () => {
 
     expect(onDeltas).not.toHaveBeenCalled();
     expect(onSelectionChange).toHaveBeenCalledWith([unchanged.id]);
+  });
+
+  it('does not re-emit when a later onChange carries the same selection set (ESTB-01)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledWith(['el-1', 'el-2']);
+  });
+
+  it('re-emits exactly once when the selection set actually changes (ESTB-02)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(2);
+    expect(onSelectionChange).toHaveBeenNthCalledWith(2, ['el-1', 'el-2']);
+  });
+
+  it('emits the empty selection once, then stays silent while it stays empty (ESTB-06 edge case)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: {} });
+      capturedOnChange?.([], { selectedElementIds: {} });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+  });
+
+  it('treats the same ids in a different key order as an unchanged selection (ESTB-01)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-2': true, 'el-1': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not emit a selection change when only the scene changed (ESTB-06 edge case)', () => {
+    const onDeltas = vi.fn();
+    const onSelectionChange = vi.fn();
+    const original: SceneElement = { ...base, version: 1, versionNonce: 1 };
+    const changed: SceneElement = { ...base, version: 2, versionNonce: 2 };
+    mount({ initialElements: [original], onDeltas, onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([original], { selectedElementIds: { [original.id]: true } });
+      capturedOnChange?.([changed], { selectedElementIds: { [original.id]: true } });
+    });
+
+    expect(onDeltas).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('computes the selection without throwing when no onSelectionChange is provided (edge case)', () => {
+    mount({});
+
+    expect(() =>
+      act(() => {
+        capturedOnChange?.([], { selectedElementIds: { 'el-1': true } });
+      }),
+    ).not.toThrow();
   });
 
   it('regression: onDeltas still fires with the correct upsert delta when an element changes', () => {

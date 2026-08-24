@@ -116,12 +116,12 @@ emitir erro de console, para que esta classe de falha nunca mais chegue a `main`
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| ESTB-01 | P1: O editor abre | Tasks | Pending |
-| ESTB-02 | P1: O editor abre | Tasks | Pending |
+| ESTB-01 | P1: O editor abre | Implementing | Implementing (T1) |
+| ESTB-02 | P1: O editor abre | Implementing | Implementing (T1) |
 | ESTB-03 | P1: O editor abre | Tasks | Pending |
 | ESTB-04 | P1: O editor abre | Tasks | Pending |
 | ESTB-05 | P1: O editor abre | Tasks | Pending |
-| ESTB-06 | P1: O editor abre | Tasks | Pending |
+| ESTB-06 | P1: O editor abre | Implementing | Implementing (T1) |
 | ESTB-07 | P1: Uma falha não vira tela branca | Tasks | Pending |
 | ESTB-08 | P1: Uma falha não vira tela branca | Tasks | Pending |
 | ESTB-09 | P1: Uma falha não vira tela branca | Tasks | Pending |
