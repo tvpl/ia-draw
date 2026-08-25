@@ -301,15 +301,15 @@ convite de membro de workspace.
 
 **Done when**:
 
-- [ ] `GET` funciona para qualquer membro do workspace
-- [ ] `POST`/`DELETE` respondem `403` para quem tem papel efetivo `workspace_admin` mas não `org_admin`
-- [ ] `POST` com e-mail inexistente recusa sem criar nada
-- [ ] `DELETE` que zeraria os administradores responde `409` nomeando o motivo, sem remover
-- [ ] Cada concessão/revogação bem-sucedida grava um evento de auditoria com ator e alvo
-- [ ] Duas revogações concorrentes (teste com `Promise.all` sobre PGlite, aceitando a limitação de
+- [x] `GET` funciona para qualquer membro do workspace
+- [x] `POST`/`DELETE` respondem `403` para quem tem papel efetivo `workspace_admin` mas não `org_admin`
+- [x] `POST` com e-mail inexistente recusa sem criar nada
+- [x] `DELETE` que zeraria os administradores responde `409` nomeando o motivo, sem remover
+- [x] Cada concessão/revogação bem-sucedida grava um evento de auditoria com ator e alvo
+- [x] Duas revogações concorrentes (teste com `Promise.all` sobre PGlite, aceitando a limitação de
       concorrência real — a prova genuína fica fora do escopo desta feature, ver `concurrency-proof`)
       concluem no máximo uma sem erro não tratado
-- [ ] Gate check passes: `make ci`
+- [x] Gate check passes: `make ci`
 
 **Tests**: integration
 **Gate**: build
