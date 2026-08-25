@@ -132,11 +132,11 @@ depois de criar e ver o formulário de login.
 | BOOT-09 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
 | BOOT-10 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
 | BOOT-11 | P1: A porta se fecha sozinha | Implementing | Implementing (T4) |
-| BOOT-12 | P2: A tela de primeiro acesso | Tasks | Pending |
-| BOOT-13 | P2: A tela de primeiro acesso | Tasks | Pending |
-| BOOT-14 | P2: A tela de primeiro acesso | Tasks | Pending |
-| BOOT-15 | P2: A tela de primeiro acesso | Tasks | Pending |
-| BOOT-16 | P2: A tela de primeiro acesso | Tasks | Pending |
+| BOOT-12 | P2: A tela de primeiro acesso | Implementing | Implementing (T7) |
+| BOOT-13 | P2: A tela de primeiro acesso | Implementing | Implementing (T5) |
+| BOOT-14 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
+| BOOT-15 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
+| BOOT-16 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
 
 **Coverage:** 16 total, 16 mapeados para tasks, 0 sem mapeamento.
 

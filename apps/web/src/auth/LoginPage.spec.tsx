@@ -372,3 +372,46 @@ describe('LoginPage (T6, SSO-01..08/10/12)', () => {
     await screen.findByRole('link', { name: 'Sign in with SSO' });
   });
 });
+
+describe('LoginPage first-run fork (BOOT-12)', () => {
+  function firstRunClient(available: boolean) {
+    return {
+      checkAvailability: vi.fn(async () => ({ available })),
+      submit: vi.fn(async () => ({ status: 'error' as const })),
+    };
+  }
+
+  beforeEach(() => {
+    useAuthMock.mockReturnValue({ user: null, status: 'anonymous' });
+    stubFetch(() => Promise.resolve(jsonResponse(200, { configured: false })));
+  });
+
+  function renderWithClient(available: boolean) {
+    return render(
+      <MemoryRouter initialEntries={['/login']}>
+        <Routes>
+          <Route path="/login" element={<LoginPage firstRunClient={firstRunClient(available)} />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+  }
+
+  it('renders the first-run screen when the instance has no account', async () => {
+    renderWithClient(true);
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: 'First run' })).toBeDefined();
+    });
+    expect(screen.queryByLabelText('Workspace name')).not.toBeNull();
+    expect(screen.queryByRole('button', { name: 'Sign in' })).toBeNull();
+  });
+
+  it('renders the credentials form when the instance already has an account', async () => {
+    renderWithClient(false);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Sign in' })).toBeDefined();
+    });
+    expect(screen.queryByRole('heading', { name: 'First run' })).toBeNull();
+  });
+});

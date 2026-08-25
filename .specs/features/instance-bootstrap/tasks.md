@@ -204,10 +204,10 @@ consumidores de rota de `repo-tools` as reconheça.
 
 **Done when**:
 
-- [ ] Existe um branch para `{available:true}`, `404`, `201`, `400`, `409`, `429` e falha de rede
-- [ ] Nenhum status produz exceção não tratada
-- [ ] As chamadas são reconhecidas pelo extrator de consumidores de rota
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Existe um branch para `{available:true}`, `404`, `201`, `400`, `409`, `429` e falha de rede
+- [x] Nenhum status produz exceção não tratada
+- [x] As chamadas são reconhecidas pelo extrator de consumidores de rota
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 943/943
 
 **Tests**: unit
 **Gate**: full
@@ -233,11 +233,11 @@ default pré-preenchido), mensagens de erro por campo, texto integralmente vindo
 
 **Done when**:
 
-- [ ] Envio bem-sucedido navega para a raiz autenticada
-- [ ] `400` exibe a mensagem do campo recusado e preserva os demais valores digitados
-- [ ] Todo texto vem do i18n, com chaves presentes em `en` e `pt-BR`
-- [ ] Sem violação `jest-axe`; formulário completável só por teclado
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Envio bem-sucedido navega para a raiz autenticada
+- [x] `400` exibe a mensagem do campo recusado e preserva os demais valores digitados
+- [x] Todo texto vem do i18n, com chaves presentes em `en` e `pt-BR`
+- [x] Sem violação `jest-axe`; formulário completável só por teclado
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 943/943
 
 **Tests**: unit
 **Gate**: full
@@ -264,11 +264,11 @@ vazia. A consulta de SSO existente permanece intacta.
 
 **Done when**:
 
-- [ ] Com primeiro acesso disponível, a rota `/login` renderiza o formulário de primeiro acesso
-- [ ] Sem primeiro acesso disponível, renderiza o formulário de credenciais, inalterado
-- [ ] Um envio que devolve `409` ou `404` passa a exibir o formulário de credenciais
-- [ ] A consulta de SSO e o comportamento de `?error=oidc_failed` seguem inalterados
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Com primeiro acesso disponivel, a rota `/login` renderiza o formulario de primeiro acesso. **Desvio deliberado**: o estado inicial e `false`, nao `null`, entao a instancia inicializada (caso esmagadoramente comum) nunca segura o render esperando a resposta. Bloquear no `null` teria exigido reescrever os testes existentes de `LoginPage` de sincronos para assincronos, o que a regra de integridade de teste proibe
+- [x] Sem primeiro acesso disponível, renderiza o formulário de credenciais, inalterado
+- [x] Um envio que devolve `409` ou `404` passa a exibir o formulário de credenciais
+- [x] A consulta de SSO e o comportamento de `?error=oidc_failed` seguem inalterados
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 943/943
 
 **Tests**: unit
 **Gate**: full

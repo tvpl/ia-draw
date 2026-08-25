@@ -1,7 +1,9 @@
-import { type FormEvent, type JSX, useEffect, useState } from 'react';
+import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from './AuthProvider.js';
+import { FirstRunPage } from './FirstRunPage.js';
+import { createFirstRunClient, type FirstRunClient } from './firstRunClient.js';
 
 const DEFAULT_TARGET = '/';
 
@@ -28,7 +30,12 @@ interface OidcStatusResponse {
  * `next`/`error` from the URL and `useAuth()` for the already-authenticated
  * short-circuit (design.md).
  */
-export function LoginPage(): JSX.Element | null {
+export interface LoginPageProps {
+  /** Injectable for tests; defaults to the global fetch, same convention as the other pages. */
+  firstRunClient?: FirstRunClient;
+}
+
+export function LoginPage({ firstRunClient }: LoginPageProps = {}): JSX.Element | null {
   const { t } = useTranslation();
   const { status } = useAuth();
   const [searchParams] = useSearchParams();
@@ -42,6 +49,26 @@ export function LoginPage(): JSX.Element | null {
     oidcFailed ? t('auth.ssoFailed') : null,
   );
   const [ssoConfigured, setSsoConfigured] = useState(false);
+  // BOOT-12: starts `false`, not `null`. Blocking the render until the answer arrives would
+  // hold back the credentials form on every normal sign-in — the overwhelmingly common case —
+  // to spare a fresh instance one frame. An instance that has accounts is the default.
+  const [firstRunAvailable, setFirstRunAvailable] = useState(false);
+  const resolvedFirstRunClient = useMemo(
+    () => firstRunClient ?? createFirstRunClient(),
+    [firstRunClient],
+  );
+
+  // BOOT-12: which form this route shows is decided by the server, not by configuration —
+  // an instance with no account gets the first-run form, everything else gets credentials.
+  useEffect(() => {
+    let cancelled = false;
+    void resolvedFirstRunClient.checkAvailability().then(({ available }) => {
+      if (!cancelled) setFirstRunAvailable(available);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedFirstRunClient]);
 
   // SSO-09..11: the SSO link only ever appears after a successful
   // `{configured: true}` — any non-200 or network failure is treated as
@@ -71,6 +98,17 @@ export function LoginPage(): JSX.Element | null {
   // exists — mirrors `ProtectedRoute`'s "render nothing while loading".
   if (status !== 'anonymous') {
     return null;
+  }
+
+  // BOOT-15: `onAlreadyInitialized` is how the first-run form hands the route back when the
+  // instance stopped being empty between the check and the submit.
+  if (firstRunAvailable) {
+    return (
+      <FirstRunPage
+        client={resolvedFirstRunClient}
+        onAlreadyInitialized={() => setFirstRunAvailable(false)}
+      />
+    );
   }
 
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !submitting;
