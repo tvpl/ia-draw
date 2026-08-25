@@ -278,7 +278,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
     });
 
     // The preview is showing (awaiting_approval) but nothing has reached the canvas yet.
-    expect(screen.getByRole('button', { name: 'Aprovar' })).not.toBeNull();
+    expect(await screen.findByRole('button', { name: 'Aprovar' })).not.toBeNull();
     expect(updateSceneSpy).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -372,6 +372,10 @@ describe('DiagramEditorPage (T9, integration)', () => {
       await Promise.resolve();
     });
 
+    // GATE-04: wait for the approve control instead of counting microtask ticks. A fixed
+    // number of `await Promise.resolve()` is a guess about how many awaits the run response
+    // travels through, and the guess only holds while the machine is idle.
+    await screen.findByRole('button', { name: 'Aprovar' });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Aprovar' }));
       await Promise.resolve();
@@ -459,7 +463,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
 
     // awaiting_approval: preview on screen, nothing has touched the canvas or
     // triggered a revision-changing call (no second bootstrap, no batch send).
-    expect(screen.getByRole('button', { name: 'Aprovar' })).not.toBeNull();
+    expect(await screen.findByRole('button', { name: 'Aprovar' })).not.toBeNull();
     expect(updateSceneSpy).not.toHaveBeenCalled();
     expect(bootstrapCalls).toBe(1);
     expect(fetchImpl).not.toHaveBeenCalledWith(

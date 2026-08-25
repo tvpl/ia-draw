@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '../i18n/index.js';
@@ -50,6 +50,24 @@ function renderPage(fetchImpl: typeof fetch) {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+/**
+ * GATE-04: fires a presenter shortcut only after React has flushed its passive effects.
+ *
+ * The document-level `keydown` listener is attached inside a `useEffect` that runs after the
+ * frame list renders. `findByText('Frame 1 de 3')` can resolve on the same commit that
+ * schedules that effect, so a key fired immediately after it is dispatched at a document with
+ * no listener yet — the press is dropped, the next `findByText` waits out its whole budget and
+ * the file fails. Which file loses that race changes per run, which is what made it read as a
+ * generic flake rather than a specific ordering bug.
+ *
+ * Flushing is the fix, not a longer timeout: waiting longer for an event that was already
+ * dropped never helps.
+ */
+async function pressKey(key: string): Promise<void> {
+  await act(async () => {});
+  fireEvent.keyDown(screen.getByTestId('presenter-shell'), { key });
 }
 
 const presentation = {
@@ -135,29 +153,25 @@ describe('PresenterModePage (T19, PRZ-35..41)', () => {
     renderPage(baseFetch());
     await screen.findByText('Frame 1 de 3');
 
-    fireEvent.keyDown(screen.getByTestId('presenter-shell'), {
-      key: 'ArrowRight',
-    });
+    await pressKey('ArrowRight');
     expect(await screen.findByText('Frame 2 de 3')).not.toBeNull();
   });
 
   it('ArrowLeft/PageUp move back to the previous frame', async () => {
     renderPage(baseFetch());
     await screen.findByText('Frame 1 de 3');
-    const shell = screen.getByTestId('presenter-shell');
 
-    fireEvent.keyDown(shell, { key: 'ArrowRight' });
+    await pressKey('ArrowRight');
     await screen.findByText('Frame 2 de 3');
-    fireEvent.keyDown(shell, { key: 'ArrowLeft' });
+    await pressKey('ArrowLeft');
     expect(await screen.findByText('Frame 1 de 3')).not.toBeNull();
   });
 
   it('Escape navigates back to the presentation editor (PRZ-39)', async () => {
     renderPage(baseFetch());
     await screen.findByText('Frame 1 de 3');
-    const shell = screen.getByTestId('presenter-shell');
 
-    fireEvent.keyDown(shell, { key: 'Escape' });
+    await pressKey('Escape');
     expect(await screen.findByTestId('editor-page')).not.toBeNull();
   });
 
@@ -165,9 +179,7 @@ describe('PresenterModePage (T19, PRZ-35..41)', () => {
     renderPage(baseFetch());
     await screen.findByText('Frame 1 de 3');
 
-    fireEvent.keyDown(screen.getByTestId('presenter-shell'), {
-      key: 'ArrowRight',
-    });
+    await pressKey('ArrowRight');
     await screen.findByText('Frame 2 de 3');
 
     const navLink = await screen.findByRole('button', { name: /Ir para:/ });
@@ -179,11 +191,10 @@ describe('PresenterModePage (T19, PRZ-35..41)', () => {
     const writes: Array<[string, string | undefined]> = [];
     renderPage(baseFetch((url, method) => writes.push([url, method])));
     await screen.findByText('Frame 1 de 3');
-    const shell = screen.getByTestId('presenter-shell');
 
-    fireEvent.keyDown(shell, { key: 'ArrowRight' });
+    await pressKey('ArrowRight');
     await screen.findByText('Frame 2 de 3');
-    fireEvent.keyDown(shell, { key: 'ArrowLeft' });
+    await pressKey('ArrowLeft');
     await screen.findByText('Frame 1 de 3');
 
     expect(writes.every(([, method]) => !method || method === 'GET')).toBe(true);
