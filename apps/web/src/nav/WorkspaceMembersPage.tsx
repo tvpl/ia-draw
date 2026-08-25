@@ -223,7 +223,16 @@ export function WorkspaceMembersPage({
         <Link className={css.link} to={`/w/${workspaceId}`}>
           {t('nav.back')}
         </Link>
-        <h2 className={css.pageTitle}>{t('nav.members.title')}</h2>
+        <div className="flex flex-wrap items-center gap-3">
+          <h2 className={css.pageTitle}>{t('nav.members.title')}</h2>
+          {/* RBAC-13: the person's own effective role, shown where it decides what this page
+              offers. A control that is simply absent is indistinguishable from a defect. */}
+          {me && (
+            <span className={css.badge}>
+              {t('nav.members.yourRole')}: {t(`nav.members.roleOptions.${ROLE_KEY[me.role]}`)}
+            </span>
+          )}
+        </div>
       </div>
       <div aria-live="polite" className={css.helpText} data-testid="members-announcement">
         {announcement}
@@ -270,6 +279,11 @@ export function WorkspaceMembersPage({
             </li>
           ))}
         </ul>
+      )}
+
+      {/* RBAC-14: the reason, next to the absence. */}
+      {!canManage && listStatus === 'ready' && (
+        <p className={css.helpText}>{t('nav.members.noPermission')}</p>
       )}
 
       {canManage && (

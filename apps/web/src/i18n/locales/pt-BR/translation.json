@@ -197,7 +197,9 @@
         "editor": "Editor",
         "reviewer": "Revisor",
         "viewer": "Visualizador"
-      }
+      },
+      "yourRole": "Seu papel",
+      "noPermission": "Você não tem permissão para isto neste workspace."
     },
     "webhooks": {
       "link": "Webhooks",

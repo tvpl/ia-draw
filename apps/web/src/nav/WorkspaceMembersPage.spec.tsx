@@ -552,3 +552,36 @@ describe('WorkspaceMembersPage — P1: Remover (MEM-14..18)', () => {
     await waitFor(() => expect(screen.queryByText('Me')).toBeNull());
   });
 });
+
+describe('WorkspaceMembersPage — effective role on screen (RBAC-13, RBAC-14)', () => {
+  function stub(role: string): typeof fetch {
+    return vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') {
+        return membersResponse([{ userId: ME.id, displayName: 'Me', email: ME.email, role }]);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+  }
+
+  it('shows the signed-in person their own effective role in this workspace', async () => {
+    renderPage(stub('workspace_admin'));
+
+    expect(await screen.findByText(/Seu papel:/)).toBeDefined();
+    expect(screen.getByText(/Seu papel: Admin do workspace/)).toBeDefined();
+  });
+
+  it('states the reason instead of leaving a role without permission to guess', async () => {
+    renderPage(stub('viewer'));
+
+    expect(
+      await screen.findByText('Você não tem permissão para isto neste workspace.'),
+    ).toBeDefined();
+  });
+
+  it('shows the role that came back, not a fixed one', async () => {
+    renderPage(stub('reviewer'));
+
+    expect(await screen.findByText(/Seu papel: Revisor/)).toBeDefined();
+  });
+});

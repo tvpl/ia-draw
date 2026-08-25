@@ -56,6 +56,15 @@ export interface ProjectListPageProps {
  * (NAV-09..11). A 404 on the workspace lookup renders the shared "not found or no access"
  * message (NAV-04), never distinguishing the two cases.
  */
+/** Mirrors `WorkspaceMembersPage`'s map; the i18n keys are the shared contract, not the map. */
+const ROLE_KEY: Record<Role, string> = {
+  org_admin: 'orgAdmin',
+  workspace_admin: 'workspaceAdmin',
+  editor: 'editor',
+  reviewer: 'reviewer',
+  viewer: 'viewer',
+};
+
 export function ProjectListPage({
   fetchImpl: fetchImplProp,
 }: ProjectListPageProps): JSX.Element | null {
@@ -266,7 +275,20 @@ export function ProjectListPage({
           {t('nav.back')}
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className={css.pageTitle}>{workspace ? workspace.name : t('nav.projects.title')}</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className={css.pageTitle}>
+              {workspace ? workspace.name : t('nav.projects.title')}
+            </h2>
+            {/* RBAC-16: the effective role for this workspace, from the same `workspace.role`
+                the page already uses to gate its controls — no extra request, and no second
+                call to /me (AD-011). */}
+            {workspace && (
+              <span className={css.badge}>
+                {t('nav.members.yourRole')}:{' '}
+                {t(`nav.members.roleOptions.${ROLE_KEY[workspace.role]}`)}
+              </span>
+            )}
+          </div>
           {canWriteWorkspace && (
             <button className={css.buttonDanger} type="button" onClick={requestArchiveWorkspace}>
               {t('nav.workspaces.archiveCurrent')}
