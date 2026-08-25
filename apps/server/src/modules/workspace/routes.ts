@@ -7,9 +7,11 @@ import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import type { JobQueue } from '../jobs/index.js';
+import { LastAdminError } from './lastAdmin.js';
 import {
   addWorkspaceMember,
   listWorkspaceMembers,
+  readMemberRole,
   removeWorkspaceMember,
   updateWorkspaceMemberRole,
 } from './members.js';
@@ -136,7 +138,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
     const decision = can({ role }, 'workspace:read', { workspaceId: id });
     if (!decision.allowed) notFound();
 
-    const workspace = await getWorkspaceById(db, id, user.id);
+    const workspace = await getWorkspaceById(db, id, role);
     if (!workspace) notFound();
     return { workspace };
   });
@@ -253,7 +255,15 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
       if (!decision.allowed) forbidden();
 
       const body = updateMemberBodySchema.parse(request.body);
-      const updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
+      // RBAC-11: read before the change, so the audit records what the role WAS.
+      const previousRole = await readMemberRole(db, id, targetUserId);
+      let updated: boolean;
+      try {
+        updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
+      } catch (error) {
+        if (error instanceof LastAdminError) conflict(error.message);
+        throw error;
+      }
       if (!updated) notFound();
 
       await recordAuditEvent(db, {
@@ -261,7 +271,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
         action: 'workspace.member.updated',
         resourceType: 'workspace',
         resourceId: id,
-        metadataJson: { targetUserId, role: body.role },
+        metadataJson: { targetUserId, role: body.role, previousRole },
       });
 
       return { ok: true };
@@ -280,7 +290,14 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
       const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
       if (!decision.allowed) forbidden();
 
-      const removed = await removeWorkspaceMember(db, id, targetUserId);
+      const previousRole = await readMemberRole(db, id, targetUserId);
+      let removed: boolean;
+      try {
+        removed = await removeWorkspaceMember(db, id, targetUserId);
+      } catch (error) {
+        if (error instanceof LastAdminError) conflict(error.message);
+        throw error;
+      }
       if (!removed) notFound();
 
       await recordAuditEvent(db, {
@@ -288,7 +305,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
         action: 'workspace.member.removed',
         resourceType: 'workspace',
         resourceId: id,
-        metadataJson: { targetUserId },
+        metadataJson: { targetUserId, previousRole },
       });
 
       reply.code(204);
