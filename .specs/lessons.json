@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 63,
+  "next_id": 64,
   "lessons": [
     {
       "id": "L-001",
@@ -1122,6 +1122,24 @@
       ],
       "created": "2026-08-25T14:56:33Z",
       "last_seen": "2026-08-25T14:56:33Z"
+    },
+    {
+      "id": "L-063",
+      "key": "surviving_mutant::uma corrida unica entre duas requisicoes concorrentes pode ser inerentemente proxima de 50 50 mesmo sem o lock quando ha trabalho caro argon2 hash antes da secao critica nem sockets reais nem um ciclo de aquecimento tornam essa unica amostra confiavel medido 24 24 numa forma e 10 24 noutra contra o mesmo codigo a correcao e repetir a corrida n vezes dentro do mesmo teste e exigir que toda repeticao resolva certo nao cacar um jeito de tornar uma amostra unica deterministica",
+      "text": "Uma corrida UNICA entre duas requisicoes concorrentes pode ser inerentemente proxima de 50/50 mesmo sem o lock, quando ha trabalho caro (argon2.hash) antes da secao critica — nem sockets reais nem um ciclo de aquecimento tornam essa UNICA amostra confiavel (medido 24/24 numa forma e 10/24 noutra contra o MESMO codigo). A correcao e repetir a corrida N vezes dentro do mesmo teste e exigir que TODA repeticao resolva certo, nao caçar um jeito de tornar uma amostra unica deterministica.",
+      "signal": "surviving_mutant",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "concurrency-proof"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts (testing)"
+      ],
+      "created": "2026-08-25T16:40:54Z",
+      "last_seen": "2026-08-25T16:40:54Z"
     }
   ]
 }

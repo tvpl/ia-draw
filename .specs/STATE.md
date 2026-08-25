@@ -169,12 +169,24 @@ comporta N sem colisão de merge — cada frente edita só a sua própria subse�
   corrida de verdade, com o vencedor variando entre execuções — confirmado por instrumentação
   manual antes de escrever o teste final, não assumido. `make ci`/`make test-integration`
   continuam passando com zero Postgres instalado (verificado rodando `make ci` com o cluster
-  local parado).
+  local parado). **Verificação independente encontrou um segundo defeito real**: a mesma
+  mitigação (sockets reais + aquecimento) nunca foi aplicada ao teste de BOOT-08 — sensor de
+  mutação mostrou que remover `pg_advisory_xact_lock` de `bootstrapInstance` só era pego 13/24
+  vezes (54%), quase cara-ou-coroa para uma garantia de integridade de dados. Causa raiz:
+  `argon2.hash` roda antes do lock, e uma corrida ÚNICA entre dois `first-run` concorrentes é
+  inerentemente próxima de 50/50 sem o lock — nem sockets reais nem aquecimento (testados,
+  medidos 24/24 numa forma e 10/24 noutra contra o MESMO código) tornam uma amostra única
+  confiável. Correção real: repetir a corrida 15 vezes dentro do mesmo teste, resetando `users`
+  via `TRUNCATE` entre tentativas (mesma conexão, sem recomeço a frio), exigindo que TODA
+  repetição resolva certo — em lotes de 4 contra apps Fastify sucessivos, porque `/auth/
+  first-run` tem limite de taxa próprio (10 req/60s) que uma única aplicação de vida longa
+  estouraria em 15 repetições. Sensor após a correção: 15/15 execuções completas (225 tentativas
+  de corrida) mataram a mutação — 100%.
 - **Aberto e sem dono** (dívida honesta, nenhuma escondida):
   - **`/share/:token` é inalcançável por navegação de página inteira** — o proxy do Vite e o `Caddyfile` encaminham `/share*` inteiro para `apps/server` (AD-013), então uma visita fria à URL pública real (a que `ShareLinkPanel.tsx` distribui) devolve o JSON da API, nunca a SPA. Achado durante R24/T3, fora do escopo dela para corrigir. Precisa de uma spec própria tocando `vite.config.ts`/`Caddyfile`/`routePrefixes.ts`.
   - **BOOT**: o caso de borda `503` (banco indisponível durante o first-run) não tem teste.
   - **AD-016 tem uma consequência de desenho declarada**: ser `org_admin` em *qualquer* workspace de uma organização é o que faz alguém administrador dela, porque o schema atual não tem `organization_members`. É a única leitura possível sem migração; **R28 (`organization-admins`), em andamento, endereça isto** — tabela nova, os três call sites que liam `workspace_members.role='org_admin'` migrados para ela, formulário dedicado, seletor de papel de workspace sem `org_admin` como opção nova.
-- **Lições novas**: L-046 a L-062 (`candidate`) — memoizar prop pelo valor e nunca pelo mount; mock mais permissivo que a lib esconde defeito; `Done when` que produz artefato tem de ser conferido contra o disco; guard por substring de identificador aprova redefinição local (recorreu em R21 com `--color-accent` casando `--color-accent-hover`); AC que exige serviço de pé é estrutural, não verde; um segundo caminho de autorização anula a mudança do primeiro; **gate que passa por cache do turbo não é gate que passou**; `git checkout -- <arquivo>` descarta trabalho não commitado igual a `git stash` (recorrência de L-024 em forma nova); flake tem mais de uma causa e aumentar timeout só resolve uma delas; `asyncUtilTimeout` da Testing Library tem de ficar abaixo do `testTimeout` do vitest; um `Done when` de gate marcado `[x]` não prova que o comando passa isolado (L-062); e a maior delas — **um instrumento de medição que só verifica uma direção não descobre o que ele próprio não mede**.
+- **Lições novas**: L-046 a L-063 (`candidate`) — memoizar prop pelo valor e nunca pelo mount; mock mais permissivo que a lib esconde defeito; `Done when` que produz artefato tem de ser conferido contra o disco; guard por substring de identificador aprova redefinição local (recorreu em R21 com `--color-accent` casando `--color-accent-hover`); AC que exige serviço de pé é estrutural, não verde; um segundo caminho de autorização anula a mudança do primeiro; **gate que passa por cache do turbo não é gate que passou**; `git checkout -- <arquivo>` descarta trabalho não commitado igual a `git stash` (recorrência de L-024 em forma nova); flake tem mais de uma causa e aumentar timeout só resolve uma delas; `asyncUtilTimeout` da Testing Library tem de ficar abaixo do `testTimeout` do vitest; um `Done when` de gate marcado `[x]` não prova que o comando passa isolado (L-062); e a maior delas — **um instrumento de medição que só verifica uma direção não descobre o que ele próprio não mede**.
 - **Blockers**: nenhum.
 - **Uncommitted files**: nenhum.
 

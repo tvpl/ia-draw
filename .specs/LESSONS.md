@@ -386,6 +386,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/web/e2e/support/runTestServer.ts (e2e)
 - last seen: 2026-08-25T14:56:33Z
 
+### L-063 - Uma corrida UNICA entre duas requisicoes concorrentes pode ser inerentemente proxima de 50/50 mesmo sem o lock, quando ha trabalho caro (argon2.hash) antes da secao critica — nem sockets reais nem um ciclo de aquecimento tornam essa UNICA amostra confiavel (medido 24/24 numa forma e 10/24 noutra contra o MESMO codigo). A correcao e repetir a corrida N vezes dentro do mesmo teste e exigir que TODA repeticao resolva certo, nao caçar um jeito de tornar uma amostra unica deterministica.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: concurrency-proof
+- evidence: apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts (testing)
+- last seen: 2026-08-25T16:40:54Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
