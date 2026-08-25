@@ -11,9 +11,9 @@ página inteira.
 
 ## Goals
 
-- [ ] As quatro páginas de lista oferecem um botão "Tentar novamente" quando a carga falha
-- [ ] Acionar o botão refaz exatamente a mesma requisição, sem efeito colateral novo
-- [ ] `WorkspaceMembersPage` ganha a mesma ação sem enfraquecer a convenção MEM-03 (falha de
+- [x] As quatro páginas de lista oferecem um botão "Tentar novamente" quando a carga falha
+- [x] Acionar o botão refaz exatamente a mesma requisição, sem efeito colateral novo
+- [x] `WorkspaceMembersPage` ganha a mesma ação sem enfraquecer a convenção MEM-03 (falha de
       carga = "não encontrado", nunca revela se o motivo foi rede ou acesso)
 
 ## Out of Scope
@@ -83,7 +83,7 @@ chamada, acionar o botão, ver a lista aparecer.
 | LRA-01 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 | LRA-02 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 | LRA-03 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
-| LRA-04 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
+| LRA-04 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 | LRA-05 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 
 **Coverage:** 5 total, 5 mapeados para tasks, 0 sem mapeamento.
@@ -92,7 +92,7 @@ chamada, acionar o botão, ver a lista aparecer.
 
 ## Success Criteria
 
-- [ ] As quatro páginas oferecem "Tentar novamente" no estado de erro
-- [ ] O botão refaz a mesma requisição e recupera a lista quando ela volta a funcionar
-- [ ] `WorkspaceMembersPage` não passou a distinguir motivo de falha
-- [ ] `make ci` passa
+- [x] As quatro páginas oferecem "Tentar novamente" no estado de erro
+- [x] O botão refaz a mesma requisição e recupera a lista quando ela volta a funcionar
+- [x] `WorkspaceMembersPage` não passou a distinguir motivo de falha
+- [x] `make ci` passa

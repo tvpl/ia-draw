@@ -1,6 +1,6 @@
 import type { Role } from '@arch-canvas/auth';
 import { can } from '@arch-canvas/auth';
-import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.js';
@@ -78,26 +78,37 @@ export function WorkspaceMembersPage({
   const [removeTarget, setRemoveTarget] = useState<MemberItem | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
-  useEffect(() => {
+  // LRA-04: `loadMembers` is the named async body the initial load effect and the "Tentar
+  // novamente" retry button (rendered in the `notFound` branch below, where this page's load
+  // failures actually surface) both call. `cancelledRef` is the same cancellation guard the
+  // effect always used, now shared with the button too.
+  const cancelledRef = useRef(false);
+
+  const loadMembers = useCallback(async (): Promise<void> => {
     if (!workspaceId) return;
-    let cancelled = false;
-
-    (async () => {
-      try {
-        const list = await client.list(workspaceId);
-        if (!cancelled) setItems(list.map(toMemberItem));
-      } catch {
-        // MEM-03: any failure to load the member list — 404 or otherwise — is treated as "this
-        // workspace doesn't exist or you don't have access to it", the same IDOR convention
-        // ProjectListPage already uses for its own workspace-detail lookup.
-        if (!cancelled) setNotFound(true);
+    try {
+      const list = await client.list(workspaceId);
+      if (!cancelledRef.current) {
+        setItems(list.map(toMemberItem));
+        setNotFound(false);
       }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    } catch {
+      // MEM-03: any failure to load the member list — 404 or otherwise — is treated as "this
+      // workspace doesn't exist or you don't have access to it", the same IDOR convention
+      // ProjectListPage already uses for its own workspace-detail lookup. The retry button
+      // (LRA-04) re-enters this exact branch on a repeated failure, so it never reveals whether
+      // the cause was network, permission, or a workspace that doesn't exist.
+      if (!cancelledRef.current) setNotFound(true);
+    }
   }, [workspaceId, client, setItems]);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    void loadMembers();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [loadMembers]);
 
   useEffect(() => {
     if (removeTarget) dialogRef.current?.showModal();
@@ -213,6 +224,9 @@ export function WorkspaceMembersPage({
       <div>
         <Link to={`/w/${workspaceId}`}>{t('nav.back')}</Link>
         <p>{t('nav.notFound')}</p>
+        <button className={css.buttonSecondary} type="button" onClick={() => void loadMembers()}>
+          {t('nav.error.retry')}
+        </button>
       </div>
     );
   }

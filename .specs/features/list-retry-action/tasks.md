@@ -101,11 +101,11 @@ sem revelar o motivo.
 
 **Done when**:
 
-- [ ] O botão aparece na tela de "não encontrado" desta página
-- [ ] Acioná-lo refaz a mesma chamada de `client.list(workspaceId)`
-- [ ] Sucesso populacional some com a tela de "não encontrado" e mostra a lista de membros
-- [ ] Falha repetida mantém a mesma mensagem, sem novo texto revelando a causa
-- [ ] Gate check passes: `make ci`
+- [x] O botão aparece na tela de "não encontrado" desta página
+- [x] Acioná-lo refaz a mesma chamada de `client.list(workspaceId)`
+- [x] Sucesso populacional some com a tela de "não encontrado" e mostra a lista de membros
+- [x] Falha repetida mantém a mesma mensagem, sem novo texto revelando a causa
+- [x] Gate check passes: `make ci`
 
 **Tests**: unit
 **Gate**: build

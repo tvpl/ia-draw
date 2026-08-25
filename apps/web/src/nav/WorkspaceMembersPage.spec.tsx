@@ -118,6 +118,62 @@ describe('WorkspaceMembersPage — P1: Ver membros (MEM-01, MEM-03)', () => {
   });
 });
 
+describe('WorkspaceMembersPage — retry on load failure (LRA-04)', () => {
+  it('shows a retry button on the not-found screen, and clicking it re-fetches the same GET /workspaces/:id/members call', async () => {
+    let listCalls = 0;
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') {
+        listCalls += 1;
+        if (listCalls === 1) return jsonResponse(404, {});
+        return membersResponse([
+          {
+            userId: 'user-1',
+            workspaceId: 'ws-1',
+            role: 'viewer',
+            email: 'me@example.com',
+            displayName: 'Me',
+          },
+        ]);
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(
+      await screen.findByText('Este item não existe ou você não tem acesso a ele.'),
+    ).toBeTruthy();
+    const retryButton = screen.getByRole('button', { name: 'Tentar novamente' });
+
+    fireEvent.click(retryButton);
+
+    expect(await screen.findByText('Me')).toBeTruthy();
+    expect(screen.queryByText('Este item não existe ou você não tem acesso a ele.')).toBeNull();
+    expect(listCalls).toBe(2);
+  });
+
+  it('a repeated failure on retry keeps the same not-found message, without revealing the cause (MEM-03)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return jsonResponse(403, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    await screen.findByText('Este item não existe ou você não tem acesso a ele.');
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+
+    await waitFor(() =>
+      expect(
+        screen.getAllByText('Este item não existe ou você não tem acesso a ele.'),
+      ).toHaveLength(1),
+    );
+    expect(screen.getAllByRole('button', { name: 'Tentar novamente' })).toHaveLength(1);
+  });
+});
+
 describe('WorkspaceMembersPage — P1: Convidar (MEM-04..09)', () => {
   function adminMembers() {
     return [
