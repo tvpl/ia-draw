@@ -204,11 +204,19 @@ comporta N sem colisão de merge — cada frente edita só a sua própria subse�
   nova nos seletores de papel de workspace (`ASSIGNABLE_ROLE_VALUES`, 4 valores); uma linha legada
   continua exibindo o rótulo com fidelidade. Registrado como **AD-017**
   (`docs/adr/0017-organization-members-table.md`) — resolve a consequência de desenho que AD-016
-  tinha deixado aberta e sem dono.
+  tinha deixado aberta e sem dono. **Verificação independente encontrou um defeito real em
+  ORG-14**: o `<select>` de troca de papel por linha, que um `workspace_admin`/`org_admin` vê para
+  CADA membro (inclusive um legado com `role === 'org_admin'`), só oferecia as 4 opções de
+  `ASSIGNABLE_ROLE_VALUES` — sem `<option>` casando o valor real da linha legada, o controle não
+  tinha como renderizar "Admin da organização" nesse caso, e só existia teste do caminho
+  `!canManage` (crachá somente-leitura). Corrigido: qualquer linha cujo papel não esteja em
+  `ASSIGNABLE_ROLE_VALUES` cai no mesmo crachá somente-leitura, mesmo com `canManage` verdadeiro —
+  removível pelo botão "Remover", mas não reatribuível de volta pelo seletor. Teste novo confirmado
+  falhando antes da correção e passando depois. Lição L-064.
 - **Aberto e sem dono** (dívida honesta, nenhuma escondida):
   - **`/share/:token` é inalcançável por navegação de página inteira** — o proxy do Vite e o `Caddyfile` encaminham `/share*` inteiro para `apps/server` (AD-013), então uma visita fria à URL pública real (a que `ShareLinkPanel.tsx` distribui) devolve o JSON da API, nunca a SPA. Achado durante R24/T3, fora do escopo dela para corrigir. Precisa de uma spec própria tocando `vite.config.ts`/`Caddyfile`/`routePrefixes.ts`.
   - **BOOT**: o caso de borda `503` (banco indisponível durante o first-run) não tem teste.
-- **Lições novas**: L-046 a L-063 (`candidate`) — memoizar prop pelo valor e nunca pelo mount; mock mais permissivo que a lib esconde defeito; `Done when` que produz artefato tem de ser conferido contra o disco; guard por substring de identificador aprova redefinição local (recorreu em R21 com `--color-accent` casando `--color-accent-hover`); AC que exige serviço de pé é estrutural, não verde; um segundo caminho de autorização anula a mudança do primeiro; **gate que passa por cache do turbo não é gate que passou**; `git checkout -- <arquivo>` descarta trabalho não commitado igual a `git stash` (recorrência de L-024 em forma nova); flake tem mais de uma causa e aumentar timeout só resolve uma delas; `asyncUtilTimeout` da Testing Library tem de ficar abaixo do `testTimeout` do vitest; um `Done when` de gate marcado `[x]` não prova que o comando passa isolado (L-062); e a maior delas — **um instrumento de medição que só verifica uma direção não descobre o que ele próprio não mede**.
+- **Lições novas**: L-046 a L-064 (`candidate`) — memoizar prop pelo valor e nunca pelo mount; mock mais permissivo que a lib esconde defeito; `Done when` que produz artefato tem de ser conferido contra o disco; guard por substring de identificador aprova redefinição local (recorreu em R21 com `--color-accent` casando `--color-accent-hover`); AC que exige serviço de pé é estrutural, não verde; um segundo caminho de autorização anula a mudança do primeiro; **gate que passa por cache do turbo não é gate que passou**; `git checkout -- <arquivo>` descarta trabalho não commitado igual a `git stash` (recorrência de L-024 em forma nova); flake tem mais de uma causa e aumentar timeout só resolve uma delas; `asyncUtilTimeout` da Testing Library tem de ficar abaixo do `testTimeout` do vitest; um `Done when` de gate marcado `[x]` não prova que o comando passa isolado (L-062); uma amostra única de corrida é inerentemente perto de 50/50 quando trabalho caro roda antes do lock — nem socket real nem aquecimento sozinhos resolvem isso, só repetir a corrida muitas vezes (L-063); um `<select>` controlado ligado a um valor fora do seu conjunto de opções falha silenciosamente em renderizá-lo — todo ramo de exibição, não só o somente-leitura, precisa de um caminho pra valores legados fora do conjunto (L-064); e a maior delas — **um instrumento de medição que só verifica uma direção não descobre o que ele próprio não mede**.
 - **Blockers**: nenhum.
 - **Uncommitted files**: nenhum.
 
