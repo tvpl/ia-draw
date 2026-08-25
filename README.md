@@ -2,24 +2,56 @@
 
 Plataforma self-hosted de diagramação de arquitetura sobre o [Excalidraw](https://github.com/excalidraw/excalidraw), com persistência **server-first** — nenhum diagrama depende do navegador como fonte da verdade — e um motor de **IA geradora de diagramas** entregue como API.
 
-> **Status:** os 92 requisitos de F0–F5 estão implementados como **contrato de backend verificado**: cada um foi checado onda a onda por um Verifier independente, com evidência em `file:line`. Ver [`.specs/STATE.md`](.specs/STATE.md) (marco final) e [`.specs/features/architecture-canvas/validation.md`](.specs/features/architecture-canvas/validation.md).
->
-> A **superfície de produto é rastreada à parte** e está atrás do backend. Das 26 capacidades do [mapa de capacidades](docs/capability-map.yaml), 4 têm tela hoje e **22 são `backend-only`** — API verificada, sem nenhum componente em `apps/web` que as exponha ao usuário final. Em rotas: das 82 rotas REST registradas, 4 são consumidas pela interface e 78 não têm consumidor ([inventário](docs/route-inventory.md)). O CI roda `repo-tools audit` a cada pull request e falha quando o mapa declara uma superfície que não é um componente existente em `apps/web/src`. O portão cobre o mapa contra o código, não este texto contra o mapa — a correspondência entre a prosa daqui e as entradas do mapa continua sendo revisão humana.
+> **Status:** os 92 requisitos de F0–F5 foram implementados e verificados onda a onda por um
+> Verifier independente, com evidência em `file:line` — ver [`.specs/STATE.md`](.specs/STATE.md) e
+> [`.specs/features/architecture-canvas/validation.md`](.specs/features/architecture-canvas/validation.md).
+> A onda **F11** (remediação) fechou os defeitos que impediam o produto de ser usado: o editor
+> abria em tela branca, o proxy do Docker não roteava a API, e uma instância nova não tinha como
+> criar o primeiro usuário. Ver
+> [`remediation-roadmap.md`](.specs/features/platform-maturity/remediation-roadmap.md).
+
+<!-- repo-tools:counts:start -->
+- **Capacidades:** 27 no total, 21 com tela, 6 ainda sem superfície.
+- **Rotas REST:** 92 registradas, 67 consumidas pela interface, 25 sem consumidor.
+
+<sub>Bloco gerado por `repo-tools audit`. Não edite à mão: o gate compara o que está aqui
+com o que ele mede e falha na divergência.</sub>
+<!-- repo-tools:counts:end -->
+
+O bloco acima é medido pelo `repo-tools audit`, que roda no CI: ele reescreve os números a partir do
+código e falha quando o que está escrito diverge do que ele mede. O portão também vale na direção
+inversa — uma capacidade marcada `backend-only` cuja rota já tem consumidor em `apps/web/src`
+reprova, nomeando a capacidade e o arquivo. Antes disso a documentação só conseguia envelhecer numa
+direção: criar uma tela nunca obrigava ninguém a atualizar o mapa.
 
 ## O que é
 
-**Com tela hoje** (as 4 capacidades com superfície em `apps/web/src`):
+**Com tela hoje** (as capacidades com superfície em `apps/web/src` — a contagem exata está no bloco
+medido acima):
 
-- Diagramas técnicos e de negócio (AWS/cloud, C4, microsserviços, fluxos, swimlanes) desenhados no editor Excalidraw, mas **persistidos e reconciliados no servidor** a cada alteração — crash de navegador, reload ou troca de máquina nunca apagam trabalho confirmado.
-- Sessão autenticada no editor, recuperação da fila local após crash do navegador, e o shell da aplicação com acessibilidade verificada.
+- Diagramas técnicos e de negócio (AWS/cloud, C4, microsserviços, fluxos, swimlanes) desenhados no
+  editor Excalidraw, mas **persistidos e reconciliados no servidor** a cada alteração — crash de
+  navegador, reload ou troca de máquina nunca apagam trabalho confirmado.
+- Um agente de IA que gera diagramas a partir de linguagem natural (via a representação intermediária
+  declarativa `diagram-ir/v1`) e edita diagramas existentes com **preview, aprovação explícita e undo
+  real**, no dock lateral do editor.
+- Workspaces, projetos, diagramas e membros com papéis: `org_admin` vale em toda a organização,
+  `workspace_admin` no workspace, e um workspace nunca perde seu último administrador.
+- Comentários, lint arquitetural, documentação viva, biblioteca de componentes, histórico e restore
+  de versão, export de imagem e bundle, import/export Mermaid/Structurizr, apresentações navegáveis e
+  compartilhamento externo por link.
+- Colaboração em tempo real (WebSocket + presença) no canvas, e webhooks de eventos do workspace.
+- Instalação self-hosted com primeiro acesso pela própria interface, sem tocar no banco.
 
-**Contrato de backend verificado, ainda sem tela** (`backend-only` no mapa — a API existe e é testada, o usuário final não tem por onde acessar):
+**Contrato de backend verificado, ainda sem tela** (`backend-only` no mapa — a API existe e é
+testada, o usuário final não tem por onde acessar): backup com restore testado automaticamente,
+disaster recovery incremental, hardening de segurança HTTP e rate limiting, métricas Prometheus e
+tracing OpenTelemetry, desempenho de bootstrap sob carga, e o servidor MCP que expõe diagramas como
+contexto.
 
-- Um agente de IA que gera diagramas a partir de linguagem natural (via uma representação intermediária declarativa, `diagram-ir/v1`) e edita diagramas existentes com **preview, aprovação explícita e undo real**. É o diferencial declarado do produto e a primeira fatia do roadmap de UI.
-- Colaboração em tempo real (WebSocket + presença), documentação viva gerada a partir do canvas, lint arquitetural, import/export Mermaid/Structurizr, apresentações navegáveis, comentários, biblioteca de componentes, histórico e restore de versão, export de imagem e bundle, compartilhamento externo por link e webhooks.
-- Hardening de produção: OIDC, rate limiting, auditoria completa, backup incremental com teste de restore automatizado, métricas Prometheus, tracing OpenTelemetry.
-
-O que cada capacidade tem de evidência de backend, e se tem ou não superfície, está em [`docs/capability-map.yaml`](docs/capability-map.yaml) — uma entrada por capacidade, verificada pelo CI.
+O que cada capacidade tem de evidência de backend, e se tem ou não superfície, está em
+[`docs/capability-map.yaml`](docs/capability-map.yaml) — uma entrada por capacidade, verificada nas
+duas direções pelo CI.
 
 ## Quick start (local)
 
@@ -31,7 +63,26 @@ O que cada capacidade tem de evidência de backend, e se tem ou não superfície
 make up
 ```
 
-Abre em `http://localhost:8080` com health checks verdes, sem depender de internet (exceto o endpoint de IA que você configurar). Equivalente a `cd infra/compose && cp .env.example .env && docker compose up --build`, mas com `make help` listando todos os atalhos (`make logs`, `make down`, `make reset`, `make up-observability`, `make up-oidc`...). Ver [`infra/compose/README.md`](infra/compose/README.md) para o detalhe de cada profile e comandos de backup.
+Sobe o stack completo e publica tudo em `http://localhost:8080` (proxy Caddy → `server` e `web`).
+Equivalente a `cd infra/compose && cp .env.example .env && docker compose up --build`, mas com
+`make help` listando todos os atalhos (`make logs`, `make down`, `make reset`,
+`make up-observability`, `make up-oidc`...). Ver [`infra/compose/README.md`](infra/compose/README.md)
+para o detalhe de cada profile e os comandos de backup.
+
+### Primeiro acesso
+
+Uma instância nova **não tem nenhuma conta** — e não existe cadastro aberto. Abra
+`http://localhost:8080` e a tela de primeiro acesso aparece no lugar do formulário de login: informe
+e-mail, seu nome, uma senha de no mínimo 12 caracteres e o nome do primeiro workspace. Isso cria a
+conta, a organização, o workspace e a associação `org_admin`, e já abre a sessão.
+
+Essa tela **desaparece assim que é usada**: com qualquer conta existente, as duas rotas de
+primeiro acesso passam a responder `404` e `/login` volta a pedir credenciais. Não há como criar um
+segundo administrador por ali.
+
+Do workspace, crie um projeto, crie um diagrama dentro dele e abra — o editor carrega o canvas.
+Cada um desses passos é exercitado pelo job `compose-smoke` do CI pela porta pública, então este
+roteiro não descreve nada que o gate não execute.
 
 ## Deploy em produção (Dokploy)
 
@@ -67,6 +118,13 @@ essas variáveis num `.env` ao lado do compose file automaticamente:
 sem essa variável ele já sobe em modo produção (é só o `.env.example` do Quick start local que força
 `development`, e esse arquivo não entra no deploy do Dokploy). Todo o resto de `.env.example` tem
 default aceitável pra produção (nomes de usuário/banco) — só as 4 senhas acima são obrigatórias.
+
+### 2b. Primeiro acesso na instância remota
+
+Depois do primeiro deploy, abra o domínio (ou `http://<ip>:8080`) e faça o mesmo primeiro acesso
+descrito no Quick start: a instância sobe vazia e a tela de criação do administrador inicial só
+existe enquanto ela estiver assim. Não há passo de banco de dados, e não há como criar essa conta
+por variável de ambiente — a rota é pública apenas enquanto não houver nenhuma conta.
 
 O endpoint e a chave do **provider de IA** não são variável de ambiente: são configurados depois do
 deploy, dentro do próprio app (cifrados no banco pelo módulo `ai-provider`, com bloqueio de SSRF) —
