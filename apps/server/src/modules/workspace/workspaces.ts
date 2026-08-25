@@ -1,6 +1,6 @@
 import type { Role } from '@arch-canvas/auth';
 import { withTx, workspaceMembers, workspaces } from '@arch-canvas/database';
-import { and, eq, isNull } from 'drizzle-orm';
+import { and, eq, inArray, isNull } from 'drizzle-orm';
 import type { Db } from '../auth/db.js';
 import { getOrCreateDefaultOrganization } from './organizations.js';
 
@@ -48,30 +48,72 @@ export async function createWorkspace(
   });
 }
 
-/** Workspaces `userId` belongs to (any role), excluding soft-deleted ones — each item carries the caller's own `role` in that workspace (NAV-13, NAV-17). */
+/**
+ * Workspaces `userId` can reach, excluding soft-deleted ones — each item carries the
+ * caller's own effective `role` (NAV-13, NAV-17).
+ *
+ * RBAC-01/05 (AD-016): "can reach" is no longer "has a membership row". Someone holding
+ * `org_admin` anywhere in an organisation administers all of its workspaces, so those
+ * appear here too, carrying `org_admin`. A direct membership on the same workspace never
+ * lowers that — the more permissive of the two wins.
+ */
 export async function listWorkspacesForUser(db: Db, userId: string): Promise<WorkspaceWithRole[]> {
-  const rows = await db
-    .select({
-      id: workspaces.id,
-      organizationId: workspaces.organizationId,
-      name: workspaces.name,
-      slug: workspaces.slug,
-      accessPolicy: workspaces.accessPolicy,
-      createdAt: workspaces.createdAt,
-      updatedAt: workspaces.updatedAt,
-      role: workspaceMembers.role,
-    })
+  const columns = {
+    id: workspaces.id,
+    organizationId: workspaces.organizationId,
+    name: workspaces.name,
+    slug: workspaces.slug,
+    accessPolicy: workspaces.accessPolicy,
+    createdAt: workspaces.createdAt,
+    updatedAt: workspaces.updatedAt,
+  };
+
+  const direct = await db
+    .select({ ...columns, role: workspaceMembers.role })
     .from(workspaces)
     .innerJoin(workspaceMembers, eq(workspaceMembers.workspaceId, workspaces.id))
     .where(and(eq(workspaceMembers.userId, userId), isNull(workspaces.deletedAt)));
-  return rows;
+
+  const administeredOrgs = await db
+    .selectDistinct({ organizationId: workspaces.organizationId })
+    .from(workspaceMembers)
+    .innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
+    .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.role, 'org_admin')));
+
+  if (administeredOrgs.length === 0) return direct;
+
+  const orgIds = administeredOrgs.map((row) => row.organizationId);
+  const administered = await db
+    .select(columns)
+    .from(workspaces)
+    .where(and(inArray(workspaces.organizationId, orgIds), isNull(workspaces.deletedAt)));
+
+  const byId = new Map<string, WorkspaceWithRole>();
+  for (const row of direct) byId.set(row.id, row);
+  for (const row of administered) {
+    const existing = byId.get(row.id);
+    // `org_admin` is the most permissive role there is, so it always wins here.
+    if (!existing || existing.role !== 'org_admin') {
+      byId.set(row.id, { ...row, role: 'org_admin' });
+    }
+  }
+  return [...byId.values()];
 }
 
-/** Single workspace by id, scoped to `userId`'s own membership — carries the caller's `role` (NAV-09..12) and returns `null` for a non-member exactly as before (AUTH-04: the caller must still turn that into a 404, never a 403). */
+/**
+ * Single workspace by id, carrying the `role` the CALLER already resolved (NAV-09..12).
+ *
+ * RBAC-05 (AD-016): this used to join `workspace_members` itself, which was a second
+ * role-resolution path — and it is why granting `org_admin` had no effect on `GET
+ * /workspaces/:id` even after the resolver learned about organisations: the route said yes
+ * and this query said no. Access is decided once, by the caller, before this runs.
+ * Returns `null` only when the workspace does not exist or is soft-deleted; the caller
+ * turns that into a 404, never a 403 (AUTH-04).
+ */
 export async function getWorkspaceById(
   db: Db,
   workspaceId: string,
-  userId: string,
+  role: Role,
 ): Promise<WorkspaceWithRole | null> {
   const [row] = await db
     .select({
@@ -82,18 +124,10 @@ export async function getWorkspaceById(
       accessPolicy: workspaces.accessPolicy,
       createdAt: workspaces.createdAt,
       updatedAt: workspaces.updatedAt,
-      role: workspaceMembers.role,
     })
     .from(workspaces)
-    .innerJoin(workspaceMembers, eq(workspaceMembers.workspaceId, workspaces.id))
-    .where(
-      and(
-        eq(workspaces.id, workspaceId),
-        eq(workspaceMembers.userId, userId),
-        isNull(workspaces.deletedAt),
-      ),
-    );
-  return row ?? null;
+    .where(and(eq(workspaces.id, workspaceId), isNull(workspaces.deletedAt)));
+  return row ? { ...row, role } : null;
 }
 
 export interface UpdateWorkspaceInput {
