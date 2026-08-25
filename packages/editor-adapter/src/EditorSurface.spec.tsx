@@ -627,7 +627,12 @@ describe('EditorSurface (T94, DOCK-03)', () => {
       expect(rectangleElement).toBeDefined();
       expect(rectangleElement.backgroundColor).toBe('#ED7100');
       expect(textElement).toBeDefined();
-      expect(textElement.text).toBe('Amazon EC2');
+      // GATE-01: not `toBe('Amazon EC2')`. `convertToExcalidrawElements` wraps a bound label
+      // to fit its rectangle using font measurement, and jsdom measures differently from a
+      // real browser, so the literal assertion produced 'Amazon\nEC2' here and exited 1 on
+      // every run. What CLIB-04 actually requires is that the fallback carries the item's
+      // name; where the library decides to break the line is the library's business.
+      expect(textElement.text.replace(/\s+/g, ' ')).toBe('Amazon EC2');
       expect(rectangleElement.x + rectangleElement.width / 2).toBe(400);
       expect(rectangleElement.y + rectangleElement.height / 2).toBe(300);
 
