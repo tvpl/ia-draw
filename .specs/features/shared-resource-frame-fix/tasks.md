@@ -133,11 +133,24 @@ teria pego o bug original.
 
 **Done when**:
 
-- [ ] O teste publica uma apresentação com frames de conteúdo distinto entre si
-- [ ] O teste afirma presença de um elemento exclusivo do frame 1 antes de navegar
-- [ ] O teste navega para o frame 2 e afirma ausência do elemento do frame 1 e presença de um elemento exclusivo do frame 2
-- [ ] O teste roda contra o `<Excalidraw/>` real, sem `vi.mock`/mock algum
-- [ ] Gate check passes: `pnpm --filter @arch-canvas/web run test:e2e`
+- [x] O teste publica uma apresentação com frames de conteúdo distinto entre si
+- [x] O teste afirma presença de um elemento exclusivo do frame 1 antes de navegar
+- [x] O teste navega para o frame 2 e afirma ausência do elemento do frame 1 e presença de um elemento exclusivo do frame 2
+- [x] O teste roda contra o `<Excalidraw/>` real, sem `vi.mock`/mock algum
+- [x] Gate check passes: `pnpm --filter @arch-canvas/web run test:e2e`
+
+**Deviation (documented, not a scope change):** o teste não pode usar
+`page.goto('/share/:token')` (navegação de página inteira) — achado durante a execução: `/share`
+é um prefixo de rota do servidor (`routePrefixes.ts`, AD-013), e tanto o proxy do Vite quanto o
+Caddy encaminham QUALQUER requisição sob `/share*` para `apps/server`, sem distinguir navegação
+de XHR. Uma navegação completa para essa URL nunca alcança a SPA — devolve o JSON cru da rota
+`GET /share/:token` do backend (confirmado empiricamente). Isso é um defeito real e pré-existente
+de roteamento de borda, ortogonal ao bug que esta feature corrige, e fora do escopo dela (a
+correção tocaria `vite.config.ts`/`Caddyfile`/`routePrefixes.ts`, nenhum deles listado em "Where"
+de nenhuma task aqui). O teste carrega a SPA por uma rota que a borda não reivindica (`/login`) e
+então navega client-side (`history.pushState` + `popstate`) até `/share/:token` — mesma árvore
+React, mesmo `<EditorSurface>`/`<Excalidraw/>` reais, mesmo fetch real ao backend. Reportado
+separadamente como item de dívida novo (fora do escopo desta feature para corrigir).
 
 **Tests**: e2e
 **Gate**: build
