@@ -169,21 +169,30 @@ describe('DiagramEditorPage (T9, integration)', () => {
     const { container } = renderPage();
     await waitFor(() => expect(capturedOnChange).toBeDefined());
 
+    // TEST MODIFIED (UIF-13, F11/R21): these three assertions used to read
+    // `row.style.flexDirection`, `canvasColumn.style.flex` and `.style.minHeight` — the
+    // inline styles the same wave removes by design. The guarantee is unchanged and is
+    // asserted through the mechanism that now carries it; nothing was weakened, and the
+    // sidebar assertion below is new, since a declared width is what stops the panel from
+    // eating the canvas.
     const row = container.firstElementChild as HTMLElement;
-    expect(row.style.flexDirection).toBe('row');
+    expect(row.className).toContain('flex-row');
+    expect(row.className).toContain('h-screen');
     expect(row.children).toHaveLength(2);
-    // The canvas column is the row's first child, and keeps the documented flex:1/
-    // minHeight:0 sizing (unstyled ancestors otherwise collapse Excalidraw to 0 height).
+    // The canvas column is the row's first child and takes the remaining width; `min-h-0`
+    // is what stops an ancestor from collapsing Excalidraw to zero height.
     const canvasColumn = row.children[0] as HTMLElement;
-    // jsdom normalizes the `flex: 1` shorthand into its three longhands.
-    expect(canvasColumn.style.flex).toBe('1 1 0%');
-    expect(canvasColumn.style.minHeight).toBe('0px');
+    expect(canvasColumn.className).toContain('flex-1');
+    expect(canvasColumn.className).toContain('min-h-0');
     // T8/CMT2: the row's second child is a sidebar column hosting the tabbed AI/Comments
     // side panel plus the LibraryPanel/MetadataPanel panels (each collapsible via
     // <details>) — AiDock (still a <details> element) lives inside the tabbed panel's "IA"
     // tabpanel instead of being this column's direct child.
     const sidebar = row.children[1] as HTMLElement;
-    expect(sidebar.tagName).toBe('DIV');
+    // UIF-13: a landmark with a width of its own, so it never grows into the canvas.
+    expect(sidebar.tagName).toBe('ASIDE');
+    expect(sidebar.className).toContain('w-96');
+    expect(sidebar.className).toContain('shrink-0');
     expect(sidebar.querySelector('[role="tablist"]')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-ai details')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-comments')).not.toBeNull();

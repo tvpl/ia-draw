@@ -24,6 +24,7 @@ import { collaboratorColor } from '../presence/collaboratorColor.js';
 import { PresenceClient } from '../presence/presenceClient.js';
 import { createPresenceStore } from '../presence/presenceStore.js';
 import { ShareLinkPanel } from '../share/ShareLinkPanel.js';
+import * as css from '../styles/classNames.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
@@ -276,23 +277,26 @@ export function DiagramEditorPage(): JSX.Element {
 
   return (
     <>
-      <div style={{ display: 'flex', flexDirection: 'row', height: '100vh' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
-          <p data-testid="save-status">
+      {/* UIF-13/14: the side panel gets a declared width and the canvas column takes the
+          rest. Before this both were flex children with no width of their own, so the panel
+          grew with its content and ate into the drawing area. */}
+      <div className="flex h-screen flex-row overflow-hidden bg-surface">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <p className={css.helpText} data-testid="save-status">
             {t(saveStatusTranslationKey(kind), { count: pendingCount })}
           </p>
           <ConnectionStatus store={presence} />
           {/* XPRT-01..06: export/bundle actions — both only need diagram:read, which reaching
               this route already implies (bootstrap's own read-permission check), so no extra
               role gate here. */}
-          <div style={{ display: 'flex', flexDirection: 'row', gap: 8 }}>
+          <div className="flex flex-row flex-wrap items-center gap-2 border-b border-border bg-surface-raised px-3 py-2">
             <ExportMenu diagramId={diagramId} />
             <BundleButton diagramId={diagramId} />
           </div>
           {initialElements ? (
             // Excalidraw fills its parent's box — a flex child with flex:1 gives it the
             // concrete height it needs (an unstyled ancestor chain collapses to 0 height).
-            <div style={{ flex: 1, minHeight: 0 }}>
+            <div className="min-h-0 flex-1">
               <EditorSurface
                 ref={editorSurfaceRef}
                 initialElements={initialElements}
@@ -310,7 +314,7 @@ export function DiagramEditorPage(): JSX.Element {
             <p>{t('diagram.loading')}</p>
           )}
         </div>
-        <div style={{ display: 'flex', flexDirection: 'column' }}>
+        <aside className="flex w-96 shrink-0 flex-col gap-2 overflow-y-auto border-l border-border bg-surface-raised p-3">
           <EditorSidePanel
             aiPanel={
               canMutate ? (
@@ -337,24 +341,30 @@ export function DiagramEditorPage(): JSX.Element {
               />
             }
           />
-          <details>
-            <summary>{t('library.title')}</summary>
+          <details className="rounded-panel border border-border">
+            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+              {t('library.title')}
+            </summary>
             <LibraryPanel
               workspaceId={workspaceId}
               canWrite={canMutate}
               onInsert={handleInsertLibraryItem}
             />
           </details>
-          <details>
-            <summary>{t('metadata.title')}</summary>
+          <details className="rounded-panel border border-border">
+            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+              {t('metadata.title')}
+            </summary>
             <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
           </details>
           {/* living-docs (LDC-01): visible to anyone who reaches this route (`diagram:read` is
               already implied), same `<details>` convention as Library/Metadata above — generate
               and per-section regenerate are gated inside DocsPanel itself via `canMutate`, not by
               hiding the whole panel (unlike ShareLinkPanel below, which IS fully canMutate-gated). */}
-          <details>
-            <summary>{t('docs.title')}</summary>
+          <details className="rounded-panel border border-border">
+            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+              {t('docs.title')}
+            </summary>
             <DocsPanel
               diagramId={diagramId}
               canMutate={canMutate}
@@ -365,26 +375,31 @@ export function DiagramEditorPage(): JSX.Element {
               decision as `AiDock` — the server requires it to create a link at
               all, so a role that cannot mutate gets no panel, not a disabled one. */}
           {canMutate && (
-            <details>
-              <summary>{t('share.panelTitle')}</summary>
+            <details className="rounded-panel border border-border">
+              <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+                {t('share.panelTitle')}
+              </summary>
               <ShareLinkPanel diagramId={diagramId} canMutate={canMutate} />
             </details>
           )}
           {workspaceId && (
-            <Link to={`/w/${workspaceId}/d/${diagramId}/inventory`}>{t('inventory.open')}</Link>
+            <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/inventory`}>
+              {t('inventory.open')}
+            </Link>
           )}
           {/* presentation-mode/T8: the ONLY change this file needs for R12 — a single link into
               the new /present route, same tier as the /inventory link above it. Everything else
               (frame CRUD, publish, presenter mode) lives entirely on the other side of this link. */}
           {workspaceId && (
-            <Link to={`/w/${workspaceId}/d/${diagramId}/present`}>
+            <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/present`}>
               {t('presentation.list.title')}
             </Link>
           )}
-        </div>
+        </aside>
       </div>
-      <div>
+      <div className="border-t border-border bg-surface-raised px-3 py-2">
         <button
+          className={css.buttonSecondary}
           type="button"
           aria-expanded={historyOpen}
           onClick={() => setHistoryOpen((open) => !open)}
@@ -392,7 +407,7 @@ export function DiagramEditorPage(): JSX.Element {
           {t('history.panelToggle')}
         </button>
         {historyOpen && (
-          <div>
+          <div className="mt-2 flex flex-col gap-3">
             <HistoryPanel diagramId={diagramId} canMutate={canMutate} onRestored={handleApproved} />
             <DiffView diagramId={diagramId} />
           </div>

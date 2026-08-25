@@ -1,5 +1,6 @@
 import { type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as css from '../styles/classNames.js';
 
 export interface EditorSidePanelProps {
   /** The AI dock, or `null` when bootstrap denies canvas mutation — then the "IA" tab is not offered at all (CMT2-02). */
@@ -38,11 +39,18 @@ export function EditorSidePanel({
   const [chosen, setChosen] = useState<TabId | null>(null);
   const active: TabId = chosen ?? (aiPanel === null ? 'comments' : 'ai');
 
+  // UIF-16: one tab treatment for all three, with the selected one carrying the accent.
+  const tabClass = (selected: boolean) =>
+    `${css.buttonQuiet} rounded-none border-b-2 ${
+      selected ? 'border-accent text-content' : 'border-transparent'
+    }`;
+
   return (
-    <div>
-      <div role="tablist">
+    <div className="flex flex-col rounded-panel border border-border">
+      <div className="flex flex-row border-b border-border" role="tablist">
         {aiPanel !== null && (
           <button
+            className={tabClass(active === 'ai')}
             type="button"
             role="tab"
             id="side-panel-tab-ai"
@@ -54,6 +62,7 @@ export function EditorSidePanel({
           </button>
         )}
         <button
+          className={tabClass(active === 'comments')}
           type="button"
           role="tab"
           id="side-panel-tab-comments"
@@ -64,6 +73,7 @@ export function EditorSidePanel({
           {t('comments.tabs.comments')}
         </button>
         <button
+          className={tabClass(active === 'lint')}
           type="button"
           role="tab"
           id="side-panel-tab-lint"
@@ -77,6 +87,7 @@ export function EditorSidePanel({
 
       {aiPanel !== null && (
         <div
+          className="p-3"
           role="tabpanel"
           id="side-panel-ai"
           aria-labelledby="side-panel-tab-ai"
@@ -86,6 +97,7 @@ export function EditorSidePanel({
         </div>
       )}
       <div
+        className="p-3"
         role="tabpanel"
         id="side-panel-comments"
         aria-labelledby="side-panel-tab-comments"
@@ -94,6 +106,7 @@ export function EditorSidePanel({
         {commentsPanel}
       </div>
       <div
+        className="p-3"
         role="tabpanel"
         id="side-panel-lint"
         aria-labelledby="side-panel-tab-lint"
