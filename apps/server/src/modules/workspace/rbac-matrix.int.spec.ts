@@ -268,10 +268,11 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
     }
   });
 
-  describe('org_admin reaches every workspace of its organisation (RBAC-01, AD-016)', () => {
-    it('an org_admin with no membership row in a workspace still reads it', async () => {
-      // Two workspaces owned by the same organisation: the actor administers only the
-      // first, and has no row at all in the second.
+  describe('org_admin reaches every workspace of its organisation (RBAC-01, ORG-01/03)', () => {
+    it('an organization_members admin with no membership row in a workspace still reads it', async () => {
+      // Two workspaces owned by the same organisation: the actor administers the
+      // organisation (via `organization_members`, not a `workspace_members` row anywhere),
+      // and has no row at all in either workspace.
       const owner = await seedUserWithSession('org-owner');
       const first = await app.inject({
         method: 'POST',
@@ -285,13 +286,11 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
         cookies: owner.cookies,
         payload: { name: 'Org WS B', slug: `org-ws-b-${Date.now()}` },
       });
-      const firstId = first.json().workspace.id;
       const secondId = second.json().workspace.id;
+      const organizationId = first.json().workspace.organizationId;
 
       const actor = await seedUserWithSession('org-admin-actor');
-      await db
-        .insert(schema.workspaceMembers)
-        .values({ workspaceId: firstId, userId: actor.user.id, role: 'org_admin' });
+      await db.insert(schema.organizationMembers).values({ organizationId, userId: actor.user.id });
 
       const response = await app.inject({
         method: 'GET',
@@ -302,7 +301,7 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
       expect(response.statusCode).toBe(200);
     });
 
-    it('an org_admin with no membership row in a workspace may still write to it', async () => {
+    it('an organization_members admin with no membership row in a workspace may still write to it', async () => {
       const owner = await seedUserWithSession('org-owner-w');
       const first = await app.inject({
         method: 'POST',
@@ -317,10 +316,9 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
         payload: { name: 'Org WS D', slug: `org-ws-d-${Date.now()}` },
       });
       const actor = await seedUserWithSession('org-admin-writer');
-      await db.insert(schema.workspaceMembers).values({
-        workspaceId: first.json().workspace.id,
+      await db.insert(schema.organizationMembers).values({
+        organizationId: first.json().workspace.organizationId,
         userId: actor.user.id,
-        role: 'org_admin',
       });
 
       const response = await app.inject({
@@ -331,6 +329,38 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
       });
 
       expect(response.statusCode).toBe(201);
+    });
+
+    it('a workspace_members row with role org_admin (legacy) grants NO organisation-wide reach on its own (ORG-03)', async () => {
+      // The exact scenario the old, buggy read used to allow: `org_admin` in ONE workspace's
+      // `workspace_members` row, with no corresponding `organization_members` row at all.
+      const owner = await seedUserWithSession('org-owner-legacy');
+      const first = await app.inject({
+        method: 'POST',
+        url: '/workspaces',
+        cookies: owner.cookies,
+        payload: { name: 'Org WS Legacy A', slug: `org-ws-legacy-a-${Date.now()}` },
+      });
+      const second = await app.inject({
+        method: 'POST',
+        url: '/workspaces',
+        cookies: owner.cookies,
+        payload: { name: 'Org WS Legacy B', slug: `org-ws-legacy-b-${Date.now()}` },
+      });
+      const actor = await seedUserWithSession('legacy-org-admin-actor');
+      await db.insert(schema.workspaceMembers).values({
+        workspaceId: first.json().workspace.id,
+        userId: actor.user.id,
+        role: 'org_admin',
+      });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: `/workspaces/${second.json().workspace.id}`,
+        cookies: actor.cookies,
+      });
+
+      expect(response.statusCode).toBe(404);
     });
 
     it('a workspace_admin of one workspace still gets 404 on another (the reach is org_admin-only)', async () => {
@@ -363,7 +393,7 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
       expect(response.statusCode).toBe(404);
     });
 
-    it('the more permissive of the two levels wins: org_admin downgraded to viewer locally still writes (RBAC edge case)', async () => {
+    it('the more permissive of the two levels wins: organization_members admin downgraded to viewer locally still writes (RBAC edge case)', async () => {
       const owner = await seedUserWithSession('org-owner-mix');
       const first = await app.inject({
         method: 'POST',
@@ -379,10 +409,9 @@ describe('RBAC IDOR + role x operation matrix (T18, AUTH-04, AUTH-05)', () => {
       });
       const secondId = second.json().workspace.id;
       const actor = await seedUserWithSession('org-admin-mixed');
-      await db.insert(schema.workspaceMembers).values({
-        workspaceId: first.json().workspace.id,
+      await db.insert(schema.organizationMembers).values({
+        organizationId: first.json().workspace.organizationId,
         userId: actor.user.id,
-        role: 'org_admin',
       });
       await db
         .insert(schema.workspaceMembers)

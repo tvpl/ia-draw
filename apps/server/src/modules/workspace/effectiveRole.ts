@@ -1,5 +1,5 @@
 import type { Role } from '@arch-canvas/auth';
-import { workspaceMembers, workspaces } from '@arch-canvas/database';
+import { organizationMembers, workspaceMembers, workspaces } from '@arch-canvas/database';
 import { and, eq } from 'drizzle-orm';
 import type { Db } from '../auth/db.js';
 
@@ -7,15 +7,16 @@ import type { Db } from '../auth/db.js';
  * RBAC-01/05 (AD-016): the single place that answers "what may this person do in this
  * workspace?".
  *
- * Before this, `resolveWorkspaceRole` read `workspace_members` and nothing else, so a person
+ * Before AD-016, `resolveWorkspaceRole` read `workspace_members` and nothing else, so a person
  * holding `org_admin` had no power at all outside the one workspace where they happened to
  * have a row — the API offered a role whose name promised organisation-wide reach and whose
  * behaviour was identical to `workspace_admin`.
  *
- * There is no `organization_members` table and this deliberately does not add one (AD-016:
- * no migration). Holding `org_admin` in ANY workspace of an organisation is what makes
- * someone an administrator of that organisation, which is the only reading the existing
- * schema supports and the one the role name already implied.
+ * ORG-01/03 (organization-admins): organisation-wide reach is now read from the dedicated
+ * `organization_members` table, not from scanning `workspace_members` for `role='org_admin'`.
+ * That old proxy read was one of three independent copies of the same belief (AD-016's
+ * declared, deliberate scope limit); `organization_members` is now the single source all
+ * three read.
  */
 
 /** Highest privilege first — the order `packages/auth`'s `ROLES` already publishes. */
@@ -35,7 +36,8 @@ export function morePermissive(left: Role | null, right: Role | null): Role | nu
 }
 
 /**
- * `org_admin` in any workspace of the organisation that owns `workspaceId`, or `null`.
+ * `org_admin` when `userId` administers the organisation that owns `workspaceId` (a row in
+ * `organization_members`), or `null`.
  *
  * Returns `null` when the owning organisation cannot be resolved: an unresolvable owner
  * must never widen access (spec.md's edge case), so the caller falls back to the direct
@@ -53,18 +55,16 @@ async function resolveOrganizationRole(
   if (!owner) return null;
 
   const [row] = await db
-    .select({ role: workspaceMembers.role })
-    .from(workspaceMembers)
-    .innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
+    .select({ id: organizationMembers.id })
+    .from(organizationMembers)
     .where(
       and(
-        eq(workspaces.organizationId, owner.organizationId),
-        eq(workspaceMembers.userId, userId),
-        eq(workspaceMembers.role, 'org_admin'),
+        eq(organizationMembers.organizationId, owner.organizationId),
+        eq(organizationMembers.userId, userId),
       ),
     );
 
-  return row?.role ?? null;
+  return row ? 'org_admin' : null;
 }
 
 /**

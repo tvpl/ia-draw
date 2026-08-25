@@ -156,10 +156,10 @@ where organization_id = ? and user_id = ?` (design.md).
 
 **Done when**:
 
-- [ ] `resolveOrganizationRole` não lê mais `workspace_members.role='org_admin'`
-- [ ] Um usuário com linha só em `organization_members` (sem nenhum `org_admin` em `workspace_members`) resolve `org_admin` via `resolveEffectiveRole`
-- [ ] Os testes existentes de `rbac-matrix.int.spec.ts` que dependiam do comportamento antigo continuam verdes, adaptados para semear via `organization_members`
-- [ ] Gate check passes: `make ci`
+- [x] `resolveOrganizationRole` não lê mais `workspace_members.role='org_admin'`
+- [x] Um usuário com linha só em `organization_members` (sem nenhum `org_admin` em `workspace_members`) resolve `org_admin` via `resolveEffectiveRole`
+- [x] Os testes existentes de `rbac-matrix.int.spec.ts` que dependiam do comportamento antigo continuam verdes, adaptados para semear via `organization_members`
+- [x] Gate check passes: `make ci`
 
 **Tests**: integration
 **Gate**: build
