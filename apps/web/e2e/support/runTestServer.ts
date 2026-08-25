@@ -15,6 +15,7 @@ import { PGlite } from '@electric-sql/pglite';
 import { drizzle } from 'drizzle-orm/pglite';
 import { migrate as runMigrations } from 'drizzle-orm/pglite/migrator';
 import { installDomShim } from './domShim.js';
+import { createFakeStorage } from './fakeStorage.js';
 import {
   E2E_DIAGRAM_ID,
   E2E_ORG_ID,
@@ -78,8 +79,12 @@ async function main(): Promise<void> {
   const config = loadConfig({ NODE_ENV: 'test', PORT: String(TEST_SERVER_PORT) });
   const app = buildServer(config);
   // No `jobs` dependency: pg-boss needs a real Postgres connection string and nothing on
-  // the editor route depends on a job having run. Everything else is wired as in production.
-  await registerAllModules(app, db, config);
+  // the editor route depends on a job having run. `storage` is faked (SRF-04): the real
+  // client points at http://localhost:9000 by default and nothing here provisions MinIO,
+  // so any storage-touching route (snapshots, exports, assets, presentation publish) failed
+  // with ECONNREFUSED before this — the first e2e spec to touch presentation-publish is what
+  // surfaced it. Everything else is wired as in production.
+  await registerAllModules(app, db, config, { storage: createFakeStorage() });
   await app.ready();
   await app.listen({ port: TEST_SERVER_PORT, host: '127.0.0.1' });
 
