@@ -130,6 +130,14 @@
 - **Date**: 2026-08-24
 - **Status**: active
 
+### AD-017
+- **Decision**: `organization_members(id, organization_id, user_id, created_at)`, sem coluna de papel, única por `(organization_id, user_id)`, é a fonte única de quem administra cada organização. Os três call sites que liam `workspace_members.role='org_admin'` como proxy de alcance organizacional migram para ela: `effectiveRole.ts`'s `resolveOrganizationRole`, `ai-provider/routes.ts`'s `hasOrgAdminMembership`, `workspaces.ts`'s `listWorkspacesForUser`. Um módulo novo (`organizationAdmins.ts`) e rotas REST dedicadas (`GET/POST/DELETE /workspaces/:id/organization-admins[/:userId]`) concedem/revogam sem editar papel de workspace, com a mesma guarda de último administrador de `lastAdmin.ts`. `workspace_members.role='org_admin'` deixa de conceder alcance de organização; os seletores de papel de workspace (convite e troca) param de oferecê-lo como opção nova.
+- **Reason**: AD-016 tinha documentado essa leitura como consequência de desenho deliberada e aberta ("a única leitura que o schema atual suporta, sem migração"). Uma varredura achou que ela não vivia só em `resolveEffectiveRole` — dois outros call sites faziam a mesma varredura bruta por conta própria, a mesma classe de defeito (segundo caminho de autorização divergente) que AD-016 já tinha fechado uma vez.
+- **Trade-off**: o enum `workspace_member_role` mantém os cinco valores — removê-lo quebraria linhas existentes e a matriz de RBAC sem necessidade, já que só o significado organizacional muda, não a validade do valor. Uma linha legada com `org_admin` continua existindo e exibindo esse rótulo com fidelidade, só não pode ser reatribuída a ele pelos seletores.
+- **Scope**: `packages/database/src/schema.ts`, `apps/server/src/modules/workspace/*`, `apps/server/src/modules/ai-provider/routes.ts`, `apps/server/src/modules/auth/firstRun.ts`, `apps/web/src/nav/{organizationAdminClient.ts,WorkspaceMembersPage.tsx}`.
+- **Date**: 2026-08-25
+- **Status**: active
+
 ## Handoffs
 
 Uma subseção por frente ativa (GOV-06). Hoje só há uma frente (`platform-maturity`); o formato

@@ -422,10 +422,10 @@ organização. Formato Status/Data/Contexto/Decisão/Consequências (`docs/adr/T
 
 **Done when**:
 
-- [ ] A ADR nomeia os três call sites migrados
-- [ ] A ADR nomeia a decisão de remover `org_admin` das opções futuras do seletor de workspace
-- [ ] `.specs/STATE.md` ganha uma entrada AD-017 correspondente
-- [ ] Gate check passes: `make ci`
+- [x] A ADR nomeia os três call sites migrados
+- [x] A ADR nomeia a decisão de remover `org_admin` das opções futuras do seletor de workspace
+- [x] `.specs/STATE.md` ganha uma entrada AD-017 correspondente
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
