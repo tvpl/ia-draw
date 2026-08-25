@@ -127,10 +127,10 @@ resultante em `organization_members`.
 
 **Done when**:
 
-- [ ] O backfill preserva exatamente o conjunto de administradores existentes — nenhum a mais, nenhum a menos
-- [ ] Um usuário com `org_admin` em dois workspaces da MESMA organização gera uma única linha (dedupe)
-- [ ] Rodar a migração duas vezes seguidas não falha (idempotente via `ON CONFLICT DO NOTHING`)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O backfill preserva exatamente o conjunto de administradores existentes — nenhum a mais, nenhum a menos
+- [x] Um usuário com `org_admin` em dois workspaces da MESMA organização gera uma única linha (dedupe)
+- [x] Rodar a migração duas vezes seguidas não falha (idempotente via `ON CONFLICT DO NOTHING`)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: integration
 **Gate**: full
