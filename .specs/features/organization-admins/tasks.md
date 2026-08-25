@@ -95,10 +95,10 @@ generate` para produzir `infra/migrations/0012_*.sql`.
 
 **Done when**:
 
-- [ ] `organizationMembers` existe no schema, exportado
-- [ ] `infra/migrations/0012_*.sql` cria a tabela com a constraint única
-- [ ] `pnpm --filter @arch-canvas/database run db:generate` roda sem diffs pendentes depois do commit
-- [ ] Gate check passes: `make lint && make typecheck`
+- [x] `organizationMembers` existe no schema, exportado
+- [x] `infra/migrations/0012_*.sql` cria a tabela com a constraint única
+- [x] `pnpm --filter @arch-canvas/database run db:generate` roda sem diffs pendentes depois do commit
+- [x] Gate check passes: `make lint && make typecheck`
 
 **Tests**: none
 **Gate**: full
