@@ -233,6 +233,32 @@ jobs:
           sudo apt-get install -y postgresql postgresql-client
       - run: pnpm --filter @arch-canvas/backup run test:integration:backup
 
+  concurrency-integration:
+    name: Concurrency proof (real Postgres cluster)
+    runs-on: ubuntu-latest
+    # docs/adr/0007-*.md's second Emenda: RBAC-12/BOOT-08 need genuinely concurrent
+    # connections, which PGlite (a single embedded connection) cannot provide. Same
+    # no-Docker, apt-get-installed-cluster shape as backup-integration above — its own job,
+    # independent of both `integration:` and `backup-integration:`, so a Postgres install
+    # never becomes a requirement of the standard `make ci` gate.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install and start a local PostgreSQL cluster
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-client
+          sudo -u postgres psql -c "CREATE ROLE arch_canvas WITH LOGIN CREATEDB PASSWORD 'ci-postgres-password';"
+      - run: pnpm --filter @arch-canvas/server run test:integration:concurrency
+        env:
+          DATABASE_URL: postgres://arch_canvas:ci-postgres-password@localhost:5432/postgres
+
   e2e:
     name: End-to-end tests (Playwright)
     runs-on: ubuntu-latest

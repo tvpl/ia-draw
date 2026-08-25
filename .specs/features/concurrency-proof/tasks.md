@@ -174,10 +174,10 @@ literalmente — `apt-get install postgresql postgresql-client`, `DATABASE_URL` 
 
 **Done when**:
 
-- [ ] O job instala Postgres via `apt-get`, sem Docker
-- [ ] O job roda `test:integration:concurrency` e falha o workflow se a suíte falhar
-- [ ] O job é independente de `integration:`/`backup-integration:` — nenhum depende do outro
-- [ ] Gate check passes: `make ci`
+- [x] O job instala Postgres via `apt-get`, sem Docker
+- [x] O job roda `test:integration:concurrency` e falha o workflow se a suíte falhar
+- [x] O job é independente de `integration:`/`backup-integration:` — nenhum depende do outro
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
