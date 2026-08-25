@@ -156,7 +156,7 @@ para a primeira tela abrir rápido.
 | UIF-14 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
 | UIF-15 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
 | UIF-16 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
-| UIF-17 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-17 | P2: O chrome do editor para de atrapalhar o canvas | `editor-panel-collapse` T1 | ✅ Verified |
 | UIF-18 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |
 | UIF-19 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |
 | UIF-20 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |

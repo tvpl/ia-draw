@@ -57,6 +57,13 @@ Nenhuma task nomeava um controle de recolher o painel inteiro — T11 tratou das
 não há um. Registrado como dívida, não silenciado. É a mesma classe de lacuna de R19 (edge case sem
 `Done when`) e a lição L-051 já cobre.
 
+**Fechado por `editor-panel-collapse` (R25/T1).** O controle de recolher/expandir o `<aside>`
+inteiro existe agora em `DiagramEditorPage.tsx`, com a aba interna preservada entre recolher e
+expandir (`EditorSidePanel.tsx`'s seleção de aba, elevada a estado controlado) — cobertura em
+`DiagramEditorPage.spec.tsx`'s describe `collapse/expand the side panel (EPC-01..05)`. A linha de
+UIF-17 na tabela de rastreabilidade de `spec.md` foi corrigida para `✅ Verified` de fato,
+referenciando essa feature.
+
 ⚠️ **UIF-10 é parcial**: o estado de erro tem apresentação própria, mas nenhuma das quatro páginas
 oferece "tentar novamente" — a spec pede a ação e ela não existia antes nem foi criada. Dívida
 nomeada.

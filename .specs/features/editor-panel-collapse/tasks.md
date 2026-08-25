@@ -140,9 +140,9 @@ apontando para este fechamento.
 
 **Done when**:
 
-- [ ] A linha de UIF-17 em `ui-foundations/spec.md` bate com o estado real do código
-- [ ] `ui-foundations/validation.md` registra que UIF-17 foi fechado por esta feature, com referência
-- [ ] Gate check passes: `make ci`
+- [x] A linha de UIF-17 em `ui-foundations/spec.md` bate com o estado real do código
+- [x] `ui-foundations/validation.md` registra que UIF-17 foi fechado por esta feature, com referência
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
