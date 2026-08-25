@@ -116,19 +116,19 @@ até o primeiro diagrama, para não descobrir sozinha que falta criar usuário.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| DOCS-01 | P1: Os números param de mentir | Tasks | Pending |
-| DOCS-02 | P1: Os números param de mentir | Tasks | Pending |
-| DOCS-03 | P1: Os números param de mentir | Tasks | Pending |
-| DOCS-04 | P1: Os números param de mentir | Tasks | Pending |
-| DOCS-05 | P1: O mapa não pode mais subdimensionar | Tasks | Pending |
-| DOCS-06 | P1: O mapa não pode mais subdimensionar | Tasks | Pending |
-| DOCS-07 | P1: O mapa não pode mais subdimensionar | Tasks | Pending |
-| DOCS-08 | P1: O mapa não pode mais subdimensionar | Tasks | Pending |
-| DOCS-09 | P2: O Quick start descreve o que existe | Tasks | Pending |
-| DOCS-10 | P2: O Quick start descreve o que existe | Tasks | Pending |
-| DOCS-11 | P2: O Quick start descreve o que existe | Tasks | Pending |
-| DOCS-12 | P2: O Quick start descreve o que existe | Tasks | Pending |
-| DOCS-13 | P2: O Quick start descreve o que existe | Tasks | Pending |
+| DOCS-01 | P1: Os números param de mentir | Verified | ✅ Verified |
+| DOCS-02 | P1: Os números param de mentir | Verified | ✅ Verified |
+| DOCS-03 | P1: Os números param de mentir | Verified | ✅ Verified |
+| DOCS-04 | P1: Os números param de mentir | Verified | ✅ Verified |
+| DOCS-05 | P1: O mapa não pode mais subdimensionar | Verified | ✅ Verified |
+| DOCS-06 | P1: O mapa não pode mais subdimensionar | Verified | ✅ Verified |
+| DOCS-07 | P1: O mapa não pode mais subdimensionar | Verified | ✅ Verified |
+| DOCS-08 | P1: O mapa não pode mais subdimensionar | Verified | ✅ Verified |
+| DOCS-09 | P2: O Quick start descreve o que existe | Verified | ✅ Verified |
+| DOCS-10 | P2: O Quick start descreve o que existe | Verified | ✅ Verified |
+| DOCS-11 | P2: O Quick start descreve o que existe | Verified | ✅ Verified |
+| DOCS-12 | P2: O Quick start descreve o que existe | Verified | ✅ Verified |
+| DOCS-13 | P2: O Quick start descreve o que existe | Verified | ✅ Verified |
 
 **Coverage:** 13 total, 13 mapeados para tasks, 0 sem mapeamento.
 
@@ -136,6 +136,6 @@ até o primeiro diagrama, para não descobrir sozinha que falta criar usuário.
 
 ## Success Criteria
 
-- [ ] `repo-tools audit` roda e não altera o README
-- [ ] Marcar uma capacidade com tela como `backend-only` reprova o gate
-- [ ] O Quick start, seguido literalmente, chega a um diagrama aberto
+- [x] `repo-tools audit` roda e não altera o README
+- [x] Marcar uma capacidade com tela como `backend-only` reprova o gate
+- [x] O Quick start, seguido literalmente, chega a um diagrama aberto

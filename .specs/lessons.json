@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 57,
+  "next_id": 62,
   "lessons": [
     {
       "id": "L-001",
@@ -1014,6 +1014,96 @@
       ],
       "created": "2026-08-25T07:32:45Z",
       "last_seen": "2026-08-25T07:32:45Z"
+    },
+    {
+      "id": "L-057",
+      "key": "gate_fail::gate verde sobre cache do turbo nao e gate que passou r22 fechou verde porque a suite de integracao do modulo estava em cache e o vermelho real contrato de rbac mudado sem atualizar o teste so apareceu numa corrida sem cache ao fechar uma onda rode o gate num estado sem cache",
+      "text": "Gate verde sobre cache do turbo nao e gate que passou: R22 fechou verde porque a suite de integracao do modulo estava em cache, e o vermelho real (contrato de RBAC mudado sem atualizar o teste) so apareceu numa corrida sem cache. Ao fechar uma onda, rode o gate num estado sem cache.",
+      "signal": "gate_fail",
+      "scope": "gate",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/comment/comment.int.spec.ts:225 (gate)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-058",
+      "key": "gate_fail::recorrencia de l 024 em forma nova git checkout arquivo descarta trabalho nao commitado igual a git stash para reverter uma mutacao do sensor restaure de uma copia feita antes nunca do head",
+      "text": "RECORRENCIA de L-024 em forma nova: 'git checkout -- <arquivo>' descarta trabalho nao commitado igual a 'git stash'. Para reverter uma mutacao do sensor, restaure de uma copia feita antes, nunca do HEAD.",
+      "signal": "gate_fail",
+      "scope": "git",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/routeInventory.ts (git)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-059",
+      "key": "ac_gap::um instrumento de medicao so descobre o que ele mede o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24 da interface e isso so apareceu quando a auditoria passou a checar a direcao contraria ao ligar um gate novo desconfie primeiro da medicao nao dos dados",
+      "text": "Um instrumento de medicao so descobre o que ele mede: o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24% da interface, e isso so apareceu quando a auditoria passou a checar a direcao contraria. Ao ligar um gate novo, desconfie primeiro da medicao, nao dos dados.",
+      "signal": "ac_gap",
+      "scope": "repo-tools",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/webConsumers.ts:39 (repo-tools)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-060",
+      "key": "gate_fail::flake tem mais de uma causa aumentar timeout so resolve a causa margem um evento disparado antes do listener de um efeito passivo e descartado e um numero fixo de await promise resolve e um palpite nenhum dos dois melhora com mais tempo antes de aceitar contencao de cpu reproduza e leia o erro real",
+      "text": "Flake tem mais de uma causa: aumentar timeout so resolve a causa 'margem'. Um evento disparado antes do listener de um efeito passivo e DESCARTADO, e um numero fixo de 'await Promise.resolve()' e um palpite - nenhum dos dois melhora com mais tempo. Antes de aceitar 'contencao de CPU', reproduza e leia o erro real.",
+      "signal": "gate_fail",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/presentation/PresenterModePage.spec.tsx:70 (testing)"
+      ],
+      "created": "2026-08-25T09:31:01Z",
+      "last_seen": "2026-08-25T09:31:01Z"
+    },
+    {
+      "id": "L-061",
+      "key": "gate_fail::asyncutiltimeout da testing library tem de ficar abaixo do testtimeout do vitest iguais a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente",
+      "text": "asyncUtilTimeout da Testing Library tem de ficar ABAIXO do testTimeout do vitest: iguais, a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente.",
+      "signal": "gate_fail",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/vitest.config.ts (testing)"
+      ],
+      "created": "2026-08-25T09:31:01Z",
+      "last_seen": "2026-08-25T09:31:01Z"
     }
   ]
 }

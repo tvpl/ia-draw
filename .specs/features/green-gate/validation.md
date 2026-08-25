@@ -137,3 +137,31 @@ genuinamente medido, com justificativa inline, seguindo o precedente da onda F8.
 Seis das doze ACs dependem de infraestrutura que este ambiente não tem e estão marcadas
 estruturais. Entre elas está justamente o smoke do compose — que passa a exercitar first-run, login
 e leitura de workspaces em vez de só `/health/ready`, o caminho que dava confiança falsa.
+
+---
+
+## Emenda — 2026-08-25 (fechamento de R23)
+
+`--concurrency=2` no turbo reduziu o flake, mas **não o eliminou**: rodando `make ci` no
+fechamento da onda, a suíte de `apps/web` reprovava em cerca de uma corrida em quatro, com um
+arquivo diferente a cada vez. A conclusão de R20 — "contenção de CPU contra o timeout de 1 s do
+`findByText`" — estava certa como causa dominante e incompleta como diagnóstico. Havia três causas
+distintas, e duas delas nenhum aumento de timeout resolveria:
+
+1. **Margem** — `asyncUtilTimeout` da Testing Library subiu para 5 s e o `testTimeout` do vitest
+   para 15 s. A ordem entre os dois importa: iguais, a espera assíncrona consome o orçamento do
+   teste e o erro que aparece é o timeout opaco do vitest em vez da mensagem que nomeia o elemento.
+2. **Evento perdido** — `PresenterModePage` registra o listener de teclado num efeito passivo; uma
+   tecla disparada no mesmo tick em que `findByText` resolve chega a um `document` sem listener.
+   Esperar mais nunca recupera um evento que já foi descartado; os testes passam a drenar os
+   efeitos antes de pressionar.
+3. **Contagem de ticks** — `DiagramEditorPage` esperava o controle de aprovação com dois
+   `await Promise.resolve()`. Isso é um palpite sobre quantos awaits a resposta atravessa, e o
+   palpite só vale com a máquina ociosa. Passa a esperar pelo controle.
+
+Nenhuma asserção foi enfraquecida, pulada ou posta em quarentena. Evidência: 13 corridas limpas
+consecutivas da suíte de `apps/web` contra a taxa anterior de ~1 falha em 4, e `make ci` verde com
+`TURBO_FORCE=true` (0 tasks vindas de cache). Commit `20f57fc`.
+
+GATE-04 permanece `✅ Verified` — esta emenda registra que a prova anterior era verdadeira numa
+corrida e não em todas, o que para um gate é a única distinção que importa.

@@ -350,6 +350,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/server/src/modules/workspace/workspaces.ts getWorkspaceById (authorization)
 - last seen: 2026-08-25T07:32:45Z
 
+### L-057 - Gate verde sobre cache do turbo nao e gate que passou: R22 fechou verde porque a suite de integracao do modulo estava em cache, e o vermelho real (contrato de RBAC mudado sem atualizar o teste) so apareceu numa corrida sem cache. Ao fechar uma onda, rode o gate num estado sem cache.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `gate` · harmful: 0
+- features: docs-truth
+- evidence: apps/server/src/modules/comment/comment.int.spec.ts:225 (gate)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-058 - RECORRENCIA de L-024 em forma nova: 'git checkout -- <arquivo>' descarta trabalho nao commitado igual a 'git stash'. Para reverter uma mutacao do sensor, restaure de uma copia feita antes, nunca do HEAD.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `git` · harmful: 0
+- features: docs-truth
+- evidence: tools/repo-tools/src/routeInventory.ts (git)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-059 - Um instrumento de medicao so descobre o que ele mede: o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24% da interface, e isso so apareceu quando a auditoria passou a checar a direcao contraria. Ao ligar um gate novo, desconfie primeiro da medicao, nao dos dados.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `repo-tools` · harmful: 0
+- features: docs-truth
+- evidence: tools/repo-tools/src/webConsumers.ts:39 (repo-tools)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-060 - Flake tem mais de uma causa: aumentar timeout so resolve a causa 'margem'. Um evento disparado antes do listener de um efeito passivo e DESCARTADO, e um numero fixo de 'await Promise.resolve()' e um palpite - nenhum dos dois melhora com mais tempo. Antes de aceitar 'contencao de CPU', reproduza e leia o erro real.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: green-gate
+- evidence: apps/web/src/presentation/PresenterModePage.spec.tsx:70 (testing)
+- last seen: 2026-08-25T09:31:01Z
+
+### L-061 - asyncUtilTimeout da Testing Library tem de ficar ABAIXO do testTimeout do vitest: iguais, a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: green-gate
+- evidence: apps/web/vitest.config.ts (testing)
+- last seen: 2026-08-25T09:31:01Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

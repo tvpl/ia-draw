@@ -11,7 +11,7 @@ Execute flow and Critical Rules.**
 acrescenta uma direção de verificação e um bloco gerado. As decisões com alternativa real (bloco
 delimitado em vez de README gerado, e como a superfície é reconhecida) estão em `spec.md`'s
 Assumptions.
-**Status**: Draft
+**Status**: Complete
 
 ---
 
@@ -81,10 +81,10 @@ que ninguém consegue resolver.
 
 **Done when**:
 
-- [ ] Toda capacidade com componente correspondente declara `ui_surface` apontando um arquivo existente
-- [ ] Nenhuma capacidade com tela permanece marcada `backend-only`
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Toda capacidade com componente correspondente declara `ui_surface` apontando um arquivo existente
+- [x] Nenhuma capacidade com tela permanece marcada `backend-only`
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` sai 0
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
@@ -111,12 +111,12 @@ criar uma tela nunca obriga a atualizar o mapa e a documentação só pode subdi
 
 **Done when**:
 
-- [ ] Marcar uma capacidade com tela como `backend-only` reprova a auditoria nomeando capacidade e consumidor
-- [ ] Uma `ui_surface` apontando arquivo inexistente continua reprovando
-- [ ] Uma capacidade sem `ui_surface` e sem `status` reprova exigindo um dos dois
-- [ ] Uma rota declarada que não existe mais reprova nomeando a rota
-- [ ] Remover uma tela e voltar a capacidade para `backend-only` é aceito sem intervenção manual
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Marcar uma capacidade com tela como `backend-only` reprova a auditoria nomeando capacidade e consumidor
+- [x] Uma `ui_surface` apontando arquivo inexistente continua reprovando
+- [x] Uma capacidade sem `ui_surface` e sem `status` reprova exigindo um dos dois
+- [x] Uma rota declarada que não existe mais reprova nomeando a rota
+- [x] Remover uma tela e voltar a capacidade para `backend-only` é aceito sem intervenção manual
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
@@ -142,11 +142,11 @@ no arquivo diverge do medido. A prosa em volta permanece intocada — é o que e
 
 **Done when**:
 
-- [ ] Rodar a auditoria com o README correto não altera o arquivo
-- [ ] Alterar um número à mão faz a auditoria reprovar
-- [ ] README sem o bloco delimitado faz a auditoria reprovar pedindo o bloco
-- [ ] README ilegível faz a auditoria reprovar, nunca passar por omissão
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Rodar a auditoria com o README correto não altera o arquivo
+- [x] Alterar um número à mão faz a auditoria reprovar
+- [x] README sem o bloco delimitado faz a auditoria reprovar pedindo o bloco
+- [x] README ilegível faz a auditoria reprovar, nunca passar por omissão
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
@@ -172,10 +172,10 @@ consumidas, contra 90 rotas e 49 consumidas medidas.
 
 **Done when**:
 
-- [ ] O bloco delimitado existe e está preenchido pela auditoria
-- [ ] Nenhuma contagem de capacidade ou de rota permanece fora do bloco
-- [ ] `pnpm --filter @arch-canvas/repo-tools run audit` roda e não altera o arquivo
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O bloco delimitado existe e está preenchido pela auditoria
+- [x] Nenhuma contagem de capacidade ou de rota permanece fora do bloco
+- [x] `pnpm --filter @arch-canvas/repo-tools run audit` roda e não altera o arquivo
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
@@ -201,10 +201,10 @@ Quick start termina em "abre em `localhost:8080`" sem mencionar que não existe 
 
 **Done when**:
 
-- [ ] O Quick start descreve subir, criar o administrador inicial e abrir um diagrama
-- [ ] A seção de deploy descreve o mesmo primeiro acesso numa instância remota
-- [ ] Todo passo afirmado é exercitado pelo job de smoke do compose
-- [ ] Gate check passes: `make ci`
+- [x] O Quick start descreve subir, criar o administrador inicial e abrir um diagrama
+- [x] A seção de deploy descreve o mesmo primeiro acesso numa instância remota
+- [x] Todo passo afirmado é exercitado pelo job de smoke do compose
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
@@ -230,10 +230,10 @@ organização com efeito cross-workspace.
 
 **Done when**:
 
-- [ ] Existe uma ADR por decisão estrutural da onda, numerada em sequência
-- [ ] Cada ADR nomeia contexto, decisão, trade-off e escopo
-- [ ] Cada ADR corresponde a uma entrada na seção Decisions de `.specs/STATE.md`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Existe uma ADR por decisão estrutural da onda, numerada em sequência
+- [x] Cada ADR nomeia contexto, decisão, trade-off e escopo
+- [x] Cada ADR corresponde a uma entrada na seção Decisions de `.specs/STATE.md`
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: none
 **Gate**: full
@@ -259,9 +259,9 @@ de criação de conta, e o papel de organização vale em todos os workspaces de
 
 **Done when**:
 
-- [ ] Cada invariante nova aparece resumida e aponta para a ADR correspondente
-- [ ] Nenhuma invariante existente foi removida
-- [ ] Gate check passes: `make ci && pnpm --filter @arch-canvas/repo-tools run audit`
+- [x] Cada invariante nova aparece resumida e aponta para a ADR correspondente
+- [x] Nenhuma invariante existente foi removida
+- [x] Gate check passes: `make ci && pnpm --filter @arch-canvas/repo-tools run audit`
 
 **Tests**: none
 **Gate**: build
