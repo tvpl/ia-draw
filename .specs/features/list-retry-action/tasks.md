@@ -68,13 +68,13 @@ ao lado de `css.errorBox` quando `status === 'error'`, chamando a mesma função
 
 **Done when**:
 
-- [ ] O botão aparece só quando `status === 'error'`, nunca em `loading`/`ready`
-- [ ] Acioná-lo refaz a mesma chamada de `client.list(...)` com os mesmos parâmetros
-- [ ] Sucesso na nova tentativa substitui a mensagem de erro pela lista, como uma carga inicial
-- [ ] A guarda `cancelled` já existente no efeito também protege a chamada disparada pelo botão
-- [ ] Cliques repetidos disparam uma requisição por clique, sem acumular mensagens
-- [ ] `nav.error.retry` existe em `en` e `pt-BR`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O botão aparece só quando `status === 'error'`, nunca em `loading`/`ready`
+- [x] Acioná-lo refaz a mesma chamada de `client.list(...)` com os mesmos parâmetros
+- [x] Sucesso na nova tentativa substitui a mensagem de erro pela lista, como uma carga inicial
+- [x] A guarda `cancelled` já existente no efeito também protege a chamada disparada pelo botão
+- [x] Cliques repetidos disparam uma requisição por clique, sem acumular mensagens
+- [x] `nav.error.retry` existe em `en` e `pt-BR`
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

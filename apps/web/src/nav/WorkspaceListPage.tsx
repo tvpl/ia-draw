@@ -1,6 +1,6 @@
 import type { Role } from '@arch-canvas/auth';
 import { can } from '@arch-canvas/auth';
-import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { createExportClient } from '../export/exportClient.js';
@@ -97,20 +97,30 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
 
   const [bundleRequestingId, setBundleRequestingId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
+  // LRA-01..03/05: `loadWorkspaces` is the named async body the initial load effect and the
+  // "Tentar novamente" retry button both call. `cancelledRef` is the same cancellation guard the
+  // effect always used, now shared with the button too, so a page unmount discards a retry's
+  // result exactly like it already discards the initial load's.
+  const cancelledRef = useRef(false);
+
+  const loadWorkspaces = useCallback(() => {
     client.list().then(
       (list) => {
-        if (!cancelled) setItems(list);
+        if (!cancelledRef.current) setItems(list);
       },
       () => {
-        if (!cancelled) setError();
+        if (!cancelledRef.current) setError();
       },
     );
-    return () => {
-      cancelled = true;
-    };
   }, [client, setItems, setError]);
+
+  useEffect(() => {
+    cancelledRef.current = false;
+    loadWorkspaces();
+    return () => {
+      cancelledRef.current = true;
+    };
+  }, [loadWorkspaces]);
 
   useEffect(() => {
     if (archiveTarget) dialogRef.current?.showModal();
@@ -237,7 +247,14 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
         {announcement}
       </div>
 
-      {status === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
+      {status === 'error' && (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className={css.errorBox}>{t('nav.error.generic')}</p>
+          <button className={css.buttonSecondary} type="button" onClick={() => loadWorkspaces()}>
+            {t('nav.error.retry')}
+          </button>
+        </div>
+      )}
 
       {/* UIF-09: a loading state of its own, in place of the content. Before this the page
           rendered an empty frame while the request was in flight, which reads as "no

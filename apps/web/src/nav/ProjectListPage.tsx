@@ -1,6 +1,6 @@
 import type { Role } from '@arch-canvas/auth';
 import { can } from '@arch-canvas/auth';
-import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ImportDialog } from '../export/ImportDialog.js';
@@ -104,33 +104,44 @@ export function ProjectListPage({
   const [archiveTarget, setArchiveTarget] = useState<ArchiveTarget | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // LRA-01..03/05: `loadProjects` is the named async body the initial load effect and the
+  // "Tentar novamente" retry button both call — only the project-list fetch, not the workspace
+  // lookup above it, since a retry only ever fires once that lookup already succeeded (the
+  // `notFound` branch renders instead of this page's error state otherwise). `cancelledRef` is
+  // the same cancellation guard the effect always used, now shared with the button too.
+  const cancelledRef = useRef(false);
+
+  const loadProjects = useCallback(async (): Promise<void> => {
+    try {
+      const list = await client.list();
+      if (!cancelledRef.current) setItems(list);
+    } catch {
+      if (!cancelledRef.current) setError();
+    }
+  }, [client, setItems, setError]);
+
   useEffect(() => {
     if (!workspaceId) return;
-    let cancelled = false;
+    cancelledRef.current = false;
 
     (async () => {
       const response = await fetchImpl(`/workspaces/${workspaceId}`);
-      if (cancelled) return;
+      if (cancelledRef.current) return;
       if (!response.ok) {
         setNotFound(true);
         return;
       }
       const body = (await response.json()) as WorkspaceDetailResponseBody;
-      if (cancelled) return;
+      if (cancelledRef.current) return;
       setWorkspace({ name: body.workspace.name, role: body.workspace.role });
 
-      try {
-        const list = await client.list();
-        if (!cancelled) setItems(list);
-      } catch {
-        if (!cancelled) setError();
-      }
+      await loadProjects();
     })();
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, [workspaceId, client, fetchImpl, setItems, setError]);
+  }, [workspaceId, fetchImpl, loadProjects]);
 
   useEffect(() => {
     if (archiveTarget) dialogRef.current?.showModal();
@@ -317,7 +328,14 @@ export function ProjectListPage({
         {announcement}
       </div>
 
-      {listStatus === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
+      {listStatus === 'error' && (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className={css.errorBox}>{t('nav.error.generic')}</p>
+          <button className={css.buttonSecondary} type="button" onClick={() => void loadProjects()}>
+            {t('nav.error.retry')}
+          </button>
+        </div>
+      )}
 
       {/* UIF-09: loading in place of the content, so an in-flight request does not read as an
           empty project list. */}

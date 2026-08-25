@@ -260,7 +260,8 @@
     "error": {
       "conflict": "Esse nome já está em uso.",
       "forbidden": "Você não tem permissão para fazer isso.",
-      "generic": "Algo deu errado. Tente novamente."
+      "generic": "Algo deu errado. Tente novamente.",
+      "retry": "Tentar novamente"
     },
     "loading": "Carregando…"
   },

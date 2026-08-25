@@ -260,7 +260,8 @@
     "error": {
       "conflict": "That name is already taken.",
       "forbidden": "You don't have permission to do that.",
-      "generic": "Something went wrong. Try again."
+      "generic": "Something went wrong. Try again.",
+      "retry": "Try again"
     },
     "loading": "Loading…"
   },

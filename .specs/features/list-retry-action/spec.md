@@ -80,11 +80,11 @@ chamada, acionar o botão, ver a lista aparecer.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| LRA-01 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
-| LRA-02 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
-| LRA-03 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
+| LRA-01 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
+| LRA-02 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
+| LRA-03 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 | LRA-04 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
-| LRA-05 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | Pending |
+| LRA-05 | P1: Uma lista que falhou pode ser recarregada sem sair da página | Tasks | ✅ Verified |
 
 **Coverage:** 5 total, 5 mapeados para tasks, 0 sem mapeamento.
 

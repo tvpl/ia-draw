@@ -487,6 +487,43 @@ describe('WorkspaceListPage (NAV-01, NAV-06..08, NAV-13..23)', () => {
   });
 });
 
+describe('WorkspaceListPage — retry on load failure (LRA-01..03, LRA-05)', () => {
+  it('shows a retry button next to the error message when GET /workspaces fails, and it disappears again once the retry succeeds (LRA-01..03)', async () => {
+    let callCount = 0;
+    const fetchImpl = vi.fn(async () => {
+      callCount += 1;
+      if (callCount === 1) return jsonResponse(500, {});
+      return jsonResponse(200, { items: [workspaceFixture({ id: 'ws-1', name: 'Alpha' })] });
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('Algo deu errado. Tente novamente.')).toBeTruthy();
+    const retryButton = screen.getByRole('button', { name: 'Tentar novamente' });
+
+    fireEvent.click(retryButton);
+
+    expect(await screen.findByRole('link', { name: 'Alpha' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Tentar novamente' })).toBeNull();
+    expect(callCount).toBe(2);
+  });
+
+  it('clicking retry twice fires two GET /workspaces calls, one per click, without duplicating the error message (LRA-05)', async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(500, {})) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    const retryButton = await screen.findByRole('button', { name: 'Tentar novamente' });
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await waitFor(() => expect(fetchImpl).toHaveBeenCalledTimes(3));
+
+    expect(screen.getAllByText('Algo deu errado. Tente novamente.')).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Tentar novamente' })).toHaveLength(1);
+  });
+});
+
 describe('WorkspaceListPage — global AI provider admin link (PROV-05/06)', () => {
   it('shows the link when at least one workspace grants org_admin (PROV-05)', async () => {
     const fetchImpl = vi.fn(async () =>
