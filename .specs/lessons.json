@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 62,
+  "next_id": 63,
   "lessons": [
     {
       "id": "L-001",
@@ -1104,6 +1104,24 @@
       ],
       "created": "2026-08-25T09:31:01Z",
       "last_seen": "2026-08-25T09:31:01Z"
+    },
+    {
+      "id": "L-062",
+      "key": "gate_fail::um done when de gate build marcado x nao prova que o comando passa num ambiente limpo o e2e harness que boota apps server real precisa de um storageclient falso moduledependencies storage igual aos testes de integracao ja usam senao qualquer rota que toque storage publish export asset falha com econnrefused contra o minio que nao existe no harness reproduzir o comando do gate isoladamente antes de marcar o checkbox nunca confiar num passou aqui sem isolar o ambiente",
+      "text": "Um Done-when de gate 'build' marcado [x] nao prova que o comando passa num ambiente limpo: o e2e harness que boota apps/server real precisa de um StorageClient falso (ModuleDependencies.storage) igual aos testes de integracao ja usam, senao qualquer rota que toque storage (publish, export, asset) falha com ECONNREFUSED contra o MinIO que nao existe no harness. Reproduzir o comando do gate isoladamente antes de marcar o checkbox, nunca confiar num 'passou aqui' sem isolar o ambiente.",
+      "signal": "gate_fail",
+      "scope": "e2e",
+      "status": "candidate",
+      "features": [
+        "shared-resource-frame-fix"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/e2e/support/runTestServer.ts (e2e)"
+      ],
+      "created": "2026-08-25T14:56:33Z",
+      "last_seen": "2026-08-25T14:56:33Z"
     }
   ]
 }

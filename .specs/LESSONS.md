@@ -380,6 +380,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/web/vitest.config.ts (testing)
 - last seen: 2026-08-25T09:31:01Z
 
+### L-062 - Um Done-when de gate 'build' marcado [x] nao prova que o comando passa num ambiente limpo: o e2e harness que boota apps/server real precisa de um StorageClient falso (ModuleDependencies.storage) igual aos testes de integracao ja usam, senao qualquer rota que toque storage (publish, export, asset) falha com ECONNREFUSED contra o MinIO que nao existe no harness. Reproduzir o comando do gate isoladamente antes de marcar o checkbox, nunca confiar num 'passou aqui' sem isolar o ambiente.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `e2e` · harmful: 0
+- features: shared-resource-frame-fix
+- evidence: apps/web/e2e/support/runTestServer.ts (e2e)
+- last seen: 2026-08-25T14:56:33Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
