@@ -47,6 +47,11 @@ de `.specs/STATE.md` — nenhuma delas foi pedida pela análise original de 2026
 de um achado ou de uma consequência de desenho já registrada por uma onda anterior, nunca de
 suspeita nova. R24–R27 são independentes entre si; R28 depende só de R22 (RBAC-clarity), já fechada.
 
+**R27 `concurrency-proof` — fechada.** RBAC-12 e BOOT-08 deixaram de estar `⚠️ Parcial`: uma suíte
+própria (`*.concurrency.int.spec.ts` em `apps/server`) prova as duas garantias contra um Postgres
+real via `make test-integration-concurrency` (job de CI dedicado, `docs/adr/0007-*.md`'s Emenda
+de 2026-08-25), sem que `make ci`/`make test-integration` passem a exigir Postgres instalado.
+
 ## Por que esta ordem
 
 R17 e R18 primeiro porque **nada é observável enquanto o editor não abre e a API não é alcançável

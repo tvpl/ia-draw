@@ -259,9 +259,9 @@ STATE.md`, marcando R27 como fechada.
 
 **Done when**:
 
-- [ ] R27 aparece fechada no roadmap
-- [ ] `.specs/STATE.md` reflete o novo alvo e job no handoff
-- [ ] Gate check passes: `make ci`
+- [x] R27 aparece fechada no roadmap
+- [x] `.specs/STATE.md` reflete o novo alvo e job no handoff
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
