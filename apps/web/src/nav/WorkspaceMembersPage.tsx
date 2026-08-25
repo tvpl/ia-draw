@@ -367,18 +367,24 @@ export function WorkspaceMembersPage({
               <span className={css.helpText}>{item.email}</span>{' '}
               {canManage ? (
                 <span className={css.listRowActions}>
-                  <select
-                    className={css.select}
-                    aria-label={`${t('nav.members.roleLabel')} — ${item.displayName}`}
-                    value={item.role}
-                    onChange={(event) => void handleRoleChange(item, event.target.value as Role)}
-                  >
-                    {ASSIGNABLE_ROLE_VALUES.map((role) => (
-                      <option key={role} value={role}>
-                        {t(`nav.members.roleOptions.${ROLE_KEY[role]}`)}
-                      </option>
-                    ))}
-                  </select>
+                  {ASSIGNABLE_ROLE_VALUES.includes(item.role) ? (
+                    <select
+                      className={css.select}
+                      aria-label={`${t('nav.members.roleLabel')} — ${item.displayName}`}
+                      value={item.role}
+                      onChange={(event) => void handleRoleChange(item, event.target.value as Role)}
+                    >
+                      {ASSIGNABLE_ROLE_VALUES.map((role) => (
+                        <option key={role} value={role}>
+                          {t(`nav.members.roleOptions.${ROLE_KEY[role]}`)}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span className={css.badge}>
+                      {t(`nav.members.roleOptions.${ROLE_KEY[item.role]}`)}
+                    </span>
+                  )}
                   <button
                     className={css.buttonDanger}
                     type="button"

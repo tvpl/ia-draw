@@ -392,6 +392,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts (testing)
 - last seen: 2026-08-25T16:40:54Z
 
+### L-064 - When a value can fall outside a <select>'s option set (a legacy/retired enum value), every render branch that can display that value — not just the read-only one — needs a path that shows it with fidelity; a controlled select bound to an out-of-set value silently fails to render it
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `web/forms` · harmful: 0
+- features: organization-admins
+- evidence: apps/web/src/nav/WorkspaceMembersPage.tsx:368-381 (ORG-14) (web/forms)
+- last seen: 2026-08-25T18:42:05Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

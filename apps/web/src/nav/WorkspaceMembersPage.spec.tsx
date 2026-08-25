@@ -937,4 +937,39 @@ describe('WorkspaceMembersPage — P2: seletor de papel sem org_admin (ORG-12, O
     expect(within(annRow).getByText('Admin da organização')).toBeTruthy();
     expect(within(annRow).queryByRole('combobox')).toBeNull();
   });
+
+  it('a legacy row with role org_admin still displays that label with fidelity even when the caller can manage members (ORG-14)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members')
+        return membersResponse([
+          {
+            userId: 'user-1',
+            workspaceId: 'ws-1',
+            role: 'workspace_admin',
+            email: 'me@example.com',
+            displayName: 'Me',
+          },
+          {
+            userId: 'user-2',
+            workspaceId: 'ws-1',
+            role: 'org_admin',
+            email: 'ann@example.com',
+            displayName: 'Ann',
+          },
+        ]);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    // The caller (a workspace_admin) CAN manage members, so every other row renders a <select> —
+    // but Ann's legacy org_admin role has no matching option in ASSIGNABLE_ROLE_VALUES, so her
+    // row must still fall back to the read-only badge instead of a <select> with no selected value.
+    const annRow = (await screen.findByText('Ann')).closest('li') as HTMLElement;
+    expect(within(annRow).getByText('Admin da organização')).toBeTruthy();
+    expect(within(annRow).queryByRole('combobox')).toBeNull();
+    // Her row still offers the remove action, since manageability isn't role-selector-specific.
+    expect(within(annRow).getByRole('button', { name: 'Remover' })).toBeTruthy();
+  });
 });

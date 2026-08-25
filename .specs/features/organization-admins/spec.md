@@ -159,20 +159,20 @@ cinco; abrir uma linha legada com `org_admin` e ver o rótulo correto exibido me
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ORG-01 | P1: A organização tem uma fonte única de quem a administra | Tasks | Pending |
-| ORG-02 | P1: A organização tem uma fonte única de quem a administra | Tasks | Pending |
-| ORG-03 | P1: A organização tem uma fonte única de quem a administra | Tasks | Pending |
-| ORG-04 | P1: A organização tem uma fonte única de quem a administra | Tasks | Pending |
-| ORG-05 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-06 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-07 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-08 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-09 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-10 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-11 | P1: Um formulário concede e revoga administrador de organização | Tasks | Pending |
-| ORG-12 | P2: O papel de workspace para de prometer alcance que não confere mais | Tasks | Pending |
-| ORG-13 | P2: O papel de workspace para de prometer alcance que não confere mais | Tasks | Pending |
-| ORG-14 | P2: O papel de workspace para de prometer alcance que não confere mais | Tasks | Pending |
+| ORG-01 | P1: A organização tem uma fonte única de quem a administra | Verify | ✅ Verified |
+| ORG-02 | P1: A organização tem uma fonte única de quem a administra | Verify | ✅ Verified |
+| ORG-03 | P1: A organização tem uma fonte única de quem a administra | Verify | ✅ Verified |
+| ORG-04 | P1: A organização tem uma fonte única de quem a administra | Verify | ✅ Verified |
+| ORG-05 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-06 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-07 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-08 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-09 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-10 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-11 | P1: Um formulário concede e revoga administrador de organização | Verify | ✅ Verified |
+| ORG-12 | P2: O papel de workspace para de prometer alcance que não confere mais | Verify | ✅ Verified |
+| ORG-13 | P2: O papel de workspace para de prometer alcance que não confere mais | Verify | ✅ Verified |
+| ORG-14 | P2: O papel de workspace para de prometer alcance que não confere mais | Verify | ✅ Verified |
 
 **Coverage:** 14 total, 14 mapeados para tasks, 0 sem mapeamento.
 
