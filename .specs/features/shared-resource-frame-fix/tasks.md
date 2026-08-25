@@ -176,9 +176,9 @@ a execução" como fechada (já feito ao criar esta spec — confirmar) e atuali
 
 **Done when**:
 
-- [ ] `remediation-roadmap.md` não lista mais este item como aberto
-- [ ] `.specs/STATE.md`'s "Aberto e sem dono" não lista mais o bug de `SharedResourcePage`
-- [ ] Gate check passes: `make ci`
+- [x] `remediation-roadmap.md` não lista mais este item como aberto
+- [x] `.specs/STATE.md`'s "Aberto e sem dono" não lista mais o bug de `SharedResourcePage`
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
