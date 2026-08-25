@@ -21,6 +21,7 @@
     "audit": "node dist/cli.js audit"
   },
   "dependencies": {
+    "@arch-canvas/shared-contracts": "workspace:*",
     "yaml": "^2.9.0"
   },
   "devDependencies": {

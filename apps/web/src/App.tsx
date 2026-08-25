@@ -1,21 +1,17 @@
-import type { JSX } from 'react';
+import { type JSX, lazy, Suspense } from 'react';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './app-shell/AppShell.js';
+import { RouteErrorBoundary } from './app-shell/RouteErrorBoundary.js';
 import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
-import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
-import { InventoryPage } from './diagram/InventoryPage.js';
 import { AiProviderAdminPage } from './nav/AiProviderAdminPage.js';
 import { DiagramListPage } from './nav/DiagramListPage.js';
 import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
 import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
-import { PresentationEditorPage } from './presentation/PresentationEditorPage.js';
 import { PresentationListPage } from './presentation/PresentationListPage.js';
-import { PresenterModePage } from './presentation/PresenterModePage.js';
-import { SharedResourcePage } from './share/SharedResourcePage.js';
 
 /**
  * Pathless layout route that scopes `AuthProvider` to the authenticated half of
@@ -80,67 +76,121 @@ function AuthLayout(): JSX.Element {
  * layout route's SIBLING — the first page in this app that works with no session
  * (AD-012, SHR-12/13).
  */
+/**
+ * ESTB-09: every route element renders inside its own boundary, never a single global
+ * one. The boundaries nest — a throw in a nested child is caught by that child's
+ * boundary, so `AppShell`'s own boundary never fires and the header and navigation stay
+ * on screen for the person to navigate out of the broken screen.
+ */
+function guarded(element: JSX.Element): JSX.Element {
+  return <RouteErrorBoundary>{element}</RouteErrorBoundary>;
+}
+
+/**
+ * UIF-18..20: the editor route carries the canvas engine, mermaid, cytoscape and katex.
+ * Loading it eagerly meant someone opening only the sign-in screen downloaded all of it.
+ * Split out here, behind the `Suspense` boundary below.
+ */
+const DiagramEditorPage = lazy(async () => ({
+  default: (await import('./diagram/DiagramEditorPage.js')).DiagramEditorPage,
+}));
+const InventoryPage = lazy(async () => ({
+  default: (await import('./diagram/InventoryPage.js')).InventoryPage,
+}));
+const PresentationEditorPage = lazy(async () => ({
+  default: (await import('./presentation/PresentationEditorPage.js')).PresentationEditorPage,
+}));
+const PresenterModePage = lazy(async () => ({
+  default: (await import('./presentation/PresenterModePage.js')).PresenterModePage,
+}));
+const SharedResourcePage = lazy(async () => ({
+  default: (await import('./share/SharedResourcePage.js')).SharedResourcePage,
+}));
+
+/** UIF-19: what shows while the editor chunk is being fetched. */
+function RouteFallback(): JSX.Element {
+  return <div className="p-6 text-sm text-content-muted" role="status" />;
+}
+
 export function AppRoutes(): JSX.Element {
   return (
     <Routes>
-      <Route path="/share/:token" element={<SharedResourcePage />} />
+      <Route
+        path="/share/:token"
+        element={guarded(
+          <Suspense fallback={<RouteFallback />}>
+            <SharedResourcePage />
+          </Suspense>,
+        )}
+      />
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={guarded(<LoginPage />)} />
         <Route
           path="/"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <AppShell />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         >
-          <Route index element={<WorkspaceListPage />} />
-          <Route path="w/:workspaceId" element={<ProjectListPage />} />
-          <Route path="w/:workspaceId/members" element={<WorkspaceMembersPage />} />
-          <Route path="w/:workspaceId/webhooks" element={<WorkspaceWebhooksPage />} />
-          <Route path="w/:workspaceId/p/:projectId" element={<DiagramListPage />} />
-          <Route path="admin/ai-providers" element={<AiProviderAdminPage />} />
-          <Route path="w/:workspaceId/admin/ai-providers" element={<AiProviderAdminPage />} />
+          <Route index element={guarded(<WorkspaceListPage />)} />
+          <Route path="w/:workspaceId" element={guarded(<ProjectListPage />)} />
+          <Route path="w/:workspaceId/members" element={guarded(<WorkspaceMembersPage />)} />
+          <Route path="w/:workspaceId/webhooks" element={guarded(<WorkspaceWebhooksPage />)} />
+          <Route path="w/:workspaceId/p/:projectId" element={guarded(<DiagramListPage />)} />
+          <Route path="admin/ai-providers" element={guarded(<AiProviderAdminPage />)} />
+          <Route
+            path="w/:workspaceId/admin/ai-providers"
+            element={guarded(<AiProviderAdminPage />)}
+          />
         </Route>
         <Route
           path="/w/:workspaceId/d/:diagramId"
-          element={
+          element={guarded(
             <ProtectedRoute>
-              <DiagramEditorPage />
-            </ProtectedRoute>
-          }
+              <Suspense fallback={<RouteFallback />}>
+                <DiagramEditorPage />
+              </Suspense>
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/inventory"
-          element={
+          element={guarded(
             <ProtectedRoute>
-              <InventoryPage />
-            </ProtectedRoute>
-          }
+              <Suspense fallback={<RouteFallback />}>
+                <InventoryPage />
+              </Suspense>
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present"
-          element={
+          element={guarded(
             <ProtectedRoute>
               <PresentationListPage />
-            </ProtectedRoute>
-          }
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present/:presentationId"
-          element={
+          element={guarded(
             <ProtectedRoute>
-              <PresentationEditorPage />
-            </ProtectedRoute>
-          }
+              <Suspense fallback={<RouteFallback />}>
+                <PresentationEditorPage />
+              </Suspense>
+            </ProtectedRoute>,
+          )}
         />
         <Route
           path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
-          element={
+          element={guarded(
             <ProtectedRoute>
-              <PresenterModePage />
-            </ProtectedRoute>
-          }
+              <Suspense fallback={<RouteFallback />}>
+                <PresenterModePage />
+              </Suspense>
+            </ProtectedRoute>,
+          )}
         />
       </Route>
     </Routes>

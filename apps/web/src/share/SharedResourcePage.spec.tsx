@@ -1,4 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { useEffect, useRef } from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 // Initializes the shared i18next singleton `useTranslation()` reads from. Default
@@ -13,6 +14,15 @@ import { SharedResourcePage } from './SharedResourcePage.js';
 let capturedViewModeEnabled: boolean | undefined;
 let capturedInitialElements: readonly unknown[] | undefined;
 let excalidrawRenders = 0;
+// SRF-01: a real React lifecycle signal (mount/unmount via `useEffect`), distinct
+// from `excalidrawRenders`/`capturedInitialElements` above — those only prove a
+// PROP changed on some instance, never that the instance itself is a fresh one.
+// `key={frame.id}` (SharedResourcePage.tsx) has to force an actual unmount/mount
+// of the tree under `EditorSurface`, which is real even though this mock (like the
+// real `<Excalidraw/>`) never re-reads `initialData` after mount.
+let mountCounter = 0;
+let mountedInstanceIds: number[] = [];
+let unmountedInstanceIds: number[] = [];
 
 vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@excalidraw/excalidraw')>();
@@ -25,6 +35,19 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
       excalidrawRenders += 1;
       capturedViewModeEnabled = props.viewModeEnabled;
       capturedInitialElements = props.initialData?.elements;
+
+      const instanceId = useRef<number | null>(null);
+      if (instanceId.current === null) {
+        instanceId.current = ++mountCounter;
+        mountedInstanceIds.push(instanceId.current);
+      }
+      useEffect(() => {
+        const id = instanceId.current as number;
+        return () => {
+          unmountedInstanceIds.push(id);
+        };
+      }, []);
+
       return null;
     },
   };
@@ -53,6 +76,9 @@ beforeEach(() => {
   capturedViewModeEnabled = undefined;
   capturedInitialElements = undefined;
   excalidrawRenders = 0;
+  mountCounter = 0;
+  mountedInstanceIds = [];
+  unmountedInstanceIds = [];
 });
 
 afterEach(cleanup);
@@ -292,6 +318,70 @@ describe('SharedResourcePage — published presentation frame viewer (T22, PRZ-2
         'frame-b',
       ]),
     );
+  });
+
+  it('remounts EditorSurface with a fresh instance on every frame change — real unmount/mount, not a prop update (SRF-01, SRF-02)', async () => {
+    renderPage(publishedFetch());
+    await screen.findByText('Frame 1 de 2');
+
+    expect(mountedInstanceIds).toHaveLength(1);
+    expect(unmountedInstanceIds).toHaveLength(0);
+    const firstInstanceId = mountedInstanceIds[0];
+
+    fireEvent.click(screen.getByRole('button', { name: 'Próximo' }));
+    await screen.findByText('Frame 2 de 2');
+
+    // The frame-1 instance was unmounted before the frame-2 one mounted, and the
+    // new instance is a DIFFERENT React instance — this is what a real `key`
+    // change produces, and what a mere prop update on the same instance never
+    // would.
+    expect(unmountedInstanceIds).toEqual([firstInstanceId]);
+    expect(mountedInstanceIds).toHaveLength(2);
+    expect(mountedInstanceIds[1]).not.toBe(firstInstanceId);
+  });
+
+  it('a nav-link jump remounts the same way as linear navigation — same mechanism, same key (SRF-01, edge case)', async () => {
+    renderPage(publishedFetch());
+    await screen.findByText('Frame 1 de 2');
+    const firstInstanceId = mountedInstanceIds[0];
+
+    fireEvent.click(screen.getByRole('button', { name: /Ir para:/ }));
+    await screen.findByText('Frame 2 de 2');
+
+    expect(unmountedInstanceIds).toEqual([firstInstanceId]);
+    expect(mountedInstanceIds).toHaveLength(2);
+  });
+
+  it('a single-frame presentation mounts the canvas once, with no further remount (SRF-03, edge case)', async () => {
+    const singleFrameScene = [
+      { id: 'frame-a', type: 'frame', version: 1, versionNonce: 1 },
+      { id: 'child-a', type: 'rectangle', frameId: 'frame-a', version: 1, versionNonce: 1 },
+    ];
+    const fetchImpl = vi.fn(async () =>
+      jsonResponse(200, {
+        resourceType: 'presentation',
+        role: 'viewer',
+        presentation: { id: 'p-1', name: 'Roadmap' },
+        frames: [
+          {
+            id: 'f-1',
+            position: 0,
+            elementId: 'frame-a',
+            frameId: null,
+            notes: null,
+            navLinksJson: [],
+          },
+        ],
+        scene: singleFrameScene,
+        published: true,
+      }),
+    ) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByText('Frame 1 de 1');
+
+    expect(mountedInstanceIds).toHaveLength(1);
+    expect(unmountedInstanceIds).toHaveLength(0);
   });
 
   it('an empty published scene renders an empty canvas, never the invalid-link message (edge case)', async () => {

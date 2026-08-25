@@ -1,7 +1,10 @@
-import { type FormEvent, type JSX, useEffect, useState } from 'react';
+import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
+import * as css from '../styles/classNames.js';
 import { useAuth } from './AuthProvider.js';
+import { FirstRunPage } from './FirstRunPage.js';
+import { createFirstRunClient, type FirstRunClient } from './firstRunClient.js';
 
 const DEFAULT_TARGET = '/';
 
@@ -28,7 +31,12 @@ interface OidcStatusResponse {
  * `next`/`error` from the URL and `useAuth()` for the already-authenticated
  * short-circuit (design.md).
  */
-export function LoginPage(): JSX.Element | null {
+export interface LoginPageProps {
+  /** Injectable for tests; defaults to the global fetch, same convention as the other pages. */
+  firstRunClient?: FirstRunClient;
+}
+
+export function LoginPage({ firstRunClient }: LoginPageProps = {}): JSX.Element | null {
   const { t } = useTranslation();
   const { status } = useAuth();
   const [searchParams] = useSearchParams();
@@ -42,6 +50,26 @@ export function LoginPage(): JSX.Element | null {
     oidcFailed ? t('auth.ssoFailed') : null,
   );
   const [ssoConfigured, setSsoConfigured] = useState(false);
+  // BOOT-12: starts `false`, not `null`. Blocking the render until the answer arrives would
+  // hold back the credentials form on every normal sign-in — the overwhelmingly common case —
+  // to spare a fresh instance one frame. An instance that has accounts is the default.
+  const [firstRunAvailable, setFirstRunAvailable] = useState(false);
+  const resolvedFirstRunClient = useMemo(
+    () => firstRunClient ?? createFirstRunClient(),
+    [firstRunClient],
+  );
+
+  // BOOT-12: which form this route shows is decided by the server, not by configuration —
+  // an instance with no account gets the first-run form, everything else gets credentials.
+  useEffect(() => {
+    let cancelled = false;
+    void resolvedFirstRunClient.checkAvailability().then(({ available }) => {
+      if (!cancelled) setFirstRunAvailable(available);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [resolvedFirstRunClient]);
 
   // SSO-09..11: the SSO link only ever appears after a successful
   // `{configured: true}` — any non-200 or network failure is treated as
@@ -71,6 +99,17 @@ export function LoginPage(): JSX.Element | null {
   // exists — mirrors `ProtectedRoute`'s "render nothing while loading".
   if (status !== 'anonymous') {
     return null;
+  }
+
+  // BOOT-15: `onAlreadyInitialized` is how the first-run form hands the route back when the
+  // instance stopped being empty between the check and the submit.
+  if (firstRunAvailable) {
+    return (
+      <FirstRunPage
+        client={resolvedFirstRunClient}
+        onAlreadyInitialized={() => setFirstRunAvailable(false)}
+      />
+    );
   }
 
   const canSubmit = email.trim().length > 0 && password.trim().length > 0 && !submitting;
@@ -110,34 +149,59 @@ export function LoginPage(): JSX.Element | null {
   }
 
   return (
-    <div>
-      <form onSubmit={(event) => void handleSubmit(event)}>
-        <div aria-live="polite">{submitting ? t('auth.submitting') : errorMessage}</div>
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-sm">
+        <h1 className={`${css.pageTitle} mb-6 text-center`}>{t('app.title')}</h1>
 
-        <label htmlFor="login-email">{t('auth.emailLabel')}</label>
-        <input
-          id="login-email"
-          type="email"
-          autoComplete="username"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+        <form
+          className={`${css.panelPadded} flex flex-col gap-4`}
+          onSubmit={(event) => void handleSubmit(event)}
+        >
+          <div aria-live="polite" className={errorMessage ? css.errorBox : css.helpText}>
+            {submitting ? t('auth.submitting') : errorMessage}
+          </div>
 
-        <label htmlFor="login-password">{t('auth.passwordLabel')}</label>
-        <input
-          id="login-password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+          <div className={css.field}>
+            <label className={css.label} htmlFor="login-email">
+              {t('auth.emailLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="login-email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
-        <button type="submit" disabled={!canSubmit}>
-          {t('auth.submit')}
-        </button>
-      </form>
+          <div className={css.field}>
+            <label className={css.label} htmlFor="login-password">
+              {t('auth.passwordLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
 
-      {ssoConfigured && <a href="/auth/oidc/login">{t('auth.ssoButton')}</a>}
+          <button className={css.buttonPrimary} type="submit" disabled={!canSubmit}>
+            {t('auth.submit')}
+          </button>
+        </form>
+
+        {ssoConfigured && (
+          <p className="mt-4 text-center">
+            <a className={css.link} href="/auth/oidc/login">
+              {t('auth.ssoButton')}
+            </a>
+          </p>
+        )}
+      </div>
     </div>
   );
 }

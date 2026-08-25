@@ -6,7 +6,11 @@
     "label": "Idioma"
   },
   "diagram": {
-    "loading": "Carregando…"
+    "loading": "Carregando…",
+    "panel": {
+      "collapse": "Recolher painel",
+      "expand": "Expandir painel"
+    }
   },
   "saveStatus": {
     "saved": "Salvo",
@@ -197,7 +201,18 @@
         "editor": "Editor",
         "reviewer": "Revisor",
         "viewer": "Visualizador"
-      }
+      },
+      "yourRole": "Seu papel",
+      "noPermission": "Você não tem permissão para isto neste workspace."
+    },
+    "orgAdmins": {
+      "title": "Administradores da organização",
+      "add": "Adicionar",
+      "remove": "Remover",
+      "emailLabel": "E-mail",
+      "notFound": "Nenhuma conta encontrada com esse e-mail.",
+      "lastAdmin": "Isso deixaria a organização sem nenhum administrador.",
+      "empty": "Esta organização ainda não tem administradores listados."
     },
     "webhooks": {
       "link": "Webhooks",
@@ -254,8 +269,10 @@
     "error": {
       "conflict": "Esse nome já está em uso.",
       "forbidden": "Você não tem permissão para fazer isso.",
-      "generic": "Algo deu errado. Tente novamente."
-    }
+      "generic": "Algo deu errado. Tente novamente.",
+      "retry": "Tentar novamente"
+    },
+    "loading": "Carregando…"
   },
   "library": {
     "title": "Biblioteca de componentes",
@@ -556,5 +573,29 @@
       "exit": "Sair (Esc)",
       "exitLabel": "Sair do modo apresentador"
     }
+  },
+  "errorBoundary": {
+    "title": "Algo quebrou nesta tela",
+    "message": "Esta tela parou de responder por um erro inesperado. O restante do aplicativo continua funcionando.",
+    "reload": "Recarregar a tela"
+  },
+  "firstRun": {
+    "title": "Primeiro acesso",
+    "intro": "Esta instância ainda não tem nenhuma conta. Crie o administrador inicial para começar.",
+    "emailLabel": "E-mail",
+    "displayNameLabel": "Seu nome",
+    "passwordLabel": "Senha",
+    "passwordHint": "Mínimo de 12 caracteres.",
+    "workspaceLabel": "Nome do workspace",
+    "submit": "Criar administrador",
+    "submitting": "Criando…",
+    "invalidEmail": "Informe um e-mail válido.",
+    "invalidPassword": "A senha precisa ter no mínimo 12 caracteres.",
+    "invalidDisplayName": "Informe o seu nome.",
+    "invalidWorkspaceName": "Informe o nome do workspace.",
+    "invalidUnknown": "Não foi possível criar a conta com esses dados.",
+    "alreadyInitialized": "Esta instância já foi inicializada. Entre com as suas credenciais.",
+    "rateLimited": "Tentativas demais. Espere um minuto e tente de novo.",
+    "error": "Não foi possível criar a conta. Tente de novo."
   }
 }

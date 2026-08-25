@@ -130,6 +130,30 @@ export const workspaceMembers = pgTable(
   ],
 );
 
+/**
+ * Who administers an organization (ORG-01, AD-016's declared next step) — the single source
+ * of organization-wide admin reach, replacing the old proxy read of
+ * `workspace_members.role = 'org_admin'` (design.md "Fonte única"). No role column: presence
+ * of a `(organization_id, user_id)` row is the entire signal, since this codebase has only one
+ * organization-level permission today (spec.md Assumptions).
+ */
+export const organizationMembers = pgTable(
+  'organization_members',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    organizationId: uuid('organization_id')
+      .notNull()
+      .references(() => organizations.id),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('organization_members_org_user_unique').on(table.organizationId, table.userId),
+  ],
+);
+
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
   workspaceId: uuid('workspace_id')

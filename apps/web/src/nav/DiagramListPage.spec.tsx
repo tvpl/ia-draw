@@ -409,3 +409,52 @@ describe('DiagramListPage (NAV-03, NAV-04, NAV-12, empty-list edge case)', () =>
     expect(fetchImpl).toHaveBeenCalledTimes(3);
   });
 });
+
+describe('DiagramListPage — retry on load failure (LRA-01..03, LRA-05)', () => {
+  it('shows a retry button next to the error message when GET /diagrams fails, and it disappears once the retry succeeds (LRA-01..03)', async () => {
+    let listCalls = 0;
+    const fetchImpl = mockFetch({
+      '/projects/p-1': () => projectDetailResponse(),
+      '/workspaces/ws-1': () => workspaceDetailResponse('editor'),
+      '/diagrams?projectId=p-1': () => {
+        listCalls += 1;
+        if (listCalls === 1) return jsonResponse(500, {});
+        return jsonResponse(200, {
+          items: [{ id: 'd-1', projectId: 'p-1', title: 'Diagram One' }],
+        });
+      },
+    });
+
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('Algo deu errado. Tente novamente.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+
+    expect(await screen.findByRole('link', { name: 'Diagram One' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Tentar novamente' })).toBeNull();
+    expect(listCalls).toBe(2);
+  });
+
+  it('clicking retry twice fires two GET /diagrams calls, one per click, without duplicating the error message (LRA-05)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/projects/p-1') return projectDetailResponse();
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/diagrams?projectId=p-1') return jsonResponse(500, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    renderPage(fetchImpl as unknown as typeof fetch);
+
+    const retryButton = await screen.findByRole('button', { name: 'Tentar novamente' });
+    const listCallsCount = () =>
+      fetchImpl.mock.calls.filter(([url]) => url === '/diagrams?projectId=p-1').length;
+
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(listCallsCount()).toBe(2));
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await waitFor(() => expect(listCallsCount()).toBe(3));
+
+    expect(screen.getAllByText('Algo deu errado. Tente novamente.')).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Tentar novamente' })).toHaveLength(1);
+  });
+});

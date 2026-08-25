@@ -1,5 +1,6 @@
 import { can, type Role } from '@arch-canvas/auth';
-import { recordAuditEvent } from '@arch-canvas/database';
+import { recordAuditEvent, users, workspaces as workspacesTable } from '@arch-canvas/database';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { RouteSchemaMap } from '../../openapi/types.js';
@@ -7,12 +8,20 @@ import type { Db } from '../auth/db.js';
 import { requireSession } from '../auth/middleware.js';
 import '../auth/types.js';
 import type { JobQueue } from '../jobs/index.js';
+import { LastAdminError } from './lastAdmin.js';
 import {
   addWorkspaceMember,
   listWorkspaceMembers,
+  readMemberRole,
   removeWorkspaceMember,
   updateWorkspaceMemberRole,
 } from './members.js';
+import {
+  addOrganizationAdmin,
+  LastOrgAdminError,
+  listOrganizationAdmins,
+  removeOrganizationAdmin,
+} from './organizationAdmins.js';
 import { registerProjectAndDiagramRoutes } from './project-diagram-routes.js';
 import { isUniqueViolation, resolveWorkspaceRole } from './rbac.js';
 import {
@@ -44,6 +53,7 @@ const workspaceIdParamsSchema = z.object({ id: z.string().min(1) });
 const memberParamsSchema = z.object({ id: z.string().min(1), userId: z.string().min(1) });
 const addMemberBodySchema = z.object({ userId: z.string().min(1), role: roleSchema });
 const updateMemberBodySchema = z.object({ role: roleSchema });
+const addOrganizationAdminBodySchema = z.object({ email: z.string().min(1) });
 
 function notFound(): never {
   throw Object.assign(new Error('Not Found'), { statusCode: 404 });
@@ -76,6 +86,12 @@ export const routeSchemas: RouteSchemaMap = {
     body: updateMemberBodySchema,
   },
   'DELETE /workspaces/:id/members/:userId': { params: memberParamsSchema },
+  'GET /workspaces/:id/organization-admins': { params: workspaceIdParamsSchema },
+  'POST /workspaces/:id/organization-admins': {
+    params: workspaceIdParamsSchema,
+    body: addOrganizationAdminBodySchema,
+  },
+  'DELETE /workspaces/:id/organization-admins/:userId': { params: memberParamsSchema },
 };
 
 /**
@@ -86,6 +102,16 @@ async function requireMembership(db: Db, workspaceId: string, userId: string): P
   const role = await resolveWorkspaceRole(db, workspaceId, userId);
   if (!role) notFound();
   return role;
+}
+
+/** The organization that owns `workspaceId` — same lookup shape as `effectiveRole.ts`/`lastAdmin.ts`. */
+async function resolveOrganizationId(db: Db, workspaceId: string): Promise<string> {
+  const [owner] = await db
+    .select({ organizationId: workspacesTable.organizationId })
+    .from(workspacesTable)
+    .where(eq(workspacesTable.id, workspaceId));
+  if (!owner) notFound();
+  return owner.organizationId;
 }
 
 /**
@@ -136,7 +162,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
     const decision = can({ role }, 'workspace:read', { workspaceId: id });
     if (!decision.allowed) notFound();
 
-    const workspace = await getWorkspaceById(db, id, user.id);
+    const workspace = await getWorkspaceById(db, id, role);
     if (!workspace) notFound();
     return { workspace };
   });
@@ -253,7 +279,15 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
       if (!decision.allowed) forbidden();
 
       const body = updateMemberBodySchema.parse(request.body);
-      const updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
+      // RBAC-11: read before the change, so the audit records what the role WAS.
+      const previousRole = await readMemberRole(db, id, targetUserId);
+      let updated: boolean;
+      try {
+        updated = await updateWorkspaceMemberRole(db, id, targetUserId, body.role);
+      } catch (error) {
+        if (error instanceof LastAdminError) conflict(error.message);
+        throw error;
+      }
       if (!updated) notFound();
 
       await recordAuditEvent(db, {
@@ -261,7 +295,7 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
         action: 'workspace.member.updated',
         resourceType: 'workspace',
         resourceId: id,
-        metadataJson: { targetUserId, role: body.role },
+        metadataJson: { targetUserId, role: body.role, previousRole },
       });
 
       return { ok: true };
@@ -280,7 +314,14 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
       const decision = can({ role }, 'workspace:manage_members', { workspaceId: id });
       if (!decision.allowed) forbidden();
 
-      const removed = await removeWorkspaceMember(db, id, targetUserId);
+      const previousRole = await readMemberRole(db, id, targetUserId);
+      let removed: boolean;
+      try {
+        removed = await removeWorkspaceMember(db, id, targetUserId);
+      } catch (error) {
+        if (error instanceof LastAdminError) conflict(error.message);
+        throw error;
+      }
       if (!removed) notFound();
 
       await recordAuditEvent(db, {
@@ -288,6 +329,96 @@ export function registerWorkspaceModule(app: FastifyInstance, deps: WorkspaceMod
         action: 'workspace.member.removed',
         resourceType: 'workspace',
         resourceId: id,
+        metadataJson: { targetUserId, previousRole },
+      });
+
+      reply.code(204);
+      return null;
+    },
+  );
+
+  // ORG-05..11: organization-wide admin grant/revoke, backed by organization_members
+  // (design.md "Módulo do servidor") — same /workspaces prefix, no new route prefix (AD-013
+  // satisfied by construction).
+  app.get(
+    '/workspaces/:id/organization-admins',
+    { preHandler: requireSession(db) },
+    async (request) => {
+      const { id } = workspaceIdParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      // ORG-05: any member of the workspace may read the list (universal read).
+      await requireMembership(db, id, user.id);
+
+      const organizationId = await resolveOrganizationId(db, id);
+      const items = await listOrganizationAdmins(db, organizationId);
+      return { items };
+    },
+  );
+
+  app.post(
+    '/workspaces/:id/organization-admins',
+    { preHandler: requireSession(db) },
+    async (request, reply) => {
+      const { id } = workspaceIdParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      const role = await requireMembership(db, id, user.id);
+      // ORG-06/09: only someone who IS org_admin (not merely workspace_admin) here may grant
+      // organization-wide admin — a direct identity check, not a new `can()` Action, since
+      // workspace_admin and org_admin share the same grant set in packages/auth (design.md).
+      if (role !== 'org_admin') forbidden();
+
+      const body = addOrganizationAdminBodySchema.parse(request.body);
+      const [target] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, body.email));
+      if (!target) {
+        throw Object.assign(new Error('No user found for that email'), { statusCode: 404 });
+      }
+
+      const organizationId = await resolveOrganizationId(db, id);
+      await addOrganizationAdmin(db, organizationId, target.id);
+
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'organization.admin.added',
+        resourceType: 'organization',
+        resourceId: organizationId,
+        metadataJson: { targetUserId: target.id },
+      });
+
+      reply.code(201);
+      return { ok: true };
+    },
+  );
+
+  app.delete(
+    '/workspaces/:id/organization-admins/:userId',
+    { preHandler: requireSession(db) },
+    async (request, reply) => {
+      const { id, userId: targetUserId } = memberParamsSchema.parse(request.params);
+      const user = request.authContext?.user;
+      if (!user) forbidden();
+      const role = await requireMembership(db, id, user.id);
+      if (role !== 'org_admin') forbidden();
+
+      const organizationId = await resolveOrganizationId(db, id);
+      let removed: boolean;
+      try {
+        removed = await removeOrganizationAdmin(db, organizationId, targetUserId);
+      } catch (error) {
+        if (error instanceof LastOrgAdminError) conflict(error.message);
+        throw error;
+      }
+      if (!removed) notFound();
+
+      await recordAuditEvent(db, {
+        actorId: user.id,
+        action: 'organization.admin.removed',
+        resourceType: 'organization',
+        resourceId: organizationId,
         metadataJson: { targetUserId },
       });
 

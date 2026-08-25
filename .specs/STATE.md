@@ -98,10 +98,127 @@
 - **Date**: 2026-08-17
 - **Status**: active
 
+### AD-013
+- **Decision**: Os prefixos de caminho que pertencem ao servidor vivem numa fonte única (`packages/shared-contracts/src/routePrefixes.ts`). O proxy de desenvolvimento importa a lista; o `Caddyfile` do compose continua escrito à mão, mas um teste de paridade em `repo-tools` exige que rotas registradas, `Caddyfile` e proxy de desenvolvimento descrevam exatamente o mesmo conjunto. As rotas do servidor continuam sem prefixo `/api`.
+- **Reason**: o `Caddyfile` roteava `/api/*`, um namespace que nenhuma das 90 rotas usa, então toda chamada de API no stack do Docker caía no catch-all e recebia a SPA — `POST /auth/login` respondia 405 do nginx. O `vite.config.ts` já tinha detectado a divergência (`SPEC_DEVIATION`) e corrigido só a si mesmo, deixando a outra borda errada e a própria lista incompleta em 7 prefixos. Sem fonte comum e sem teste, as duas bordas divergem de novo na próxima rota.
+- **Trade-off**: o `Caddyfile` não é gerado, então uma mudança de prefixo exige editar dois arquivos — em troca ele continua legível e `infra/` não ganha passo de build. Prefixar as rotas com `/api` foi descartado: quebraria `docs/openapi.json`, o módulo MCP e todo consumidor externo.
+- **Scope**: `infra/compose/Caddyfile`, `apps/web/vite.config.ts`, `packages/shared-contracts`, `tools/repo-tools`, e toda rota nova de `apps/server`.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-014
+- **Decision**: `apps/web` adota Tailwind CSS v4 com configuração CSS-first: os tokens de cor, espaçamento, raio, tipografia e sombra são declarados uma única vez num bloco `@theme` em `apps/web/src/styles/theme.css`, e componentes consomem apenas utilitários. Nenhum valor literal de cor existe em componente de produção e nenhum `style={{}}` permanece. A folha da aplicação é carregada depois da do Excalidraw, e nenhuma regra da aplicação seleciona dentro do canvas.
+- **Reason**: o produto não tinha camada de estilo nenhuma — 0 arquivos CSS, 0 `className`, 9 `style={{}}` inline, todos concentrados na rota do editor, onde produziram a sobreposição entre painel lateral e canvas. Com 41 componentes esperando, CSS Modules exigiria escrever escalas, estados e densidade à mão antes de estilizar a primeira tela.
+- **Trade-off**: uma dependência de build nova, e o Biome não ordena classes de Tailwind (nenhum segundo linter será adicionado só para isso). Tema escuro fica fora até a paleta clara estabilizar.
+- **Scope**: `apps/web` inteiro; toda tela futura estiliza por tokens e utilitários, nunca por valor literal.
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-015
+- **Decision**: A criação do administrador inicial é uma rota pública autolimitada (`GET`/`POST /auth/first-run`), disponível apenas enquanto a tabela `users` está vazia e respondendo `404` em ambas as verbas assim que deixa de estar. A operação é transacional (conta + organização + workspace + associação `org_admin`) e a corrida é resolvida pelo banco, não pela aplicação: a perdedora recebe `409`. O papel nunca vem de parâmetro do cliente.
+- **Reason**: `createLocalAccount` não tinha nenhum chamador de produção — só testes e o harness e2e. Uma instância recém-subida ficava com tela de login e nenhuma conta, e a única saída era inserir hash no banco à mão. Provisionar por variável de ambiente foi descartado por manter segredo em variável persistida e duplicar o caminho de criação.
+- **Trade-off**: uma superfície pública nova no módulo de auth, cuja segurança depende inteiramente da guarda de instância vazia — por isso a guarda é do banco, a resposta indisponível é `404` (não `403`, que confirmaria estado) e a rota reusa o limitador de taxa já aplicado às demais rotas de auth.
+- **Scope**: `apps/server/src/modules/auth`, `apps/web/src/auth`, `infra/compose` (smoke), `README.md` (Quick start e deploy).
+- **Date**: 2026-08-24
+- **Status**: active
+
+### AD-016
+- **Decision**: O papel efetivo de um ator sobre um workspace é resolvido por uma única função no servidor, que considera a associação em `workspace_members` e o papel na organização dona, aplicando o mais permissivo dos dois. `org_admin` passa a valer em todo workspace da sua organização sem exigir associação. `reviewer` passa a conceder `comment:resolve`, que `viewer` deixa de conceder. A guarda que impede um workspace de ficar sem administrador roda dentro da mesma transação da alteração.
+- **Reason**: os cinco papéis colapsavam em três conjuntos idênticos — `org_admin` ≡ `workspace_admin` e `reviewer` ≡ `viewer` — e `org_admin` não tinha nenhum poder além do workspace onde possuía linha, o que tornava o nome uma promessa que a API não cumpria. A ausência de guarda no servidor permitia remover o último administrador por chamada direta; a proteção existia só no cliente, e o próprio código admitia isso.
+- **Trade-off**: mexer em autorização exige reescrever a matriz de teste para cobrir os cinco papéis contra todas as ações, incluindo ator sem associação. Reduzir para três papéis foi descartado: exigiria migração destrutiva de enum e quebra do contrato público da API. Nenhum valor de papel muda — apenas os grants associados a eles.
+- **Scope**: `packages/auth/src/rbac.ts`, `apps/server/src/modules/workspace`, `apps/web/src/nav`.
+- **Date**: 2026-08-24
+- **Status**: active
+- **Resolved consequence**: `org_admin` valendo em qualquer workspace da organização (por falta de `organization_members`) era a única leitura possível sem migração — declarado aqui como consequência de desenho aberta. **AD-017** fecha isso: tabela `organization_members` dedicada, os três call sites migrados.
+
+### AD-017
+- **Decision**: `organization_members(id, organization_id, user_id, created_at)`, sem coluna de papel, única por `(organization_id, user_id)`, é a fonte única de quem administra cada organização. Os três call sites que liam `workspace_members.role='org_admin'` como proxy de alcance organizacional migram para ela: `effectiveRole.ts`'s `resolveOrganizationRole`, `ai-provider/routes.ts`'s `hasOrgAdminMembership`, `workspaces.ts`'s `listWorkspacesForUser`. Um módulo novo (`organizationAdmins.ts`) e rotas REST dedicadas (`GET/POST/DELETE /workspaces/:id/organization-admins[/:userId]`) concedem/revogam sem editar papel de workspace, com a mesma guarda de último administrador de `lastAdmin.ts`. `workspace_members.role='org_admin'` deixa de conceder alcance de organização; os seletores de papel de workspace (convite e troca) param de oferecê-lo como opção nova.
+- **Reason**: AD-016 tinha documentado essa leitura como consequência de desenho deliberada e aberta ("a única leitura que o schema atual suporta, sem migração"). Uma varredura achou que ela não vivia só em `resolveEffectiveRole` — dois outros call sites faziam a mesma varredura bruta por conta própria, a mesma classe de defeito (segundo caminho de autorização divergente) que AD-016 já tinha fechado uma vez.
+- **Trade-off**: o enum `workspace_member_role` mantém os cinco valores — removê-lo quebraria linhas existentes e a matriz de RBAC sem necessidade, já que só o significado organizacional muda, não a validade do valor. Uma linha legada com `org_admin` continua existindo e exibindo esse rótulo com fidelidade, só não pode ser reatribuída a ele pelos seletores.
+- **Scope**: `packages/database/src/schema.ts`, `apps/server/src/modules/workspace/*`, `apps/server/src/modules/ai-provider/routes.ts`, `apps/server/src/modules/auth/firstRun.ts`, `apps/web/src/nav/{organizationAdminClient.ts,WorkspaceMembersPage.tsx}`.
+- **Date**: 2026-08-25
+- **Status**: active
+
 ## Handoffs
 
 Uma subseção por frente ativa (GOV-06). Hoje só há uma frente (`platform-maturity`); o formato
 comporta N sem colisão de merge — cada frente edita só a sua própria subseção.
+
+### platform-remediation (branch: claude/project-failures-analysis-ij346k)
+
+- **Feature**: onda **F11 — remediação**, indexada em `.specs/features/platform-maturity/remediation-roadmap.md` (R17–R23). Ao contrário de `ui-roadmap.md`, que decompunha capacidade ausente, esta onda decompõe **defeito confirmado**: cada entrada saiu de um achado reproduzido na análise de 2026-08-24, nenhuma de suspeita.
+- **Branch**: `claude/project-failures-analysis-ij346k`, cortada de `main` em `434259e`.
+- **Phase / Task**: **onda completa — R17 a R23 fechadas e verificadas.** 62 tasks executadas, 7 `validation.md` escritos, 107 requisitos (ESTB, EDGE, BOOT, GATE, UIF, RBAC, DOCS) marcados `✅ Verified`.
+  - **R17 `editor-stability` — PASS**, 14 ACs com evidência `file:line`, sensor 7/7. A rota do editor monta. Causa raiz: `EditorSurface.onChange` emitia `onSelectionChange` com um array novo a cada change; o consumidor elevava para estado e o re-render voltava ao `onChange` (React #185). Guarda de estabilidade por chave de seleção. Toda rota ganhou `RouteErrorBoundary`; um e2e com allowlist de console **vazia** reprova em qualquer erro.
+  - **R18 `edge-routing` — PASS**, 10 de 12 ACs diretos e 2 estruturais (EDGE-03/04, exigem o stack de pé; executados em R20). O `Caddyfile` deixou de rotear `/api` — namespace que nenhuma das 92 rotas usa — e passou a rotear os 15 prefixos reais, todos declarados uma única vez em `shared-contracts/routePrefixes.ts` (AD-013).
+  - **R19 `instance-bootstrap` — PASS**. `GET`/`POST /auth/first-run`, pública enquanto `users` está vazia e `404` depois; conta + organização + workspace + `org_admin` numa transação sob `pg_advisory_xact_lock`, perdedora recebe `409` (AD-015). Antes disso uma instância nova não tinha nenhuma conta com que entrar e a única saída era inserir um hash Argon2 à mão.
+  - **R20 `green-gate` — PASS, com emenda no fechamento**. **`make ci` ficou verde pela primeira vez na história do repositório.** Quatro bloqueios reais e um flake, dos quais o plano previa dois. O flake diagnosticado em `STATE.md` como "conhecido" era contenção de concorrência do turbo (10 suítes vitest disputando 4 CPUs contra o timeout de 1s do `findByText`) — resolvido por `--concurrency=2`, não por tolerância. `infra/backup` saiu para um job próprio, com Emenda registrada na ADR-0007. **Emenda de 2026-08-25**: `--concurrency=2` reduziu o flake mas não o eliminou (~1 falha em 4 no fechamento da onda). Havia três causas, duas delas imunes a qualquer aumento de timeout — um evento de teclado disparado antes do listener de um efeito passivo é descartado, e contar ticks de microtask é palpite. Fechado em `20f57fc`, com 13 corridas limpas consecutivas e `make ci` verde sob `TURBO_FORCE=true`.
+  - **R21 `ui-foundations` — PASS**. Tailwind v4 CSS-first com tokens num único bloco `@theme`; nenhum `style={{}}` e nenhum literal de cor sobrevive em componente de produção (`tokenSweep.spec.ts`, com uma isenção nomeada). O chunk de entrada caiu de **1.486 kB para 246 kB** ao carregar sob demanda as 5 rotas que trazem o canvas (AD-014).
+  - **R22 `rbac-clarity` — PASS com 2 parcialidades nomeadas**. Os cinco papéis deixaram de ser três: `reviewer` ganhou `comment:resolve` e `viewer` perdeu; `org_admin` passou a valer em toda a organização (AD-016). Guarda transacional de último administrador sob lock de linha. **Achado fora do plano**: existia um segundo caminho de autorização dentro de `getWorkspaceById`/`listWorkspacesForUser`, que anulava a mudança inteira.
+  - **R23 `docs-truth` — PASS**, 13 de 13 ACs diretos, sensor 6/6. Os números do README passaram a ser escritos pelo auditor a partir da medição, e o mapa de capacidades passou a ser checado **nas duas direções**. **Achado fora do plano**: o próprio extrator de consumidores era cego a 24% da interface (só reconhecia `fetch`/`fetchImpl`, e `lintClient` usa `doFetch`); a medição real subiu de 51 para 67 rotas consumidas.
+- **Execução sem sub-agentes**: o oferecimento obrigatório de sub-agentes não pôde ser feito — a ferramenta não estava disponível nesta sessão. As 62 tasks rodaram inline e a validação foi o passe standalone de `validate.md`, com autor e verificador sendo o mesmo agente. **Limitação registrada, não dispensa**: custou um `Done when` marcado sem o artefato existir (changeset de T1/R17) e um gate declarado verde sobre cache do turbo (R22, ver abaixo).
+- **Testes existentes modificados de propósito** (declarado, nunca silencioso): `webConsumers.spec.ts` (contagem congelada → 5 invariantes), `DiagramEditorPage.spec.tsx` (asserções sobre `style` inline que UIF-13 remove → asserções sobre `className`, com asserção de largura mais forte), `comment.int.spec.ts` (afirmava que `viewer` resolve comentário — contrato que AD-016 removeu → agora fixa os dois lados da fronteira). Cada um justificado no `validation.md` da sua onda.
+- **Decisões de produto tomadas com o usuário nesta sessão**: escopo da onda completo (7 specs); Tailwind v4 com tokens; first-run wizard como bootstrap (descartadas variável de ambiente e CLI); diferenciar os cinco papéis de verdade (descartada a redução para três). Registradas como AD-013..AD-016 acima e como `docs/adr/0013..0016`.
+- **Next step**: R24–R28 fechadas e verificadas — ver marcos abaixo. A onda R24–R28 está completa.
+- **R24 `shared-resource-frame-fix` — fechada.** `SharedResourcePage` ganhou `key={frame.id}` em `<EditorSurface>` (T1), forçando remount real por frame — o `<Excalidraw/>` real só lê `initialData` no mount, e a versão anterior trocava a prop sem remontar, então a apresentação publicada ficava presa no primeiro frame apesar do teste unitário (mockado) passar. T2 corrigiu o comentário e o teste em `EditorSurface.tsx`/`.spec.tsx` que fixavam essa premissa errada. T3 acrescentou um e2e Playwright contra o `<Excalidraw/>` REAL (sem mock) que publica uma apresentação de 2 frames com cores distintas e lê os pixels do canvas (`getImageData`) para provar a troca de conteúdo — confirmado como sensor de discriminação de verdade: reverter `key={frame.id}` faz o teste falhar. **Achado fora do escopo durante T3**: `/share` é prefixo de rota do servidor (AD-013) — Vite E Caddy encaminham QUALQUER requisição sob `/share*` para `apps/server`, então uma navegação de página inteira para `/share/:token` nunca alcança a SPA (devolve o JSON cru da API). Defeito real, pré-existente, ortogonal ao bug corrigido aqui — registrado em `remediation-roadmap.md`'s "Descoberto durante a execução", aberto e sem dono (corrigir tocaria `vite.config.ts`/`Caddyfile`/`routePrefixes.ts`, fora do escopo desta feature). O e2e contorna isso navegando a SPA por `/login` e então roteando client-side (`history.pushState`+`popstate`) até `/share/:token` — mesma árvore React, mesmo componente real. **Verificação independente encontrou um segundo defeito real**: o próprio e2e de T3 não conseguia rodar até o fim — `runTestServer.ts` bootava `registerAllModules` sem `deps.storage`, então `publishPresentation` tentava falar com um MinIO real inalcançável (`ECONNREFUSED 127.0.0.1:9000`). Corrigido injetando o mesmo double `StorageClient` em memória que `apps/server`'s `publish.int.spec.ts` já usa — `apps/web/e2e/support/fakeStorage.ts` (novo), reusado, não reinventado. Lição L-062: um `Done when` de gate marcado `[x]` não prova que o comando passa num ambiente limpo até ser rodado isolado.
+- **R25 `editor-panel-collapse` — fechada.** UIF-17 (recolher o painel devolve a largura ao canvas) nunca tinha task própria desde R21 — construído agora em `DiagramEditorPage.tsx`: recolher remove o `<aside>` da árvore (o canvas, já `flex-1`, reclama a largura), um controle no mesmo lugar da árvore reabre. A aba ativa de `EditorSidePanel` (IA/Comentários/Lint) sobe a estado controlado no pai para sobreviver ao ciclo recolher/expandir. A tabela de rastreabilidade de `ui-foundations/spec.md`, que dizia UIF-17 `✅ Verified` enquanto o próprio `validation.md` da mesma onda documentava "não implementado", foi corrigida para bater com a realidade. Verificador independente: PASS de primeira, 6/6 critérios, 2/2 mutações do sensor mortas.
+- **R26 `list-retry-action` — fechada.** UIF-10 (ação de tentar novamente no estado de erro) completada nas quatro páginas de lista — três reusando `resourceListStore`'s `setError`/nova função nomeada chamável pelo botão, e `WorkspaceMembersPage` com o botão na ramificação `notFound` (MEM-03 preservado: retry nunca distingue motivo de falha).
+- **R27 `concurrency-proof` — fechada.** RBAC-12 (duas remoções concorrentes deixam no máximo um
+  workspace sem admin) e BOOT-08 (dois `first-run` concorrentes criam no máximo uma conta) saem de
+  `⚠️ Verified (parcial)` para `✅ Verified` em `rbac-clarity/spec.md`/`instance-bootstrap/spec.md`.
+  Nova suíte, Postgres real (não PGlite): `apps/server/src/modules/workspace/lastAdmin.concurrency.int.spec.ts`
+  e `.../auth/firstRun.concurrency.int.spec.ts`, alvo próprio `make test-integration-concurrency`,
+  job de CI dedicado, Emenda de 2026-08-25 na ADR-0007 — mesmo padrão de exceção nomeada que
+  `infra/backup` já tinha. **Achado durante a execução**: `app.inject` (a mesma técnica de
+  `rbac-matrix.int.spec.ts`) resolvia a corrida de RBAC-12 numa ordem fixa determinada pela posição
+  no array do `Promise.all`, não por concorrência real — o segundo mover perdia a própria
+  associação (removida pelo primeiro) antes do seu próprio `requireMembership`, virando `404` em
+  vez do `409` esperado, sempre, em toda execução. Sockets reais (`app.listen` + `fetch`) mais um
+  ciclo de aquecimento descartado (JIT/pool na primeira invocação do par de rotas) resolvem a
+  corrida de verdade, com o vencedor variando entre execuções — confirmado por instrumentação
+  manual antes de escrever o teste final, não assumido. `make ci`/`make test-integration`
+  continuam passando com zero Postgres instalado (verificado rodando `make ci` com o cluster
+  local parado). **Verificação independente encontrou um segundo defeito real**: a mesma
+  mitigação (sockets reais + aquecimento) nunca foi aplicada ao teste de BOOT-08 — sensor de
+  mutação mostrou que remover `pg_advisory_xact_lock` de `bootstrapInstance` só era pego 13/24
+  vezes (54%), quase cara-ou-coroa para uma garantia de integridade de dados. Causa raiz:
+  `argon2.hash` roda antes do lock, e uma corrida ÚNICA entre dois `first-run` concorrentes é
+  inerentemente próxima de 50/50 sem o lock — nem sockets reais nem aquecimento (testados,
+  medidos 24/24 numa forma e 10/24 noutra contra o MESMO código) tornam uma amostra única
+  confiável. Correção real: repetir a corrida 15 vezes dentro do mesmo teste, resetando `users`
+  via `TRUNCATE` entre tentativas (mesma conexão, sem recomeço a frio), exigindo que TODA
+  repetição resolva certo — em lotes de 4 contra apps Fastify sucessivos, porque `/auth/
+  first-run` tem limite de taxa próprio (10 req/60s) que uma única aplicação de vida longa
+  estouraria em 15 repetições. Sensor após a correção: 15/15 execuções completas (225 tentativas
+  de corrida) mataram a mutação — 100%.
+- **R28 `organization-admins` — fechada.** `organization_members(id, organization_id, user_id,
+  created_at)` é a fonte única de quem administra cada organização — sem coluna de papel, presença
+  é o sinal inteiro. Migração de backfill preservou exatamente o conjunto de administradores
+  existentes. Os três call sites que liam `workspace_members.role='org_admin'`
+  (`resolveOrganizationRole`, `hasOrgAdminMembership`, `listWorkspacesForUser`) migraram para a
+  tabela nova, cada um trocando sua única consulta antiga pela equivalente. Módulo
+  `organizationAdmins.ts` (list/add/remove + guarda de último administrador sob lock de linha,
+  mesmo padrão de `lastAdmin.ts`) e rotas REST dedicadas (`GET/POST/DELETE
+  /workspaces/:id/organization-admins[/:userId]`); seção nova em `WorkspaceMembersPage` concede e
+  revoga por e-mail sem editar papel de workspace. `org_admin` deixou de ser oferecido como opção
+  nova nos seletores de papel de workspace (`ASSIGNABLE_ROLE_VALUES`, 4 valores); uma linha legada
+  continua exibindo o rótulo com fidelidade. Registrado como **AD-017**
+  (`docs/adr/0017-organization-members-table.md`) — resolve a consequência de desenho que AD-016
+  tinha deixado aberta e sem dono. **Verificação independente encontrou um defeito real em
+  ORG-14**: o `<select>` de troca de papel por linha, que um `workspace_admin`/`org_admin` vê para
+  CADA membro (inclusive um legado com `role === 'org_admin'`), só oferecia as 4 opções de
+  `ASSIGNABLE_ROLE_VALUES` — sem `<option>` casando o valor real da linha legada, o controle não
+  tinha como renderizar "Admin da organização" nesse caso, e só existia teste do caminho
+  `!canManage` (crachá somente-leitura). Corrigido: qualquer linha cujo papel não esteja em
+  `ASSIGNABLE_ROLE_VALUES` cai no mesmo crachá somente-leitura, mesmo com `canManage` verdadeiro —
+  removível pelo botão "Remover", mas não reatribuível de volta pelo seletor. Teste novo confirmado
+  falhando antes da correção e passando depois. Lição L-064.
+- **Aberto e sem dono** (dívida honesta, nenhuma escondida):
+  - **`/share/:token` é inalcançável por navegação de página inteira** — o proxy do Vite e o `Caddyfile` encaminham `/share*` inteiro para `apps/server` (AD-013), então uma visita fria à URL pública real (a que `ShareLinkPanel.tsx` distribui) devolve o JSON da API, nunca a SPA. Achado durante R24/T3, fora do escopo dela para corrigir. Precisa de uma spec própria tocando `vite.config.ts`/`Caddyfile`/`routePrefixes.ts`.
+  - **BOOT**: o caso de borda `503` (banco indisponível durante o first-run) não tem teste.
+- **Lições novas**: L-046 a L-064 (`candidate`) — memoizar prop pelo valor e nunca pelo mount; mock mais permissivo que a lib esconde defeito; `Done when` que produz artefato tem de ser conferido contra o disco; guard por substring de identificador aprova redefinição local (recorreu em R21 com `--color-accent` casando `--color-accent-hover`); AC que exige serviço de pé é estrutural, não verde; um segundo caminho de autorização anula a mudança do primeiro; **gate que passa por cache do turbo não é gate que passou**; `git checkout -- <arquivo>` descarta trabalho não commitado igual a `git stash` (recorrência de L-024 em forma nova); flake tem mais de uma causa e aumentar timeout só resolve uma delas; `asyncUtilTimeout` da Testing Library tem de ficar abaixo do `testTimeout` do vitest; um `Done when` de gate marcado `[x]` não prova que o comando passa isolado (L-062); uma amostra única de corrida é inerentemente perto de 50/50 quando trabalho caro roda antes do lock — nem socket real nem aquecimento sozinhos resolvem isso, só repetir a corrida muitas vezes (L-063); um `<select>` controlado ligado a um valor fora do seu conjunto de opções falha silenciosamente em renderizá-lo — todo ramo de exibição, não só o somente-leitura, precisa de um caminho pra valores legados fora do conjunto (L-064); e a maior delas — **um instrumento de medição que só verifica uma direção não descobre o que ele próprio não mede**.
+- **Blockers**: nenhum.
+- **Uncommitted files**: nenhum.
 
 ### platform-maturity (branch: feature/improvements-3)
 

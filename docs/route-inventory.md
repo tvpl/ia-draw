@@ -2,12 +2,12 @@
 
 Gerado por `repo-tools audit`. Não editar à mão.
 
-- Rotas registradas: 90
-- Com consumidor de UI (`consumed`): 49
-- Pendentes de produto (`pending-product`): 41
-- Consumidores órfãos (`orphan-consumer`): 0
+- Rotas registradas: 92
+- Com consumidor de UI (`consumed`): 67
+- Pendentes de produto (`pending-product`): 25
+- Consumidores órfãos (`orphan-consumer`): 6
 
-## consumed (49)
+## consumed (67)
 
 | Método | Path | Registrada em | Consumida por |
 | --- | --- | --- | --- |
@@ -17,7 +17,12 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/admin/ai-providers` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
 | PATCH | `/admin/ai-providers/:id` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
 | POST | `/admin/ai-providers/:id(^[^:]+):test` | `apps/server/src/modules/ai-provider/routes.ts` | `apps/web/src/nav/aiProviderClient.ts` |
+| GET | `/auth/first-run` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/firstRunClient.ts` |
+| POST | `/auth/first-run` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/firstRunClient.ts` |
 | POST | `/auth/login` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
+| POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/AuthProvider.tsx` |
+| POST | `/auth/refresh` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/AuthProvider.tsx` |
+| GET | `/me` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/AuthProvider.tsx` |
 | GET | `/users:lookup` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | POST | `/diagrams/:id/ws-ticket` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/presence/presenceClient.ts` |
 | GET | `/auth/oidc/status` | `apps/server/src/modules/auth/routes.ts` | `apps/web/src/auth/LoginPage.tsx` |
@@ -30,6 +35,16 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/diagrams/:id/specs:generate` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
 | GET | `/diagrams/:id/specs` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
 | POST | `/diagrams/:id/specs/:version(^[^:]+):regenerate-section` | `apps/server/src/modules/docgen/routes.ts` | `apps/web/src/docs/docgenClient.ts` |
+| POST | `/diagrams/:id/exports` | `apps/server/src/modules/export/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| POST | `/diagrams/:id/bundle` | `apps/server/src/modules/export/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| POST | `/projects/:id/import` | `apps/server/src/modules/export/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| POST | `/workspaces/:id/bundles` | `apps/server/src/modules/export/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| POST | `/projects/:id/import:format` | `apps/server/src/modules/interop/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| POST | `/diagrams/:id/export:format` | `apps/server/src/modules/interop/routes.ts` | `apps/web/src/export/exportClient.ts` |
+| GET | `/diagrams/:id/elements/:elementId/metadata` | `apps/server/src/modules/library/routes.ts` | `apps/web/src/library/metadataClient.ts` |
+| PATCH | `/diagrams/:id/elements/:elementId/metadata` | `apps/server/src/modules/library/routes.ts` | `apps/web/src/library/metadataClient.ts` |
+| GET | `/diagrams/:id/inventory` | `apps/server/src/modules/library/routes.ts` | `apps/web/src/library/metadataClient.ts` |
+| GET | `/diagrams/:id/lint` | `apps/server/src/modules/lint/routes.ts` | `apps/web/src/lint/lintClient.ts` |
 | POST | `/presentations/:id(^[^:]+):publish` | `apps/server/src/modules/presentation/publishRoutes.ts` | `apps/web/src/presentation/presentationClient.ts` |
 | POST | `/presentations/:id(^[^:]+):export-pdf` | `apps/server/src/modules/presentation/publishRoutes.ts` | `apps/web/src/presentation/presentationClient.ts` |
 | POST | `/presentations` | `apps/server/src/modules/presentation/routes.ts` | `apps/web/src/presentation/presentationClient.ts` |
@@ -44,7 +59,10 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/presentations/:id/share-links` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | GET | `/share/:token` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
 | POST | `/share-links/:id(^[^:]+):revoke` | `apps/server/src/modules/share/routes.ts` | `apps/web/src/share/shareLinkClient.ts` |
-| POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts` |
+| POST | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/history/snapshotClient.ts` |
+| GET | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/history/snapshotClient.ts` |
+| POST | `/diagrams/:id/snapshots/:snapshotId(^[^:]+):restore` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/ai-dock/aiDockClient.ts`, `apps/web/src/history/snapshotClient.ts` |
+| GET | `/diagrams/:id/diff` | `apps/server/src/modules/snapshot/routes.ts` | `apps/web/src/history/snapshotClient.ts` |
 | GET | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` | `apps/web/src/nav/webhookClient.ts` |
 | POST | `/workspaces/:id/webhooks` | `apps/server/src/modules/webhook/routes.ts` | `apps/web/src/nav/webhookClient.ts` |
 | PATCH | `/workspaces/:id/webhooks/:webhookId` | `apps/server/src/modules/webhook/routes.ts` | `apps/web/src/nav/webhookClient.ts` |
@@ -61,7 +79,7 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | PATCH | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 | DELETE | `/workspaces/:id/members/:userId` | `apps/server/src/modules/workspace/routes.ts` | `apps/web/src/nav/memberClient.ts` |
 
-## pending-product (41)
+## pending-product (25)
 
 | Método | Path | Registrada em |
 | --- | --- | --- |
@@ -70,22 +88,9 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/metrics` | `apps/server/src/core/server.ts` |
 | POST | `/diagrams/:id/assets:initiate` | `apps/server/src/modules/asset/routes.ts` |
 | POST | `/diagrams/:id/assets/:assetId(^[^:]+):complete` | `apps/server/src/modules/asset/routes.ts` |
-| POST | `/auth/logout` | `apps/server/src/modules/auth/routes.ts` |
-| POST | `/auth/refresh` | `apps/server/src/modules/auth/routes.ts` |
-| GET | `/me` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/login` | `apps/server/src/modules/auth/routes.ts` |
 | GET | `/auth/oidc/callback` | `apps/server/src/modules/auth/routes.ts` |
-| POST | `/diagrams/:id/exports` | `apps/server/src/modules/export/routes.ts` |
-| POST | `/diagrams/:id/bundle` | `apps/server/src/modules/export/routes.ts` |
-| POST | `/projects/:id/import` | `apps/server/src/modules/export/routes.ts` |
-| POST | `/workspaces/:id/bundles` | `apps/server/src/modules/export/routes.ts` |
-| POST | `/projects/:id/import:format` | `apps/server/src/modules/interop/routes.ts` |
-| POST | `/diagrams/:id/export:format` | `apps/server/src/modules/interop/routes.ts` |
 | GET | `/libraries` | `apps/server/src/modules/library/routes.ts` |
-| GET | `/diagrams/:id/elements/:elementId/metadata` | `apps/server/src/modules/library/routes.ts` |
-| PATCH | `/diagrams/:id/elements/:elementId/metadata` | `apps/server/src/modules/library/routes.ts` |
-| GET | `/diagrams/:id/inventory` | `apps/server/src/modules/library/routes.ts` |
-| GET | `/diagrams/:id/lint` | `apps/server/src/modules/lint/routes.ts` |
 | POST | `/workspaces/:id/mcp-tokens` | `apps/server/src/modules/mcp/routes.ts` |
 | DELETE | `/mcp-tokens/:id` | `apps/server/src/modules/mcp/routes.ts` |
 | GET | `/workspaces/:id/diagrams` | `apps/server/src/modules/mcp/routes.ts` |
@@ -93,9 +98,6 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | GET | `/diagrams/:id/components/:stableKey` | `apps/server/src/modules/mcp/routes.ts` |
 | POST | `/diagrams/:id/mcp-patch` | `apps/server/src/modules/mcp/routes.ts` |
 | GET | `/presentations/:id/published` | `apps/server/src/modules/presentation/publishRoutes.ts` |
-| POST | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
-| GET | `/diagrams/:id/snapshots` | `apps/server/src/modules/snapshot/routes.ts` |
-| GET | `/diagrams/:id/diff` | `apps/server/src/modules/snapshot/routes.ts` |
 | GET | `/projects` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | POST | `/projects` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
 | GET | `/diagrams` | `apps/server/src/modules/workspace/project-diagram-routes.ts` |
@@ -107,7 +109,13 @@ Gerado por `repo-tools audit`. Não editar à mão.
 | POST | `/workspaces` | `apps/server/src/modules/workspace/routes.ts` |
 | GET | `/ws/diagrams/:diagramId` | `apps/server/src/modules/ws-gateway/routes.ts` |
 
-## orphan-consumer (0)
+## orphan-consumer (6)
 
 | Endpoint | Chamado em |
 | --- | --- |
+| `spec.markdownUrl` | `apps/web/src/docs/DocsPanel.tsx` |
+| `url` | `apps/web/src/library/libraryClient.ts` |
+| `config.listUrl` | `apps/web/src/nav/resourceClient.ts` |
+| `config.createUrl` | `apps/web/src/nav/resourceClient.ts` |
+| `config.itemUrl(id)` | `apps/web/src/nav/resourceClient.ts` |
+| `config.itemUrl(id)` | `apps/web/src/nav/resourceClient.ts` |

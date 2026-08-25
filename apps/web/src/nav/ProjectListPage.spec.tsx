@@ -516,6 +516,54 @@ describe('ProjectListPage (NAV-02, NAV-04, NAV-09..11)', () => {
   });
 });
 
+describe('ProjectListPage — retry on load failure (LRA-01..03, LRA-05)', () => {
+  it('shows a retry button next to the error message when GET /projects fails, and it disappears once the retry succeeds (LRA-01..03)', async () => {
+    let listCalls = 0;
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1') {
+        listCalls += 1;
+        if (listCalls === 1) return jsonResponse(500, {});
+        return jsonResponse(200, {
+          items: [{ id: 'p-1', workspaceId: 'ws-1', name: 'Project One' }],
+        });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('Algo deu errado. Tente novamente.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+
+    expect(await screen.findByRole('link', { name: 'Project One' })).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Tentar novamente' })).toBeNull();
+    expect(listCalls).toBe(2);
+  });
+
+  it('clicking retry twice fires two GET /projects calls, one per click, without duplicating the error message (LRA-05)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/workspaces/ws-1') return workspaceDetailResponse('editor');
+      if (url === '/projects?workspaceId=ws-1') return jsonResponse(500, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+
+    renderPage(fetchImpl as unknown as typeof fetch);
+
+    const retryButton = await screen.findByRole('button', { name: 'Tentar novamente' });
+    const listCallsCount = () =>
+      fetchImpl.mock.calls.filter(([url]) => url === '/projects?workspaceId=ws-1').length;
+
+    fireEvent.click(retryButton);
+    await waitFor(() => expect(listCallsCount()).toBe(2));
+    fireEvent.click(screen.getByRole('button', { name: 'Tentar novamente' }));
+    await waitFor(() => expect(listCallsCount()).toBe(3));
+
+    expect(screen.getAllByText('Algo deu errado. Tente novamente.')).toHaveLength(1);
+    expect(screen.getAllByRole('button', { name: 'Tentar novamente' })).toHaveLength(1);
+  });
+});
+
 describe('ProjectListPage — workspace AI provider admin link (PROV-07)', () => {
   function fetchWithRole(role: string) {
     return vi.fn(async (url: string) => {

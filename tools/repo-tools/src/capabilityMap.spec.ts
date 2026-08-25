@@ -193,6 +193,55 @@ describe('checkCapabilityMap (TRU-02, TRU-03)', () => {
     expect(violations).toEqual([]);
   });
 
+  it('fails a backend-only capability whose module already has a consumer (DOCS-05)', () => {
+    const root = fakeRepo(['apps/web/src/lint/LintPanel.tsx']);
+
+    const violations = checkCapabilityMap(
+      {
+        capabilities: [
+          {
+            capability: 'Lint arquitetural',
+            requirements: ['LNT-01'],
+            backend_evidence: 'apps/server/src/modules/lint/routes.ts',
+            ui_surface: null,
+            status: 'backend-only',
+          },
+        ],
+      },
+      root,
+      new Map([['apps/server/src/modules/lint/routes.ts', ['apps/web/src/lint/lintClient.ts']]]),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.entry).toBe('Lint arquitetural');
+    expect(violations[0]?.problem).toContain('apps/server/src/modules/lint/routes.ts');
+    expect(violations[0]?.problem).toContain('apps/web/src/lint/lintClient.ts');
+  });
+
+  it('still accepts backend-only when no route of that module is consumed (DOCS-08)', () => {
+    // Removing a screen has to be accepted without hand intervention: the same map that
+    // failed above passes once the consumer is gone, with no edit to the map itself.
+    const root = fakeRepo(['apps/web/src/lint/LintPanel.tsx']);
+
+    const violations = checkCapabilityMap(
+      {
+        capabilities: [
+          {
+            capability: 'Lint arquitetural',
+            requirements: ['LNT-01'],
+            backend_evidence: 'apps/server/src/modules/lint/routes.ts',
+            ui_surface: null,
+            status: 'backend-only',
+          },
+        ],
+      },
+      root,
+      new Map([['apps/server/src/modules/comment/routes.ts', ['apps/web/src/comment/Panel.tsx']]]),
+    );
+
+    expect(violations).toEqual([]);
+  });
+
   it('fails on an empty map instead of passing vacuously', () => {
     const root = fakeRepo([]);
 

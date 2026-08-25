@@ -1,9 +1,10 @@
 import type { Role } from '@arch-canvas/auth';
 import { can } from '@arch-canvas/auth';
-import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, type JSX, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ImportDialog } from '../export/ImportDialog.js';
+import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -55,6 +56,15 @@ export interface ProjectListPageProps {
  * (NAV-09..11). A 404 on the workspace lookup renders the shared "not found or no access"
  * message (NAV-04), never distinguishing the two cases.
  */
+/** Mirrors `WorkspaceMembersPage`'s map; the i18n keys are the shared contract, not the map. */
+const ROLE_KEY: Record<Role, string> = {
+  org_admin: 'orgAdmin',
+  workspace_admin: 'workspaceAdmin',
+  editor: 'editor',
+  reviewer: 'reviewer',
+  viewer: 'viewer',
+};
+
 export function ProjectListPage({
   fetchImpl: fetchImplProp,
 }: ProjectListPageProps): JSX.Element | null {
@@ -94,33 +104,44 @@ export function ProjectListPage({
   const [archiveTarget, setArchiveTarget] = useState<ArchiveTarget | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // LRA-01..03/05: `loadProjects` is the named async body the initial load effect and the
+  // "Tentar novamente" retry button both call — only the project-list fetch, not the workspace
+  // lookup above it, since a retry only ever fires once that lookup already succeeded (the
+  // `notFound` branch renders instead of this page's error state otherwise). `cancelledRef` is
+  // the same cancellation guard the effect always used, now shared with the button too.
+  const cancelledRef = useRef(false);
+
+  const loadProjects = useCallback(async (): Promise<void> => {
+    try {
+      const list = await client.list();
+      if (!cancelledRef.current) setItems(list);
+    } catch {
+      if (!cancelledRef.current) setError();
+    }
+  }, [client, setItems, setError]);
+
   useEffect(() => {
     if (!workspaceId) return;
-    let cancelled = false;
+    cancelledRef.current = false;
 
     (async () => {
       const response = await fetchImpl(`/workspaces/${workspaceId}`);
-      if (cancelled) return;
+      if (cancelledRef.current) return;
       if (!response.ok) {
         setNotFound(true);
         return;
       }
       const body = (await response.json()) as WorkspaceDetailResponseBody;
-      if (cancelled) return;
+      if (cancelledRef.current) return;
       setWorkspace({ name: body.workspace.name, role: body.workspace.role });
 
-      try {
-        const list = await client.list();
-        if (!cancelled) setItems(list);
-      } catch {
-        if (!cancelled) setError();
-      }
+      await loadProjects();
     })();
 
     return () => {
-      cancelled = true;
+      cancelledRef.current = true;
     };
-  }, [workspaceId, client, fetchImpl, setItems, setError]);
+  }, [workspaceId, fetchImpl, loadProjects]);
 
   useEffect(() => {
     if (archiveTarget) dialogRef.current?.showModal();
@@ -259,73 +280,136 @@ export function ProjectListPage({
   }
 
   return (
-    <div>
-      <Link to="/">{t('nav.back')}</Link>
-      <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
-      <Link to={`/w/${workspaceId}/members`}>{t('nav.members.link')}</Link>
-      {canManageWebhooks && <Link to={`/w/${workspaceId}/webhooks`}>{t('nav.webhooks.link')}</Link>}
-      {canAdministerProviders && (
-        <Link to={`/w/${workspaceId}/admin/ai-providers`}>{t('adminProviders.workspaceLink')}</Link>
-      )}
-      {canWriteWorkspace && (
-        <button type="button" onClick={requestArchiveWorkspace}>
-          {t('nav.workspaces.archiveCurrent')}
-        </button>
-      )}
-      <div aria-live="polite" data-testid="project-announcement">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <Link className={css.link} to="/">
+          {t('nav.back')}
+        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <h2 className={css.pageTitle}>
+              {workspace ? workspace.name : t('nav.projects.title')}
+            </h2>
+            {/* RBAC-16: the effective role for this workspace, from the same `workspace.role`
+                the page already uses to gate its controls — no extra request, and no second
+                call to /me (AD-011). */}
+            {workspace && (
+              <span className={css.badge}>
+                {t('nav.members.yourRole')}:{' '}
+                {t(`nav.members.roleOptions.${ROLE_KEY[workspace.role]}`)}
+              </span>
+            )}
+          </div>
+          {canWriteWorkspace && (
+            <button className={css.buttonDanger} type="button" onClick={requestArchiveWorkspace}>
+              {t('nav.workspaces.archiveCurrent')}
+            </button>
+          )}
+        </div>
+        {/* UIF-07/12: these three used to render as bare inline links with nothing between
+            them, which is how "MembrosWebhooksProviders de IA" appeared as one run-on word. */}
+        <nav className="flex flex-wrap items-center gap-2">
+          <Link className={css.buttonSecondary} to={`/w/${workspaceId}/members`}>
+            {t('nav.members.link')}
+          </Link>
+          {canManageWebhooks && (
+            <Link className={css.buttonSecondary} to={`/w/${workspaceId}/webhooks`}>
+              {t('nav.webhooks.link')}
+            </Link>
+          )}
+          {canAdministerProviders && (
+            <Link className={css.buttonSecondary} to={`/w/${workspaceId}/admin/ai-providers`}>
+              {t('adminProviders.workspaceLink')}
+            </Link>
+          )}
+        </nav>
+      </div>
+      <div aria-live="polite" className={css.helpText} data-testid="project-announcement">
         {announcement}
       </div>
 
-      {listStatus === 'error' && <p>{t('nav.error.generic')}</p>}
+      {listStatus === 'error' && (
+        <div className="flex flex-wrap items-center gap-3">
+          <p className={css.errorBox}>{t('nav.error.generic')}</p>
+          <button className={css.buttonSecondary} type="button" onClick={() => void loadProjects()}>
+            {t('nav.error.retry')}
+          </button>
+        </div>
+      )}
 
-      {listStatus === 'ready' && items.length === 0 && <p>{t('nav.projects.empty')}</p>}
+      {/* UIF-09: loading in place of the content, so an in-flight request does not read as an
+          empty project list. */}
+      {listStatus === 'loading' && <p className={css.stateBox}>{t('nav.loading')}</p>}
+
+      {listStatus === 'ready' && items.length === 0 && (
+        <p className={css.stateBox}>{t('nav.projects.empty')}</p>
+      )}
 
       {listStatus === 'ready' && items.length > 0 && (
-        <ul>
+        <ul className={css.list}>
           {items.map((item) => {
             const isRenaming = renamingId === item.id;
 
             return (
-              <li key={item.id}>
+              <li className={css.listRow} key={item.id}>
                 {isRenaming ? (
                   <form
+                    className="flex w-full flex-wrap items-center gap-2"
                     onSubmit={(event) => {
                       event.preventDefault();
                       void submitRename(item);
                     }}
                   >
-                    <label>
+                    <label className="flex flex-1 items-center gap-2 text-sm">
                       {t('nav.projects.nameLabel')}
                       <input
+                        className={css.input}
                         value={renameValue}
                         onChange={(event) => setRenameValue(event.target.value)}
                       />
                     </label>
-                    <button type="submit">{t('nav.renameSave')}</button>
-                    <button type="button" onClick={cancelRename}>
+                    <button className={css.buttonPrimary} type="submit">
+                      {t('nav.renameSave')}
+                    </button>
+                    <button className={css.buttonSecondary} type="button" onClick={cancelRename}>
                       {t('nav.renameCancel')}
                     </button>
-                    {renameError && <p>{renameError}</p>}
+                    {renameError && <p className={`${css.errorBox} w-full`}>{renameError}</p>}
                   </form>
                 ) : (
                   <>
-                    <Link to={`/w/${workspaceId}/p/${item.id}`}>{item.name}</Link>
-                    {canWrite && (
-                      <>
-                        <button type="button" onClick={() => startRename(item)}>
-                          {t('nav.rename')}
-                        </button>
-                        <button type="button" onClick={() => requestArchive(item)}>
-                          {t('nav.archive')}
-                        </button>
-                      </>
-                    )}
-                    <ImportDialog
-                      projectId={item.id}
-                      workspaceId={workspaceId}
-                      canImport={canImportDiagram}
-                      fetchImpl={fetchImplProp}
-                    />
+                    <Link
+                      className={`${css.listRowTitle} ${css.link}`}
+                      to={`/w/${workspaceId}/p/${item.id}`}
+                    >
+                      {item.name}
+                    </Link>
+                    <span className={css.listRowActions}>
+                      {canWrite && (
+                        <>
+                          <button
+                            className={css.buttonSecondary}
+                            type="button"
+                            onClick={() => startRename(item)}
+                          >
+                            {t('nav.rename')}
+                          </button>
+                          <button
+                            className={css.buttonDanger}
+                            type="button"
+                            onClick={() => requestArchive(item)}
+                          >
+                            {t('nav.archive')}
+                          </button>
+                        </>
+                      )}
+                      <ImportDialog
+                        projectId={item.id}
+                        workspaceId={workspaceId}
+                        canImport={canImportDiagram}
+                        fetchImpl={fetchImplProp}
+                      />
+                    </span>
                   </>
                 )}
               </li>
@@ -335,13 +419,22 @@ export function ProjectListPage({
       )}
 
       {canWrite && (
-        <form onSubmit={(event) => void handleCreate(event)}>
-          <label>
-            {t('nav.projects.nameLabel')}
-            <input value={createName} onChange={(event) => setCreateName(event.target.value)} />
+        <form
+          className={`${css.panelPadded} flex flex-wrap items-end gap-3`}
+          onSubmit={(event) => void handleCreate(event)}
+        >
+          <label className={`${css.field} min-w-60 flex-1`}>
+            <span className={css.label}>{t('nav.projects.nameLabel')}</span>
+            <input
+              className={css.input}
+              value={createName}
+              onChange={(event) => setCreateName(event.target.value)}
+            />
           </label>
-          <button type="submit">{t('nav.projects.create')}</button>
-          {createError && <p>{createError}</p>}
+          <button className={css.buttonPrimary} type="submit">
+            {t('nav.projects.create')}
+          </button>
+          {createError && <p className={`${css.errorBox} w-full`}>{createError}</p>}
         </form>
       )}
 

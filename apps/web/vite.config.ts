@@ -1,31 +1,33 @@
+import { SERVER_ROUTE_PREFIXES, WS_ROUTE_PREFIX } from '@arch-canvas/shared-contracts';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 // Dev proxy target: apps/server's default port (see apps/server/src/core/config.ts).
 const API_PROXY_TARGET = 'http://localhost:3000';
 
-// SPEC_DEVIATION: proxying `/api` matched nothing — every apps/server route (auth,
-// workspace, diagram-sync) is registered unprefixed (`/auth/...`, `/workspaces/...`,
-// `/diagrams/...`, etc.), never under `/api`. Fixed here (found while wiring T25's
-// sync client, the dev proxy's first real caller) by proxying the actual route
-// prefixes instead of a namespace no route ever used.
-const API_ROUTE_PREFIXES = ['/health', '/auth', '/me', '/workspaces', '/projects', '/diagrams'];
-
-// LIVE-06: the realtime presence route is a WebSocket upgrade, not a plain HTTP
-// request, and it lives under `/ws` — matched by none of the prefixes above. Without
-// this entry the editor's presence session simply never connects under `make web-dev`.
-const WS_ROUTE_PREFIX = '/ws';
+// EDGE-06..08: the prefix list is imported, never restated here. It used to be a local
+// literal that covered six prefixes and omitted seven — so the AI dock, the component
+// library, the provider admin, presentations, share links and the member-invite lookup all
+// received `index.html` instead of JSON in development, silently. The single source is
+// `packages/shared-contracts/src/routePrefixes.ts`; `tools/repo-tools`' edge-parity test
+// fails when this file and the Caddyfile drift from the registered routes.
 
 export default defineConfig({
-  plugins: [react()],
+  // UIF-01 (AD-017): Tailwind v4 is configured CSS-first — the tokens live in
+  // `src/styles/theme.css`'s `@theme` block, and there is deliberately no JavaScript config
+  // file for a second place to look.
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       ...Object.fromEntries(
-        API_ROUTE_PREFIXES.map((prefix) => [
+        SERVER_ROUTE_PREFIXES.map((prefix) => [
           prefix,
           { target: API_PROXY_TARGET, changeOrigin: true },
         ]),
       ),
+      // LIVE-06: a WebSocket upgrade, not a plain HTTP request — without `ws: true` the
+      // editor's presence session simply never connects under `make web-dev`.
       [WS_ROUTE_PREFIX]: { target: API_PROXY_TARGET, changeOrigin: true, ws: true },
     },
   },

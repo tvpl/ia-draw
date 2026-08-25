@@ -21,6 +21,8 @@ let capturedOnChange: ((elements: unknown, appState: unknown) => void) | undefin
 let capturedOnPointerUpdate: ((payload: { pointer: { x: number; y: number } }) => void) | undefined;
 /** What `<Excalidraw/>` actually received for `viewModeEnabled` on its last render (SHR-18). */
 let capturedViewModeEnabled: boolean | undefined;
+/** What `<Excalidraw/>` actually received for `initialData` on its last render (ESTB-04). */
+let capturedInitialData: unknown;
 let updateSceneSpy: ReturnType<typeof vi.fn>;
 let addFilesSpy: ReturnType<typeof vi.fn>;
 let getAppStateMock: ReturnType<typeof vi.fn>;
@@ -39,6 +41,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
   return {
     ...actual,
     Excalidraw: (props: {
+      initialData?: unknown;
       onChange?: (elements: unknown, appState: unknown) => void;
       onPointerUpdate?: (payload: { pointer: { x: number; y: number } }) => void;
       viewModeEnabled?: boolean;
@@ -50,6 +53,7 @@ vi.mock('@excalidraw/excalidraw', async (importOriginal) => {
       }) => void;
     }) => {
       capturedOnChange = props.onChange;
+      capturedInitialData = props.initialData;
       capturedOnPointerUpdate = props.onPointerUpdate;
       capturedViewModeEnabled = props.viewModeEnabled;
       // Mirrors what the real Excalidraw does on mount: hands the caller its imperative API.
@@ -82,6 +86,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     capturedOnChange = undefined;
     capturedOnPointerUpdate = undefined;
     capturedViewModeEnabled = undefined;
+    capturedInitialData = undefined;
     updateSceneSpy = vi.fn();
     addFilesSpy = vi.fn();
     getAppStateMock = vi.fn(() => DEFAULT_MOCK_APP_STATE);
@@ -104,7 +109,7 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     });
   }
 
-  it('calls onSelectionChange with the ids whose selectedElementIds[id] is truthy, on every onChange firing', () => {
+  it('calls onSelectionChange with the ids whose selectedElementIds[id] is truthy', () => {
     const onSelectionChange = vi.fn();
     mount({ onSelectionChange });
 
@@ -141,6 +146,150 @@ describe('EditorSurface (T94, DOCK-03)', () => {
 
     expect(onDeltas).not.toHaveBeenCalled();
     expect(onSelectionChange).toHaveBeenCalledWith([unchanged.id]);
+  });
+
+  it('does not re-emit when a later onChange carries the same selection set (ESTB-01)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledWith(['el-1', 'el-2']);
+  });
+
+  it('re-emits exactly once when the selection set actually changes (ESTB-02)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(2);
+    expect(onSelectionChange).toHaveBeenNthCalledWith(2, ['el-1', 'el-2']);
+  });
+
+  it('emits the empty selection once, then stays silent while it stays empty (ESTB-06 edge case)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: {} });
+      capturedOnChange?.([], { selectedElementIds: {} });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledWith([]);
+  });
+
+  it('treats the same ids in a different key order as an unchanged selection (ESTB-01)', () => {
+    const onSelectionChange = vi.fn();
+    mount({ onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([], { selectedElementIds: { 'el-1': true, 'el-2': true } });
+      capturedOnChange?.([], { selectedElementIds: { 'el-2': true, 'el-1': true } });
+    });
+
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not emit a selection change when only the scene changed (ESTB-06 edge case)', () => {
+    const onDeltas = vi.fn();
+    const onSelectionChange = vi.fn();
+    const original: SceneElement = { ...base, version: 1, versionNonce: 1 };
+    const changed: SceneElement = { ...base, version: 2, versionNonce: 2 };
+    mount({ initialElements: [original], onDeltas, onSelectionChange });
+
+    act(() => {
+      capturedOnChange?.([original], { selectedElementIds: { [original.id]: true } });
+      capturedOnChange?.([changed], { selectedElementIds: { [original.id]: true } });
+    });
+
+    expect(onDeltas).toHaveBeenCalledTimes(1);
+    expect(onSelectionChange).toHaveBeenCalledTimes(1);
+  });
+
+  it('computes the selection without throwing when no onSelectionChange is provided (edge case)', () => {
+    mount({});
+
+    expect(() =>
+      act(() => {
+        capturedOnChange?.([], { selectedElementIds: { 'el-1': true } });
+      }),
+    ).not.toThrow();
+  });
+
+  it('keeps the imperative handle referentially stable across renders of the same mount (ESTB-03)', () => {
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ viewModeEnabled: false }, ref);
+    const handleAfterMount = ref.current;
+
+    act(() => {
+      root.render(<EditorSurface ref={ref} viewModeEnabled={true} />);
+    });
+
+    expect(handleAfterMount).not.toBeNull();
+    expect(ref.current).toBe(handleAfterMount);
+  });
+
+  it('keeps initialData referentially stable while initialElements is unchanged (ESTB-04)', () => {
+    const elements: readonly SceneElement[] = [{ ...base, version: 1, versionNonce: 1 }];
+    mount({ initialElements: elements, viewModeEnabled: false });
+    const initialDataAfterMount = capturedInitialData;
+
+    act(() => {
+      root.render(<EditorSurface initialElements={elements} viewModeEnabled={true} />);
+    });
+
+    expect(initialDataAfterMount).toBeDefined();
+    expect(capturedInitialData).toBe(initialDataAfterMount);
+  });
+
+  it('recomputes initialData when initialElements changes referentially — proves only that the memo tracks its dependency, never that a mounted real <Excalidraw/> would re-read it (ESTB-04)', () => {
+    // This mock re-reads `initialData` on every render, unlike the real `<Excalidraw/>`
+    // (which reads it once, at mount). So this test only proves the `useMemo` above
+    // recomputes when `initialElements` changes referentially — it says NOTHING about
+    // what a mounted real component would do with that new value (it would ignore it).
+    // A caller needing the real component to show a new scene after mount forces a
+    // remount via a stable `key` instead (see `SharedResourcePage.tsx`, SRF-01/02).
+    const frameA: readonly SceneElement[] = [{ ...base, id: 'frame-a' }];
+    const frameB: readonly SceneElement[] = [{ ...base, id: 'frame-b' }];
+    mount({ initialElements: frameA });
+
+    act(() => {
+      root.render(<EditorSurface initialElements={frameB} />);
+    });
+
+    expect((capturedInitialData as { elements: SceneElement[] }).elements).toBe(frameB);
+  });
+
+  it('the stable handle still operates on the scene as of the latest change, not the first render (ESTB-03)', () => {
+    const element: SceneElement = { ...base, id: 'el-stable', version: 1, versionNonce: 1 };
+    const ref = createRef<EditorSurfaceHandle>();
+    mount({ initialElements: [element] }, ref);
+
+    act(() => {
+      root.render(<EditorSurface ref={ref} initialElements={[element]} viewModeEnabled={true} />);
+    });
+
+    const editedAfterRerender: SceneElement = { ...element, version: 5, versionNonce: 5 };
+    act(() => {
+      capturedOnChange?.([editedAfterRerender], { selectedElementIds: {} });
+    });
+
+    act(() => {
+      ref.current?.applyRemoteScene([{ ...element, version: 2, versionNonce: 1 }]);
+    });
+
+    const [sceneData] = updateSceneSpy.mock.calls[0] as [{ elements: SceneElement[] }];
+    expect(sceneData.elements).toHaveLength(1);
+    expect(sceneData.elements[0]?.version).toBe(5);
   });
 
   it('regression: onDeltas still fires with the correct upsert delta when an element changes', () => {
@@ -482,7 +631,12 @@ describe('EditorSurface (T94, DOCK-03)', () => {
       expect(rectangleElement).toBeDefined();
       expect(rectangleElement.backgroundColor).toBe('#ED7100');
       expect(textElement).toBeDefined();
-      expect(textElement.text).toBe('Amazon EC2');
+      // GATE-01: not `toBe('Amazon EC2')`. `convertToExcalidrawElements` wraps a bound label
+      // to fit its rectangle using font measurement, and jsdom measures differently from a
+      // real browser, so the literal assertion produced 'Amazon\nEC2' here and exited 1 on
+      // every run. What CLIB-04 actually requires is that the fallback carries the item's
+      // name; where the library decides to break the line is the library's business.
+      expect(textElement.text.replace(/\s+/g, ' ')).toBe('Amazon EC2');
       expect(rectangleElement.x + rectangleElement.width / 2).toBe(400);
       expect(rectangleElement.y + rectangleElement.height / 2).toBe(300);
 

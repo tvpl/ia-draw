@@ -23,7 +23,26 @@ const WEB_SRC_DIR = 'apps/web/src';
  * Matches the two call forms the app uses: the global `fetch(` and the
  * injectable `this.fetchImpl(` that `syncClient` routes every request through.
  */
-const FETCH_CALL_PATTERN = /(?:^|[^\w$.])(?:this\.)?(?:fetch|fetchImpl)\(/g;
+/**
+ * DOCS-01 (F11/R23): widened from the two literal names `fetch`/`fetchImpl` to any identifier
+ * whose *tail* is `fetch`/`Fetch`, optionally suffixed with `Impl` — which covers `fetch`,
+ * `fetchImpl`, `doFetch`, `adminFetch`, `rawFetchImpl` and anything else a client binds its
+ * injected fetch to.
+ *
+ * The narrow pattern was a real blind spot, not a stylistic preference: `lintClient.ts`
+ * binds its injected fetch to `doFetch` and therefore vanished from the inventory
+ * entirely, even though `LintPanel` calls the route on every mount. Several other clients
+ * carry a comment explaining that they were written as `fetchImpl(` specifically so the
+ * extractor would see them — a convention holding up a measurement is a measurement that
+ * undercounts the moment someone renames a binding, which is precisely how the
+ * documentation could only ever understate what shipped.
+ *
+ * The tail is what makes it a binding of the fetch API rather than a domain verb: matching
+ * any identifier *containing* `fetch` also swallowed `DocsPanel`'s local
+ * `fetchContentFor(item)`, which performs no request of its own, and reported its argument
+ * as an unreadable endpoint.
+ */
+const FETCH_CALL_PATTERN = /(?:^|[^\w$.])(?:this\.)?[\w$]*(?:fetch|Fetch)(?:Impl)?\(/g;
 
 function isProductionSource(fileName: string): boolean {
   const isSource = fileName.endsWith('.ts') || fileName.endsWith('.tsx');
@@ -139,8 +158,14 @@ function readArgument(source: string, start: number): string {
   return source.slice(start, index).trim();
 }
 
+/**
+ * A `${...}` that sits directly after a literal colon is the parameter, colon included —
+ * `/diagrams/${id}/export:${format}` is the client's way of writing Fastify's
+ * `/diagrams/:id/export:format`. Consuming the colon keeps the two spellings comparable;
+ * emitting `export::param` made a route that is very much consumed look orphaned.
+ */
 function toPath(expression: string): string {
-  const literal = expression.slice(1, -1).replace(/\$\{[^}]*\}/g, ':param');
+  const literal = expression.slice(1, -1).replace(/:?\$\{[^}]*\}/g, ':param');
   return literal.split('?')[0] ?? '';
 }
 

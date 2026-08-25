@@ -6,7 +6,11 @@
     "label": "Language"
   },
   "diagram": {
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "panel": {
+      "collapse": "Collapse panel",
+      "expand": "Expand panel"
+    }
   },
   "saveStatus": {
     "saved": "Saved",
@@ -197,7 +201,18 @@
         "editor": "Editor",
         "reviewer": "Reviewer",
         "viewer": "Viewer"
-      }
+      },
+      "yourRole": "Your role",
+      "noPermission": "You do not have permission for this in this workspace."
+    },
+    "orgAdmins": {
+      "title": "Organization admins",
+      "add": "Add",
+      "remove": "Remove",
+      "emailLabel": "Email",
+      "notFound": "No account found with that email.",
+      "lastAdmin": "This would leave the organization without an administrator.",
+      "empty": "This organization has no administrators listed yet."
     },
     "webhooks": {
       "link": "Webhooks",
@@ -254,8 +269,10 @@
     "error": {
       "conflict": "That name is already taken.",
       "forbidden": "You don't have permission to do that.",
-      "generic": "Something went wrong. Try again."
-    }
+      "generic": "Something went wrong. Try again.",
+      "retry": "Try again"
+    },
+    "loading": "Loading…"
   },
   "library": {
     "title": "Component library",
@@ -556,5 +573,29 @@
       "exit": "Exit (Esc)",
       "exitLabel": "Exit presenter mode"
     }
+  },
+  "errorBoundary": {
+    "title": "Something broke on this screen",
+    "message": "This screen stopped responding because of an unexpected error. The rest of the app still works.",
+    "reload": "Reload the screen"
+  },
+  "firstRun": {
+    "title": "First run",
+    "intro": "This instance has no account yet. Create the initial administrator to get started.",
+    "emailLabel": "Email",
+    "displayNameLabel": "Your name",
+    "passwordLabel": "Password",
+    "passwordHint": "At least 12 characters.",
+    "workspaceLabel": "Workspace name",
+    "submit": "Create administrator",
+    "submitting": "Creating…",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidPassword": "The password must be at least 12 characters.",
+    "invalidDisplayName": "Enter your name.",
+    "invalidWorkspaceName": "Enter the workspace name.",
+    "invalidUnknown": "The account could not be created with these details.",
+    "alreadyInitialized": "This instance is already initialized. Sign in with your credentials.",
+    "rateLimited": "Too many attempts. Wait a minute and try again.",
+    "error": "The account could not be created. Try again."
   }
 }

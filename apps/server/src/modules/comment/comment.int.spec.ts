@@ -222,13 +222,20 @@ describe('comment module — threads, mentions, resolve (T69, CMT-01/02)', () =>
     expect(crossReply.statusCode).toBe(400);
   });
 
-  it('PATCH resolves/reopens a comment (comment:resolve, granted to every role); only the author may edit the body text', async () => {
+  it('PATCH resolves/reopens a comment (comment:resolve, reviewer and up); only the author may edit the body text', async () => {
+    // RBAC-02/03/04 (AD-016) moved `comment:resolve` off `viewer`: this test used to assert
+    // that a viewer could resolve, which was the contract until reviewer and viewer held
+    // byte-identical grant sets and the five roles collapsed into three. Resolving closes a
+    // discussion, and that is exactly what separates reviewing from viewing. The test now
+    // pins both sides of the new boundary rather than only the permissive one.
     const owner = await seedUserWithSession('comment-patch-owner');
     const { workspaceId, diagramId } = await seedDiagram(owner.cookies, 'patch');
     const viewer = await seedUserWithSession('comment-patch-viewer');
-    await db
-      .insert(schema.workspaceMembers)
-      .values({ workspaceId, userId: viewer.user.id, role: 'viewer' });
+    const reviewer = await seedUserWithSession('comment-patch-reviewer');
+    await db.insert(schema.workspaceMembers).values([
+      { workspaceId, userId: viewer.user.id, role: 'viewer' },
+      { workspaceId, userId: reviewer.user.id, role: 'reviewer' },
+    ]);
 
     const created = await app.inject({
       method: 'POST',
@@ -238,15 +245,35 @@ describe('comment module — threads, mentions, resolve (T69, CMT-01/02)', () =>
     });
     const commentId = created.json().comment.id as string;
 
-    // viewer holds comment:resolve too (T69: granted to every role) — status flips.
+    // viewer does NOT hold comment:resolve (RBAC-03) — the status stays open.
     const resolveByViewer = await app.inject({
       method: 'PATCH',
       url: `/diagrams/${diagramId}/comments/${commentId}`,
       cookies: viewer.cookies,
       payload: { status: 'resolved' },
     });
-    expect(resolveByViewer.statusCode).toBe(200);
-    expect(resolveByViewer.json().comment.status).toBe('resolved');
+    expect(resolveByViewer.statusCode).toBe(403);
+
+    const stillOpen = await app.inject({
+      method: 'GET',
+      url: `/diagrams/${diagramId}/comments`,
+      cookies: owner.cookies,
+    });
+    expect(
+      (stillOpen.json().comments as Array<{ id: string; status: string }>).find(
+        (comment) => comment.id === commentId,
+      )?.status,
+    ).toBe('open');
+
+    // reviewer DOES hold it (RBAC-02) — status flips.
+    const resolveByReviewer = await app.inject({
+      method: 'PATCH',
+      url: `/diagrams/${diagramId}/comments/${commentId}`,
+      cookies: reviewer.cookies,
+      payload: { status: 'resolved' },
+    });
+    expect(resolveByReviewer.statusCode).toBe(200);
+    expect(resolveByReviewer.json().comment.status).toBe('resolved');
 
     // viewer is NOT the author — editing body text is rejected.
     const bodyEditByViewer = await app.inject({

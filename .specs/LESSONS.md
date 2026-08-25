@@ -284,6 +284,120 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: .specs/features/architecture-lint/spec.md AC P2-13 (ALNT-13) (apps/web)
 - last seen: 2026-08-21T10:41:22Z
 
+### L-046 - Antes de estabilizar a identidade de uma prop, procure todo consumidor que a passa: amarre a memoizacao ao valor da prop, nunca ao mount, porque um consumidor pode trocar a prop sem remontar.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `react/props` · harmful: 0
+- features: editor-stability
+- evidence: apps/web/src/share/SharedResourcePage.spec.tsx (regressao de T2, corrigida em ac1c9aa) (react/props)
+- last seen: 2026-08-24T22:49:35Z
+
+### L-047 - Um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde: ancore o mock no contrato documentado da lib (initialData so e lido no mount), nao no que e conveniente para a assercao.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `testing/mocks` · harmful: 0
+- features: editor-stability
+- evidence: apps/web/src/share/SharedResourcePage.spec.tsx mock de <Excalidraw/> (testing/mocks)
+- last seen: 2026-08-24T22:49:35Z
+
+### L-048 - Um item de Done-when que produz um ARTEFATO (changeset, arquivo gerado, entrada de registro) deve ser conferido contra o disco antes de marcar [x]; conferir so as ACs contra testes deixa passar criterios que nenhum teste cobre.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `process/verification` · harmful: 0
+- features: editor-stability
+- evidence: .specs/features/editor-stability/tasks.md T1 Done-when 'Changeset criado' (process/verification)
+- last seen: 2026-08-24T22:50:46Z
+
+### L-049 - Um guard que confere presenca de IDENTIFICADOR por substring aprova a redefinicao local com o mesmo nome: exija a forma sintatica que carrega a garantia (o import, a chamada), nunca a mencao do nome.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `tooling/guards` · harmful: 0
+- features: edge-routing
+- evidence: tools/repo-tools/src/edgeParity.ts prefixesFromViteConfig (tooling/guards)
+- last seen: 2026-08-24T23:04:30Z
+
+### L-050 - Quando uma AC exige resposta de um servico que nao sobe no ambiente, marque estrutural e nomeie a spec que a prova por execucao; arredondar para verde e o padrao de lacuna de L-044/L-045.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `verification` · harmful: 0
+- features: edge-routing
+- evidence: EDGE-03/EDGE-04 (verification)
+- last seen: 2026-08-24T23:04:30Z
+
+### L-051 - Todo edge case listado na spec precisa aparecer no Done-when de alguma task: os que ficam so na secao de Edge Cases nao viram codigo nem teste e so aparecem na conferencia final.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: instance-bootstrap
+- evidence: spec.md Edge Cases: 503 quando a contagem falha (planning)
+- last seen: 2026-08-25T06:35:29Z
+
+### L-052 - Antes de escrever uma spec de 'deixar o gate verde', rode o gate e enumere TODA falha: um Problem Statement montado a partir do que se lembra do CI subdimensiona e a AC principal nao fecha.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: green-gate
+- evidence: .specs/features/green-gate/spec.md Problem Statement (2 bloqueadores) vs 4 reais (planning)
+- last seen: 2026-08-25T06:52:43Z
+
+### L-053 - Um flake normalizado como 'restricao de ambiente' merece uma medicao antes da aceitacao: aqui era concorrencia do turbo contra 4 CPUs estourando o timeout de 1s do findByText, resolvido por configuracao, nao por tolerancia.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing/infra` · harmful: 0
+- features: green-gate
+- evidence: STATE.md F10: 'flake conhecido de contencao sob execucao paralela' (testing/infra)
+- last seen: 2026-08-25T06:52:43Z
+
+### L-054 - RECORRENCIA de L-049: toContain('--color-accent') passa com '--color-accent-hover' presente. Asserte a DECLARACAO (com o separador: dois-pontos, parenteses, o import), nunca a mencao do nome.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `testing/assertions` · harmful: 0
+- features: ui-foundations
+- evidence: apps/web/src/styles/theme.spec.ts:27 (testing/assertions)
+- last seen: 2026-08-25T07:16:26Z
+
+### L-055 - Um requisito que nenhuma task carrega para o seu Done-when nao e construido: ao fechar Tasks, cruze cada ID da spec com pelo menos um Done-when, nao apenas com a tabela de rastreabilidade.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: ui-foundations
+- evidence: UIF-17, UIF-10 (acao de tentar novamente) (planning)
+- last seen: 2026-08-25T07:16:26Z
+
+### L-056 - Antes de mudar como um papel e resolvido, procure TODA consulta que faz join na tabela de associacao: uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `authorization` · harmful: 0
+- features: rbac-clarity
+- evidence: apps/server/src/modules/workspace/workspaces.ts getWorkspaceById (authorization)
+- last seen: 2026-08-25T07:32:45Z
+
+### L-057 - Gate verde sobre cache do turbo nao e gate que passou: R22 fechou verde porque a suite de integracao do modulo estava em cache, e o vermelho real (contrato de RBAC mudado sem atualizar o teste) so apareceu numa corrida sem cache. Ao fechar uma onda, rode o gate num estado sem cache.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `gate` · harmful: 0
+- features: docs-truth
+- evidence: apps/server/src/modules/comment/comment.int.spec.ts:225 (gate)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-058 - RECORRENCIA de L-024 em forma nova: 'git checkout -- <arquivo>' descarta trabalho nao commitado igual a 'git stash'. Para reverter uma mutacao do sensor, restaure de uma copia feita antes, nunca do HEAD.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `git` · harmful: 0
+- features: docs-truth
+- evidence: tools/repo-tools/src/routeInventory.ts (git)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-059 - Um instrumento de medicao so descobre o que ele mede: o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24% da interface, e isso so apareceu quando a auditoria passou a checar a direcao contraria. Ao ligar um gate novo, desconfie primeiro da medicao, nao dos dados.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `repo-tools` · harmful: 0
+- features: docs-truth
+- evidence: tools/repo-tools/src/webConsumers.ts:39 (repo-tools)
+- last seen: 2026-08-25T08:18:13Z
+
+### L-060 - Flake tem mais de uma causa: aumentar timeout so resolve a causa 'margem'. Um evento disparado antes do listener de um efeito passivo e DESCARTADO, e um numero fixo de 'await Promise.resolve()' e um palpite - nenhum dos dois melhora com mais tempo. Antes de aceitar 'contencao de CPU', reproduza e leia o erro real.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: green-gate
+- evidence: apps/web/src/presentation/PresenterModePage.spec.tsx:70 (testing)
+- last seen: 2026-08-25T09:31:01Z
+
+### L-061 - asyncUtilTimeout da Testing Library tem de ficar ABAIXO do testTimeout do vitest: iguais, a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: green-gate
+- evidence: apps/web/vitest.config.ts (testing)
+- last seen: 2026-08-25T09:31:01Z
+
+### L-062 - Um Done-when de gate 'build' marcado [x] nao prova que o comando passa num ambiente limpo: o e2e harness que boota apps/server real precisa de um StorageClient falso (ModuleDependencies.storage) igual aos testes de integracao ja usam, senao qualquer rota que toque storage (publish, export, asset) falha com ECONNREFUSED contra o MinIO que nao existe no harness. Reproduzir o comando do gate isoladamente antes de marcar o checkbox, nunca confiar num 'passou aqui' sem isolar o ambiente.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `e2e` · harmful: 0
+- features: shared-resource-frame-fix
+- evidence: apps/web/e2e/support/runTestServer.ts (e2e)
+- last seen: 2026-08-25T14:56:33Z
+
+### L-063 - Uma corrida UNICA entre duas requisicoes concorrentes pode ser inerentemente proxima de 50/50 mesmo sem o lock, quando ha trabalho caro (argon2.hash) antes da secao critica — nem sockets reais nem um ciclo de aquecimento tornam essa UNICA amostra confiavel (medido 24/24 numa forma e 10/24 noutra contra o MESMO codigo). A correcao e repetir a corrida N vezes dentro do mesmo teste e exigir que TODA repeticao resolva certo, nao caçar um jeito de tornar uma amostra unica deterministica.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: concurrency-proof
+- evidence: apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts (testing)
+- last seen: 2026-08-25T16:40:54Z
+
+### L-064 - When a value can fall outside a <select>'s option set (a legacy/retired enum value), every render branch that can display that value — not just the read-only one — needs a path that shows it with fidelity; a controlled select bound to an out-of-set value silently fails to render it
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `web/forms` · harmful: 0
+- features: organization-admins
+- evidence: apps/web/src/nav/WorkspaceMembersPage.tsx:368-381 (ORG-14) (web/forms)
+- last seen: 2026-08-25T18:42:05Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

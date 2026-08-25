@@ -1,5 +1,6 @@
 import { type JSX, type ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as css from '../styles/classNames.js';
 
 export interface EditorSidePanelProps {
   /** The AI dock, or `null` when bootstrap denies canvas mutation — then the "IA" tab is not offered at all (CMT2-02). */
@@ -9,9 +10,18 @@ export interface EditorSidePanelProps {
    * only requires `diagram:read`, the same access level that already reaches this page, so unlike
    * `aiPanel` there is no role for which this tab should be withheld. */
   lintPanel: ReactNode;
+  /**
+   * EPC-04: controlled tab selection. `DiagramEditorPage` lifts this to its own state because
+   * it unmounts `EditorSidePanel` entirely when the whole side panel collapses — internal
+   * state would reset to the default tab on every re-expand. `undefined` (both props omitted)
+   * keeps this component's own internal state, the original uncontrolled behavior every
+   * consumer predating EPC still gets unchanged.
+   */
+  activeTab?: TabId | null;
+  onActiveTabChange?: (tab: TabId) => void;
 }
 
-type TabId = 'ai' | 'comments' | 'lint';
+export type TabId = 'ai' | 'comments' | 'lint';
 
 /**
  * The editor's single side column (spec.md, CMT2-01..04; ALNT-06 for the third tab): one
@@ -33,43 +43,67 @@ export function EditorSidePanel({
   aiPanel,
   commentsPanel,
   lintPanel,
+  activeTab,
+  onActiveTabChange,
 }: EditorSidePanelProps): JSX.Element {
   const { t } = useTranslation();
-  const [chosen, setChosen] = useState<TabId | null>(null);
+  const [internalChosen, setInternalChosen] = useState<TabId | null>(null);
+  // EPC-04: `activeTab` present (even as `null`) means the caller opted into controlled
+  // mode — `undefined` (the prop simply omitted) is what every pre-EPC consumer passes,
+  // and keeps this component driving its own `internalChosen` exactly as before.
+  const controlled = activeTab !== undefined;
+  const chosen = controlled ? activeTab : internalChosen;
   const active: TabId = chosen ?? (aiPanel === null ? 'comments' : 'ai');
 
+  const selectTab = (tab: TabId) => {
+    if (controlled) {
+      onActiveTabChange?.(tab);
+    } else {
+      setInternalChosen(tab);
+    }
+  };
+
+  // UIF-16: one tab treatment for all three, with the selected one carrying the accent.
+  const tabClass = (selected: boolean) =>
+    `${css.buttonQuiet} rounded-none border-b-2 ${
+      selected ? 'border-accent text-content' : 'border-transparent'
+    }`;
+
   return (
-    <div>
-      <div role="tablist">
+    <div className="flex flex-col rounded-panel border border-border">
+      <div className="flex flex-row border-b border-border" role="tablist">
         {aiPanel !== null && (
           <button
+            className={tabClass(active === 'ai')}
             type="button"
             role="tab"
             id="side-panel-tab-ai"
             aria-controls="side-panel-ai"
             aria-selected={active === 'ai'}
-            onClick={() => setChosen('ai')}
+            onClick={() => selectTab('ai')}
           >
             {t('comments.tabs.ai')}
           </button>
         )}
         <button
+          className={tabClass(active === 'comments')}
           type="button"
           role="tab"
           id="side-panel-tab-comments"
           aria-controls="side-panel-comments"
           aria-selected={active === 'comments'}
-          onClick={() => setChosen('comments')}
+          onClick={() => selectTab('comments')}
         >
           {t('comments.tabs.comments')}
         </button>
         <button
+          className={tabClass(active === 'lint')}
           type="button"
           role="tab"
           id="side-panel-tab-lint"
           aria-controls="side-panel-lint"
           aria-selected={active === 'lint'}
-          onClick={() => setChosen('lint')}
+          onClick={() => selectTab('lint')}
         >
           {t('comments.tabs.lint')}
         </button>
@@ -77,6 +111,7 @@ export function EditorSidePanel({
 
       {aiPanel !== null && (
         <div
+          className="p-3"
           role="tabpanel"
           id="side-panel-ai"
           aria-labelledby="side-panel-tab-ai"
@@ -86,6 +121,7 @@ export function EditorSidePanel({
         </div>
       )}
       <div
+        className="p-3"
         role="tabpanel"
         id="side-panel-comments"
         aria-labelledby="side-panel-tab-comments"
@@ -94,6 +130,7 @@ export function EditorSidePanel({
         {commentsPanel}
       </div>
       <div
+        className="p-3"
         role="tabpanel"
         id="side-panel-lint"
         aria-labelledby="side-panel-tab-lint"

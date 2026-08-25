@@ -126,6 +126,107 @@ describe('DiagramEditorPage (T9, integration)', () => {
     }) as unknown as typeof fetch;
   }
 
+  describe('collapse/expand the side panel (EPC-01..05)', () => {
+    it('collapsing removes the <aside> from the rendered tree — the canvas column reclaims its width (EPC-01)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      const { container } = renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      expect(screen.getByRole('complementary')).toBeTruthy();
+      const row = container.firstElementChild as HTMLElement;
+      const canvasColumnBefore = row.children[0] as HTMLElement;
+      expect(canvasColumnBefore.className).toContain('flex-1');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+
+      // The whole <aside> (its own w-96 width) is gone — nothing in the tree has role
+      // "complementary" any more.
+      expect(screen.queryByRole('complementary')).toBeNull();
+      // Still the row's second child, same tree position — just no longer the wide sidebar.
+      expect(row.children).toHaveLength(2);
+      const strip = row.children[1] as HTMLElement;
+      expect(strip.tagName).not.toBe('ASIDE');
+      // The canvas column's own flex-1 is untouched — reclaiming the width is automatic,
+      // exactly as spec.md documents (no special-casing needed on the canvas side).
+      const canvasColumnAfter = row.children[0] as HTMLElement;
+      expect(canvasColumnAfter.className).toContain('flex-1');
+    });
+
+    it('while collapsed, an "Expandir painel" control is present and is a real, keyboard-reachable <button> (EPC-02)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+
+      const expandButton = screen.getByRole('button', { name: 'Expandir painel' });
+      expect(expandButton.tagName).toBe('BUTTON');
+      expect(expandButton.getAttribute('type')).toBe('button');
+      expect(expandButton.hasAttribute('disabled')).toBe(false);
+    });
+
+    it('expanding restores the <aside> at w-96 AND the tab that was active before collapsing (EPC-03, EPC-04)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      // Switch off the default "IA" tab before collapsing, so restoring the DEFAULT tab
+      // would be distinguishable from restoring the tab that was actually active.
+      fireEvent.click(screen.getByRole('tab', { name: 'Comentários' }));
+      expect(screen.getByRole('tab', { name: 'Comentários' }).getAttribute('aria-selected')).toBe(
+        'true',
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+      expect(screen.queryByRole('complementary')).toBeNull();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Expandir painel' }));
+
+      const sidebar = screen.getByRole('complementary');
+      expect(sidebar.className).toContain('w-96');
+      // EPC-04: collapsing never reset the tab choice back to the "IA" default.
+      expect(screen.getByRole('tab', { name: 'Comentários' }).getAttribute('aria-selected')).toBe(
+        'true',
+      );
+      expect(screen.getByRole('tab', { name: 'IA' }).getAttribute('aria-selected')).toBe('false');
+    });
+
+    it('the collapse and expand controls carry textually distinct accessible labels, never the same text for both states (EPC-05)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      const collapseButton = screen.getByRole('button', { name: 'Recolher painel' });
+      const collapseLabel = collapseButton.textContent;
+      expect(collapseButton.getAttribute('aria-expanded')).toBe('true');
+
+      fireEvent.click(collapseButton);
+
+      const expandButton = screen.getByRole('button', { name: 'Expandir painel' });
+      const expandLabel = expandButton.textContent;
+      expect(expandButton.getAttribute('aria-expanded')).toBe('false');
+
+      expect(expandLabel).not.toBe(collapseLabel);
+    });
+
+    it('renders both control labels through i18n, not literal text — the en locale shows the en copy (EPC-05)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      await i18n.changeLanguage('en');
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      const collapseButton = screen.getByRole('button', { name: 'Collapse panel' });
+      fireEvent.click(collapseButton);
+
+      expect(screen.getByRole('button', { name: 'Expand panel' })).toBeTruthy();
+    });
+  });
+
   it('links into /present (presentation-mode/T8) alongside the existing /inventory link', async () => {
     vi.stubGlobal('fetch', basicFetchImpl());
 
@@ -169,21 +270,30 @@ describe('DiagramEditorPage (T9, integration)', () => {
     const { container } = renderPage();
     await waitFor(() => expect(capturedOnChange).toBeDefined());
 
+    // TEST MODIFIED (UIF-13, F11/R21): these three assertions used to read
+    // `row.style.flexDirection`, `canvasColumn.style.flex` and `.style.minHeight` — the
+    // inline styles the same wave removes by design. The guarantee is unchanged and is
+    // asserted through the mechanism that now carries it; nothing was weakened, and the
+    // sidebar assertion below is new, since a declared width is what stops the panel from
+    // eating the canvas.
     const row = container.firstElementChild as HTMLElement;
-    expect(row.style.flexDirection).toBe('row');
+    expect(row.className).toContain('flex-row');
+    expect(row.className).toContain('h-screen');
     expect(row.children).toHaveLength(2);
-    // The canvas column is the row's first child, and keeps the documented flex:1/
-    // minHeight:0 sizing (unstyled ancestors otherwise collapse Excalidraw to 0 height).
+    // The canvas column is the row's first child and takes the remaining width; `min-h-0`
+    // is what stops an ancestor from collapsing Excalidraw to zero height.
     const canvasColumn = row.children[0] as HTMLElement;
-    // jsdom normalizes the `flex: 1` shorthand into its three longhands.
-    expect(canvasColumn.style.flex).toBe('1 1 0%');
-    expect(canvasColumn.style.minHeight).toBe('0px');
+    expect(canvasColumn.className).toContain('flex-1');
+    expect(canvasColumn.className).toContain('min-h-0');
     // T8/CMT2: the row's second child is a sidebar column hosting the tabbed AI/Comments
     // side panel plus the LibraryPanel/MetadataPanel panels (each collapsible via
     // <details>) — AiDock (still a <details> element) lives inside the tabbed panel's "IA"
     // tabpanel instead of being this column's direct child.
     const sidebar = row.children[1] as HTMLElement;
-    expect(sidebar.tagName).toBe('DIV');
+    // UIF-13: a landmark with a width of its own, so it never grows into the canvas.
+    expect(sidebar.tagName).toBe('ASIDE');
+    expect(sidebar.className).toContain('w-96');
+    expect(sidebar.className).toContain('shrink-0');
     expect(sidebar.querySelector('[role="tablist"]')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-ai details')).not.toBeNull();
     expect(sidebar.querySelector('#side-panel-comments')).not.toBeNull();
@@ -269,7 +379,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
     });
 
     // The preview is showing (awaiting_approval) but nothing has reached the canvas yet.
-    expect(screen.getByRole('button', { name: 'Aprovar' })).not.toBeNull();
+    expect(await screen.findByRole('button', { name: 'Aprovar' })).not.toBeNull();
     expect(updateSceneSpy).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -363,6 +473,10 @@ describe('DiagramEditorPage (T9, integration)', () => {
       await Promise.resolve();
     });
 
+    // GATE-04: wait for the approve control instead of counting microtask ticks. A fixed
+    // number of `await Promise.resolve()` is a guess about how many awaits the run response
+    // travels through, and the guess only holds while the machine is idle.
+    await screen.findByRole('button', { name: 'Aprovar' });
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: 'Aprovar' }));
       await Promise.resolve();
@@ -450,7 +564,7 @@ describe('DiagramEditorPage (T9, integration)', () => {
 
     // awaiting_approval: preview on screen, nothing has touched the canvas or
     // triggered a revision-changing call (no second bootstrap, no batch send).
-    expect(screen.getByRole('button', { name: 'Aprovar' })).not.toBeNull();
+    expect(await screen.findByRole('button', { name: 'Aprovar' })).not.toBeNull();
     expect(updateSceneSpy).not.toHaveBeenCalled();
     expect(bootstrapCalls).toBe(1);
     expect(fetchImpl).not.toHaveBeenCalledWith(

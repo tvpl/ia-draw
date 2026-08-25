@@ -1,6 +1,6 @@
 import type { LibraryItem } from '@arch-canvas/library-content';
 import { convertToExcalidrawElements, Excalidraw } from '@excalidraw/excalidraw';
-import { forwardRef, type JSX, useImperativeHandle, useRef } from 'react';
+import { forwardRef, type JSX, useImperativeHandle, useMemo, useRef } from 'react';
 import { applyRemote } from './applyRemote.js';
 import { buildSceneIndex, computeDiff } from './computeDiff.js';
 import type { ElementDelta, SceneElement } from './types.js';
@@ -209,114 +209,138 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
     ref,
   ): JSX.Element {
     const previousSceneRef = useRef(buildSceneIndex(initialElements));
+    // ESTB-01: the last selection already handed to `onSelectionChange`, as an
+    // order-independent key. `null` means "nothing emitted yet", which is distinct
+    // from the empty selection (`''`) — the first change always propagates, even
+    // when nothing is selected.
+    const emittedSelectionRef = useRef<string | null>(null);
     const apiRef = useRef<ExcalidrawSceneApi | null>(null);
+    // ESTB-04: a fresh object literal per render is churn React has to diff for nothing.
+    // Memoized on `initialElements` purely for referential stability across re-renders of
+    // the SAME mount — this has no effect on what the real `<Excalidraw/>` renders, because
+    // `initialData` is read once at mount and never again (upstream, not this package's
+    // choice). A caller that needs a new initial scene after mount (e.g.
+    // `SharedResourcePage.tsx` navigating between presentation frames, SRF-01/02) MUST force
+    // an actual remount via a stable `key` — changing this prop alone is a no-op on an
+    // already-mounted instance.
+    const initialData = useMemo(
+      // biome-ignore lint/suspicious/noExplicitAny: same bridging as the cast below — Excalidraw's ExcalidrawInitialDataState is branded and only importable via an internal subpath.
+      () => ({ elements: initialElements as any }),
+      [initialElements],
+    );
 
-    useImperativeHandle(ref, () => ({
-      applyRemoteScene(remote: readonly SceneElement[]) {
-        const local = Array.from(previousSceneRef.current.values());
-        const merged = applyRemote(local, remote);
-        apiRef.current?.updateScene({ elements: merged });
-      },
-      applyCollaborators(collaborators: ReadonlyMap<string, RemoteCollaborator>) {
-        apiRef.current?.updateScene({ collaborators });
-      },
-      focusElement(elementId: string): boolean {
-        const api = apiRef.current;
-        if (!api) return false;
-        const element = previousSceneRef.current.get(elementId);
-        // Excalidraw keeps deleted elements as tombstones in its own elements array — a
-        // tombstone is exactly the "already removed from the scene" case this method must
-        // treat as absent (spec.md's Assumptions: "não existe mais na cena").
-        if (!element || (element as { isDeleted?: boolean }).isDeleted) return false;
-        api.updateScene({ appState: { selectedElementIds: { [elementId]: true } } });
-        api.scrollToContent?.(element, { animate: true });
-        return true;
-      },
-      scrollToFrame(elementId: string | null) {
-        if (!elementId) return;
-        const local = Array.from(previousSceneRef.current.values());
-        const target = elementsForFrame(local, elementId);
-        apiRef.current?.scrollToContent?.(target.length > 0 ? target : local, {
-          fitToViewport: true,
-          animate: true,
-        });
-      },
-      insertLibraryItem(item: LibraryItem) {
-        const api = apiRef.current;
-        if (!api) return;
+    // ESTB-03: every method below reads `previousSceneRef`/`apiRef`, never a captured
+    // prop, so the handle has nothing per-render to close over. An empty dependency list
+    // stops React from tearing the ref down and re-attaching it on every render.
+    useImperativeHandle(
+      ref,
+      () => ({
+        applyRemoteScene(remote: readonly SceneElement[]) {
+          const local = Array.from(previousSceneRef.current.values());
+          const merged = applyRemote(local, remote);
+          apiRef.current?.updateScene({ elements: merged });
+        },
+        applyCollaborators(collaborators: ReadonlyMap<string, RemoteCollaborator>) {
+          apiRef.current?.updateScene({ collaborators });
+        },
+        focusElement(elementId: string): boolean {
+          const api = apiRef.current;
+          if (!api) return false;
+          const element = previousSceneRef.current.get(elementId);
+          // Excalidraw keeps deleted elements as tombstones in its own elements array — a
+          // tombstone is exactly the "already removed from the scene" case this method must
+          // treat as absent (spec.md's Assumptions: "não existe mais na cena").
+          if (!element || (element as { isDeleted?: boolean }).isDeleted) return false;
+          api.updateScene({ appState: { selectedElementIds: { [elementId]: true } } });
+          api.scrollToContent?.(element, { animate: true });
+          return true;
+        },
+        scrollToFrame(elementId: string | null) {
+          if (!elementId) return;
+          const local = Array.from(previousSceneRef.current.values());
+          const target = elementsForFrame(local, elementId);
+          apiRef.current?.scrollToContent?.(target.length > 0 ? target : local, {
+            fitToViewport: true,
+            animate: true,
+          });
+        },
+        insertLibraryItem(item: LibraryItem) {
+          const api = apiRef.current;
+          if (!api) return;
 
-        // Center of the visible viewport in scene coordinates — same formula as the
-        // real (unmocked-in-tests) `viewportCoordsToSceneCoords` uses internally for a
-        // client point at the middle of the container: sceneX = clientX/zoom - scrollX,
-        // with clientX - offsetLeft = width/2 at the container's own center.
-        const appState = api.getAppState();
-        const zoomValue = appState.zoom.value;
-        const centerX = appState.width / (2 * zoomValue) - appState.scrollX;
-        const centerY = appState.height / (2 * zoomValue) - appState.scrollY;
+          // Center of the visible viewport in scene coordinates — same formula as the
+          // real (unmocked-in-tests) `viewportCoordsToSceneCoords` uses internally for a
+          // client point at the middle of the container: sceneX = clientX/zoom - scrollX,
+          // with clientX - offsetLeft = width/2 at the container's own center.
+          const appState = api.getAppState();
+          const zoomValue = appState.zoom.value;
+          const centerX = appState.width / (2 * zoomValue) - appState.scrollX;
+          const centerY = appState.height / (2 * zoomValue) - appState.scrollY;
 
-        // Bridges plain skeleton objects into Excalidraw's branded `ExcalidrawElementSkeleton`
-        // union without an internal subpath import — same rationale as `initialData`/`onChange`.
-        // biome-ignore lint/suspicious/noExplicitAny: see comment above
-        let skeleton: any[];
+          // Bridges plain skeleton objects into Excalidraw's branded `ExcalidrawElementSkeleton`
+          // union without an internal subpath import — same rationale as `initialData`/`onChange`.
+          // biome-ignore lint/suspicious/noExplicitAny: see comment above
+          let skeleton: any[];
 
-        if (item.icon.kind === 'inline') {
-          const fileId = `library-${item.stableKey}-${crypto.randomUUID()}`;
-          const groupId = crypto.randomUUID();
-          api.addFiles([
-            {
-              id: fileId,
-              dataURL: `data:image/svg+xml;base64,${utf8ToBase64(item.icon.svg)}`,
-              mimeType: 'image/svg+xml',
-              created: Date.now(),
-            },
-          ]);
-          skeleton = [
-            {
-              type: 'image',
-              fileId,
-              x: centerX - ICON_SIZE / 2,
-              y: centerY - ICON_SIZE / 2,
-              width: ICON_SIZE,
-              height: ICON_SIZE,
-              groupIds: [groupId],
-            },
-            {
-              type: 'text',
-              text: item.name,
-              x: centerX - ICON_SIZE / 2,
-              y: centerY + ICON_SIZE / 2 + 4,
-              groupIds: [groupId],
-            },
-          ];
-        } else {
-          // CLIB-04: `icon.kind === 'external'` never fetches `icon.sourceUrl` — same
-          // rectangle + bound-label fallback `compile()` already produces server-side.
-          skeleton = [
-            {
-              type: 'rectangle',
-              x: centerX - FALLBACK_RECT_WIDTH / 2,
-              y: centerY - FALLBACK_RECT_HEIGHT / 2,
-              width: FALLBACK_RECT_WIDTH,
-              height: FALLBACK_RECT_HEIGHT,
-              backgroundColor: item.color,
-              label: { text: item.name },
-            },
-          ];
-        }
+          if (item.icon.kind === 'inline') {
+            const fileId = `library-${item.stableKey}-${crypto.randomUUID()}`;
+            const groupId = crypto.randomUUID();
+            api.addFiles([
+              {
+                id: fileId,
+                dataURL: `data:image/svg+xml;base64,${utf8ToBase64(item.icon.svg)}`,
+                mimeType: 'image/svg+xml',
+                created: Date.now(),
+              },
+            ]);
+            skeleton = [
+              {
+                type: 'image',
+                fileId,
+                x: centerX - ICON_SIZE / 2,
+                y: centerY - ICON_SIZE / 2,
+                width: ICON_SIZE,
+                height: ICON_SIZE,
+                groupIds: [groupId],
+              },
+              {
+                type: 'text',
+                text: item.name,
+                x: centerX - ICON_SIZE / 2,
+                y: centerY + ICON_SIZE / 2 + 4,
+                groupIds: [groupId],
+              },
+            ];
+          } else {
+            // CLIB-04: `icon.kind === 'external'` never fetches `icon.sourceUrl` — same
+            // rectangle + bound-label fallback `compile()` already produces server-side.
+            skeleton = [
+              {
+                type: 'rectangle',
+                x: centerX - FALLBACK_RECT_WIDTH / 2,
+                y: centerY - FALLBACK_RECT_HEIGHT / 2,
+                width: FALLBACK_RECT_WIDTH,
+                height: FALLBACK_RECT_HEIGHT,
+                backgroundColor: item.color,
+                label: { text: item.name },
+              },
+            ];
+          }
 
-        const inserted = convertToExcalidrawElements(
-          skeleton,
-        ) as unknown as readonly SceneElement[];
-        const local = Array.from(previousSceneRef.current.values());
-        api.updateScene({ elements: [...local, ...inserted] });
-      },
-    }));
+          const inserted = convertToExcalidrawElements(
+            skeleton,
+          ) as unknown as readonly SceneElement[];
+          const local = Array.from(previousSceneRef.current.values());
+          api.updateScene({ elements: [...local, ...inserted] });
+        },
+      }),
+      [],
+    );
 
     return (
       <Excalidraw
         viewModeEnabled={viewModeEnabled}
-        // biome-ignore lint/suspicious/noExplicitAny: bridging SceneElement (this package's structural type) into Excalidraw's branded ExcalidrawInitialDataState without an internal subpath import — see the doc comment above.
-        initialData={{ elements: initialElements as any }}
+        initialData={initialData}
         // biome-ignore lint/suspicious/noExplicitAny: same bridging as initialData above — Excalidraw's own imperative API type is branded and only importable via an internal subpath.
         excalidrawAPI={(api: any) => {
           apiRef.current = api as ExcalidrawSceneApi;
@@ -335,16 +359,29 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
             previousSceneRef.current = buildSceneIndex(next);
             onDeltas?.(deltas);
           }
-          // DOCK-03: selection propagates on every change, including selection-only
-          // changes that produce no element delta (the `if` above gates `onDeltas`,
-          // never this call).
+          // DOCK-03: selection propagates on every change of the SELECTION, including
+          // selection-only changes that produce no element delta (the `if` above gates
+          // `onDeltas`, never this call).
+          //
+          // ESTB-01/06: an unchanged selection is never re-emitted. Emitting a fresh
+          // array on every `onChange` made a consumer that lifts it into state
+          // (`DiagramEditorPage`) re-render, which re-rendered `<Excalidraw/>`, which
+          // fired `onChange` again — the render loop that aborted the editor route with
+          // React error #185.
           const selectedElementIds = (appState?.selectedElementIds ?? {}) as Record<
             string,
             boolean
           >;
-          onSelectionChange?.(
-            Object.keys(selectedElementIds).filter((id) => selectedElementIds[id]),
+          const selectedIds = Object.keys(selectedElementIds).filter(
+            (id) => selectedElementIds[id],
           );
+          // Compared sorted so a reordered `selectedElementIds` is not a change; emitted
+          // unsorted so the order callers already receive is unchanged.
+          const selectionKey = [...selectedIds].sort().join('\u0000');
+          if (selectionKey !== emittedSelectionRef.current) {
+            emittedSelectionRef.current = selectionKey;
+            onSelectionChange?.(selectedIds);
+          }
         }}
       />
     );

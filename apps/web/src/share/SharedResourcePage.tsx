@@ -82,8 +82,20 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
             currentIndex={currentIndex}
             onNavigate={setCurrentIndex}
             renderCanvas={(frame) => (
-              <div style={{ height: '80vh' }}>
-                <EditorSurface initialElements={cropSceneForFrame(scene, frame)} viewModeEnabled />
+              <div className="h-[80vh]">
+                {/* SRF-01/02/03: `key={frame.id}` forces React to unmount/remount
+                    `EditorSurface` on every frame change. The real `<Excalidraw/>`
+                    only reads `initialData` at mount time — changing the
+                    `initialElements` prop on an already-mounted instance is
+                    silently ignored by the real component (see
+                    `EditorSurface.tsx`'s `initialData` comment). `viewModeEnabled`
+                    is always `true` here, so there is no local edit state a
+                    remount could lose. */}
+                <EditorSurface
+                  key={frame.id}
+                  initialElements={cropSceneForFrame(scene, frame)}
+                  viewModeEnabled
+                />
               </div>
             )}
           />
@@ -103,7 +115,7 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
       <p data-testid="share-read-only-notice">{t('share.public.readOnlyNotice')}</p>
       {/* Excalidraw fills its parent's box — the concrete height comes from here,
           same as `DiagramEditorPage`'s own canvas wrapper. */}
-      <div style={{ height: '80vh' }}>
+      <div className="h-[80vh]">
         <EditorSurface initialElements={result.scene} viewModeEnabled />
       </div>
     </PublicShell>

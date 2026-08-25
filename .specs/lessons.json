@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 46,
+  "next_id": 65,
   "lessons": [
     {
       "id": "L-001",
@@ -816,6 +816,348 @@
       ],
       "created": "2026-08-21T10:41:22Z",
       "last_seen": "2026-08-21T10:41:22Z"
+    },
+    {
+      "id": "L-046",
+      "key": "gate_fail::antes de estabilizar a identidade de uma prop procure todo consumidor que a passa amarre a memoizacao ao valor da prop nunca ao mount porque um consumidor pode trocar a prop sem remontar",
+      "text": "Antes de estabilizar a identidade de uma prop, procure todo consumidor que a passa: amarre a memoizacao ao valor da prop, nunca ao mount, porque um consumidor pode trocar a prop sem remontar.",
+      "signal": "gate_fail",
+      "scope": "react/props",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/share/SharedResourcePage.spec.tsx (regressao de T2, corrigida em ac1c9aa) (react/props)"
+      ],
+      "created": "2026-08-24T22:49:35Z",
+      "last_seen": "2026-08-24T22:49:35Z"
+    },
+    {
+      "id": "L-047",
+      "key": "spec_precision_gap::um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde ancore o mock no contrato documentado da lib initialdata so e lido no mount nao no que e conveniente para a assercao",
+      "text": "Um mock mais permissivo que a biblioteca que substitui converte defeito em teste verde: ancore o mock no contrato documentado da lib (initialData so e lido no mount), nao no que e conveniente para a assercao.",
+      "signal": "spec_precision_gap",
+      "scope": "testing/mocks",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/share/SharedResourcePage.spec.tsx mock de <Excalidraw/> (testing/mocks)"
+      ],
+      "created": "2026-08-24T22:49:35Z",
+      "last_seen": "2026-08-24T22:49:35Z"
+    },
+    {
+      "id": "L-048",
+      "key": "gate_fail::um item de done when que produz um artefato changeset arquivo gerado entrada de registro deve ser conferido contra o disco antes de marcar x conferir so as acs contra testes deixa passar criterios que nenhum teste cobre",
+      "text": "Um item de Done-when que produz um ARTEFATO (changeset, arquivo gerado, entrada de registro) deve ser conferido contra o disco antes de marcar [x]; conferir so as ACs contra testes deixa passar criterios que nenhum teste cobre.",
+      "signal": "gate_fail",
+      "scope": "process/verification",
+      "status": "candidate",
+      "features": [
+        "editor-stability"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/editor-stability/tasks.md T1 Done-when 'Changeset criado' (process/verification)"
+      ],
+      "created": "2026-08-24T22:50:46Z",
+      "last_seen": "2026-08-24T22:50:46Z"
+    },
+    {
+      "id": "L-049",
+      "key": "surviving_mutant::um guard que confere presenca de identificador por substring aprova a redefinicao local com o mesmo nome exija a forma sintatica que carrega a garantia o import a chamada nunca a mencao do nome",
+      "text": "Um guard que confere presenca de IDENTIFICADOR por substring aprova a redefinicao local com o mesmo nome: exija a forma sintatica que carrega a garantia (o import, a chamada), nunca a mencao do nome.",
+      "signal": "surviving_mutant",
+      "scope": "tooling/guards",
+      "status": "candidate",
+      "features": [
+        "edge-routing"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/edgeParity.ts prefixesFromViteConfig (tooling/guards)"
+      ],
+      "created": "2026-08-24T23:04:30Z",
+      "last_seen": "2026-08-24T23:04:30Z"
+    },
+    {
+      "id": "L-050",
+      "key": "ac_gap::quando uma ac exige resposta de um servico que nao sobe no ambiente marque estrutural e nomeie a spec que a prova por execucao arredondar para verde e o padrao de lacuna de l 044 l 045",
+      "text": "Quando uma AC exige resposta de um servico que nao sobe no ambiente, marque estrutural e nomeie a spec que a prova por execucao; arredondar para verde e o padrao de lacuna de L-044/L-045.",
+      "signal": "ac_gap",
+      "scope": "verification",
+      "status": "candidate",
+      "features": [
+        "edge-routing"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "EDGE-03/EDGE-04 (verification)"
+      ],
+      "created": "2026-08-24T23:04:30Z",
+      "last_seen": "2026-08-24T23:04:30Z"
+    },
+    {
+      "id": "L-051",
+      "key": "ac_gap::todo edge case listado na spec precisa aparecer no done when de alguma task os que ficam so na secao de edge cases nao viram codigo nem teste e so aparecem na conferencia final",
+      "text": "Todo edge case listado na spec precisa aparecer no Done-when de alguma task: os que ficam so na secao de Edge Cases nao viram codigo nem teste e so aparecem na conferencia final.",
+      "signal": "ac_gap",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "instance-bootstrap"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases: 503 quando a contagem falha (planning)"
+      ],
+      "created": "2026-08-25T06:35:29Z",
+      "last_seen": "2026-08-25T06:35:29Z"
+    },
+    {
+      "id": "L-052",
+      "key": "gate_fail::antes de escrever uma spec de deixar o gate verde rode o gate e enumere toda falha um problem statement montado a partir do que se lembra do ci subdimensiona e a ac principal nao fecha",
+      "text": "Antes de escrever uma spec de 'deixar o gate verde', rode o gate e enumere TODA falha: um Problem Statement montado a partir do que se lembra do CI subdimensiona e a AC principal nao fecha.",
+      "signal": "gate_fail",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/green-gate/spec.md Problem Statement (2 bloqueadores) vs 4 reais (planning)"
+      ],
+      "created": "2026-08-25T06:52:43Z",
+      "last_seen": "2026-08-25T06:52:43Z"
+    },
+    {
+      "id": "L-053",
+      "key": "gate_fail::um flake normalizado como restricao de ambiente merece uma medicao antes da aceitacao aqui era concorrencia do turbo contra 4 cpus estourando o timeout de 1s do findbytext resolvido por configuracao nao por tolerancia",
+      "text": "Um flake normalizado como 'restricao de ambiente' merece uma medicao antes da aceitacao: aqui era concorrencia do turbo contra 4 CPUs estourando o timeout de 1s do findByText, resolvido por configuracao, nao por tolerancia.",
+      "signal": "gate_fail",
+      "scope": "testing/infra",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "STATE.md F10: 'flake conhecido de contencao sob execucao paralela' (testing/infra)"
+      ],
+      "created": "2026-08-25T06:52:43Z",
+      "last_seen": "2026-08-25T06:52:43Z"
+    },
+    {
+      "id": "L-054",
+      "key": "surviving_mutant::recorrencia de l 049 tocontain color accent passa com color accent hover presente asserte a declaracao com o separador dois pontos parenteses o import nunca a mencao do nome",
+      "text": "RECORRENCIA de L-049: toContain('--color-accent') passa com '--color-accent-hover' presente. Asserte a DECLARACAO (com o separador: dois-pontos, parenteses, o import), nunca a mencao do nome.",
+      "signal": "surviving_mutant",
+      "scope": "testing/assertions",
+      "status": "candidate",
+      "features": [
+        "ui-foundations"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/styles/theme.spec.ts:27 (testing/assertions)"
+      ],
+      "created": "2026-08-25T07:16:26Z",
+      "last_seen": "2026-08-25T07:16:26Z"
+    },
+    {
+      "id": "L-055",
+      "key": "ac_gap::um requisito que nenhuma task carrega para o seu done when nao e construido ao fechar tasks cruze cada id da spec com pelo menos um done when nao apenas com a tabela de rastreabilidade",
+      "text": "Um requisito que nenhuma task carrega para o seu Done-when nao e construido: ao fechar Tasks, cruze cada ID da spec com pelo menos um Done-when, nao apenas com a tabela de rastreabilidade.",
+      "signal": "ac_gap",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "ui-foundations"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "UIF-17, UIF-10 (acao de tentar novamente) (planning)"
+      ],
+      "created": "2026-08-25T07:16:26Z",
+      "last_seen": "2026-08-25T07:16:26Z"
+    },
+    {
+      "id": "L-056",
+      "key": "ac_gap::antes de mudar como um papel e resolvido procure toda consulta que faz join na tabela de associacao uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente",
+      "text": "Antes de mudar como um papel e resolvido, procure TODA consulta que faz join na tabela de associacao: uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente.",
+      "signal": "ac_gap",
+      "scope": "authorization",
+      "status": "candidate",
+      "features": [
+        "rbac-clarity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/workspace/workspaces.ts getWorkspaceById (authorization)"
+      ],
+      "created": "2026-08-25T07:32:45Z",
+      "last_seen": "2026-08-25T07:32:45Z"
+    },
+    {
+      "id": "L-057",
+      "key": "gate_fail::gate verde sobre cache do turbo nao e gate que passou r22 fechou verde porque a suite de integracao do modulo estava em cache e o vermelho real contrato de rbac mudado sem atualizar o teste so apareceu numa corrida sem cache ao fechar uma onda rode o gate num estado sem cache",
+      "text": "Gate verde sobre cache do turbo nao e gate que passou: R22 fechou verde porque a suite de integracao do modulo estava em cache, e o vermelho real (contrato de RBAC mudado sem atualizar o teste) so apareceu numa corrida sem cache. Ao fechar uma onda, rode o gate num estado sem cache.",
+      "signal": "gate_fail",
+      "scope": "gate",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/comment/comment.int.spec.ts:225 (gate)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-058",
+      "key": "gate_fail::recorrencia de l 024 em forma nova git checkout arquivo descarta trabalho nao commitado igual a git stash para reverter uma mutacao do sensor restaure de uma copia feita antes nunca do head",
+      "text": "RECORRENCIA de L-024 em forma nova: 'git checkout -- <arquivo>' descarta trabalho nao commitado igual a 'git stash'. Para reverter uma mutacao do sensor, restaure de uma copia feita antes, nunca do HEAD.",
+      "signal": "gate_fail",
+      "scope": "git",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/routeInventory.ts (git)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-059",
+      "key": "ac_gap::um instrumento de medicao so descobre o que ele mede o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24 da interface e isso so apareceu quando a auditoria passou a checar a direcao contraria ao ligar um gate novo desconfie primeiro da medicao nao dos dados",
+      "text": "Um instrumento de medicao so descobre o que ele mede: o extrator de consumidores reconhecia dois nomes literais de fetch e era cego a 24% da interface, e isso so apareceu quando a auditoria passou a checar a direcao contraria. Ao ligar um gate novo, desconfie primeiro da medicao, nao dos dados.",
+      "signal": "ac_gap",
+      "scope": "repo-tools",
+      "status": "candidate",
+      "features": [
+        "docs-truth"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tools/repo-tools/src/webConsumers.ts:39 (repo-tools)"
+      ],
+      "created": "2026-08-25T08:18:13Z",
+      "last_seen": "2026-08-25T08:18:13Z"
+    },
+    {
+      "id": "L-060",
+      "key": "gate_fail::flake tem mais de uma causa aumentar timeout so resolve a causa margem um evento disparado antes do listener de um efeito passivo e descartado e um numero fixo de await promise resolve e um palpite nenhum dos dois melhora com mais tempo antes de aceitar contencao de cpu reproduza e leia o erro real",
+      "text": "Flake tem mais de uma causa: aumentar timeout so resolve a causa 'margem'. Um evento disparado antes do listener de um efeito passivo e DESCARTADO, e um numero fixo de 'await Promise.resolve()' e um palpite - nenhum dos dois melhora com mais tempo. Antes de aceitar 'contencao de CPU', reproduza e leia o erro real.",
+      "signal": "gate_fail",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/presentation/PresenterModePage.spec.tsx:70 (testing)"
+      ],
+      "created": "2026-08-25T09:31:01Z",
+      "last_seen": "2026-08-25T09:31:01Z"
+    },
+    {
+      "id": "L-061",
+      "key": "gate_fail::asyncutiltimeout da testing library tem de ficar abaixo do testtimeout do vitest iguais a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente",
+      "text": "asyncUtilTimeout da Testing Library tem de ficar ABAIXO do testTimeout do vitest: iguais, a espera consome o orcamento do teste e o erro vira o timeout opaco do runner em vez da mensagem que nomeia o elemento ausente.",
+      "signal": "gate_fail",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/vitest.config.ts (testing)"
+      ],
+      "created": "2026-08-25T09:31:01Z",
+      "last_seen": "2026-08-25T09:31:01Z"
+    },
+    {
+      "id": "L-062",
+      "key": "gate_fail::um done when de gate build marcado x nao prova que o comando passa num ambiente limpo o e2e harness que boota apps server real precisa de um storageclient falso moduledependencies storage igual aos testes de integracao ja usam senao qualquer rota que toque storage publish export asset falha com econnrefused contra o minio que nao existe no harness reproduzir o comando do gate isoladamente antes de marcar o checkbox nunca confiar num passou aqui sem isolar o ambiente",
+      "text": "Um Done-when de gate 'build' marcado [x] nao prova que o comando passa num ambiente limpo: o e2e harness que boota apps/server real precisa de um StorageClient falso (ModuleDependencies.storage) igual aos testes de integracao ja usam, senao qualquer rota que toque storage (publish, export, asset) falha com ECONNREFUSED contra o MinIO que nao existe no harness. Reproduzir o comando do gate isoladamente antes de marcar o checkbox, nunca confiar num 'passou aqui' sem isolar o ambiente.",
+      "signal": "gate_fail",
+      "scope": "e2e",
+      "status": "candidate",
+      "features": [
+        "shared-resource-frame-fix"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/e2e/support/runTestServer.ts (e2e)"
+      ],
+      "created": "2026-08-25T14:56:33Z",
+      "last_seen": "2026-08-25T14:56:33Z"
+    },
+    {
+      "id": "L-063",
+      "key": "surviving_mutant::uma corrida unica entre duas requisicoes concorrentes pode ser inerentemente proxima de 50 50 mesmo sem o lock quando ha trabalho caro argon2 hash antes da secao critica nem sockets reais nem um ciclo de aquecimento tornam essa unica amostra confiavel medido 24 24 numa forma e 10 24 noutra contra o mesmo codigo a correcao e repetir a corrida n vezes dentro do mesmo teste e exigir que toda repeticao resolva certo nao cacar um jeito de tornar uma amostra unica deterministica",
+      "text": "Uma corrida UNICA entre duas requisicoes concorrentes pode ser inerentemente proxima de 50/50 mesmo sem o lock, quando ha trabalho caro (argon2.hash) antes da secao critica — nem sockets reais nem um ciclo de aquecimento tornam essa UNICA amostra confiavel (medido 24/24 numa forma e 10/24 noutra contra o MESMO codigo). A correcao e repetir a corrida N vezes dentro do mesmo teste e exigir que TODA repeticao resolva certo, nao caçar um jeito de tornar uma amostra unica deterministica.",
+      "signal": "surviving_mutant",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "concurrency-proof"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts (testing)"
+      ],
+      "created": "2026-08-25T16:40:54Z",
+      "last_seen": "2026-08-25T16:40:54Z"
+    },
+    {
+      "id": "L-064",
+      "key": "ac_gap::when a value can fall outside a select s option set a legacy retired enum value every render branch that can display that value not just the read only one needs a path that shows it with fidelity a controlled select bound to an out of set value silently fails to render it",
+      "text": "When a value can fall outside a <select>'s option set (a legacy/retired enum value), every render branch that can display that value — not just the read-only one — needs a path that shows it with fidelity; a controlled select bound to an out-of-set value silently fails to render it",
+      "signal": "ac_gap",
+      "scope": "web/forms",
+      "status": "candidate",
+      "features": [
+        "organization-admins"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/nav/WorkspaceMembersPage.tsx:368-381 (ORG-14) (web/forms)"
+      ],
+      "created": "2026-08-25T18:42:05Z",
+      "last_seen": "2026-08-25T18:42:05Z"
     }
   ]
 }

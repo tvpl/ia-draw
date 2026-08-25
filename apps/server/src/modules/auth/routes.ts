@@ -8,6 +8,7 @@ import * as client from 'openid-client';
 import { z } from 'zod';
 import type { AppConfig } from '../../core/config.js';
 import type { MetricsRegistry } from '../../core/metrics.js';
+import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
 import type { RouteSchemaMap } from '../../openapi/types.js';
 import { verifyLocalPassword } from './accounts.js';
 import {
@@ -19,6 +20,13 @@ import {
   sessionCookieOptions,
 } from './cookie.js';
 import type { Db } from './db.js';
+import {
+  bootstrapInstance,
+  InstanceAlreadyInitializedError,
+  isInstanceUninitialized,
+  MIN_PASSWORD_LENGTH,
+  recordBootstrapAudit,
+} from './firstRun.js';
 import { requireSession } from './middleware.js';
 import {
   getOidcClientConfiguration,
@@ -75,6 +83,29 @@ function badOidcCallback(message: string): never {
 const userLookupQuerySchema = z.object({ email: z.string().min(1) });
 
 /**
+ * BOOT-05/06: the only validation rules the first-run form has. Length is the one password
+ * requirement with a real effect; composition rules push people toward worse passwords, so
+ * there are none.
+ */
+const firstRunBodySchema = z.object({
+  email: z.string().email(),
+  displayName: z.string().trim().min(1),
+  password: z.string().min(MIN_PASSWORD_LENGTH),
+  workspaceName: z.string().trim().min(1),
+});
+
+/**
+ * BOOT-09: the first-run route is public, so the default per-session limiter (SEC-02,
+ * which attaches itself to routes carrying `requireSession`) never covers it. Keyed by IP,
+ * since there is no session to key on.
+ */
+const FIRST_RUN_RATE_LIMIT = { limit: 10, windowMs: 60_000 };
+
+function conflict(message: string): never {
+  throw Object.assign(new Error(message), { statusCode: 409 });
+}
+
+/**
  * OpenAPI schema map for this module's 9 routes (T5, API-01; MEM-04..06 adds
  * `GET /users:lookup`). `/auth/logout`, `/auth/refresh`, `/me` and the three
  * OIDC routes take no query/params/body — they act on the session cookie,
@@ -90,6 +121,8 @@ export const routeSchemas: RouteSchemaMap = {
   'GET /auth/oidc/callback': {},
   'GET /auth/oidc/status': {},
   'GET /users:lookup': { query: userLookupQuerySchema },
+  'GET /auth/first-run': {},
+  'POST /auth/first-run': { body: firstRunBodySchema },
 };
 
 /** Registers /auth/login, /auth/logout, /auth/refresh and /me on `app` (T14). */
@@ -100,6 +133,51 @@ export async function registerAuthModule(
   const { db, config, metrics } = deps;
 
   await app.register(fastifyCookie);
+
+  // BOOT-01..11: the first-run surface. Registered before `/auth/login` only for
+  // readability — Fastify matches by path, not by declaration order.
+  const firstRunLimiter = new InMemoryRateLimiter(FIRST_RUN_RATE_LIMIT);
+  const firstRunRateLimit = createRateLimitPreHandler(firstRunLimiter, (request) => request.ip);
+
+  // BOOT-01/02: `404` rather than `403` once the instance has an account. A `403` would
+  // confirm both that the route exists and that the instance is already initialized;
+  // `404` leaks neither.
+  app.get('/auth/first-run', { preHandler: firstRunRateLimit }, async () => {
+    if (!(await isInstanceUninitialized(db))) notFound();
+    return { available: true };
+  });
+
+  app.post('/auth/first-run', { preHandler: firstRunRateLimit }, async (request, reply) => {
+    // BOOT-04: checked before the body is even parsed, so an initialized instance never
+    // touches the database on this route beyond the emptiness check itself.
+    if (!(await isInstanceUninitialized(db))) notFound();
+
+    const parsed = firstRunBodySchema.safeParse(request.body);
+    if (!parsed.success) {
+      const issue = parsed.error.issues[0];
+      throw Object.assign(new Error(`Invalid ${issue?.path.join('.') ?? 'payload'}`), {
+        statusCode: 400,
+      });
+    }
+
+    let result: Awaited<ReturnType<typeof bootstrapInstance>>;
+    try {
+      result = await bootstrapInstance(db, parsed.data);
+    } catch (error) {
+      // BOOT-08: the loser of a race. The winner already created the administrator.
+      if (error instanceof InstanceAlreadyInitializedError) {
+        conflict('This instance already has an account');
+      }
+      throw error;
+    }
+
+    await recordBootstrapAudit(db, result, hashToken(request.ip));
+
+    const issued = await createSession(db, result.user.id);
+    reply.setCookie(SESSION_COOKIE_NAME, issued.token, sessionCookieOptions(config));
+    reply.code(201);
+    return { user: result.user, workspaceId: result.workspaceId };
+  });
 
   app.post('/auth/login', async (request, reply) => {
     const parsed = loginBodySchema.safeParse(request.body);
