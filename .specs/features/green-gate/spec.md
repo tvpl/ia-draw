@@ -113,18 +113,18 @@ dados pela porta pública, para que uma borda mal roteada não passe como saudá
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| GATE-01 | P1: O gate local passa | Implementing | Implementing (T1/T8/T9/T10) |
-| GATE-02 | P1: O gate local passa | Implementing | Implementing (T1) |
-| GATE-03 | P1: O gate local passa | Implementing | Implementing (T2/T6) |
-| GATE-04 | P1: O gate local passa | Implementing | Implementing (T3) |
-| GATE-05 | P1: O gate local passa | Implementing | Implementing (T2/T10) |
-| GATE-06 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
-| GATE-07 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
-| GATE-08 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
-| GATE-09 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
-| GATE-10 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
-| GATE-11 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
-| GATE-12 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
+| GATE-01 | P1: O gate local passa | Verified | ✅ Verified |
+| GATE-02 | P1: O gate local passa | Verified | ✅ Verified |
+| GATE-03 | P1: O gate local passa | Verified | ✅ Verified |
+| GATE-04 | P1: O gate local passa | Verified | ✅ Verified |
+| GATE-05 | P1: O gate local passa | Verified | ✅ Verified |
+| GATE-06 | P1: O CI volta a ser sinal | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
+| GATE-07 | P1: O CI volta a ser sinal | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
+| GATE-08 | P1: O CI volta a ser sinal | Verified | ✅ Verified |
+| GATE-09 | P2: O smoke do compose prova o produto | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
+| GATE-10 | P2: O smoke do compose prova o produto | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
+| GATE-11 | P2: O smoke do compose prova o produto | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
+| GATE-12 | P2: O smoke do compose prova o produto | Verified | ⚠️ Verified (estrutural — exige push real / stack de pé) |
 
 **Coverage:** 12 total, 12 mapeados para tasks, 0 sem mapeamento.
 

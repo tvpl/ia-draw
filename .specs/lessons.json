@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 52,
+  "next_id": 54,
   "lessons": [
     {
       "id": "L-001",
@@ -924,6 +924,42 @@
       ],
       "created": "2026-08-25T06:35:29Z",
       "last_seen": "2026-08-25T06:35:29Z"
+    },
+    {
+      "id": "L-052",
+      "key": "gate_fail::antes de escrever uma spec de deixar o gate verde rode o gate e enumere toda falha um problem statement montado a partir do que se lembra do ci subdimensiona e a ac principal nao fecha",
+      "text": "Antes de escrever uma spec de 'deixar o gate verde', rode o gate e enumere TODA falha: um Problem Statement montado a partir do que se lembra do CI subdimensiona e a AC principal nao fecha.",
+      "signal": "gate_fail",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        ".specs/features/green-gate/spec.md Problem Statement (2 bloqueadores) vs 4 reais (planning)"
+      ],
+      "created": "2026-08-25T06:52:43Z",
+      "last_seen": "2026-08-25T06:52:43Z"
+    },
+    {
+      "id": "L-053",
+      "key": "gate_fail::um flake normalizado como restricao de ambiente merece uma medicao antes da aceitacao aqui era concorrencia do turbo contra 4 cpus estourando o timeout de 1s do findbytext resolvido por configuracao nao por tolerancia",
+      "text": "Um flake normalizado como 'restricao de ambiente' merece uma medicao antes da aceitacao: aqui era concorrencia do turbo contra 4 CPUs estourando o timeout de 1s do findByText, resolvido por configuracao, nao por tolerancia.",
+      "signal": "gate_fail",
+      "scope": "testing/infra",
+      "status": "candidate",
+      "features": [
+        "green-gate"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "STATE.md F10: 'flake conhecido de contencao sob execucao paralela' (testing/infra)"
+      ],
+      "created": "2026-08-25T06:52:43Z",
+      "last_seen": "2026-08-25T06:52:43Z"
     }
   ]
 }

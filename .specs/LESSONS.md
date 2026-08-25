@@ -320,6 +320,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: spec.md Edge Cases: 503 quando a contagem falha (planning)
 - last seen: 2026-08-25T06:35:29Z
 
+### L-052 - Antes de escrever uma spec de 'deixar o gate verde', rode o gate e enumere TODA falha: um Problem Statement montado a partir do que se lembra do CI subdimensiona e a AC principal nao fecha.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: green-gate
+- evidence: .specs/features/green-gate/spec.md Problem Statement (2 bloqueadores) vs 4 reais (planning)
+- last seen: 2026-08-25T06:52:43Z
+
+### L-053 - Um flake normalizado como 'restricao de ambiente' merece uma medicao antes da aceitacao: aqui era concorrencia do turbo contra 4 CPUs estourando o timeout de 1s do findByText, resolvido por configuracao, nao por tolerancia.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `testing/infra` · harmful: 0
+- features: green-gate
+- evidence: STATE.md F10: 'flake conhecido de contencao sob execucao paralela' (testing/infra)
+- last seen: 2026-08-25T06:52:43Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

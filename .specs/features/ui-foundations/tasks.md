@@ -22,6 +22,7 @@ Execute flow and Critical Rules.**
 | Telas estilizadas (acessibilidade) | unit (a11y) | UIF-11: sem violação axe e foco visível preservado em cada tela tocada | `apps/web/src/**/*.a11y.spec.tsx` | `pnpm -w test:unit` |
 | Estados de lista | unit | UIF-09/10 e os edge cases: estado vazio próprio, carregando no lugar do conteúdo, erro com ação de tentar novamente, erro tem precedência sobre vazio | `apps/web/src/nav/*.spec.tsx` | `pnpm -w test:unit` |
 | Chrome do editor | unit | UIF-13..17: painel com largura própria, canvas ocupando a altura restante, seções recolhíveis consistentes, recolher devolve largura | `apps/web/src/diagram/DiagramEditorPage.spec.tsx` | `pnpm -w test:unit` |
+| Varredura de tokens (fim da onda) | unit | UIF-03/13: nenhum componente de produção com literal de cor ou `style={{}}`, com as isenções nomeadas no próprio teste | `apps/web/src/styles/tokenSweep.spec.ts` | `pnpm -w test:unit` |
 | Divisão de bundle | unit | UIF-18/20: o chunk de entrada não contém o motor de canvas, verificado sobre a saída do build | `apps/web/src/bundle.spec.ts` | `pnpm -w test:unit` |
 | Rota do editor (fim a fim) | e2e | O canvas continua montando com carregamento sob demanda (UIF-19) | `apps/web/e2e/editor-console.spec.ts` | `pnpm --filter @arch-canvas/web test:e2e` |
 
@@ -60,6 +61,8 @@ T5 -> T9
 T3 -> T10
 T10 -> T11
 T11 -> T12
+T3 -> T13
+T10 -> T13
 ```
 
 ---
@@ -413,3 +416,36 @@ mermaid, cytoscape e katex.
 **Gate**: build
 
 **Commit**: `perf(web): load the editor route on demand`
+
+---
+
+### T13: Fechar as três superfícies fora das listas e travar a varredura
+
+**What**: `PresenterModePage.tsx`, `SharedResourcePage.tsx` e `SpecViewer.tsx` também usam
+`style={{}}` e nenhuma task anterior os nomeava — encontrados pela varredura de tokens ao escrever
+T2. Recebem o mesmo tratamento das demais superfícies e, na mesma task, a varredura passa a ser um
+teste: nenhum componente de produção com literal de cor ou estilo inline, com isenção explícita e
+justificada para `presence/collaboratorColor.ts`, que gera cor de cursor por participante e é lógica
+de domínio, não estilo.
+**Where**: `apps/web/src/styles/tokenSweep.spec.ts`
+**Depends on**: T3, T10
+**Reuses**: os mesmos tokens e utilitários das tasks anteriores.
+**Requirement**: UIF-03, UIF-13
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Nenhum `style={{}}` permanece em componente de produção de `apps/web`
+- [ ] A varredura reprova quando um literal de cor é introduzido num componente
+- [ ] A isenção de `collaboratorColor.ts` está nomeada e justificada dentro do teste
+- [ ] A varredura ignora comentários, para não confundir `#185` de um texto com uma cor
+- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+
+**Tests**: unit
+**Gate**: full
+
+**Commit**: `feat(web): style the remaining surfaces and lock the token sweep`
