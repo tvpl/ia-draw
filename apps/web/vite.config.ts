@@ -1,4 +1,5 @@
 import { SERVER_ROUTE_PREFIXES, WS_ROUTE_PREFIX } from '@arch-canvas/shared-contracts';
+import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
@@ -13,7 +14,10 @@ const API_PROXY_TARGET = 'http://localhost:3000';
 // fails when this file and the Caddyfile drift from the registered routes.
 
 export default defineConfig({
-  plugins: [react()],
+  // UIF-01 (AD-017): Tailwind v4 is configured CSS-first — the tokens live in
+  // `src/styles/theme.css`'s `@theme` block, and there is deliberately no JavaScript config
+  // file for a second place to look.
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       ...Object.fromEntries(
