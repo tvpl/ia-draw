@@ -251,9 +251,13 @@ describe('EditorSurface (T94, DOCK-03)', () => {
     expect(capturedInitialData).toBe(initialDataAfterMount);
   });
 
-  it('hands <Excalidraw/> the new scene when initialElements actually changes (ESTB-04)', () => {
-    // `SharedResourcePage` swaps the cropped scene per presentation frame without
-    // remounting this component, so a frozen initialData would pin it to the first frame.
+  it('recomputes initialData when initialElements changes referentially — proves only that the memo tracks its dependency, never that a mounted real <Excalidraw/> would re-read it (ESTB-04)', () => {
+    // This mock re-reads `initialData` on every render, unlike the real `<Excalidraw/>`
+    // (which reads it once, at mount). So this test only proves the `useMemo` above
+    // recomputes when `initialElements` changes referentially — it says NOTHING about
+    // what a mounted real component would do with that new value (it would ignore it).
+    // A caller needing the real component to show a new scene after mount forces a
+    // remount via a stable `key` instead (see `SharedResourcePage.tsx`, SRF-01/02).
     const frameA: readonly SceneElement[] = [{ ...base, id: 'frame-a' }];
     const frameB: readonly SceneElement[] = [{ ...base, id: 'frame-b' }];
     mount({ initialElements: frameA });

@@ -101,11 +101,11 @@ cena).
 
 **Done when**:
 
-- [ ] O comentário não afirma mais que trocar `initialElements` sem remount atualiza a cena renderizada
-- [ ] O comentário nomeia explicitamente o mecanismo real: remontar via `key` (referência a T1/`SharedResourcePage.tsx`)
-- [ ] O teste reescrito não afirma que o `<Excalidraw/>` real reage a `initialElements` pós-mount
-- [ ] O teste `'keeps initialData referentially stable...'` permanece verde, sem mudança
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O comentário não afirma mais que trocar `initialElements` sem remount atualiza a cena renderizada
+- [x] O comentário nomeia explicitamente o mecanismo real: remontar via `key` (referência a T1/`SharedResourcePage.tsx`)
+- [x] O teste reescrito não afirma que o `<Excalidraw/>` real reage a `initialElements` pós-mount
+- [x] O teste `'keeps initialData referentially stable...'` permanece verde, sem mudança
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

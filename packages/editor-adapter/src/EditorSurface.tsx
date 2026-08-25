@@ -216,10 +216,13 @@ export const EditorSurface = forwardRef<EditorSurfaceHandle, EditorSurfaceProps>
     const emittedSelectionRef = useRef<string | null>(null);
     const apiRef = useRef<ExcalidrawSceneApi | null>(null);
     // ESTB-04: a fresh object literal per render is churn React has to diff for nothing.
-    // Tied to `initialElements` rather than frozen at mount, because `SharedResourcePage`
-    // legitimately hands this component a different scene per frame without remounting it
-    // (`apps/web/src/share/SharedResourcePage.tsx`) — freezing would silently pin that
-    // surface to its first frame.
+    // Memoized on `initialElements` purely for referential stability across re-renders of
+    // the SAME mount — this has no effect on what the real `<Excalidraw/>` renders, because
+    // `initialData` is read once at mount and never again (upstream, not this package's
+    // choice). A caller that needs a new initial scene after mount (e.g.
+    // `SharedResourcePage.tsx` navigating between presentation frames, SRF-01/02) MUST force
+    // an actual remount via a stable `key` — changing this prop alone is a no-op on an
+    // already-mounted instance.
     const initialData = useMemo(
       // biome-ignore lint/suspicious/noExplicitAny: same bridging as the cast below — Excalidraw's ExcalidrawInitialDataState is branded and only importable via an internal subpath.
       () => ({ elements: initialElements as any }),
