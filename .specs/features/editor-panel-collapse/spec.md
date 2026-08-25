@@ -79,11 +79,11 @@ volta e ver a mesma aba de antes ainda selecionada.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| EPC-01 | P1: Recolher o painel devolve a largura ao canvas | Tasks | Pending |
-| EPC-02 | P1: Recolher o painel devolve a largura ao canvas | Tasks | Pending |
-| EPC-03 | P1: Recolher o painel devolve a largura ao canvas | Tasks | Pending |
-| EPC-04 | P1: Recolher o painel devolve a largura ao canvas | Tasks | Pending |
-| EPC-05 | P1: Recolher o painel devolve a largura ao canvas | Tasks | Pending |
+| EPC-01 | P1: Recolher o painel devolve a largura ao canvas | T1 | Done |
+| EPC-02 | P1: Recolher o painel devolve a largura ao canvas | T1 | Done |
+| EPC-03 | P1: Recolher o painel devolve a largura ao canvas | T1 | Done |
+| EPC-04 | P1: Recolher o painel devolve a largura ao canvas | T1 | Done |
+| EPC-05 | P1: Recolher o painel devolve a largura ao canvas | T1 | Done |
 
 **Coverage:** 5 total, 5 mapeados para tasks, 0 sem mapeamento.
 

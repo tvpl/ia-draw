@@ -10,9 +10,18 @@ export interface EditorSidePanelProps {
    * only requires `diagram:read`, the same access level that already reaches this page, so unlike
    * `aiPanel` there is no role for which this tab should be withheld. */
   lintPanel: ReactNode;
+  /**
+   * EPC-04: controlled tab selection. `DiagramEditorPage` lifts this to its own state because
+   * it unmounts `EditorSidePanel` entirely when the whole side panel collapses — internal
+   * state would reset to the default tab on every re-expand. `undefined` (both props omitted)
+   * keeps this component's own internal state, the original uncontrolled behavior every
+   * consumer predating EPC still gets unchanged.
+   */
+  activeTab?: TabId | null;
+  onActiveTabChange?: (tab: TabId) => void;
 }
 
-type TabId = 'ai' | 'comments' | 'lint';
+export type TabId = 'ai' | 'comments' | 'lint';
 
 /**
  * The editor's single side column (spec.md, CMT2-01..04; ALNT-06 for the third tab): one
@@ -34,10 +43,25 @@ export function EditorSidePanel({
   aiPanel,
   commentsPanel,
   lintPanel,
+  activeTab,
+  onActiveTabChange,
 }: EditorSidePanelProps): JSX.Element {
   const { t } = useTranslation();
-  const [chosen, setChosen] = useState<TabId | null>(null);
+  const [internalChosen, setInternalChosen] = useState<TabId | null>(null);
+  // EPC-04: `activeTab` present (even as `null`) means the caller opted into controlled
+  // mode — `undefined` (the prop simply omitted) is what every pre-EPC consumer passes,
+  // and keeps this component driving its own `internalChosen` exactly as before.
+  const controlled = activeTab !== undefined;
+  const chosen = controlled ? activeTab : internalChosen;
   const active: TabId = chosen ?? (aiPanel === null ? 'comments' : 'ai');
+
+  const selectTab = (tab: TabId) => {
+    if (controlled) {
+      onActiveTabChange?.(tab);
+    } else {
+      setInternalChosen(tab);
+    }
+  };
 
   // UIF-16: one tab treatment for all three, with the selected one carrying the accent.
   const tabClass = (selected: boolean) =>
@@ -56,7 +80,7 @@ export function EditorSidePanel({
             id="side-panel-tab-ai"
             aria-controls="side-panel-ai"
             aria-selected={active === 'ai'}
-            onClick={() => setChosen('ai')}
+            onClick={() => selectTab('ai')}
           >
             {t('comments.tabs.ai')}
           </button>
@@ -68,7 +92,7 @@ export function EditorSidePanel({
           id="side-panel-tab-comments"
           aria-controls="side-panel-comments"
           aria-selected={active === 'comments'}
-          onClick={() => setChosen('comments')}
+          onClick={() => selectTab('comments')}
         >
           {t('comments.tabs.comments')}
         </button>
@@ -79,7 +103,7 @@ export function EditorSidePanel({
           id="side-panel-tab-lint"
           aria-controls="side-panel-lint"
           aria-selected={active === 'lint'}
-          onClick={() => setChosen('lint')}
+          onClick={() => selectTab('lint')}
         >
           {t('comments.tabs.lint')}
         </button>

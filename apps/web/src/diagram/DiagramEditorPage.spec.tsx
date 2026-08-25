@@ -126,6 +126,94 @@ describe('DiagramEditorPage (T9, integration)', () => {
     }) as unknown as typeof fetch;
   }
 
+  describe('collapse/expand the side panel (EPC-01..05)', () => {
+    it('collapsing removes the <aside> from the rendered tree — the canvas column reclaims its width (EPC-01)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      const { container } = renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      expect(screen.getByRole('complementary')).toBeTruthy();
+      const row = container.firstElementChild as HTMLElement;
+      const canvasColumnBefore = row.children[0] as HTMLElement;
+      expect(canvasColumnBefore.className).toContain('flex-1');
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+
+      // The whole <aside> (its own w-96 width) is gone — nothing in the tree has role
+      // "complementary" any more.
+      expect(screen.queryByRole('complementary')).toBeNull();
+      // Still the row's second child, same tree position — just no longer the wide sidebar.
+      expect(row.children).toHaveLength(2);
+      const strip = row.children[1] as HTMLElement;
+      expect(strip.tagName).not.toBe('ASIDE');
+      // The canvas column's own flex-1 is untouched — reclaiming the width is automatic,
+      // exactly as spec.md documents (no special-casing needed on the canvas side).
+      const canvasColumnAfter = row.children[0] as HTMLElement;
+      expect(canvasColumnAfter.className).toContain('flex-1');
+    });
+
+    it('while collapsed, an "Expandir painel" control is present and is a real, keyboard-reachable <button> (EPC-02)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+
+      const expandButton = screen.getByRole('button', { name: 'Expandir painel' });
+      expect(expandButton.tagName).toBe('BUTTON');
+      expect(expandButton.getAttribute('type')).toBe('button');
+      expect(expandButton.hasAttribute('disabled')).toBe(false);
+    });
+
+    it('expanding restores the <aside> at w-96 AND the tab that was active before collapsing (EPC-03, EPC-04)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      // Switch off the default "IA" tab before collapsing, so restoring the DEFAULT tab
+      // would be distinguishable from restoring the tab that was actually active.
+      fireEvent.click(screen.getByRole('tab', { name: 'Comentários' }));
+      expect(screen.getByRole('tab', { name: 'Comentários' }).getAttribute('aria-selected')).toBe(
+        'true',
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: 'Recolher painel' }));
+      expect(screen.queryByRole('complementary')).toBeNull();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Expandir painel' }));
+
+      const sidebar = screen.getByRole('complementary');
+      expect(sidebar.className).toContain('w-96');
+      // EPC-04: collapsing never reset the tab choice back to the "IA" default.
+      expect(screen.getByRole('tab', { name: 'Comentários' }).getAttribute('aria-selected')).toBe(
+        'true',
+      );
+      expect(screen.getByRole('tab', { name: 'IA' }).getAttribute('aria-selected')).toBe('false');
+    });
+
+    it('the collapse and expand controls carry textually distinct accessible labels, never the same text for both states (EPC-05)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      const collapseButton = screen.getByRole('button', { name: 'Recolher painel' });
+      const collapseLabel = collapseButton.textContent;
+      expect(collapseButton.getAttribute('aria-expanded')).toBe('true');
+
+      fireEvent.click(collapseButton);
+
+      const expandButton = screen.getByRole('button', { name: 'Expandir painel' });
+      const expandLabel = expandButton.textContent;
+      expect(expandButton.getAttribute('aria-expanded')).toBe('false');
+
+      expect(expandLabel).not.toBe(collapseLabel);
+    });
+  });
+
   it('links into /present (presentation-mode/T8) alongside the existing /inventory link', async () => {
     vi.stubGlobal('fetch', basicFetchImpl());
 

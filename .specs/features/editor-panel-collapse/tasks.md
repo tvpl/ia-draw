@@ -73,12 +73,19 @@ estado próprio, passada como prop controlada para `EditorSidePanel` em vez de e
 
 **Done when**:
 
-- [ ] Acionar "Recolher painel" remove o `<aside>` e sua largura própria da árvore renderizada
-- [ ] O canvas ocupa o espaço liberado (a coluna do canvas já é `flex-1`, então isso é automático ao remover o irmão de largura fixa)
-- [ ] Enquanto recolhido, um controle "Expandir painel" está presente e alcançável por teclado (foco visível, `:focus-visible` de `theme.css`)
-- [ ] Acionar "Expandir painel" devolve o `<aside>` com `w-96` e a MESMA aba que estava ativa antes de recolher
-- [ ] Os dois rótulos são textualmente distintos (nunca "Recolher"/"Recolher")
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Acionar "Recolher painel" remove o `<aside>` e sua largura própria da árvore renderizada
+- [x] O canvas ocupa o espaço liberado (a coluna do canvas já é `flex-1`, então isso é automático ao remover o irmão de largura fixa)
+- [x] Enquanto recolhido, um controle "Expandir painel" está presente e alcançável por teclado (foco visível, `:focus-visible` de `theme.css`)
+- [x] Acionar "Expandir painel" devolve o `<aside>` com `w-96` e a MESMA aba que estava ativa antes de recolher
+- [x] Os dois rótulos são textualmente distintos (nunca "Recolher"/"Recolher")
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
+
+**Deviation (documented, not scope creep):** este task também adiciona as duas chaves em
+`apps/web/src/i18n/locales/pt-BR/translation.json` (`diagram.panel.collapse`/`expand`), embora
+"Where" original só listasse os dois `.tsx`. Necessário: T1 referencia essas chaves via `t(...)`
+(instrução do próprio T2), e sem a entrada pt-BR (locale padrão/de teste) os testes deste task não
+teriam texto real para asserir — só a chave crua como fallback do i18next. T2 completa a cobertura
+acrescentando a mesma chave em `en` (a entrada pt-BR já existirá).
 
 **Tests**: unit
 **Gate**: full

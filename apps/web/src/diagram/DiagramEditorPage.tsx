@@ -28,7 +28,7 @@ import * as css from '../styles/classNames.js';
 import { createMutationQueue, wireForcedFlush } from '../sync/mutationQueue.js';
 import { createSaveStatusStore, saveStatusTranslationKey } from '../sync/saveStatus.js';
 import { DiagramSyncClient } from '../sync/syncClient.js';
-import { EditorSidePanel } from './EditorSidePanel.js';
+import { EditorSidePanel, type TabId } from './EditorSidePanel.js';
 
 /**
  * Route: `/w/:workspaceId/d/:diagramId` (chosen routing shape — workspace-scoped,
@@ -129,6 +129,11 @@ export function DiagramEditorPage(): JSX.Element {
   const [canMutate, setCanMutate] = useState(false);
   const [selection, setSelection] = useState<readonly string[]>([]);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // EPC-01..05: collapsing the side panel unmounts `EditorSidePanel` entirely (it's the
+  // whole `<aside>`, not just a section inside it), so the active tab has to live here —
+  // otherwise re-expanding would always land back on the default tab.
+  const [panelCollapsed, setPanelCollapsed] = useState(false);
+  const [sidePanelTab, setSidePanelTab] = useState<TabId | null>(null);
 
   useEffect(() => wireForcedFlush(queue), [queue]);
 
@@ -314,88 +319,115 @@ export function DiagramEditorPage(): JSX.Element {
             <p>{t('diagram.loading')}</p>
           )}
         </div>
-        <aside className="flex w-96 shrink-0 flex-col gap-2 overflow-y-auto border-l border-border bg-surface-raised p-3">
-          <EditorSidePanel
-            aiPanel={
-              canMutate ? (
-                <AiDock
+        {panelCollapsed ? (
+          // EPC-01/02: same tree position as the expanded `<aside>` below (this file's own
+          // test asserts `row.children[1]`) — a narrow strip so there's always something to
+          // click to re-expand, and removing the wide sibling is what lets the canvas column
+          // (already `flex-1`) reclaim the width.
+          <div className="flex w-10 shrink-0 flex-col items-center border-l border-border bg-surface-raised py-3">
+            <button
+              className={css.buttonQuiet}
+              type="button"
+              aria-expanded={false}
+              onClick={() => setPanelCollapsed(false)}
+            >
+              {t('diagram.panel.expand')}
+            </button>
+          </div>
+        ) : (
+          <aside className="flex w-96 shrink-0 flex-col gap-2 overflow-y-auto border-l border-border bg-surface-raised p-3">
+            <button
+              className={`${css.buttonQuiet} self-end`}
+              type="button"
+              aria-expanded={true}
+              onClick={() => setPanelCollapsed(true)}
+            >
+              {t('diagram.panel.collapse')}
+            </button>
+            <EditorSidePanel
+              activeTab={sidePanelTab}
+              onActiveTabChange={setSidePanelTab}
+              aiPanel={
+                canMutate ? (
+                  <AiDock
+                    diagramId={diagramId}
+                    canMutate={canMutate}
+                    selection={selection}
+                    onApproved={handleApproved}
+                  />
+                ) : null
+              }
+              commentsPanel={
+                <CommentsSidebar
                   diagramId={diagramId}
-                  canMutate={canMutate}
                   selection={selection}
-                  onApproved={handleApproved}
+                  liveElementIds={liveElementIds}
                 />
-              ) : null
-            }
-            commentsPanel={
-              <CommentsSidebar
-                diagramId={diagramId}
-                selection={selection}
-                liveElementIds={liveElementIds}
-              />
-            }
-            lintPanel={
-              <LintPanel
-                diagramId={diagramId}
-                liveElementIds={liveElementIds}
-                onJumpToElement={handleJumpToElement}
-              />
-            }
-          />
-          <details className="rounded-panel border border-border">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
-              {t('library.title')}
-            </summary>
-            <LibraryPanel
-              workspaceId={workspaceId}
-              canWrite={canMutate}
-              onInsert={handleInsertLibraryItem}
+              }
+              lintPanel={
+                <LintPanel
+                  diagramId={diagramId}
+                  liveElementIds={liveElementIds}
+                  onJumpToElement={handleJumpToElement}
+                />
+              }
             />
-          </details>
-          <details className="rounded-panel border border-border">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
-              {t('metadata.title')}
-            </summary>
-            <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
-          </details>
-          {/* living-docs (LDC-01): visible to anyone who reaches this route (`diagram:read` is
-              already implied), same `<details>` convention as Library/Metadata above — generate
-              and per-section regenerate are gated inside DocsPanel itself via `canMutate`, not by
-              hiding the whole panel (unlike ShareLinkPanel below, which IS fully canMutate-gated). */}
-          <details className="rounded-panel border border-border">
-            <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
-              {t('docs.title')}
-            </summary>
-            <DocsPanel
-              diagramId={diagramId}
-              canMutate={canMutate}
-              liveElementIds={liveElementIds}
-            />
-          </details>
-          {/* SHR-01: share-link management is gated on the same `diagram:mutate`
-              decision as `AiDock` — the server requires it to create a link at
-              all, so a role that cannot mutate gets no panel, not a disabled one. */}
-          {canMutate && (
             <details className="rounded-panel border border-border">
               <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
-                {t('share.panelTitle')}
+                {t('library.title')}
               </summary>
-              <ShareLinkPanel diagramId={diagramId} canMutate={canMutate} />
+              <LibraryPanel
+                workspaceId={workspaceId}
+                canWrite={canMutate}
+                onInsert={handleInsertLibraryItem}
+              />
             </details>
-          )}
-          {workspaceId && (
-            <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/inventory`}>
-              {t('inventory.open')}
-            </Link>
-          )}
-          {/* presentation-mode/T8: the ONLY change this file needs for R12 — a single link into
-              the new /present route, same tier as the /inventory link above it. Everything else
-              (frame CRUD, publish, presenter mode) lives entirely on the other side of this link. */}
-          {workspaceId && (
-            <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/present`}>
-              {t('presentation.list.title')}
-            </Link>
-          )}
-        </aside>
+            <details className="rounded-panel border border-border">
+              <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+                {t('metadata.title')}
+              </summary>
+              <MetadataPanel diagramId={diagramId} selection={selection} canWrite={canMutate} />
+            </details>
+            {/* living-docs (LDC-01): visible to anyone who reaches this route (`diagram:read` is
+                already implied), same `<details>` convention as Library/Metadata above — generate
+                and per-section regenerate are gated inside DocsPanel itself via `canMutate`, not by
+                hiding the whole panel (unlike ShareLinkPanel below, which IS fully canMutate-gated). */}
+            <details className="rounded-panel border border-border">
+              <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+                {t('docs.title')}
+              </summary>
+              <DocsPanel
+                diagramId={diagramId}
+                canMutate={canMutate}
+                liveElementIds={liveElementIds}
+              />
+            </details>
+            {/* SHR-01: share-link management is gated on the same `diagram:mutate`
+                decision as `AiDock` — the server requires it to create a link at
+                all, so a role that cannot mutate gets no panel, not a disabled one. */}
+            {canMutate && (
+              <details className="rounded-panel border border-border">
+                <summary className="cursor-pointer px-3 py-2 text-sm font-medium text-content">
+                  {t('share.panelTitle')}
+                </summary>
+                <ShareLinkPanel diagramId={diagramId} canMutate={canMutate} />
+              </details>
+            )}
+            {workspaceId && (
+              <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/inventory`}>
+                {t('inventory.open')}
+              </Link>
+            )}
+            {/* presentation-mode/T8: the ONLY change this file needs for R12 — a single link into
+                the new /present route, same tier as the /inventory link above it. Everything else
+                (frame CRUD, publish, presenter mode) lives entirely on the other side of this link. */}
+            {workspaceId && (
+              <Link className={css.link} to={`/w/${workspaceId}/d/${diagramId}/present`}>
+                {t('presentation.list.title')}
+              </Link>
+            )}
+          </aside>
+        )}
       </div>
       <div className="border-t border-border bg-surface-raised px-3 py-2">
         <button
