@@ -56,7 +56,7 @@ export function SpecViewer({
                 the server's literal Portuguese (spec.md's Out of Scope: the generated document's
                 own body is never translated by this slice). */}
             <h3 id={`docs-section-${name}`}>{t(`docs.sections.${name}`)}</h3>
-            <p style={{ whiteSpace: 'pre-wrap' }}>{body}</p>
+            <p className="whitespace-pre-wrap">{body}</p>
 
             {referencedIds.length > 0 && (
               <ul data-testid={`docs-section-${name}-references`}>

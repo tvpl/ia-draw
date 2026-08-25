@@ -152,7 +152,7 @@ export function PresenterModePage({
         currentIndex={currentIndex}
         onNavigate={setCurrentIndex}
         renderCanvas={() => (
-          <div style={{ height: '80vh' }}>
+          <div className="h-[80vh]">
             <EditorSurface ref={editorSurfaceRef} initialElements={scene} viewModeEnabled />
           </div>
         )}

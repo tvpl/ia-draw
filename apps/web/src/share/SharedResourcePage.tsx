@@ -82,7 +82,7 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
             currentIndex={currentIndex}
             onNavigate={setCurrentIndex}
             renderCanvas={(frame) => (
-              <div style={{ height: '80vh' }}>
+              <div className="h-[80vh]">
                 <EditorSurface initialElements={cropSceneForFrame(scene, frame)} viewModeEnabled />
               </div>
             )}
@@ -103,7 +103,7 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
       <p data-testid="share-read-only-notice">{t('share.public.readOnlyNotice')}</p>
       {/* Excalidraw fills its parent's box — the concrete height comes from here,
           same as `DiagramEditorPage`'s own canvas wrapper. */}
-      <div style={{ height: '80vh' }}>
+      <div className="h-[80vh]">
         <EditorSurface initialElements={result.scene} viewModeEnabled />
       </div>
     </PublicShell>
