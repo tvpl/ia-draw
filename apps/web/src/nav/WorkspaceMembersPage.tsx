@@ -4,6 +4,7 @@ import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from '
 import { useTranslation } from 'react-i18next';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthProvider.js';
+import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createMemberClient, type WorkspaceMember } from './memberClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -217,18 +218,28 @@ export function WorkspaceMembersPage({
   }
 
   return (
-    <div>
-      <Link to={`/w/${workspaceId}`}>{t('nav.back')}</Link>
-      <h2>{t('nav.members.title')}</h2>
-      <div aria-live="polite" data-testid="members-announcement">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <Link className={css.link} to={`/w/${workspaceId}`}>
+          {t('nav.back')}
+        </Link>
+        <h2 className={css.pageTitle}>{t('nav.members.title')}</h2>
+      </div>
+      <div aria-live="polite" className={css.helpText} data-testid="members-announcement">
         {announcement}
       </div>
 
+      {/* UIF-09: loading in place of the content. */}
+      {listStatus === 'loading' && <p className={css.stateBox}>{t('nav.loading')}</p>}
+
+      {listStatus === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
+
       {listStatus === 'ready' && (
-        <ul>
+        <ul className={css.list}>
           {items.map((item) => (
-            <li key={item.id}>
-              <span>{item.displayName}</span> <span>{item.email}</span>{' '}
+            <li className={css.listRow} key={item.id}>
+              <span className={css.listRowTitle}>{item.displayName}</span>{' '}
+              <span className={css.helpText}>{item.email}</span>{' '}
               {canManage ? (
                 <>
                   <select

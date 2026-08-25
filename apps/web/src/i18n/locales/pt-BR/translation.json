@@ -255,7 +255,8 @@
       "conflict": "Esse nome já está em uso.",
       "forbidden": "Você não tem permissão para fazer isso.",
       "generic": "Algo deu errado. Tente novamente."
-    }
+    },
+    "loading": "Carregando…"
   },
   "library": {
     "title": "Biblioteca de componentes",

@@ -255,7 +255,8 @@
       "conflict": "That name is already taken.",
       "forbidden": "You don't have permission to do that.",
       "generic": "Something went wrong. Try again."
-    }
+    },
+    "loading": "Loading…"
   },
   "library": {
     "title": "Component library",

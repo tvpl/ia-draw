@@ -4,6 +4,7 @@ import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from '
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate } from 'react-router-dom';
 import { createExportClient } from '../export/exportClient.js';
+import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -49,6 +50,22 @@ export interface WorkspaceListPageProps {
  * workspace. Zero workspaces renders a dedicated empty state with the create CTA in focus
  * (NAV-22/23), not the ordinary empty list.
  */
+/**
+ * RBAC-13: the person's effective role in each workspace, shown where it changes what the
+ * row offers. Mirrors `WorkspaceMembersPage`'s `ROLE_KEY`; kept local rather than imported
+ * across pages, since the i18n keys are the shared contract, not the map.
+ */
+function roleLabelKey(role: Role): string {
+  const segment: Record<Role, string> = {
+    org_admin: 'orgAdmin',
+    workspace_admin: 'workspaceAdmin',
+    editor: 'editor',
+    reviewer: 'reviewer',
+    viewer: 'viewer',
+  };
+  return `nav.members.roleOptions.${segment[role]}`;
+}
+
 export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.Element {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -207,22 +224,30 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
   const canAdministerGlobalProviders = items.some((item) => item.role === 'org_admin');
 
   return (
-    <div>
-      <h2>{t('nav.workspaces.title')}</h2>
-      <div aria-live="polite" data-testid="workspace-announcement">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className={css.pageTitle}>{t('nav.workspaces.title')}</h2>
+        {canAdministerGlobalProviders && (
+          <Link className={css.link} to="/admin/ai-providers">
+            {t('adminProviders.globalLink')}
+          </Link>
+        )}
+      </div>
+      <div aria-live="polite" className={css.helpText} data-testid="workspace-announcement">
         {announcement}
       </div>
 
-      {canAdministerGlobalProviders && (
-        <Link to="/admin/ai-providers">{t('adminProviders.globalLink')}</Link>
-      )}
+      {status === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
 
-      {status === 'error' && <p>{t('nav.error.generic')}</p>}
+      {/* UIF-09: a loading state of its own, in place of the content. Before this the page
+          rendered an empty frame while the request was in flight, which reads as "no
+          workspaces" rather than "not yet". */}
+      {status === 'loading' && <p className={css.stateBox}>{t('nav.loading')}</p>}
 
-      {showEmptyState && <p>{t('nav.workspaces.emptyState')}</p>}
+      {showEmptyState && <p className={css.stateBox}>{t('nav.workspaces.emptyState')}</p>}
 
       {status === 'ready' && items.length > 0 && (
-        <ul>
+        <ul className={css.list}>
           {items.map((item) => {
             const canWrite = can({ role: item.role }, 'workspace:write', {
               workspaceId: item.id,
@@ -235,49 +260,67 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
             const isRenaming = renamingId === item.id;
 
             return (
-              <li key={item.id}>
+              <li className={css.listRow} key={item.id}>
                 {isRenaming ? (
                   <form
+                    className="flex w-full flex-wrap items-center gap-2"
                     onSubmit={(event) => {
                       event.preventDefault();
                       void submitRename(item);
                     }}
                   >
-                    <label>
+                    <label className="flex flex-1 items-center gap-2 text-sm">
                       {t('nav.workspaces.nameLabel')}
                       <input
+                        className={css.input}
                         value={renameValue}
                         onChange={(event) => setRenameValue(event.target.value)}
                       />
                     </label>
-                    <button type="submit">{t('nav.renameSave')}</button>
-                    <button type="button" onClick={cancelRename}>
+                    <button className={css.buttonPrimary} type="submit">
+                      {t('nav.renameSave')}
+                    </button>
+                    <button className={css.buttonSecondary} type="button" onClick={cancelRename}>
                       {t('nav.renameCancel')}
                     </button>
-                    {renameError && <p>{renameError}</p>}
+                    {renameError && <p className={css.errorBox}>{renameError}</p>}
                   </form>
                 ) : (
                   <>
-                    <Link to={`/w/${item.id}`}>{item.name}</Link>
-                    {canWrite && (
-                      <>
-                        <button type="button" onClick={() => startRename(item)}>
-                          {t('nav.rename')}
+                    <Link className={`${css.listRowTitle} ${css.link}`} to={`/w/${item.id}`}>
+                      {item.name}
+                    </Link>
+                    <span className={css.badge}>{t(roleLabelKey(item.role))}</span>
+                    <span className={css.listRowActions}>
+                      {canWrite && (
+                        <>
+                          <button
+                            className={css.buttonSecondary}
+                            type="button"
+                            onClick={() => startRename(item)}
+                          >
+                            {t('nav.rename')}
+                          </button>
+                          <button
+                            className={css.buttonDanger}
+                            type="button"
+                            onClick={() => requestArchive(item)}
+                          >
+                            {t('nav.archive')}
+                          </button>
+                        </>
+                      )}
+                      {canManageMembers && (
+                        <button
+                          className={css.buttonSecondary}
+                          type="button"
+                          onClick={() => void requestBundle(item)}
+                          disabled={bundleRequestingId === item.id}
+                        >
+                          {t('nav.workspaceBundle.action')}
                         </button>
-                        <button type="button" onClick={() => requestArchive(item)}>
-                          {t('nav.archive')}
-                        </button>
-                      </>
-                    )}
-                    {canManageMembers && (
-                      <button
-                        type="button"
-                        onClick={() => void requestBundle(item)}
-                        disabled={bundleRequestingId === item.id}
-                      >
-                        {t('nav.workspaceBundle.action')}
-                      </button>
-                    )}
+                      )}
+                    </span>
                   </>
                 )}
               </li>
@@ -286,15 +329,22 @@ export function WorkspaceListPage({ fetchImpl }: WorkspaceListPageProps): JSX.El
         </ul>
       )}
 
-      <form onSubmit={(event) => void handleCreate(event)}>
-        <label>
-          {t('nav.workspaces.nameLabel')}
-          <input value={createName} onChange={(event) => setCreateName(event.target.value)} />
+      <form
+        className={`${css.panelPadded} flex flex-wrap items-end gap-3`}
+        onSubmit={(event) => void handleCreate(event)}
+      >
+        <label className={`${css.field} min-w-60 flex-1`}>
+          <span className={css.label}>{t('nav.workspaces.nameLabel')}</span>
+          <input
+            className={css.input}
+            value={createName}
+            onChange={(event) => setCreateName(event.target.value)}
+          />
         </label>
-        <button type="submit">
+        <button className={css.buttonPrimary} type="submit">
           {showEmptyState ? t('nav.workspaces.emptyStateCta') : t('nav.workspaces.create')}
         </button>
-        {createError && <p>{createError}</p>}
+        {createError && <p className={`${css.errorBox} w-full`}>{createError}</p>}
       </form>
 
       {archiveTarget && (

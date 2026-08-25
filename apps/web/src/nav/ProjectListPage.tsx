@@ -4,6 +4,7 @@ import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from '
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { ImportDialog } from '../export/ImportDialog.js';
+import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -259,34 +260,58 @@ export function ProjectListPage({
   }
 
   return (
-    <div>
-      <Link to="/">{t('nav.back')}</Link>
-      <h2>{workspace ? workspace.name : t('nav.projects.title')}</h2>
-      <Link to={`/w/${workspaceId}/members`}>{t('nav.members.link')}</Link>
-      {canManageWebhooks && <Link to={`/w/${workspaceId}/webhooks`}>{t('nav.webhooks.link')}</Link>}
-      {canAdministerProviders && (
-        <Link to={`/w/${workspaceId}/admin/ai-providers`}>{t('adminProviders.workspaceLink')}</Link>
-      )}
-      {canWriteWorkspace && (
-        <button type="button" onClick={requestArchiveWorkspace}>
-          {t('nav.workspaces.archiveCurrent')}
-        </button>
-      )}
-      <div aria-live="polite" data-testid="project-announcement">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <Link className={css.link} to="/">
+          {t('nav.back')}
+        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className={css.pageTitle}>{workspace ? workspace.name : t('nav.projects.title')}</h2>
+          {canWriteWorkspace && (
+            <button className={css.buttonDanger} type="button" onClick={requestArchiveWorkspace}>
+              {t('nav.workspaces.archiveCurrent')}
+            </button>
+          )}
+        </div>
+        {/* UIF-07/12: these three used to render as bare inline links with nothing between
+            them, which is how "MembrosWebhooksProviders de IA" appeared as one run-on word. */}
+        <nav className="flex flex-wrap items-center gap-2">
+          <Link className={css.buttonSecondary} to={`/w/${workspaceId}/members`}>
+            {t('nav.members.link')}
+          </Link>
+          {canManageWebhooks && (
+            <Link className={css.buttonSecondary} to={`/w/${workspaceId}/webhooks`}>
+              {t('nav.webhooks.link')}
+            </Link>
+          )}
+          {canAdministerProviders && (
+            <Link className={css.buttonSecondary} to={`/w/${workspaceId}/admin/ai-providers`}>
+              {t('adminProviders.workspaceLink')}
+            </Link>
+          )}
+        </nav>
+      </div>
+      <div aria-live="polite" className={css.helpText} data-testid="project-announcement">
         {announcement}
       </div>
 
-      {listStatus === 'error' && <p>{t('nav.error.generic')}</p>}
+      {listStatus === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
 
-      {listStatus === 'ready' && items.length === 0 && <p>{t('nav.projects.empty')}</p>}
+      {/* UIF-09: loading in place of the content, so an in-flight request does not read as an
+          empty project list. */}
+      {listStatus === 'loading' && <p className={css.stateBox}>{t('nav.loading')}</p>}
+
+      {listStatus === 'ready' && items.length === 0 && (
+        <p className={css.stateBox}>{t('nav.projects.empty')}</p>
+      )}
 
       {listStatus === 'ready' && items.length > 0 && (
-        <ul>
+        <ul className={css.list}>
           {items.map((item) => {
             const isRenaming = renamingId === item.id;
 
             return (
-              <li key={item.id}>
+              <li className={css.listRow} key={item.id}>
                 {isRenaming ? (
                   <form
                     onSubmit={(event) => {

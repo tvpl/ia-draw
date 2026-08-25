@@ -3,6 +3,7 @@ import { can } from '@arch-canvas/auth';
 import { type FormEvent, type JSX, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createResourceClient, type ResourceClientConfig } from './resourceClient.js';
 import { createResourceListStore } from './resourceListStore.js';
@@ -241,29 +242,40 @@ export function DiagramListPage({
   }
 
   return (
-    <div>
-      <Link to={`/w/${workspaceId}`}>{t('nav.back')}</Link>
-      <h2>{projectName ?? t('nav.diagrams.title')}</h2>
-      {canWriteProject && (
-        <button type="button" onClick={requestArchiveProject}>
-          {t('nav.projects.archiveCurrent')}
-        </button>
-      )}
-      <div aria-live="polite" data-testid="diagram-announcement">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-3">
+        <Link className={css.link} to={`/w/${workspaceId}`}>
+          {t('nav.back')}
+        </Link>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className={css.pageTitle}>{projectName ?? t('nav.diagrams.title')}</h2>
+          {canWriteProject && (
+            <button className={css.buttonDanger} type="button" onClick={requestArchiveProject}>
+              {t('nav.projects.archiveCurrent')}
+            </button>
+          )}
+        </div>
+      </div>
+      <div aria-live="polite" className={css.helpText} data-testid="diagram-announcement">
         {announcement}
       </div>
 
-      {listStatus === 'error' && <p>{t('nav.error.generic')}</p>}
+      {listStatus === 'error' && <p className={css.errorBox}>{t('nav.error.generic')}</p>}
 
-      {listStatus === 'ready' && items.length === 0 && <p>{t('nav.diagrams.empty')}</p>}
+      {/* UIF-09: loading in place of the content. */}
+      {listStatus === 'loading' && <p className={css.stateBox}>{t('nav.loading')}</p>}
+
+      {listStatus === 'ready' && items.length === 0 && (
+        <p className={css.stateBox}>{t('nav.diagrams.empty')}</p>
+      )}
 
       {listStatus === 'ready' && items.length > 0 && (
-        <ul>
+        <ul className={css.list}>
           {items.map((item) => {
             const isRenaming = renamingId === item.id;
 
             return (
-              <li key={item.id}>
+              <li className={css.listRow} key={item.id}>
                 {isRenaming ? (
                   <form
                     onSubmit={(event) => {
