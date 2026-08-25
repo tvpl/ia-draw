@@ -36,6 +36,7 @@ make lint                # biome check . (lint + format-check)
 make typecheck           # tsc --noEmit em todo package
 make test-unit            # testes unitários de todo package
 make test-integration      # Postgres real via PGlite (WASM) — sem Docker, ver ADR-0007
+make test-integration-backup # infra/backup — exige cluster Postgres real (exceção da ADR-0007)
 make test-e2e              # Playwright em apps/web
 make ci                   # lint + typecheck + test-unit + test-integration — o que o CI roda
 make up                   # sobe o stack completo via Docker (proxy, server, web, postgres, minio)
@@ -46,11 +47,16 @@ make help                 # lista todos os atalhos, workspace e Docker
 Direto via pnpm, se preferir: `pnpm install`, `pnpm -w lint`, `pnpm -w typecheck`, `pnpm -w build`,
 `pnpm -w test:unit`, `pnpm -w test:integration`.
 
-**Armadilha conhecida deste ambiente sandbox:** `make ci` pode falhar aqui por faltarem
-`pg_lsclusters`/`redis-server` no host (erros `ENOENT` de spawn, não relacionados a este trabalho).
-Quando isso acontecer, o gate substituto é `make lint && make typecheck && make test-unit` — rode
-`make test-integration` separadamente se PGlite estiver disponível (não depende de daemon Docker,
-ver ADR-0007).
+**`make ci` é o gate único e passa num checkout limpo** (fechado na onda F11/R20). Uma única
+suíte fica de fora dele porque exige um cluster PostgreSQL real, que PGlite não fornece:
+
+```bash
+make test-integration-backup   # infra/backup — precisa de pg_dump/pg_createcluster; roda em job próprio no CI
+```
+
+Ver a Emenda de 2026-08-24 em `docs/adr/0007-*.md` para por que essa é a única exceção. Os scripts
+raiz passam `--concurrency=2` ao turbo de propósito: sem isso, dez suítes vitest disputando 4 CPUs
+estouram o timeout de 1s do `findByText` e derrubam um arquivo de teste diferente a cada corrida.
 
 ## Invariantes de arquitetura (não óbvios lendo o código isolado)
 

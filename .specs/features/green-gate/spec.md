@@ -113,18 +113,18 @@ dados pela porta pública, para que uma borda mal roteada não passe como saudá
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| GATE-01 | P1: O gate local passa | Tasks | Pending |
-| GATE-02 | P1: O gate local passa | Tasks | Pending |
-| GATE-03 | P1: O gate local passa | Tasks | Pending |
-| GATE-04 | P1: O gate local passa | Tasks | Pending |
-| GATE-05 | P1: O gate local passa | Tasks | Pending |
-| GATE-06 | P1: O CI volta a ser sinal | Tasks | Pending |
-| GATE-07 | P1: O CI volta a ser sinal | Tasks | Pending |
-| GATE-08 | P1: O CI volta a ser sinal | Tasks | Pending |
-| GATE-09 | P2: O smoke do compose prova o produto | Tasks | Pending |
-| GATE-10 | P2: O smoke do compose prova o produto | Tasks | Pending |
-| GATE-11 | P2: O smoke do compose prova o produto | Tasks | Pending |
-| GATE-12 | P2: O smoke do compose prova o produto | Tasks | Pending |
+| GATE-01 | P1: O gate local passa | Implementing | Implementing (T1/T8/T9/T10) |
+| GATE-02 | P1: O gate local passa | Implementing | Implementing (T1) |
+| GATE-03 | P1: O gate local passa | Implementing | Implementing (T2/T6) |
+| GATE-04 | P1: O gate local passa | Implementing | Implementing (T3) |
+| GATE-05 | P1: O gate local passa | Implementing | Implementing (T2/T10) |
+| GATE-06 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
+| GATE-07 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
+| GATE-08 | P1: O CI volta a ser sinal | Implementing | Implementing (T4) |
+| GATE-09 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
+| GATE-10 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
+| GATE-11 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
+| GATE-12 | P2: O smoke do compose prova o produto | Implementing | Implementing (T5) |
 
 **Coverage:** 12 total, 12 mapeados para tasks, 0 sem mapeamento.
 
