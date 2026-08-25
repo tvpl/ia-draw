@@ -1,6 +1,7 @@
 import { type FormEvent, type JSX, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useSearchParams } from 'react-router-dom';
+import * as css from '../styles/classNames.js';
 import { useAuth } from './AuthProvider.js';
 import { FirstRunPage } from './FirstRunPage.js';
 import { createFirstRunClient, type FirstRunClient } from './firstRunClient.js';
@@ -148,34 +149,59 @@ export function LoginPage({ firstRunClient }: LoginPageProps = {}): JSX.Element 
   }
 
   return (
-    <div>
-      <form onSubmit={(event) => void handleSubmit(event)}>
-        <div aria-live="polite">{submitting ? t('auth.submitting') : errorMessage}</div>
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-sm">
+        <h1 className={`${css.pageTitle} mb-6 text-center`}>{t('app.title')}</h1>
 
-        <label htmlFor="login-email">{t('auth.emailLabel')}</label>
-        <input
-          id="login-email"
-          type="email"
-          autoComplete="username"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+        <form
+          className={`${css.panelPadded} flex flex-col gap-4`}
+          onSubmit={(event) => void handleSubmit(event)}
+        >
+          <div aria-live="polite" className={errorMessage ? css.errorBox : css.helpText}>
+            {submitting ? t('auth.submitting') : errorMessage}
+          </div>
 
-        <label htmlFor="login-password">{t('auth.passwordLabel')}</label>
-        <input
-          id="login-password"
-          type="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
+          <div className={css.field}>
+            <label className={css.label} htmlFor="login-email">
+              {t('auth.emailLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="login-email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
-        <button type="submit" disabled={!canSubmit}>
-          {t('auth.submit')}
-        </button>
-      </form>
+          <div className={css.field}>
+            <label className={css.label} htmlFor="login-password">
+              {t('auth.passwordLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="login-password"
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
 
-      {ssoConfigured && <a href="/auth/oidc/login">{t('auth.ssoButton')}</a>}
+          <button className={css.buttonPrimary} type="submit" disabled={!canSubmit}>
+            {t('auth.submit')}
+          </button>
+        </form>
+
+        {ssoConfigured && (
+          <p className="mt-4 text-center">
+            <a className={css.link} href="/auth/oidc/login">
+              {t('auth.ssoButton')}
+            </a>
+          </p>
+        )}
+      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { type FormEvent, type JSX, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import * as css from '../styles/classNames.js';
 import { createFirstRunClient, type FirstRunClient } from './firstRunClient.js';
 
 const MIN_PASSWORD_LENGTH = 12;
@@ -77,56 +78,83 @@ export function FirstRunPage({ client, onAlreadyInitialized }: FirstRunPageProps
   }
 
   return (
-    <div>
-      <h2>{t('firstRun.title')}</h2>
-      <p>{t('firstRun.intro')}</p>
+    <div className="flex min-h-screen items-center justify-center px-6 py-12">
+      <div className="w-full max-w-md">
+        <h1 className={`${css.pageTitle} text-center`}>{t('firstRun.title')}</h1>
+        <p className={`${css.helpText} mt-2 mb-6 text-center`}>{t('firstRun.intro')}</p>
 
-      <form onSubmit={(event) => void handleSubmit(event)}>
-        <div aria-live="polite">
-          {submitting ? t('firstRun.submitting') : errorKey ? t(errorKey) : null}
-        </div>
+        <form
+          className={`${css.panelPadded} flex flex-col gap-4`}
+          onSubmit={(event) => void handleSubmit(event)}
+        >
+          <div aria-live="polite" className={errorKey ? css.errorBox : css.helpText}>
+            {submitting ? t('firstRun.submitting') : errorKey ? t(errorKey) : null}
+          </div>
 
-        <label htmlFor="first-run-name">{t('firstRun.displayNameLabel')}</label>
-        <input
-          id="first-run-name"
-          type="text"
-          autoComplete="name"
-          value={displayName}
-          onChange={(event) => setDisplayName(event.target.value)}
-        />
+          <div className={css.field}>
+            <label className={css.label} htmlFor="first-run-name">
+              {t('firstRun.displayNameLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="first-run-name"
+              type="text"
+              autoComplete="name"
+              value={displayName}
+              onChange={(event) => setDisplayName(event.target.value)}
+            />
+          </div>
 
-        <label htmlFor="first-run-email">{t('firstRun.emailLabel')}</label>
-        <input
-          id="first-run-email"
-          type="email"
-          autoComplete="username"
-          value={email}
-          onChange={(event) => setEmail(event.target.value)}
-        />
+          <div className={css.field}>
+            <label className={css.label} htmlFor="first-run-email">
+              {t('firstRun.emailLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="first-run-email"
+              type="email"
+              autoComplete="username"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+            />
+          </div>
 
-        <label htmlFor="first-run-password">{t('firstRun.passwordLabel')}</label>
-        <input
-          id="first-run-password"
-          type="password"
-          autoComplete="new-password"
-          aria-describedby="first-run-password-hint"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-        />
-        <p id="first-run-password-hint">{t('firstRun.passwordHint')}</p>
+          <div className={css.field}>
+            <label className={css.label} htmlFor="first-run-password">
+              {t('firstRun.passwordLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="first-run-password"
+              type="password"
+              autoComplete="new-password"
+              aria-describedby="first-run-password-hint"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <p className={css.helpText} id="first-run-password-hint">
+              {t('firstRun.passwordHint')}
+            </p>
+          </div>
 
-        <label htmlFor="first-run-workspace">{t('firstRun.workspaceLabel')}</label>
-        <input
-          id="first-run-workspace"
-          type="text"
-          value={workspaceName}
-          onChange={(event) => setWorkspaceName(event.target.value)}
-        />
+          <div className={css.field}>
+            <label className={css.label} htmlFor="first-run-workspace">
+              {t('firstRun.workspaceLabel')}
+            </label>
+            <input
+              className={css.input}
+              id="first-run-workspace"
+              type="text"
+              value={workspaceName}
+              onChange={(event) => setWorkspaceName(event.target.value)}
+            />
+          </div>
 
-        <button type="submit" disabled={!canSubmit}>
-          {t('firstRun.submit')}
-        </button>
-      </form>
+          <button className={css.buttonPrimary} type="submit" disabled={!canSubmit}>
+            {t('firstRun.submit')}
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
