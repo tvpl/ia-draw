@@ -1,22 +1,17 @@
-import type { JSX } from 'react';
+import { type JSX, lazy, Suspense } from 'react';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import { AppShell } from './app-shell/AppShell.js';
 import { RouteErrorBoundary } from './app-shell/RouteErrorBoundary.js';
 import { AuthProvider } from './auth/AuthProvider.js';
 import { LoginPage } from './auth/LoginPage.js';
 import { ProtectedRoute } from './auth/ProtectedRoute.js';
-import { DiagramEditorPage } from './diagram/DiagramEditorPage.js';
-import { InventoryPage } from './diagram/InventoryPage.js';
 import { AiProviderAdminPage } from './nav/AiProviderAdminPage.js';
 import { DiagramListPage } from './nav/DiagramListPage.js';
 import { ProjectListPage } from './nav/ProjectListPage.js';
 import { WorkspaceListPage } from './nav/WorkspaceListPage.js';
 import { WorkspaceMembersPage } from './nav/WorkspaceMembersPage.js';
 import { WorkspaceWebhooksPage } from './nav/WorkspaceWebhooksPage.js';
-import { PresentationEditorPage } from './presentation/PresentationEditorPage.js';
 import { PresentationListPage } from './presentation/PresentationListPage.js';
-import { PresenterModePage } from './presentation/PresenterModePage.js';
-import { SharedResourcePage } from './share/SharedResourcePage.js';
 
 /**
  * Pathless layout route that scopes `AuthProvider` to the authenticated half of
@@ -91,10 +86,43 @@ function guarded(element: JSX.Element): JSX.Element {
   return <RouteErrorBoundary>{element}</RouteErrorBoundary>;
 }
 
+/**
+ * UIF-18..20: the editor route carries the canvas engine, mermaid, cytoscape and katex.
+ * Loading it eagerly meant someone opening only the sign-in screen downloaded all of it.
+ * Split out here, behind the `Suspense` boundary below.
+ */
+const DiagramEditorPage = lazy(async () => ({
+  default: (await import('./diagram/DiagramEditorPage.js')).DiagramEditorPage,
+}));
+const InventoryPage = lazy(async () => ({
+  default: (await import('./diagram/InventoryPage.js')).InventoryPage,
+}));
+const PresentationEditorPage = lazy(async () => ({
+  default: (await import('./presentation/PresentationEditorPage.js')).PresentationEditorPage,
+}));
+const PresenterModePage = lazy(async () => ({
+  default: (await import('./presentation/PresenterModePage.js')).PresenterModePage,
+}));
+const SharedResourcePage = lazy(async () => ({
+  default: (await import('./share/SharedResourcePage.js')).SharedResourcePage,
+}));
+
+/** UIF-19: what shows while the editor chunk is being fetched. */
+function RouteFallback(): JSX.Element {
+  return <div className="p-6 text-sm text-content-muted" role="status" />;
+}
+
 export function AppRoutes(): JSX.Element {
   return (
     <Routes>
-      <Route path="/share/:token" element={guarded(<SharedResourcePage />)} />
+      <Route
+        path="/share/:token"
+        element={guarded(
+          <Suspense fallback={<RouteFallback />}>
+            <SharedResourcePage />
+          </Suspense>,
+        )}
+      />
       <Route element={<AuthLayout />}>
         <Route path="/login" element={guarded(<LoginPage />)} />
         <Route
@@ -120,7 +148,9 @@ export function AppRoutes(): JSX.Element {
           path="/w/:workspaceId/d/:diagramId"
           element={guarded(
             <ProtectedRoute>
-              <DiagramEditorPage />
+              <Suspense fallback={<RouteFallback />}>
+                <DiagramEditorPage />
+              </Suspense>
             </ProtectedRoute>,
           )}
         />
@@ -128,7 +158,9 @@ export function AppRoutes(): JSX.Element {
           path="/w/:workspaceId/d/:diagramId/inventory"
           element={guarded(
             <ProtectedRoute>
-              <InventoryPage />
+              <Suspense fallback={<RouteFallback />}>
+                <InventoryPage />
+              </Suspense>
             </ProtectedRoute>,
           )}
         />
@@ -144,7 +176,9 @@ export function AppRoutes(): JSX.Element {
           path="/w/:workspaceId/d/:diagramId/present/:presentationId"
           element={guarded(
             <ProtectedRoute>
-              <PresentationEditorPage />
+              <Suspense fallback={<RouteFallback />}>
+                <PresentationEditorPage />
+              </Suspense>
             </ProtectedRoute>,
           )}
         />
@@ -152,7 +186,9 @@ export function AppRoutes(): JSX.Element {
           path="/w/:workspaceId/d/:diagramId/present/:presentationId/presenter"
           element={guarded(
             <ProtectedRoute>
-              <PresenterModePage />
+              <Suspense fallback={<RouteFallback />}>
+                <PresenterModePage />
+              </Suspense>
             </ProtectedRoute>,
           )}
         />
