@@ -113,11 +113,11 @@ confirmar exatamente um administrador restante.
 
 **Done when**:
 
-- [ ] O teste dispara as duas remoções via `Promise.all`, nunca sequencialmente
-- [ ] Exatamente uma resposta é `204` e a outra é `409`
-- [ ] O banco mostra exatamente um administrador restante no workspace
-- [ ] O teste falha alto e cedo, com mensagem nomeada, se `DATABASE_URL` estiver ausente
-- [ ] Gate check passes: `make test-integration-concurrency` (requer Postgres local)
+- [x] O teste dispara as duas remoções via `Promise.all`, nunca sequencialmente
+- [x] Exatamente uma resposta é `204` e a outra é `409`
+- [x] O banco mostra exatamente um administrador restante no workspace
+- [x] O teste falha alto e cedo, com mensagem nomeada, se `DATABASE_URL` estiver ausente
+- [x] Gate check passes: `make test-integration-concurrency` (requer Postgres local)
 
 **Tests**: integration
 **Gate**: quick

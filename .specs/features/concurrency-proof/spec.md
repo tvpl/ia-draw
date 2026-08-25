@@ -128,10 +128,10 @@ contradiria a Emenda de 2026-08-24 na mesma ADR.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CCP-01 | P1: RBAC-12 provado contra concorrência real | Tasks | Pending |
-| CCP-02 | P1: RBAC-12 provado contra concorrência real | Tasks | Pending |
-| CCP-03 | P1: RBAC-12 provado contra concorrência real | Tasks | Pending |
-| CCP-04 | P1: RBAC-12 provado contra concorrência real | Tasks | Pending |
+| CCP-01 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
+| CCP-02 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
+| CCP-03 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
+| CCP-04 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-05 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
 | CCP-06 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
 | CCP-07 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
