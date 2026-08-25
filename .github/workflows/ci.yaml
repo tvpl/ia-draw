@@ -211,6 +211,28 @@ jobs:
               .catch((error) => { console.error(error); process.exit(1); });
           "
 
+  backup-integration:
+    name: Backup integration (real Postgres cluster)
+    runs-on: ubuntu-latest
+    # GATE-03 / ADR-0007 amendment: infra/backup's suite invokes pg_dump and creates real
+    # clusters, which PGlite cannot provide. It used to ride along in `pnpm -w
+    # test:integration` and made that command exit 1 on any host without Postgres installed,
+    # contradicting the "no daemon, no install" promise the ADR makes. Same tests, own job.
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Install the PostgreSQL client and cluster tooling the suite shells out to
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y postgresql postgresql-client
+      - run: pnpm --filter @arch-canvas/backup run test:integration:backup
+
   e2e:
     name: End-to-end tests (Playwright)
     runs-on: ubuntu-latest
@@ -321,6 +343,62 @@ jobs:
           postgres="$(jq -r '.dependencies[] | select(.name == "postgres") | .status' "$body")"
           if [ "$postgres" != "up" ]; then
             echo "::error::/health/ready reported postgres=$postgres, expected up"
+            exit 1
+          fi
+      - name: Exercise first-run, sign-in and workspace listing through the public port
+        # GATE-09..12. Asserting /health/ready alone was false confidence: it is the one path
+        # the Caddyfile routed correctly while every other prefix fell through to the SPA, so
+        # this job stayed green through a stack nobody could log into.
+        run: |
+          set -euo pipefail
+          jar="$(mktemp)"
+          body="$(mktemp)"
+
+          assert_json() {
+            local label="$1" file="$2"
+            if head -c 200 "$file" | grep -qi '<!doctype html\|<html'; then
+              echo "::error::$label answered HTML through the public port - the edge routed it to the SPA"
+              exit 1
+            fi
+          }
+
+          # First run is only available on a virgin volume; a re-run of this job against a
+          # reused volume gets 404 here and signs in with the same credentials below.
+          code="$(curl -sS -c "$jar" -o "$body" -w '%{http_code}' \
+            -X POST http://localhost:8080/auth/first-run \
+            -H 'content-type: application/json' \
+            -d '{"email":"smoke@example.com","displayName":"Smoke","password":"smoke-password-1234","workspaceName":"Smoke"}')"
+          echo "POST /auth/first-run -> HTTP $code"
+          assert_json "/auth/first-run" "$body"
+          if [ "$code" != "201" ] && [ "$code" != "404" ]; then
+            cat "$body"; echo
+            echo "::error::/auth/first-run answered HTTP $code, expected 201 on a fresh volume or 404 on a reused one"
+            exit 1
+          fi
+
+          code="$(curl -sS -c "$jar" -o "$body" -w '%{http_code}' \
+            -X POST http://localhost:8080/auth/login \
+            -H 'content-type: application/json' \
+            -d '{"email":"smoke@example.com","password":"smoke-password-1234"}')"
+          echo "POST /auth/login -> HTTP $code"
+          assert_json "/auth/login" "$body"
+          if [ "$code" != "200" ]; then
+            cat "$body"; echo
+            echo "::error::/auth/login answered HTTP $code through the public port, expected 200"
+            exit 1
+          fi
+
+          code="$(curl -sS -b "$jar" -o "$body" -w '%{http_code}' http://localhost:8080/workspaces)"
+          echo "GET /workspaces -> HTTP $code"
+          assert_json "/workspaces" "$body"
+          if [ "$code" != "200" ]; then
+            cat "$body"; echo
+            echo "::error::/workspaces answered HTTP $code for an authenticated session, expected 200"
+            exit 1
+          fi
+          if ! jq -e '[.. | objects | select(.name == "Smoke")] | length > 0' "$body" >/dev/null; then
+            cat "$body"; echo
+            echo "::error::/workspaces did not contain the workspace created by first-run"
             exit 1
           fi
       - name: Collect container logs
