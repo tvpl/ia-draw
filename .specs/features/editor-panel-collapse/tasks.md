@@ -110,9 +110,9 @@ texto visível não bastar como nome acessível) em `en` e `pt-BR`.
 
 **Done when**:
 
-- [ ] As duas chaves existem nos dois locales, com textos distintos entre si
-- [ ] `T1` referencia essas chaves via `t(...)`, nunca texto literal
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] As duas chaves existem nos dois locales, com textos distintos entre si
+- [x] `T1` referencia essas chaves via `t(...)`, nunca texto literal
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

@@ -212,6 +212,19 @@ describe('DiagramEditorPage (T9, integration)', () => {
 
       expect(expandLabel).not.toBe(collapseLabel);
     });
+
+    it('renders both control labels through i18n, not literal text — the en locale shows the en copy (EPC-05)', async () => {
+      vi.stubGlobal('fetch', basicFetchImpl());
+
+      await i18n.changeLanguage('en');
+      renderPage();
+      await waitFor(() => expect(capturedOnChange).toBeDefined());
+
+      const collapseButton = screen.getByRole('button', { name: 'Collapse panel' });
+      fireEvent.click(collapseButton);
+
+      expect(screen.getByRole('button', { name: 'Expand panel' })).toBeTruthy();
+    });
   });
 
   it('links into /present (presentation-mode/T8) alongside the existing /inventory link', async () => {
