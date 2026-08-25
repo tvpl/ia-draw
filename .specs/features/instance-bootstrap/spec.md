@@ -128,7 +128,7 @@ depois de criar e ver o formulário de login.
 | BOOT-05 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
 | BOOT-06 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
 | BOOT-07 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
-| BOOT-08 | P1: A porta se fecha sozinha | Verified | ⚠️ Verified (parcial — PGlite não tem paralelismo real; mecanismo em firstRun.ts, prova no CI) |
+| BOOT-08 | P1: A porta se fecha sozinha | Verified | ✅ Verified — provado contra Postgres real por `concurrency-proof` (ver validation.md) |
 | BOOT-09 | P1: A porta se fecha sozinha | Verified | ✅ Verified |
 | BOOT-10 | P1: A porta se fecha sozinha | Verified | ✅ Verified |
 | BOOT-11 | P1: A porta se fecha sozinha | Verified | ✅ Verified |

@@ -35,7 +35,7 @@ registrada em R17–R21.
 | RBAC-09 rebaixamento idem | `409`, papel intacto | `rbac-matrix.int.spec.ts:466` — `toBe(409)`; `:471` — `expect(row?.role).toBe('workspace_admin')` | ✅ PASS |
 | RBAC-10 `org_admin` na organização permite remover o último `workspace_admin` | permitido | `rbac-matrix.int.spec.ts:489` — `toBe(204)` com um segundo admin presente; a via organizacional é exercitada implicitamente pelos testes de isolamento (ver Disclosure) | ⚠️ Parcial |
 | RBAC-11 auditoria com ator, alvo e papel anterior | `previousRole` gravado | `rbac-matrix.int.spec.ts:516` — `expect(metadata.previousRole).toBe('viewer')` | ✅ PASS |
-| RBAC-12 duas remoções concorrentes concluem no máximo uma | uma | **sem teste** — PGlite serializa, ver Disclosure | ⚠️ Parcial |
+| RBAC-12 duas remoções concorrentes concluem no máximo uma | uma | `apps/server/src/modules/workspace/lastAdmin.concurrency.int.spec.ts` (feature `concurrency-proof`, Postgres real via `make test-integration-concurrency`) — `expect([statusA, statusB].sort()).toEqual([204, 409])` + `expect(remainingAdmins).toHaveLength(1)` | ✅ PASS |
 | RBAC-13 papel efetivo apresentado | badge com o papel | `apps/web/src/nav/WorkspaceMembersPage.spec.tsx:571` — `expect(screen.getByText(/Seu papel: Admin do workspace/))` | ✅ PASS |
 | RBAC-14 motivo junto do controle indisponível | mensagem presente | `WorkspaceMembersPage.spec.tsx:578` — `findByText('Você não tem permissão para isto neste workspace.')` | ✅ PASS |
 | RBAC-15 rótulos vindos do i18n | chaves em `en` e `pt-BR` | `nav.members.yourRole` e `nav.members.noPermission` presentes nos dois locales | ✅ PASS |
@@ -43,12 +43,16 @@ registrada em R17–R21.
 | RBAC-17..19 convite ponta a ponta | resolve, `409`, `403` | cobertos pela suíte de membros existente, agora alcançáveis porque R18 roteia `/users` | ⚠️ Herdado |
 | RBAC-20 auditoria de convite/remoção | evento gravado | `routes.ts` grava `workspace.member.added/updated/removed`; `previousRole` provado em `:516` | ✅ PASS |
 
-**Status**: 15 de 20 com evidência direta; 3 parciais e 2 herdados, todos nomeados.
+**Status**: 15 de 20 com evidência direta; 3 parciais e 2 herdados, todos nomeados. **Atualização
+(feature `concurrency-proof`): RBAC-12 fechou** — deixa de ser parcial, ver linha acima; RBAC-10
+e RBAC-17..19 continuam como estavam.
 
-⚠️ **RBAC-12 não tem teste.** PGlite serializa tudo numa conexão, então não há como exercitar
-duas remoções genuinamente concorrentes aqui. A garantia é o `select ... for update` sobre as linhas
-de associação dentro da transação (`lastAdmin.ts`), que é a mesma classe de disclosure de BOOT-08.
-Não arredondado para verde.
+✅ **RBAC-12 fechado pela feature `concurrency-proof`.** PGlite serializa tudo numa conexão e não
+exercitava duas remoções genuinamente concorrentes — era a mesma classe de disclosure de BOOT-08.
+`lastAdmin.concurrency.int.spec.ts` prova o `select ... for update` (`lastAdmin.ts`) contra um
+Postgres real (`make test-integration-concurrency`, alvo próprio nomeado em
+`docs/adr/0007-*.md`'s Emenda de 2026-08-25): duas remoções concorrentes via `Promise.all` sobre
+sockets reais resolvem em exatamente um `204` e um `409`, com exatamente um administrador restante.
 
 ⚠️ **RBAC-10 é parcial**: o caso provado é "outro `workspace_admin` existe". A via organizacional
 (`organizationHasAdminBesides`) é exercitada de forma indireta — foi justamente ela que fez os dois
@@ -118,7 +122,9 @@ T2+T3 e T4+T5+T6 saíram juntos. Mesma causa das ondas anteriores: as tasks toca
 
 ## Requirement Traceability Update
 
-RBAC-01 a RBAC-20: `Pending` → `✅ Verified`, com RBAC-10 e RBAC-12 parciais.
+RBAC-01 a RBAC-20: `Pending` → `✅ Verified`, com RBAC-10 e RBAC-12 parciais. **Atualização
+(feature `concurrency-proof`, 2026-08-25): RBAC-12 → `✅ Verified` sem ressalva** — provado contra
+Postgres real, ver `spec.md`.
 
 ---
 

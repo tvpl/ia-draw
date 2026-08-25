@@ -35,7 +35,7 @@ disco, não só as ACs contra testes (lição L-048).
 | BOOT-05 senha < 12 → `400` nomeando o campo, nada criado | `Invalid password`, 0 contas | `firstRun.int.spec.ts:166-167` — `expect(response.json().title).toBe('Invalid password')` + `toHaveLength(0)` | ✅ PASS |
 | BOOT-06 e-mail inválido → `400` nomeando o campo | `Invalid email`, 0 contas | `firstRun.int.spec.ts:178` — `expect(response.json().title).toBe('Invalid email')` | ✅ PASS |
 | BOOT-07 auditoria `instance.bootstrapped` com o id da conta | 1 evento, `actorId` = conta | `firstRun.int.spec.ts:140-141` — `expect(events).toHaveLength(1)` + `expect(events[0]?.actorId).toBe(account?.id)` | ✅ PASS |
-| BOOT-08 corrida → uma `201`, outra `409`, uma conta | uma conta ao final | `firstRun.int.spec.ts:210-213` — `expect(statuses[0]).toBe(201)`, `expect([404,409]).toContain(statuses[1])`, `toHaveLength(1)` | ⚠️ Parcial |
+| BOOT-08 corrida → uma `201`, outra `409`, uma conta | uma conta ao final | `firstRun.int.spec.ts:210-213` (decisão, PGlite) + `apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts` (feature `concurrency-proof`, Postgres real via `make test-integration-concurrency`) — `expect([statusA, statusB].sort()).toEqual([201, 409])` + `expect(rows).toHaveLength(1)` | ✅ PASS |
 | BOOT-09 limite excedido → `429` | ao menos um `429` | `firstRun.int.spec.ts:223` — `expect(statuses.filter((s) => s === 429).length).toBeGreaterThan(0)` | ✅ PASS |
 | BOOT-10 fora de sessão, papel nunca do cliente | `org_admin` mesmo com `role` no corpo | `firstRun.int.spec.ts:153` — `expect(members[0]?.role).toBe('org_admin')` | ✅ PASS |
 | BOOT-11 conta criada por outro caminho → `404` sem reinício | `200` depois `404` | `firstRun.int.spec.ts:69,78` — as duas asserções de `statusCode` na mesma instância viva | ✅ PASS |
@@ -46,14 +46,18 @@ disco, não só as ACs contra testes (lição L-048).
 | BOOT-15 `409`/`404` cai para credenciais | `onAlreadyInitialized` chamado 1× | `FirstRunPage.spec.tsx` — `expect(onAlreadyInitialized).toHaveBeenCalledTimes(1)` | ✅ PASS |
 | BOOT-16 todo texto vindo do i18n | nenhuma chave crua renderizada | `FirstRunPage.spec.tsx` — `expect(screen.queryByText(/^firstRun\./)).toBeNull()` | ✅ PASS |
 
-**Status**: 16 de 17 asserções de AC cobertas; BOOT-08 é ⚠️ **Parcial**, não ✅.
+**Status**: 17 de 17 asserções de AC cobertas. **Atualização (feature `concurrency-proof`,
+2026-08-25): BOOT-08 fechou** — deixa de ser parcial, ver linha acima.
 
-⚠️ **BOOT-08 não prova paralelismo real.** PGlite serializa tudo numa conexão, então as duas
-requisições disparadas com `Promise.all` executam em sequência. O teste prova o caminho de decisão
-(a segunda é recusada, uma conta existe) e não o comportamento sob concorrência genuína. A garantia
-que vale lá é o `pg_advisory_xact_lock` mais a checagem de vazio dentro da mesma transação
-(`firstRun.ts:88-93`), exercitada no CI, onde o Postgres roda como serviço. Registrado como parcial
-com o mecanismo nomeado, nunca arredondado para verde.
+✅ **BOOT-08 agora prova paralelismo real.** PGlite serializa tudo numa conexão, então as duas
+requisições disparadas com `Promise.all` contra ela executavam em sequência — o teste original
+(`firstRun.int.spec.ts`) prova só o caminho de decisão (a segunda é recusada, uma conta existe),
+não o comportamento sob concorrência genuína. `firstRun.concurrency.int.spec.ts` fecha essa lacuna:
+dois `POST /auth/first-run` via `Promise.all` sobre sockets reais, contra um Postgres real (`make
+test-integration-concurrency`, alvo próprio nomeado em `docs/adr/0007-*.md`'s Emenda de
+2026-08-25), resolvem em exatamente um `201` e um `409`, com exatamente uma linha em `users` —
+provando o `pg_advisory_xact_lock` (`firstRun.ts`) sob conexões concorrentes reais, não só sua
+lógica isolada.
 
 ---
 
@@ -122,9 +126,11 @@ formulário de credenciais numa instância vazia; o ganho é que nenhum teste ex
 
 ## Gaps encontrados
 
-### Gap 1 — BOOT-08 sem prova de paralelismo (Minor, aberto por ambiente)
+### Gap 1 — BOOT-08 sem prova de paralelismo (Minor, fechado)
 
-Ver acima. O mecanismo existe e está nomeado; a prova sob concorrência real depende do CI.
+**Fechado pela feature `concurrency-proof` (2026-08-25).** Ver acima —
+`firstRun.concurrency.int.spec.ts` prova o caminho sob Postgres real, via `make
+test-integration-concurrency`.
 
 ### Gap 2 — Edge case de `503` não implementado (Minor, aberto)
 
@@ -142,6 +148,7 @@ task aprovada. Registrado como dívida nomeada.
 ## Requirement Traceability Update
 
 BOOT-01 a BOOT-16: `Pending` → `✅ Verified`, com BOOT-08 marcado `⚠️ Verified (parcial)`.
+**Atualização (feature `concurrency-proof`, 2026-08-25): BOOT-08 → `✅ Verified` sem ressalva.**
 
 ---
 

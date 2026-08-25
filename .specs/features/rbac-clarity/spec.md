@@ -153,7 +153,7 @@ o papel escolhido.
 | RBAC-09 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified |
 | RBAC-10 | P1: Um workspace nunca fica sem administrador | Verified | ⚠️ Verified (parcial — ver validation.md) |
 | RBAC-11 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified |
-| RBAC-12 | P1: Um workspace nunca fica sem administrador | Verified | ⚠️ Verified (parcial — ver validation.md) |
+| RBAC-12 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified — provado contra Postgres real por `concurrency-proof` (ver validation.md) |
 | RBAC-13 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
 | RBAC-14 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
 | RBAC-15 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |

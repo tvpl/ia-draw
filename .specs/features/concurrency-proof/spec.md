@@ -147,5 +147,5 @@ contradiria a Emenda de 2026-08-24 na mesma ADR.
 
 - [x] `make test-integration-concurrency` prova RBAC-12 e BOOT-08 contra Postgres real
 - [x] `make ci` continua saindo 0 sem Postgres instalado
-- [ ] RBAC-12 e BOOT-08 deixam de estar `⚠️ Parcial` em suas specs
+- [x] RBAC-12 e BOOT-08 deixam de estar `⚠️ Parcial` em suas specs
 - [x] `docs/adr/0007-*.md` documenta a segunda exceção

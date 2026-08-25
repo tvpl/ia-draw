@@ -232,9 +232,9 @@ para esta feature como a prova que faltava.
 
 **Done when**:
 
-- [ ] RBAC-12 e BOOT-08 aparecem `✅ Verified` nas suas tabelas de rastreabilidade
-- [ ] Cada `validation.md` cita o arquivo de teste desta feature como a evidência nova
-- [ ] Gate check passes: `make ci`
+- [x] RBAC-12 e BOOT-08 aparecem `✅ Verified` nas suas tabelas de rastreabilidade
+- [x] Cada `validation.md` cita o arquivo de teste desta feature como a evidência nova
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
