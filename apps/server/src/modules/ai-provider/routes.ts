@@ -1,6 +1,6 @@
 import { decryptToken, encryptToken, validateProviderBaseUrl } from '@arch-canvas/ai-tools';
-import { recordAuditEvent, workspaceMembers } from '@arch-canvas/database';
-import { and, eq } from 'drizzle-orm';
+import { organizationMembers, recordAuditEvent } from '@arch-canvas/database';
+import { eq } from 'drizzle-orm';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { createRateLimitPreHandler, InMemoryRateLimiter } from '../../core/rateLimit.js';
@@ -45,20 +45,21 @@ const GLOBAL_SCOPE = 'global';
 
 async function hasOrgAdminMembership(db: Db, userId: string): Promise<boolean> {
   const [row] = await db
-    .select({ id: workspaceMembers.id })
-    .from(workspaceMembers)
-    .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.role, 'org_admin')));
+    .select({ id: organizationMembers.id })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userId, userId));
   return Boolean(row);
 }
 
 /**
  * Authorizes `userId` to administer AI provider configs for `scope`
  * (AIC-01/AIC-02: "só org_admin/workspace_admin"). `scope === "global"`
- * requires org_admin membership in ANY workspace (this codebase has no
- * separate organization-level membership table — org_admin is the highest
- * workspace role, used here as the org-wide admin proxy). Any other scope
- * is treated as a workspaceId: no membership → 404 (IDOR, AUTH-04);
- * membership below org_admin/workspace_admin → 403.
+ * requires administering ANY organization (ORG-01/03: a row in
+ * `organization_members`, the single source of organization-wide admin
+ * reach — same "global" semantics as before, now read from the dedicated
+ * table instead of scanning `workspace_members` for `role='org_admin'`).
+ * Any other scope is treated as a workspaceId: no membership → 404 (IDOR,
+ * AUTH-04); membership below org_admin/workspace_admin → 403.
  */
 async function assertProviderAdmin(db: Db, userId: string, scope: string): Promise<void> {
   if (scope === GLOBAL_SCOPE) {

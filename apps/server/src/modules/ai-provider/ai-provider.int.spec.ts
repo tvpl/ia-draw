@@ -81,6 +81,11 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
     return { user, cookies: { [SESSION_COOKIE_NAME]: session.token } };
   }
 
+  /**
+   * `role === 'org_admin'` grants global-scope reach via `organization_members` (ORG-01/03) —
+   * a `workspace_members` row with that role no longer confers it. Every other role is a plain
+   * workspace membership, unchanged.
+   */
   async function seedWorkspaceWithRole(role: string) {
     const owner = await seedUserWithSession(`ws-owner-${role}`);
     const createWs = await app.inject({
@@ -90,11 +95,18 @@ describe('ai-provider admin module (T42, AIC-01/02/03/04)', () => {
       payload: { name: `AI WS ${role}`, slug: `ai-ws-${role}-${Date.now()}-${Math.random()}` },
     });
     const workspaceId = createWs.json().workspace.id as string;
+    const organizationId = createWs.json().workspace.organizationId as string;
 
     const member = await seedUserWithSession(`ai-${role}`);
-    await db
-      .insert(schema.workspaceMembers)
-      .values({ workspaceId, userId: member.user.id, role: role as never });
+    if (role === 'org_admin') {
+      await db
+        .insert(schema.organizationMembers)
+        .values({ organizationId, userId: member.user.id });
+    } else {
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId, userId: member.user.id, role: role as never });
+    }
     return { workspaceId, member };
   }
 

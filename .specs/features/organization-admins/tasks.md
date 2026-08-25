@@ -185,9 +185,9 @@ design.md).
 
 **Done when**:
 
-- [ ] `hasOrgAdminMembership` não lê mais `workspace_members.role='org_admin'`
-- [ ] Um usuário com linha só em `organization_members` acessa `scope=global` sem nenhum `org_admin` em `workspace_members`
-- [ ] Gate check passes: `make ci`
+- [x] `hasOrgAdminMembership` não lê mais `workspace_members.role='org_admin'`
+- [x] Um usuário com linha só em `organization_members` acessa `scope=global` sem nenhum `org_admin` em `workspace_members`
+- [x] Gate check passes: `make ci`
 
 **Tests**: integration
 **Gate**: build
