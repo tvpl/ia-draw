@@ -1,5 +1,5 @@
 import type { Role } from '@arch-canvas/auth';
-import { withTx, workspaceMembers, workspaces } from '@arch-canvas/database';
+import { organizationMembers, withTx, workspaceMembers, workspaces } from '@arch-canvas/database';
 import { and, eq, inArray, isNull } from 'drizzle-orm';
 import type { Db } from '../auth/db.js';
 import { getOrCreateDefaultOrganization } from './organizations.js';
@@ -52,10 +52,10 @@ export async function createWorkspace(
  * Workspaces `userId` can reach, excluding soft-deleted ones — each item carries the
  * caller's own effective `role` (NAV-13, NAV-17).
  *
- * RBAC-01/05 (AD-016): "can reach" is no longer "has a membership row". Someone holding
- * `org_admin` anywhere in an organisation administers all of its workspaces, so those
- * appear here too, carrying `org_admin`. A direct membership on the same workspace never
- * lowers that — the more permissive of the two wins.
+ * RBAC-01/05 (AD-016): "can reach" is no longer "has a membership row". Someone administering
+ * an organisation (ORG-01/03: a row in `organization_members`) reaches all of its workspaces,
+ * so those appear here too, carrying `org_admin`. A direct membership on the same workspace
+ * never lowers that — the more permissive of the two wins.
  */
 export async function listWorkspacesForUser(db: Db, userId: string): Promise<WorkspaceWithRole[]> {
   const columns = {
@@ -75,10 +75,9 @@ export async function listWorkspacesForUser(db: Db, userId: string): Promise<Wor
     .where(and(eq(workspaceMembers.userId, userId), isNull(workspaces.deletedAt)));
 
   const administeredOrgs = await db
-    .selectDistinct({ organizationId: workspaces.organizationId })
-    .from(workspaceMembers)
-    .innerJoin(workspaces, eq(workspaceMembers.workspaceId, workspaces.id))
-    .where(and(eq(workspaceMembers.userId, userId), eq(workspaceMembers.role, 'org_admin')));
+    .select({ organizationId: organizationMembers.organizationId })
+    .from(organizationMembers)
+    .where(eq(organizationMembers.userId, userId));
 
   if (administeredOrgs.length === 0) return direct;
 

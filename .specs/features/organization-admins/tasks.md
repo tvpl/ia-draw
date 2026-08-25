@@ -212,9 +212,9 @@ design.md).
 
 **Done when**:
 
-- [ ] `administeredOrgs` não lê mais `workspace_members.role='org_admin'`
-- [ ] Um usuário com linha só em `organization_members` vê todos os workspaces da organização em `GET /workspaces`
-- [ ] Gate check passes: `make ci`
+- [x] `administeredOrgs` não lê mais `workspace_members.role='org_admin'`
+- [x] Um usuário com linha só em `organization_members` vê todos os workspaces da organização em `GET /workspaces`
+- [x] Gate check passes: `make ci`
 
 **Tests**: integration
 **Gate**: build

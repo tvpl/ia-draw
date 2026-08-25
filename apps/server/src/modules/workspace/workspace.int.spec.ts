@@ -233,6 +233,58 @@ describe('workspace + member CRUD (T16, AUTH-02)', () => {
     });
   });
 
+  describe('listWorkspacesForUser reads organisation-wide reach from organization_members (ORG-03)', () => {
+    it('GET /workspaces includes every workspace of the organisation for a user with only an organization_members row', async () => {
+      const owner = await seedUserWithSession('org-list-owner');
+      const wsA = await createWorkspaceAs(owner.cookies, `org-list-a-${Date.now()}`);
+      const wsB = await createWorkspaceAs(owner.cookies, `org-list-b-${Date.now()}`);
+      const workspaceAId = wsA.json().workspace.id;
+      const workspaceBId = wsB.json().workspace.id;
+      const organizationId = wsA.json().workspace.organizationId;
+
+      // The actor has NO workspace_members row anywhere — only an organization_members row.
+      const actor = await seedUserWithSession('org-list-actor');
+      await db.insert(schema.organizationMembers).values({ organizationId, userId: actor.user.id });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/workspaces',
+        cookies: actor.cookies,
+      });
+      expect(response.statusCode).toBe(200);
+
+      const items = response.json().items as Array<{ id: string; role: string }>;
+      const itemA = items.find((item) => item.id === workspaceAId);
+      const itemB = items.find((item) => item.id === workspaceBId);
+      expect(itemA?.role).toBe('org_admin');
+      expect(itemB?.role).toBe('org_admin');
+    });
+
+    it('a legacy workspace_members row with role org_admin alone does NOT widen GET /workspaces (ORG-03)', async () => {
+      const owner = await seedUserWithSession('org-list-legacy-owner');
+      const wsA = await createWorkspaceAs(owner.cookies, `org-list-legacy-a-${Date.now()}`);
+      const wsB = await createWorkspaceAs(owner.cookies, `org-list-legacy-b-${Date.now()}`);
+      const workspaceAId = wsA.json().workspace.id;
+      const workspaceBId = wsB.json().workspace.id;
+
+      const actor = await seedUserWithSession('org-list-legacy-actor');
+      await db
+        .insert(schema.workspaceMembers)
+        .values({ workspaceId: workspaceAId, userId: actor.user.id, role: 'org_admin' });
+
+      const response = await app.inject({
+        method: 'GET',
+        url: '/workspaces',
+        cookies: actor.cookies,
+      });
+      expect(response.statusCode).toBe(200);
+
+      const items = response.json().items as Array<{ id: string }>;
+      expect(items.some((item) => item.id === workspaceAId)).toBe(true);
+      expect(items.some((item) => item.id === workspaceBId)).toBe(false);
+    });
+  });
+
   it('a successful mutation records one row in audit_events', async () => {
     const admin = await seedUserWithSession('audit-owner');
     const slug = `audit-ws-${Date.now()}`;
