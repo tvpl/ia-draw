@@ -393,10 +393,10 @@ mostrando "Admin da organização" com fidelidade.
 
 **Done when**:
 
-- [ ] O seletor de convite oferece 4 opções, nunca `org_admin`
-- [ ] O seletor de troca de papel por linha oferece as mesmas 4 opções
-- [ ] Uma linha existente com `role === 'org_admin'` (legado) continua exibindo esse rótulo corretamente, mesmo sem poder ser reatribuída de volta a ele pelo seletor
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O seletor de convite oferece 4 opções, nunca `org_admin`
+- [x] O seletor de troca de papel por linha oferece as mesmas 4 opções
+- [x] Uma linha existente com `role === 'org_admin'` (legado) continua exibindo esse rótulo corretamente, mesmo sem poder ser reatribuída de volta a ele pelo seletor
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

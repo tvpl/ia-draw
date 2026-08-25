@@ -31,14 +31,15 @@ function toOrgAdminItem(admin: OrganizationAdmin): OrgAdminItem {
   return { ...admin, id: admin.userId };
 }
 
-/** Roles ordered exactly like the server's own `ROLE_VALUES` (`apps/server/src/modules/workspace/routes.ts`). */
-const ROLE_VALUES: readonly Role[] = [
-  'org_admin',
-  'workspace_admin',
-  'editor',
-  'reviewer',
-  'viewer',
-];
+/**
+ * ORG-12/13: roles a workspace invite or role change may assign going forward — `org_admin` is
+ * deliberately absent (design.md's "Seletor de papel de workspace"). The server's own
+ * `ROLE_VALUES` (`apps/server/src/modules/workspace/routes.ts`) still lists all five: it keeps
+ * accepting `org_admin` on the wire (a legacy row's `PATCH` to another role still needs the
+ * schema to parse its current value, and the role no longer carries organization-wide reach
+ * either way — see design.md), the narrowing lives entirely in this client-side options list.
+ */
+const ASSIGNABLE_ROLE_VALUES: readonly Role[] = ['workspace_admin', 'editor', 'reviewer', 'viewer'];
 
 const ADMIN_ROLES: readonly Role[] = ['org_admin', 'workspace_admin'];
 
@@ -372,7 +373,7 @@ export function WorkspaceMembersPage({
                     value={item.role}
                     onChange={(event) => void handleRoleChange(item, event.target.value as Role)}
                   >
-                    {ROLE_VALUES.map((role) => (
+                    {ASSIGNABLE_ROLE_VALUES.map((role) => (
                       <option key={role} value={role}>
                         {t(`nav.members.roleOptions.${ROLE_KEY[role]}`)}
                       </option>
@@ -423,7 +424,7 @@ export function WorkspaceMembersPage({
               onChange={(event) => setInviteRole(event.target.value as Role | '')}
             >
               <option value="">{t('nav.members.roleSelectPlaceholder')}</option>
-              {ROLE_VALUES.map((role) => (
+              {ASSIGNABLE_ROLE_VALUES.map((role) => (
                 <option key={role} value={role}>
                   {t(`nav.members.roleOptions.${ROLE_KEY[role]}`)}
                 </option>

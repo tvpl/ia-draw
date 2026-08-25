@@ -841,3 +841,100 @@ describe('WorkspaceMembersPage — P1: Administradores da organização (ORG-05.
     expect(within(orgAdminsSection).getByText('me@example.com')).toBeTruthy();
   });
 });
+
+describe('WorkspaceMembersPage — P2: seletor de papel sem org_admin (ORG-12, ORG-13, ORG-14)', () => {
+  function twoWorkspaceAdmins() {
+    return [
+      {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        role: 'workspace_admin',
+        email: 'me@example.com',
+        displayName: 'Me',
+      },
+      {
+        userId: 'user-2',
+        workspaceId: 'ws-1',
+        role: 'editor',
+        email: 'eve@example.com',
+        displayName: 'Eve',
+      },
+    ];
+  }
+
+  function optionLabels(select: HTMLElement): string[] {
+    return Array.from(select.querySelectorAll('option')).map((option) => option.textContent ?? '');
+  }
+
+  it('the invite role selector offers exactly the four workspace-scoped roles, never Admin da organização (ORG-12)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(twoWorkspaceAdmins());
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    await screen.findByRole('button', { name: 'Convidar' });
+
+    const inviteSelect = screen.getByLabelText('Papel');
+    // The placeholder option plus exactly the four assignable roles — never a fifth.
+    expect(optionLabels(inviteSelect)).toEqual([
+      'Escolha um papel',
+      'Admin do workspace',
+      'Editor',
+      'Revisor',
+      'Visualizador',
+    ]);
+  });
+
+  it("a member row's role-change selector offers the same four roles, never Admin da organização (ORG-13)", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(twoWorkspaceAdmins());
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const eveRow = (await screen.findByText('Eve')).closest('li') as HTMLElement;
+
+    const roleSelect = within(eveRow).getByRole('combobox');
+    expect(optionLabels(roleSelect)).toEqual([
+      'Admin do workspace',
+      'Editor',
+      'Revisor',
+      'Visualizador',
+    ]);
+  });
+
+  it('a legacy row with role org_admin still displays that label with fidelity, unable to be reassigned to it via the selector (ORG-14)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members')
+        return membersResponse([
+          {
+            userId: 'user-1',
+            workspaceId: 'ws-1',
+            role: 'viewer',
+            email: 'me@example.com',
+            displayName: 'Me',
+          },
+          {
+            userId: 'user-2',
+            workspaceId: 'ws-1',
+            role: 'org_admin',
+            email: 'ann@example.com',
+            displayName: 'Ann',
+          },
+        ]);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    // The caller (a viewer) can't manage members, so Ann's role renders as the read-only badge
+    // driven by ROLE_KEY — unchanged for org_admin, and no <select> is offered for her row at all.
+    const annRow = (await screen.findByText('Ann')).closest('li') as HTMLElement;
+    expect(within(annRow).getByText('Admin da organização')).toBeTruthy();
+    expect(within(annRow).queryByRole('combobox')).toBeNull();
+  });
+});
