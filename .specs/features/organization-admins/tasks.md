@@ -335,8 +335,8 @@ status).
 
 **Done when**:
 
-- [ ] `add`/`remove` retornam um resultado tipado por status (`ok`/`not_found`/`conflict`/`forbidden`), sem lançar em resposta HTTP não-2xx esperada
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `add`/`remove` retornam um resultado tipado por status (`ok`/`not_found`/`conflict`/`forbidden`), sem lançar em resposta HTTP não-2xx esperada
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
