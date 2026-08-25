@@ -35,9 +35,17 @@ A ordem é de execução. Toda dependência aponta para uma entrada anterior; ne
 | R21 | Fundações de UI | `ui-foundations` | `UIF` | R17 | 1,5 |
 | R22 | Clareza de RBAC | `rbac-clarity` | `RBAC` | R18, R19 | 1 |
 | R23 | Documentação verdadeira | `docs-truth` | `DOCS` | R20, R21, R22 | 0,5 |
+| R24 | Bug real de navegação entre frames | `shared-resource-frame-fix` | `SRF` | R17 | 1 |
+| R25 | Recolher o painel do editor | `editor-panel-collapse` | `EPC` | R21 | 1 |
+| R26 | Tentar novamente nas listas | `list-retry-action` | `LRA` | R21 | 1 |
+| R27 | Prova de concorrência real | `concurrency-proof` | `CCP` | R22, R19 | 1 |
+| R28 | Administradores de organização | `organization-admins` | `ORG` | R22 | 1 |
 
 R17 e R18 são independentes e podem correr em paralelo; tudo o mais é sequencial pela coluna
-`Depende de`.
+`Depende de`. R24–R28 fecham a dívida deixada aberta em "Descoberto durante a execução" e no handoff
+de `.specs/STATE.md` — nenhuma delas foi pedida pela análise original de 2026-08-24, mas todas saem
+de um achado ou de uma consequência de desenho já registrada por uma onda anterior, nunca de
+suspeita nova. R24–R27 são independentes entre si; R28 depende só de R22 (RBAC-clarity), já fechada.
 
 ## Por que esta ordem
 
@@ -52,7 +60,8 @@ documentação só pode afirmar números depois que eles pararem de mudar.
 
 | Achado | Onde apareceu | Estado |
 | ------ | ------------- | ------ |
-| `SharedResourcePage` navega entre frames trocando `initialElements`, mas o `<Excalidraw/>` real lê `initialData` só no mount. O mock do teste relê a prop a cada render, então PRZ-33 passa no teste e não funciona no produto. | Verifier de R17, `editor-stability/validation.md` Gap 3 | **Aberto** — precisa de entrada própria (candidata a R24), fora do escopo de toda spec atual |
+| `SharedResourcePage` navega entre frames trocando `initialElements`, mas o `<Excalidraw/>` real lê `initialData` só no mount. O mock do teste relê a prop a cada render, então PRZ-33 passa no teste e não funciona no produto. | Verifier de R17, `editor-stability/validation.md` Gap 3 | Fechado por R24 (`shared-resource-frame-fix`) |
+| UIF-17 marcado `✅ Verified` na tabela de rastreabilidade de `ui-foundations/spec.md` apesar de `validation.md` documentar "não implementado" — a tabela e o relatório do Verifier divergiam. | Discuss de R24–R28 | Fechado por R25: tabela corrigida junto da implementação |
 
 ## Fora do escopo da onda
 
