@@ -10,6 +10,9 @@ describe('design tokens (UIF-02, UIF-03)', () => {
   const theme = readFileSync(THEME, 'utf8');
 
   it('declares every token scale the spec names, in one file', () => {
+    // Matched with the colon: a bare `includes('--color-accent')` is satisfied by
+    // `--color-accent-hover`, so deleting the base token would go unnoticed. Same
+    // substring weakness lesson L-049 recorded for the edge-parity guard.
     for (const token of [
       '--color-surface',
       '--color-content',
@@ -21,7 +24,7 @@ describe('design tokens (UIF-02, UIF-03)', () => {
       '--font-sans',
       '--spacing-content',
     ]) {
-      expect(theme).toContain(token);
+      expect(theme).toMatch(new RegExp(`^\\s*${token}:`, 'm'));
     }
   });
 

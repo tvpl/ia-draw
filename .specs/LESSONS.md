@@ -332,6 +332,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: STATE.md F10: 'flake conhecido de contencao sob execucao paralela' (testing/infra)
 - last seen: 2026-08-25T06:52:43Z
 
+### L-054 - RECORRENCIA de L-049: toContain('--color-accent') passa com '--color-accent-hover' presente. Asserte a DECLARACAO (com o separador: dois-pontos, parenteses, o import), nunca a mencao do nome.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `testing/assertions` · harmful: 0
+- features: ui-foundations
+- evidence: apps/web/src/styles/theme.spec.ts:27 (testing/assertions)
+- last seen: 2026-08-25T07:16:26Z
+
+### L-055 - Um requisito que nenhuma task carrega para o seu Done-when nao e construido: ao fechar Tasks, cruze cada ID da spec com pelo menos um Done-when, nao apenas com a tabela de rastreabilidade.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: ui-foundations
+- evidence: UIF-17, UIF-10 (acao de tentar novamente) (planning)
+- last seen: 2026-08-25T07:16:26Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

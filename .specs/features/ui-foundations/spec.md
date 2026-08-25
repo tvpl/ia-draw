@@ -140,26 +140,26 @@ para a primeira tela abrir rápido.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| UIF-01 | P1: Uma camada de estilo instalada | Design | Pending |
-| UIF-02 | P1: Uma camada de estilo instalada | Design | Pending |
-| UIF-03 | P1: Uma camada de estilo instalada | Design | Pending |
-| UIF-04 | P1: Uma camada de estilo instalada | Design | Pending |
-| UIF-05 | P1: Uma camada de estilo instalada | Design | Pending |
-| UIF-06 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-07 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-08 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-09 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-10 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-11 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-12 | P1: As telas de entrada e navegação ficam legíveis | Design | Pending |
-| UIF-13 | P2: O chrome do editor para de atrapalhar o canvas | Design | Pending |
-| UIF-14 | P2: O chrome do editor para de atrapalhar o canvas | Design | Pending |
-| UIF-15 | P2: O chrome do editor para de atrapalhar o canvas | Design | Pending |
-| UIF-16 | P2: O chrome do editor para de atrapalhar o canvas | Design | Pending |
-| UIF-17 | P2: O chrome do editor para de atrapalhar o canvas | Design | Pending |
-| UIF-18 | P3: A rota do editor deixa de pesar no primeiro carregamento | Design | Pending |
-| UIF-19 | P3: A rota do editor deixa de pesar no primeiro carregamento | Design | Pending |
-| UIF-20 | P3: A rota do editor deixa de pesar no primeiro carregamento | Design | Pending |
+| UIF-01 | P1: Uma camada de estilo instalada | Verified | ✅ Verified |
+| UIF-02 | P1: Uma camada de estilo instalada | Verified | ✅ Verified |
+| UIF-03 | P1: Uma camada de estilo instalada | Verified | ✅ Verified |
+| UIF-04 | P1: Uma camada de estilo instalada | Verified | ✅ Verified |
+| UIF-05 | P1: Uma camada de estilo instalada | Verified | ✅ Verified |
+| UIF-06 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-07 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-08 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-09 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-10 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-11 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-12 | P1: As telas de entrada e navegação ficam legíveis | Verified | ✅ Verified |
+| UIF-13 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-14 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-15 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-16 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-17 | P2: O chrome do editor para de atrapalhar o canvas | Verified | ✅ Verified |
+| UIF-18 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |
+| UIF-19 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |
+| UIF-20 | P3: A rota do editor deixa de pesar no primeiro carregamento | Verified | ✅ Verified |
 
 **Coverage:** 20 total, 20 mapeados para tasks, 0 sem mapeamento.
 

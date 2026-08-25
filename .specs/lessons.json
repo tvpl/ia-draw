@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 54,
+  "next_id": 56,
   "lessons": [
     {
       "id": "L-001",
@@ -960,6 +960,42 @@
       ],
       "created": "2026-08-25T06:52:43Z",
       "last_seen": "2026-08-25T06:52:43Z"
+    },
+    {
+      "id": "L-054",
+      "key": "surviving_mutant::recorrencia de l 049 tocontain color accent passa com color accent hover presente asserte a declaracao com o separador dois pontos parenteses o import nunca a mencao do nome",
+      "text": "RECORRENCIA de L-049: toContain('--color-accent') passa com '--color-accent-hover' presente. Asserte a DECLARACAO (com o separador: dois-pontos, parenteses, o import), nunca a mencao do nome.",
+      "signal": "surviving_mutant",
+      "scope": "testing/assertions",
+      "status": "candidate",
+      "features": [
+        "ui-foundations"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/web/src/styles/theme.spec.ts:27 (testing/assertions)"
+      ],
+      "created": "2026-08-25T07:16:26Z",
+      "last_seen": "2026-08-25T07:16:26Z"
+    },
+    {
+      "id": "L-055",
+      "key": "ac_gap::um requisito que nenhuma task carrega para o seu done when nao e construido ao fechar tasks cruze cada id da spec com pelo menos um done when nao apenas com a tabela de rastreabilidade",
+      "text": "Um requisito que nenhuma task carrega para o seu Done-when nao e construido: ao fechar Tasks, cruze cada ID da spec com pelo menos um Done-when, nao apenas com a tabela de rastreabilidade.",
+      "signal": "ac_gap",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "ui-foundations"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "UIF-17, UIF-10 (acao de tentar novamente) (planning)"
+      ],
+      "created": "2026-08-25T07:16:26Z",
+      "last_seen": "2026-08-25T07:16:26Z"
     }
   ]
 }

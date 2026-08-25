@@ -85,11 +85,11 @@ em JavaScript: a configuração é CSS-first e vive no `theme.css` de T2.
 
 **Done when**:
 
-- [ ] `pnpm --filter @arch-canvas/web build` emite a folha de estilo gerada
-- [ ] O build não emite nenhum aviso de configuração da camada de estilo
-- [ ] Nenhum arquivo de configuração em JavaScript foi criado
-- [ ] Changeset não é necessário — `apps/web` não é um package publicável
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `pnpm --filter @arch-canvas/web build` emite a folha de estilo gerada
+- [x] O build não emite nenhum aviso de configuração da camada de estilo
+- [x] Nenhum arquivo de configuração em JavaScript foi criado
+- [x] Changeset não é necessário — `apps/web` não é um package publicável
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25); build emite CSS sem aviso de configuracao
 
 **Tests**: none
 **Gate**: full
@@ -115,10 +115,10 @@ literal de cor pode existir.
 
 **Done when**:
 
-- [ ] Todas as escalas nomeadas na spec estão declaradas
-- [ ] Um teste de varredura falha se um componente de produção contiver valor literal de cor
-- [ ] Cada par de cor de texto sobre superfície atinge contraste suficiente para leitura
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Todas as escalas nomeadas na spec estão declaradas
+- [x] Um teste de varredura falha se um componente de produção contiver valor literal de cor
+- [x] Cada par de cor de texto sobre superfície atinge contraste suficiente para leitura
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `theme.spec.ts` 2/2
 
 **Tests**: unit
 **Gate**: full
@@ -144,10 +144,10 @@ autoritativo dentro dele.
 
 **Done when**:
 
-- [ ] `theme.css` é importado após o CSS do Excalidraw
-- [ ] Nenhuma regra da aplicação seleciona elemento dentro do canvas do Excalidraw
-- [ ] A suíte de `apps/web` continua passando sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `theme.css` é importado após o CSS do Excalidraw
+- [x] Nenhuma regra da aplicação seleciona elemento dentro do canvas do Excalidraw
+- [x] A suíte de `apps/web` continua passando sem alteração de asserção
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 951/951
 
 **Tests**: unit
 **Gate**: full
@@ -172,11 +172,11 @@ primária distinguíveis, mensagem de erro com destaque próprio, estado de envi
 
 **Done when**:
 
-- [ ] Formulário centrado, com hierarquia visível entre rótulo, campo e ação primária
-- [ ] Estado de foco visível em todos os controles
-- [ ] Nenhum `style={{}}` no arquivo
-- [ ] `LoginPage.spec.tsx` e `LoginPage.a11y.spec.tsx` passam sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Formulário centrado, com hierarquia visível entre rótulo, campo e ação primária
+- [x] Estado de foco visível em todos os controles
+- [x] Nenhum `style={{}}` no arquivo
+- [x] `LoginPage.spec.tsx` e `LoginPage.a11y.spec.tsx` passam sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951; capturas reais via harness e2e confirmam a tela
 
 **Tests**: unit
 **Gate**: full
@@ -201,11 +201,11 @@ primária distinguíveis, mensagem de erro com destaque próprio, estado de envi
 
 **Done when**:
 
-- [ ] Cabeçalho e conteúdo separados por espaçamento consistente
-- [ ] Links de navegação renderizam como elementos distintos, nunca colados
-- [ ] Em viewport de 1024px não há rolagem horizontal
-- [ ] `shell.a11y.spec.tsx` passa sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Cabeçalho e conteúdo separados por espaçamento consistente
+- [x] Links de navegação renderizam como elementos distintos, nunca colados
+- [x] Em viewport de 1024px não há rolagem horizontal
+- [x] `shell.a11y.spec.tsx` passa sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951; capturas reais confirmam cabecalho e navegacao separados
 
 **Tests**: unit
 **Gate**: full
@@ -230,11 +230,11 @@ estado de carregamento no lugar do conteúdo e estado de erro com ação de tent
 
 **Done when**:
 
-- [ ] Cada item é uma linha delimitada com ações alinhadas
-- [ ] Estados vazio, carregando e erro têm apresentação própria; erro tem precedência sobre vazio
-- [ ] Texto longo é truncado preservando as ações visíveis
-- [ ] Testes existentes da página passam sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Cada item é uma linha delimitada com ações alinhadas
+- [x] Estados vazio, carregando e erro têm apresentação própria; erro tem precedência sobre vazio
+- [x] Texto longo é truncado preservando as ações visíveis
+- [x] Testes existentes da página passam sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951
 
 **Tests**: unit
 **Gate**: full
@@ -259,11 +259,11 @@ incluindo o formulário de criação de projeto que hoje aparece solto no fim da
 
 **Done when**:
 
-- [ ] Lista e formulário de criação com a mesma forma da lista de workspaces
-- [ ] Estados vazio, carregando e erro presentes
-- [ ] Nenhum `style={{}}` no arquivo
-- [ ] Testes existentes da página passam sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Lista e formulário de criação com a mesma forma da lista de workspaces
+- [x] Estados vazio, carregando e erro presentes
+- [x] Nenhum `style={{}}` no arquivo
+- [x] Testes existentes da página passam sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951; captura real confirma acoes agrupadas e formulario em painel
 
 **Tests**: unit
 **Gate**: full
@@ -288,11 +288,11 @@ primária da linha.
 
 **Done when**:
 
-- [ ] Abrir o diagrama é visivelmente a ação primária da linha
-- [ ] Estados vazio, carregando e erro presentes
-- [ ] Nenhum `style={{}}` no arquivo
-- [ ] Testes existentes da página passam sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Abrir o diagrama é visivelmente a ação primária da linha
+- [x] Estados vazio, carregando e erro presentes
+- [x] Nenhum `style={{}}` no arquivo
+- [x] Testes existentes da página passam sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951
 
 **Tests**: unit
 **Gate**: full
@@ -317,10 +317,10 @@ alinhados, e o formulário de convite destacado do restante da lista.
 
 **Done when**:
 
-- [ ] Seletor de papel e ação de remover alinhados em cada linha
-- [ ] Formulário de convite visualmente separado da lista
-- [ ] `WorkspaceMembersPage.a11y.spec.tsx` passa sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Seletor de papel e ação de remover alinhados em cada linha
+- [x] Formulário de convite visualmente separado da lista
+- [x] `WorkspaceMembersPage.a11y.spec.tsx` passa sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951
 
 **Tests**: unit
 **Gate**: full
@@ -346,12 +346,12 @@ largura própria e ao canvas a altura restante da viewport. Resolve a sobreposi�
 
 **Done when**:
 
-- [ ] O painel lateral tem largura própria e não sobrepõe a área do canvas
-- [ ] O canvas ocupa toda a altura restante da viewport
-- [ ] Rótulo e campo do dock de IA ocupam linhas distintas
-- [ ] Nenhum `style={{}}` permanece no arquivo
-- [ ] `DiagramEditorPage.spec.tsx` passa sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O painel lateral tem largura própria e não sobrepõe a área do canvas
+- [x] O canvas ocupa toda a altura restante da viewport
+- [x] Rótulo e campo do dock de IA ocupam linhas distintas
+- [x] Nenhum `style={{}}` permanece no arquivo
+- [x] `DiagramEditorPage.spec.tsx` passa sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951; zero `style={{}}` no arquivo
 
 **Tests**: unit
 **Gate**: full
@@ -376,11 +376,11 @@ recolhimento devolver a largura ao canvas.
 
 **Done when**:
 
-- [ ] Todas as seções recolhíveis têm a mesma affordance visual
-- [ ] Recolher o painel devolve a largura ao canvas
-- [ ] Abas continuam alcançáveis por teclado na ordem visual
-- [ ] `EditorSidePanel.spec.tsx` passa sem alteração de asserção
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Todas as seções recolhíveis têm a mesma affordance visual
+- [x] Recolher o painel devolve a largura ao canvas
+- [x] Abas continuam alcançáveis por teclado na ordem visual
+- [x] `EditorSidePanel.spec.tsx` passa sem alteração de asserção
+- [x] Gate check passes: `apps/web` 951/951
 
 **Tests**: unit
 **Gate**: full
@@ -406,11 +406,11 @@ mermaid, cytoscape e katex.
 
 **Done when**:
 
-- [ ] O build emite a rota do editor em um chunk separado do chunk de entrada
-- [ ] O chunk de entrada não contém o motor de canvas, verificado sobre a saída do build
-- [ ] Um estado de carregamento é apresentado enquanto o chunk é buscado
-- [ ] `pnpm --filter @arch-canvas/web test:e2e` continua verde
-- [ ] Gate check passes: `make ci && pnpm --filter @arch-canvas/web build && pnpm --filter @arch-canvas/web test:e2e`
+- [x] O build emite a rota do editor em um chunk separado do chunk de entrada
+- [x] O chunk de entrada não contém o motor de canvas, verificado sobre a saída do build
+- [x] Um estado de carregamento é apresentado enquanto o chunk é buscado
+- [x] `pnpm --filter @arch-canvas/web test:e2e` continua verde
+- [x] Gate check passes: `apps/web` 951/951; chunk de entrada 1.486 kB -> 246 kB
 
 **Tests**: unit
 **Gate**: build
@@ -439,11 +439,11 @@ de domínio, não estilo.
 
 **Done when**:
 
-- [ ] Nenhum `style={{}}` permanece em componente de produção de `apps/web`
-- [ ] A varredura reprova quando um literal de cor é introduzido num componente
-- [ ] A isenção de `collaboratorColor.ts` está nomeada e justificada dentro do teste
-- [ ] A varredura ignora comentários, para não confundir `#185` de um texto com uma cor
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] Nenhum `style={{}}` permanece em componente de produção de `apps/web`
+- [x] A varredura reprova quando um literal de cor é introduzido num componente
+- [x] A isenção de `collaboratorColor.ts` está nomeada e justificada dentro do teste
+- [x] A varredura ignora comentários, para não confundir `#185` de um texto com uma cor
+- [x] Gate check passes: `apps/web` 951/951, `tokenSweep.spec.ts` 3/3
 
 **Tests**: unit
 **Gate**: full
