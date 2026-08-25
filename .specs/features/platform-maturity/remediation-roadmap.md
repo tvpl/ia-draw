@@ -52,6 +52,15 @@ própria (`*.concurrency.int.spec.ts` em `apps/server`) prova as duas garantias 
 real via `make test-integration-concurrency` (job de CI dedicado, `docs/adr/0007-*.md`'s Emenda
 de 2026-08-25), sem que `make ci`/`make test-integration` passem a exigir Postgres instalado.
 
+**R28 `organization-admins` — fechada.** `organization_members` existe como fonte única de quem
+administra cada organização; uma migração de backfill preservou exatamente o conjunto de
+administradores existentes. Os três call sites que liam `workspace_members.role='org_admin'`
+(`resolveOrganizationRole`, `hasOrgAdminMembership`, `listWorkspacesForUser`) migraram para a
+tabela nova. Um formulário dedicado em `WorkspaceMembersPage` concede/revoga administrador de
+organização por e-mail, com a mesma guarda de último administrador de RBAC-08/09/12. O seletor de
+papel de workspace (convite e troca) parou de oferecer `org_admin` como opção nova. Registrado como
+`docs/adr/0017-*.md` (AD-017), resolvendo a consequência de desenho que AD-016 tinha deixado aberta.
+
 ## Por que esta ordem
 
 R17 e R18 primeiro porque **nada é observável enquanto o editor não abre e a API não é alcançável

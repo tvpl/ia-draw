@@ -451,10 +451,10 @@ referência à AD-017).
 
 **Done when**:
 
-- [ ] R28 aparece fechada no roadmap
-- [ ] A entrada AD-016 em `.specs/STATE.md` referencia a AD-017 como a consequência resolvida
-- [ ] `.specs/STATE.md`'s "Aberto e sem dono" não lista mais a consequência de AD-016
-- [ ] Gate check passes: `make ci`
+- [x] R28 aparece fechada no roadmap
+- [x] A entrada AD-016 em `.specs/STATE.md` referencia a AD-017 como a consequência resolvida
+- [x] `.specs/STATE.md`'s "Aberto e sem dono" não lista mais a consequência de AD-016
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build
