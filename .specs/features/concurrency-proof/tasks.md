@@ -203,9 +203,9 @@ segunda exceção nomeada ao "todo teste de integração usa PGlite" — mesmo f
 
 **Done when**:
 
-- [ ] A Emenda nomeia RBAC-12 e BOOT-08 como o motivo, e o alvo/job novo como a solução
-- [ ] A regra geral da ADR é atualizada para citar as DUAS exceções nomeadas, não só `infra/backup`
-- [ ] Gate check passes: `make ci`
+- [x] A Emenda nomeia RBAC-12 e BOOT-08 como o motivo, e o alvo/job novo como a solução
+- [x] A regra geral da ADR é atualizada para citar as DUAS exceções nomeadas, não só `infra/backup`
+- [x] Gate check passes: `make ci`
 
 **Tests**: none
 **Gate**: build

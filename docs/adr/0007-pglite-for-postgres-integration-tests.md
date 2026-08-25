@@ -42,6 +42,35 @@ foi removido, pulado ou enfraquecido: os mesmos casos continuam rodando, por out
 Leia esta ADR assim: **todo teste de integração de Postgres usa PGlite, exceto os de
 `infra/backup`, que exigem um cluster real e são invocados separadamente.**
 
+## Emenda (2026-08-25, onda R24-R28/concurrency-proof)
+
+A decisão acima continua ativa — ganha uma segunda exceção nomeada, pelo mesmo motivo estrutural
+da primeira: PGlite é uma única conexão embutida, e dois requisitos deste projeto dependem
+especificamente de **duas conexões reais competindo pelo mesmo lock**, algo que uma única conexão
+nunca pode exercitar, mesmo intercalando chamadas cooperativamente.
+
+RBAC-12 ("duas remoções concorrentes deixam no máximo um administrador do workspace") e BOOT-08
+("dois `first-run` concorrentes criam no máximo uma conta") seguram, respectivamente, um
+`select ... for update` (`withLastAdminGuard`, `apps/server/src/modules/workspace/lastAdmin.ts`) e
+um `pg_advisory_xact_lock` (`bootstrapInstance`, `apps/server/src/modules/auth/firstRun.ts`) —
+mecanismos que só fazem sentido sob concorrência genuína. Os dois requisitos ficaram
+`⚠️ Verified (parcial)` nas ondas que os entregaram, com o próximo passo já nomeado: provar contra
+um Postgres real, do mesmo jeito que `infra/backup` já faz.
+
+A suíte que prova os dois (`apps/server/src/modules/workspace/lastAdmin.concurrency.int.spec.ts`,
+`apps/server/src/modules/auth/firstRun.concurrency.int.spec.ts`) ganhou o mesmo tratamento:
+alvo próprio (`make test-integration-concurrency`, script `test:integration:concurrency`,
+config `vitest.integration.concurrency.config.ts` restrita a `*.concurrency.int.spec.ts`) e um
+job de CI dedicado (`concurrency-integration`) que instala Postgres via `apt-get`, sem Docker —
+mesmo padrão de `backup-integration`. `vitest.integration.config.ts` (o alvo padrão) passou a
+excluir explicitamente esse mesmo glob, para que `make ci`/`make test-integration` continuem
+saindo 0 em qualquer host sem Postgres instalado. Nenhum teste foi removido, pulado ou
+enfraquecido — os mesmos dois requisitos, antes parciais, agora provados por outro comando.
+
+Leia esta ADR assim agora: **todo teste de integração de Postgres usa PGlite, exceto os de
+`infra/backup` e os da prova de concorrência real (RBAC-12/BOOT-08), que exigem um cluster real e
+são invocados separadamente, cada um com seu próprio alvo e job de CI.**
+
 ## Consequências
 
 - PGlite não cobre comportamento específico de rede/socket do Postgres real — irrelevante para os
@@ -52,6 +81,8 @@ Leia esta ADR assim: **todo teste de integração de Postgres usa PGlite, exceto
   dependências que ficaram disponíveis neste sandbox mesmo sem Docker — `redis-server` (AD-009) e
   instâncias Postgres adicionais via `pg_createcluster` (usadas pelos testes de backup/restore
   incremental e de teste de restore automatizado, F5).
-- `infra/backup` é a exceção nomeada (ver Emenda): alvo e job próprios, Postgres real obrigatório.
+- `infra/backup` e a prova de concorrência real (RBAC-12/BOOT-08) são as duas exceções nomeadas
+  (ver Emendas): cada uma com alvo e job de CI próprios, Postgres real obrigatório, nunca parte de
+  `make ci`/`make test-integration`.
 - Escopo: todo teste de integração de `packages/database` e módulos de `apps/server` que dependem de
   Postgres, em qualquer ambiente sem Docker.

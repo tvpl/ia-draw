@@ -136,8 +136,8 @@ contradiria a Emenda de 2026-08-24 na mesma ADR.
 | CCP-06 | P1: BOOT-08 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-07 | P1: BOOT-08 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-08 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | ✅ Verified |
-| CCP-09 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | Pending |
-| CCP-10 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | Pending |
+| CCP-09 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | ✅ Verified |
+| CCP-10 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | ✅ Verified |
 
 **Coverage:** 10 total, 10 mapeados para tasks, 0 sem mapeamento.
 
@@ -145,7 +145,7 @@ contradiria a Emenda de 2026-08-24 na mesma ADR.
 
 ## Success Criteria
 
-- [ ] `make test-integration-concurrency` prova RBAC-12 e BOOT-08 contra Postgres real
-- [ ] `make ci` continua saindo 0 sem Postgres instalado
+- [x] `make test-integration-concurrency` prova RBAC-12 e BOOT-08 contra Postgres real
+- [x] `make ci` continua saindo 0 sem Postgres instalado
 - [ ] RBAC-12 e BOOT-08 deixam de estar `⚠️ Parcial` em suas specs
-- [ ] `docs/adr/0007-*.md` documenta a segunda exceção
+- [x] `docs/adr/0007-*.md` documenta a segunda exceção
