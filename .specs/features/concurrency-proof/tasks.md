@@ -80,11 +80,11 @@ sem `environment: jsdom` — estes testes não tocam Excalidraw). `test:integrat
 
 **Done when**:
 
-- [ ] `pnpm --filter @arch-canvas/server run test:integration:concurrency` existe e roda só arquivos `*.concurrency.int.spec.ts`
-- [ ] `make test-integration-concurrency` chama esse script
-- [ ] Rodar o alvo sem `DATABASE_URL` falha com mensagem nomeando a variável, antes de tentar conectar
-- [ ] `make ci`/`make test-integration` continuam passando sem qualquer Postgres real instalado
-- [ ] Gate check passes: `make lint && make typecheck`
+- [x] `pnpm --filter @arch-canvas/server run test:integration:concurrency` existe e roda só arquivos `*.concurrency.int.spec.ts`
+- [x] `make test-integration-concurrency` chama esse script
+- [x] Rodar o alvo sem `DATABASE_URL` falha com mensagem nomeando a variável, antes de tentar conectar
+- [x] `make ci`/`make test-integration` continuam passando sem qualquer Postgres real instalado
+- [x] Gate check passes: `make lint && make typecheck`
 
 **Tests**: none
 **Gate**: full

@@ -84,6 +84,10 @@ test-integration: check-pnpm ## Run integration tests (real Postgres via PGlite 
 test-integration-backup: check-pnpm ## Run infra/backup's integration suite — needs a REAL Postgres cluster (pg_dump/pg_createcluster), not PGlite; see ADR-0007
 	$(PNPM) --filter @arch-canvas/backup run test:integration:backup
 
+.PHONY: test-integration-concurrency
+test-integration-concurrency: check-pnpm ## Prove RBAC-12/BOOT-08 under real concurrent Postgres connections — needs DATABASE_URL pointing at a REAL Postgres cluster, not PGlite; see ADR-0007
+	$(PNPM) --filter @arch-canvas/server run test:integration:concurrency
+
 .PHONY: test-e2e
 test-e2e: check-pnpm ## Run apps/web Playwright e2e tests
 	$(PNPM) -w test:e2e
