@@ -60,9 +60,9 @@ estouram o timeout de 1s do `findByText` e derrubam um arquivo de teste diferent
 
 ## Invariantes de arquitetura (não óbvios lendo o código isolado)
 
-Resumo executivo; a decisão completa (contexto, trade-off, escopo) está em `docs/adr/000N-*.md` e
-`.specs/STATE.md` (seção Decisions, AD-001..AD-009). Nova ADR: copie `docs/adr/TEMPLATE.md`
-(formato Status/Data/Contexto/Decisão/Consequências já usado por `0001..0009`).
+Resumo executivo; a decisão completa (contexto, trade-off, escopo) está em `docs/adr/00NN-*.md` e
+`.specs/STATE.md` (seção Decisions, AD-001..AD-016). Nova ADR: copie `docs/adr/TEMPLATE.md`
+(formato Status/Data/Contexto/Decisão/Consequências já usado por `0001..0016`).
 
 - **AD-003 — Monólito modular.** `apps/server` é um único processo Node (REST + WebSocket + jobs).
   Não crie `apps/api`, `apps/worker` ou `apps/realtime` separados — as fronteiras de domínio já
@@ -93,6 +93,31 @@ Resumo executivo; a decisão completa (contexto, trade-off, escopo) está em `do
   real (F4) usa `PresenceBroadcaster` injetável: `InMemoryPresenceBroadcaster` por padrão,
   `RedisPresenceBroadcaster` só quando `REDIS_URL` está configurado. O servidor sobe e funciona
   inteiramente sem Redis — degrade explícito: presença só cruza conexões no mesmo processo Node.
+- **AD-013 — Prefixos de borda vêm de uma fonte única** (`docs/adr/0013-edge-route-prefix-contract.md`).
+  Os caminhos que pertencem a `apps/server` são declarados só em
+  `packages/shared-contracts/src/routePrefixes.ts`. O proxy do Vite importa a lista; o `Caddyfile`
+  a repete por não ter como importar, e `repo-tools audit` reprova quando as três divergem. Rota
+  nova com prefixo novo: acrescente o prefixo lá **antes** de registrar a rota — senão ela responde
+  a SPA (foi assim que `POST /auth/login` devolvia 405 no stack do Docker). Nenhum namespace `/api`.
+- **AD-014 — Estilo vem de tokens e utilitários** (`docs/adr/0014-tailwind-tokens-for-web.md`).
+  `apps/web` usa Tailwind v4 CSS-first: os tokens ficam num único bloco `@theme` em
+  `apps/web/src/styles/theme.css` e os componentes consomem utilitários, agrupados em
+  `apps/web/src/styles/classNames.ts`. Em componente de produção não entra `style={{}}` nem literal
+  de cor — `tokenSweep.spec.ts` reprova, com isenção nomeada só para
+  `presence/collaboratorColor.ts`. A folha da app carrega depois da do Excalidraw e nenhuma regra
+  dela seleciona dentro do canvas.
+- **AD-015 — Primeiro acesso é a única rota pública de criação de conta**
+  (`docs/adr/0015-first-run-public-bootstrap.md`). `GET`/`POST /auth/first-run` existe enquanto
+  `users` está vazia e responde `404` depois disso; cria conta, organização, workspace e `org_admin`
+  numa transação sob `pg_advisory_xact_lock`. Não abra outro caminho público de signup e não aceite
+  papel vindo do cliente — quem precisa de convite usa o fluxo de membros já autenticado.
+- **AD-016 — Papel de organização vale em todos os workspaces dela**
+  (`docs/adr/0016-org-role-crosses-workspaces.md`). O papel efetivo sai de uma função só,
+  `resolveEffectiveRole` (`apps/server/src/modules/workspace/effectiveRole.ts`), que combina a
+  associação direta com o papel na organização dona e aplica o mais permissivo. Não releia
+  `workspace_members` por conta própria numa rota nova — era exatamente essa a segunda via de
+  autorização que a onda fechou. Remoção/rebaixamento de admin passa por `withLastAdminGuard`,
+  dentro da mesma transação.
 
 ## Requisitos e progresso rastreável
 
