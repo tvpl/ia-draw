@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { buildRouteInventory } from './routeInventory.js';
+import {
+  buildRouteInventory,
+  README_BLOCK_END,
+  README_BLOCK_START,
+  type RouteInventory,
+  renderReadmeCounts,
+  syncReadmeCounts,
+} from './routeInventory.js';
 import type { ServerRoute } from './serverRoutes.js';
 import type { WebConsumer } from './webConsumers.js';
 
@@ -106,5 +113,102 @@ describe('buildRouteInventory (UIX-01, UIX-04)', () => {
       'consumed',
       'pending-product',
     ]);
+  });
+});
+
+/** A three-route inventory, one consumed — enough to render a counts block from. */
+function inventoryOf(): RouteInventory {
+  return buildRouteInventory(
+    [route('GET', '/me'), route('GET', '/lint'), route('POST', '/presentations')],
+    [consumer('/me')],
+  );
+}
+
+describe('renderReadmeCounts (DOCS-01, DOCS-02)', () => {
+  it('states the measured capability and route counts, and the derived remainders', () => {
+    const block = renderReadmeCounts(inventoryOf(), { total: 27, withSurface: 21 });
+
+    expect(block).toContain('- **Capacidades:** 27 no total, 21 com tela, 6 ainda sem superfície.');
+    expect(block).toContain(
+      '- **Rotas REST:** 3 registradas, 1 consumidas pela interface, 2 sem consumidor.',
+    );
+  });
+
+  it('wraps the counts in the delimiters the sync looks for', () => {
+    const block = renderReadmeCounts(inventoryOf(), { total: 27, withSurface: 21 });
+
+    expect(block.startsWith(README_BLOCK_START)).toBe(true);
+    expect(block.endsWith(README_BLOCK_END)).toBe(true);
+  });
+});
+
+describe('syncReadmeCounts (DOCS-01, DOCS-03)', () => {
+  const expected = `${README_BLOCK_START}\n- **Rotas REST:** 3 registradas.\n${README_BLOCK_END}`;
+
+  function readmeWith(block: string): string {
+    return `# Título\n\nprosa antes\n\n${block}\n\nprosa depois\n`;
+  }
+
+  it('reports nothing and writes nothing when the block already matches', () => {
+    const writes: string[] = [];
+
+    const violations = syncReadmeCounts(
+      'README.md',
+      expected,
+      () => readmeWith(expected),
+      (_path, contents) => writes.push(contents),
+    );
+
+    expect(violations).toEqual([]);
+    expect(writes).toEqual([]);
+  });
+
+  it('rewrites only the block, keeping the prose on both sides, and reports the drift', () => {
+    const stale = `${README_BLOCK_START}\n- **Rotas REST:** 82 registradas.\n${README_BLOCK_END}`;
+    const writes: string[] = [];
+
+    const violations = syncReadmeCounts(
+      'README.md',
+      expected,
+      () => readmeWith(stale),
+      (_path, contents) => writes.push(contents),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.entry).toBe('README.md');
+    expect(writes[0]).toBe(readmeWith(expected));
+    expect(writes[0]).toContain('prosa antes');
+    expect(writes[0]).toContain('prosa depois');
+    expect(writes[0]).not.toContain('82 registradas');
+  });
+
+  it('reports a README with no block instead of appending one silently', () => {
+    const writes: string[] = [];
+
+    const violations = syncReadmeCounts(
+      'README.md',
+      expected,
+      () => '# Título\n\nsem bloco\n',
+      (_path, contents) => writes.push(contents),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]?.problem).toContain(README_BLOCK_START);
+    expect(writes).toEqual([]);
+  });
+
+  it('reports a README it cannot read instead of throwing', () => {
+    const violations = syncReadmeCounts(
+      'README.md',
+      expected,
+      () => {
+        throw new Error('ENOENT');
+      },
+      () => {
+        throw new Error('should not write');
+      },
+    );
+
+    expect(violations).toEqual([{ entry: 'README.md', problem: 'could not be read' }]);
   });
 });

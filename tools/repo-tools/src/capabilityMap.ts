@@ -10,6 +10,17 @@ export interface CapabilityMapViolation {
 
 const REQUIRED_FIELDS = ['capability', 'requirements', 'backend_evidence', 'ui_surface'] as const;
 
+/**
+ * DOCS-05: which module file backs this capability. The map has no `routes` field, and
+ * deliberately does not gain one — `backend_evidence` already names the module, and the
+ * route inventory already knows which file registered each route, so the link exists
+ * without a third place to keep in sync.
+ */
+function backendModuleOf(entry: Record<string, unknown>): string | null {
+  const evidence = entry.backend_evidence;
+  return typeof evidence === 'string' ? evidence : null;
+}
+
 /** Every UI surface must live here — a claim pointing anywhere else is not a product surface. */
 const UI_ROOT = 'apps/web/src';
 
@@ -41,7 +52,18 @@ function isComponentModule(surface: string): boolean {
  * A map with no capabilities is a violation on its own: passing an empty map
  * would prove nothing while reporting success.
  */
-export function checkCapabilityMap(map: unknown, sourceRoot: string): CapabilityMapViolation[] {
+export function checkCapabilityMap(
+  map: unknown,
+  sourceRoot: string,
+  /**
+   * DOCS-05: for each server module file, the consumers `apps/web/src` already has for the
+   * routes registered in it. Lets the audit check the REVERSE direction — a capability
+   * marked `backend-only` whose routes already have a screen. Omit it and only the forward
+   * direction runs, which is what the audit did until now: creating a screen never forced
+   * the map to be updated, so the documentation could only ever understate what shipped.
+   */
+  consumersByModule?: ReadonlyMap<string, readonly string[]>,
+): CapabilityMapViolation[] {
   const entries = (map as { capabilities?: unknown } | null)?.capabilities;
 
   if (!Array.isArray(entries) || entries.length === 0) {
@@ -73,6 +95,16 @@ export function checkCapabilityMap(map: unknown, sourceRoot: string): Capability
         violations.push({
           entry: entryLabel,
           problem: 'ui_surface is null without `status: backend-only`',
+        });
+      }
+      // DOCS-05: the reverse direction. A capability may only claim to have no surface
+      // while none of the routes in its backing module has a consumer in `apps/web/src`.
+      const module = backendModuleOf(entry);
+      const consumers = module ? consumersByModule?.get(module) : undefined;
+      if (consumers && consumers.length > 0) {
+        violations.push({
+          entry: entryLabel,
+          problem: `marked backend-only but ${module}'s routes are consumed by ${consumers.join(', ')}`,
         });
       }
       return;

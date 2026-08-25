@@ -13,7 +13,12 @@ import { parse } from 'yaml';
 import { checkCapabilityMap } from './capabilityMap.js';
 import { checkCoverageFloors } from './coverageFloors.js';
 import { checkOpenApiParity } from './openApiParity.js';
-import { buildRouteInventory, type RouteInventory } from './routeInventory.js';
+import {
+  buildRouteInventory,
+  type RouteInventory,
+  renderReadmeCounts,
+  syncReadmeCounts,
+} from './routeInventory.js';
 import { extractServerRoutes } from './serverRoutes.js';
 import { extractWebConsumers } from './webConsumers.js';
 
@@ -118,7 +123,19 @@ export function runAudit(sourceRoot: string): AuditResult {
     return { exitCode: 1, output };
   }
 
-  const violations = checkCapabilityMap(map, sourceRoot);
+  // DOCS-05: which server module's routes already have a screen. Built from the inventory
+  // just written, so the audit checks the map in BOTH directions from one source of truth.
+  const consumersByModule = new Map<string, string[]>();
+  for (const entry of inventory.routes) {
+    if (entry.classification !== 'consumed') continue;
+    const existing = consumersByModule.get(entry.file) ?? [];
+    for (const consumer of entry.consumedBy) {
+      if (!existing.includes(consumer)) existing.push(consumer);
+    }
+    consumersByModule.set(entry.file, existing);
+  }
+
+  const violations = checkCapabilityMap(map, sourceRoot, consumersByModule);
   for (const violation of violations) {
     output.push(`repo-tools audit: ${violation.entry} — ${violation.problem}`);
   }
@@ -128,13 +145,36 @@ export function runAudit(sourceRoot: string): AuditResult {
     output.push(`repo-tools audit: ${violation.package} — ${violation.problem}`);
   }
 
+  // DOCS-01..03: the README's counts come from this measurement, never from memory.
+  const capabilityEntries = ((map as { capabilities?: unknown[] } | null)?.capabilities ??
+    []) as Array<Record<string, unknown>>;
+  const readmeViolations = syncReadmeCounts(
+    join(sourceRoot, 'README.md'),
+    renderReadmeCounts(inventory, {
+      total: capabilityEntries.length,
+      withSurface: capabilityEntries.filter((entry) => typeof entry.ui_surface === 'string').length,
+    }),
+    (path) => readFileSync(path, 'utf8'),
+    (path, contents) => writeFileSync(path, contents, 'utf8'),
+  );
+  for (const violation of readmeViolations) {
+    output.push(`repo-tools audit: ${violation.entry} — ${violation.problem}`);
+  }
+
   const openApiViolations = checkOpenApiParity(sourceRoot);
   for (const violation of openApiViolations) {
     output.push(`repo-tools audit: ${violation.entry} — ${violation.problem}`);
   }
 
   return {
-    exitCode: violations.length + floorViolations.length + openApiViolations.length > 0 ? 1 : 0,
+    exitCode:
+      violations.length +
+        floorViolations.length +
+        openApiViolations.length +
+        readmeViolations.length >
+      0
+        ? 1
+        : 0,
     output,
   };
 }

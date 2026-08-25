@@ -86,6 +86,45 @@ describe('extractWebConsumers (UIX-01)', () => {
     expect(consumers[0]?.file).toBe('apps/web/src/sync/dynamic.ts');
   });
 
+  it('recognizes an injected fetch whatever the client bound it to (DOCS-01)', () => {
+    const root = fakeRepo({
+      'apps/web/src/lint/lintClient.ts': "await doFetch('/diagrams/1/lint');",
+      'apps/web/src/admin/adminClient.ts': "await adminFetch('/users');",
+      'apps/web/src/sync/syncClient.ts': 'await this.rawFetchImpl(`/diagrams/${id}/operations`);',
+    });
+
+    expect(extractWebConsumers(root).map((consumer) => consumer.path)).toEqual([
+      '/users',
+      '/diagrams/1/lint',
+      '/diagrams/:param/operations',
+    ]);
+  });
+
+  it('ignores a local helper that merely starts with the word fetch (DOCS-01)', () => {
+    const root = fakeRepo({
+      'apps/web/src/docs/DocsPanel.tsx': [
+        'async function fetchContentFor(spec) {',
+        '  return spec.markdownUrl;',
+        '}',
+        'onClick={() => void fetchContentFor(item)}',
+      ].join('\n'),
+    });
+
+    expect(extractWebConsumers(root)).toEqual([]);
+  });
+
+  it('folds a `${...}` that follows a literal colon into one parameter token', () => {
+    const root = fakeRepo({
+      'apps/web/src/export/exportClient.ts':
+        'await doFetch(`/diagrams/${diagramId}/export:${format}`, { method: "POST" });',
+    });
+
+    // The server registers `/diagrams/:id/export:format`; `export::param` would look orphaned.
+    expect(extractWebConsumers(root).map((consumer) => consumer.path)).toEqual([
+      '/diagrams/:param/export:param',
+    ]);
+  });
+
   it('does not count a frontend test file as a production consumer', () => {
     const root = fakeRepo({
       'apps/web/src/sync/syncClient.ts': "await fetch('/me');",
@@ -108,10 +147,25 @@ describe('extractWebConsumers (UIX-01)', () => {
       expect(consumers.length).toBeGreaterThan(0);
     });
 
-    it('gives every consumer a path that starts with a single slash', () => {
-      for (const consumer of consumers) {
+    it('gives every resolvable consumer a path that starts with a single slash', () => {
+      // Scoped to `resolvable` because that is what the type promises: a url assembled at
+      // runtime comes back with an empty path on purpose (UIX-01), and the repository has
+      // six of them — `resourceClient` and `libraryClient` take their url as an argument.
+      // The unscoped version of this passed only while no such call was visible to the
+      // extractor, which is a property of the old blind spot, not an invariant.
+      for (const consumer of consumers.filter((entry) => entry.resolvable)) {
         expect(consumer.path.startsWith('/')).toBe(true);
         expect(consumer.path.startsWith('//')).toBe(false);
+      }
+    });
+
+    it('reports a runtime-assembled url instead of dropping it', () => {
+      const unresolvable = consumers.filter((entry) => !entry.resolvable);
+
+      expect(unresolvable.length).toBeGreaterThan(0);
+      for (const consumer of unresolvable) {
+        expect(consumer.path).toBe('');
+        expect(consumer.expression).not.toBe('');
       }
     });
 
@@ -129,8 +183,9 @@ describe('extractWebConsumers (UIX-01)', () => {
       // Reuses the inventory's own path matcher rather than restating it: a consumer that
       // matches no registered route is exactly what it calls an `orphan-consumer`.
       const inventory = buildRouteInventory(extractServerRoutes(REPO_ROOT), consumers);
+      const resolvableOrphans = inventory.orphanConsumers.filter((orphan) => orphan.resolvable);
 
-      expect(inventory.orphanConsumers.map((orphan) => orphan.path)).toEqual([]);
+      expect(resolvableOrphans.map((orphan) => `${orphan.file} ${orphan.path}`)).toEqual([]);
     });
 
     it('attributes every consumer to a production file under apps/web/src', () => {

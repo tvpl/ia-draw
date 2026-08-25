@@ -6,11 +6,15 @@ import { INVENTORY_PATH, runAudit } from './cli.js';
 
 let scratch: string | undefined;
 
-const ROUTES = [
-  "app.get('/me', handler);",
-  "app.get('/diagrams/:id/lint', handler);",
-  "app.post('/presentations', handler);",
-].join('\n');
+const ROUTES = ["app.get('/me', handler);", "app.post('/presentations', handler);"].join('\n');
+
+/**
+ * A second module, deliberately separate: the audit checks `backend-only` per module
+ * (DOCS-05), so a capability that claims to have no screen has to own routes that no
+ * screen requests. Sharing one routes file with a consumed capability made the fixture
+ * self-contradictory rather than clean.
+ */
+const LINT_ROUTES = "app.get('/diagrams/:id/lint', handler);";
 
 const CONSUMER = "const me = await fetch('/me');";
 
@@ -26,17 +30,35 @@ const OPENAPI_DOC = JSON.stringify({
 });
 
 /**
- * A minimal repository: three registered routes, one of them consumed by the
- * web app, plus the capability map the audit checks and a matching OpenAPI
- * document.
+ * The counts block this fixture measures out to: three routes with one consumed, and the
+ * two capabilities of `CLEAN_MAP` of which one declares a `ui_surface`. Written out
+ * literally rather than through `renderReadmeCounts` so the test pins the rendered text
+ * at the CLI boundary instead of comparing the renderer against itself (DOCS-01).
  */
-function fakeRepo(capabilityMap: string): string {
+const CLEAN_README_BLOCK = [
+  '<!-- repo-tools:counts:start -->',
+  '- **Capacidades:** 2 no total, 1 com tela, 1 ainda sem superfície.',
+  '- **Rotas REST:** 3 registradas, 1 consumidas pela interface, 2 sem consumidor.',
+  '',
+  '<sub>Bloco gerado por `repo-tools audit`. Não edite à mão: o gate compara o que está aqui',
+  'com o que ele mede e falha na divergência.</sub>',
+  '<!-- repo-tools:counts:end -->',
+].join('\n');
+
+/**
+ * A minimal repository: three registered routes, one of them consumed by the
+ * web app, plus the capability map the audit checks, a matching OpenAPI
+ * document and a README whose counts block already agrees with the measurement.
+ */
+function fakeRepo(capabilityMap: string, readme = `# Fake\n\n${CLEAN_README_BLOCK}\n`): string {
   scratch = mkdtempSync(join(tmpdir(), 'repo-tools-cli-'));
   const files: Record<string, string> = {
     'apps/server/src/modules/example/routes.ts': ROUTES,
+    'apps/server/src/modules/lint/routes.ts': LINT_ROUTES,
     'apps/web/src/diagram/DiagramEditorPage.tsx': CONSUMER,
     'docs/capability-map.yaml': capabilityMap,
     'docs/openapi.json': OPENAPI_DOC,
+    'README.md': readme,
   };
   for (const [relative, contents] of Object.entries(files)) {
     const absolute = join(scratch, relative);
@@ -53,7 +75,7 @@ const CLEAN_MAP = `capabilities:
     ui_surface: apps/web/src/diagram/DiagramEditorPage.tsx
   - capability: Lint arquitetural
     requirements: [LNT-01]
-    backend_evidence: apps/server/src/modules/example/routes.ts
+    backend_evidence: apps/server/src/modules/lint/routes.ts
     ui_surface: null
     status: backend-only
 `;
@@ -110,6 +132,49 @@ describe('repo-tools audit (TRU-03, UIX-01)', () => {
 
     expect(result.exitCode).toBe(0);
     expect(readFileSync(join(root, INVENTORY_PATH), 'utf8')).toContain('# Inventário de rotas');
+  });
+
+  it('rewrites a README whose counts drifted and exits non-zero saying so (DOCS-01)', () => {
+    const stale = [
+      '# Fake',
+      '',
+      '<!-- repo-tools:counts:start -->',
+      '- **Capacidades:** 99 no total, 99 com tela, 0 ainda sem superfície.',
+      '- **Rotas REST:** 82 registradas, 4 consumidas pela interface, 78 sem consumidor.',
+      '<!-- repo-tools:counts:end -->',
+      '',
+    ].join('\n');
+    const root = fakeRepo(CLEAN_MAP, stale);
+
+    const result = runAudit(root);
+
+    expect(result.exitCode).toBe(1);
+    expect(result.output.some((line) => line.includes('README.md'))).toBe(true);
+    expect(readFileSync(join(root, 'README.md'), 'utf8')).toContain(CLEAN_README_BLOCK);
+  });
+
+  it('leaves an already-correct README untouched on a second run (DOCS-03)', () => {
+    const root = fakeRepo(CLEAN_MAP, `# Fake\n\n${CLEAN_README_BLOCK}\n`);
+
+    runAudit(root);
+    const afterFirst = readFileSync(join(root, 'README.md'), 'utf8');
+    const second = runAudit(root);
+
+    expect(second.exitCode).toBe(0);
+    expect(readFileSync(join(root, 'README.md'), 'utf8')).toBe(afterFirst);
+  });
+
+  it('exits non-zero when the README has no counts block at all (DOCS-01)', () => {
+    const root = fakeRepo(CLEAN_MAP, '# Fake\n\nsem bloco nenhum\n');
+
+    const result = runAudit(root);
+
+    expect(result.exitCode).toBe(1);
+    expect(
+      result.output.some(
+        (line) => line.includes('README.md') && line.includes('repo-tools:counts:start'),
+      ),
+    ).toBe(true);
   });
 
   it('exits non-zero naming the package when a workspace package declares no coverage floor', () => {
