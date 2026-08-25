@@ -6,9 +6,30 @@
 // `pg_advisory_xact_lock` (firstRun.ts) is what actually serializes the two POSTs below — this
 // test proves that lock holds under genuine concurrent connections, not just that the guard's
 // logic is correct in isolation.
+//
+// Real HTTP (`app.listen` + `fetch`), and the race repeated internally rather than measured
+// once. The Verifier for this feature found that a single-shot `app.inject()` measurement
+// caught only 13/24 (54%) of a mutation deleting `pg_advisory_xact_lock` entirely:
+// `bootstrapInstance` calls `argon2.hash(...)` — an expensive, yielding async op — BEFORE the
+// lock, so the outcome of any ONE race between two concurrent first-run attempts is inherently
+// close to a coin flip when the lock is absent (sometimes the two attempts' pre-lock work
+// happens to overlap enough that both would proceed, sometimes it happens not to). Switching to
+// real sockets plus a single discarded warm-up cycle did not reliably fix this by itself.
+// Chasing a deterministic single-shot proof of an inherently probabilistic race is the wrong
+// target. What `validate.md`'s own suggested mitigation calls for, and what actually works:
+// repeat the race N times, resetting `users` to empty between attempts via
+// `TRUNCATE ... CASCADE`, and require EVERY attempt to resolve to exactly one 201/one 409. With
+// a ~50% per-attempt kill probability, missing a real lock deletion across 15 attempts has
+// roughly a 1-in-33,000 chance — reliable enough to trust as a standing regression guard.
+// `/auth/first-run` also carries its own per-IP rate limit (`FIRST_RUN_RATE_LIMIT`, 10
+// requests/60s in routes.ts) — 15 repetitions at 2 requests each would trip it on one long-lived
+// app, so the repetitions run in small batches, each against a freshly built app (a fresh
+// `InMemoryRateLimiter`), while the underlying `pool`/`db` connection stays warm across every
+// batch — no wall-clock wait needed.
 import { randomUUID } from 'node:crypto';
 import * as schema from '@arch-canvas/database';
 import { MIGRATIONS_FOLDER } from '@arch-canvas/database';
+import { sql } from 'drizzle-orm';
 import { drizzle, type NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { migrate as runMigrations } from 'drizzle-orm/node-postgres/migrator';
 import type { FastifyInstance } from 'fastify';
@@ -50,7 +71,6 @@ describe('BOOT-08 under real Postgres concurrency (concurrency-proof, CCP-05..07
   let scratchDatabaseName: string;
   let pool: Pool;
   let db: NodePgDatabase<typeof schema>;
-  let app: FastifyInstance;
 
   beforeAll(async () => {
     const databaseUrl = requireDatabaseUrl();
@@ -71,18 +91,12 @@ describe('BOOT-08 under real Postgres concurrency (concurrency-proof, CCP-05..07
     pool = new Pool({ connectionString: toDatabaseUrl(databaseUrl, scratchDatabaseName) });
     db = drizzle(pool, { schema });
     await runMigrations(db, { migrationsFolder: MIGRATIONS_FOLDER });
-
-    const config = loadConfig({ NODE_ENV: 'test' });
-    app = buildServer(config);
-    await registerAuthModule(app, { db, config });
-    await app.ready();
   });
 
   afterAll(async () => {
     // CCP-05 edge case: when requireDatabaseUrl() threw in beforeAll, none of the below were
     // ever assigned — cleanup is a no-op rather than a second, noisier error masking the first.
     if (!adminUrl) return;
-    await app.close();
     await pool.end();
 
     const admin = new Client({ connectionString: adminUrl });
@@ -94,41 +108,81 @@ describe('BOOT-08 under real Postgres concurrency (concurrency-proof, CCP-05..07
     }
   });
 
-  it('two concurrent POST /auth/first-run with different bodies, against an empty users table, resolve to exactly one 201 and one 409, leaving exactly one row in users (CCP-05..07)', async () => {
-    // CCP-05: fired via Promise.all — real concurrent connections, not sequential awaits. Real
-    // Postgres's `pg_advisory_xact_lock` in bootstrapInstance decides the outcome, not
-    // Promise.all's call order.
+  /** Total repetitions of the race, and how many run against one app before rotating to a fresh one — see the file header. */
+  const RACE_REPETITIONS = 15;
+  const RACES_PER_APP = 4;
+
+  /** Fires two concurrent `POST /auth/first-run` over a real socket. */
+  async function runFirstRunRace(
+    baseUrl: string,
+    label: string,
+  ): Promise<{ statuses: [number, number]; userCount: number }> {
     const [responseA, responseB] = await Promise.all([
-      app.inject({
+      fetch(`${baseUrl}/auth/first-run`, {
         method: 'POST',
-        url: '/auth/first-run',
-        payload: {
-          email: 'ccp-first-a@example.com',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          email: `ccp-first-a-${label}@example.com`,
           displayName: 'CCP First A',
           password: 'ccp-first-run-password-a',
-          workspaceName: 'CCP First Workspace A',
-        },
+          workspaceName: `CCP First Workspace A ${label}`,
+        }),
       }),
-      app.inject({
+      fetch(`${baseUrl}/auth/first-run`, {
         method: 'POST',
-        url: '/auth/first-run',
-        payload: {
-          email: 'ccp-first-b@example.com',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          email: `ccp-first-b-${label}@example.com`,
           displayName: 'CCP First B',
           password: 'ccp-first-run-password-b',
-          workspaceName: 'CCP First Workspace B',
-        },
+          workspaceName: `CCP First Workspace B ${label}`,
+        }),
       }),
     ]);
 
-    // CCP-06: exactly one 201 (the winner) and one 409 (the loser, blocked by firstRun.ts's
-    // InstanceAlreadyInitializedError once the winner's account already committed).
-    const statuses = [responseA.statusCode, responseB.statusCode].sort((a, b) => a - b);
-    expect(statuses).toEqual([201, 409]);
-
-    // CCP-07: the database itself, not the HTTP responses, is the source of truth for what
-    // actually persisted.
     const rows = await db.select({ id: schema.users.id }).from(schema.users);
-    expect(rows).toHaveLength(1);
+    return { statuses: [responseA.status, responseB.status], userCount: rows.length };
+  }
+
+  it(`${RACE_REPETITIONS} repeated races, each two concurrent POST /auth/first-run against an empty users table, EVERY one resolves to exactly one 201 and one 409, leaving exactly one row in users (CCP-05..07)`, async () => {
+    let attempt = 0;
+    while (attempt < RACE_REPETITIONS) {
+      const config = loadConfig({ NODE_ENV: 'test' });
+      const app: FastifyInstance = buildServer(config);
+      await registerAuthModule(app, { db, config });
+      await app.listen({ port: 0, host: '127.0.0.1' });
+      const address = app.server.address();
+      if (!address || typeof address === 'string') throw new Error('server has no address');
+      const baseUrl = `http://127.0.0.1:${address.port}`;
+
+      try {
+        const batchEnd = Math.min(attempt + RACES_PER_APP, RACE_REPETITIONS);
+        for (; attempt < batchEnd; attempt += 1) {
+          // `users` starts empty from migration on attempt 0; TRUNCATE resets it back to empty
+          // before every later attempt, without tearing down the pool/db connection.
+          if (attempt > 0) {
+            await db.execute(
+              sql`truncate table users, organizations, workspaces restart identity cascade`,
+            );
+          }
+
+          const { statuses, userCount } = await runFirstRunRace(baseUrl, `attempt-${attempt}`);
+
+          // CCP-06: exactly one 201 (the winner) and one 409 (the loser, blocked by
+          // firstRun.ts's InstanceAlreadyInitializedError once the winner's account already
+          // committed) — on EVERY attempt, not just one measured sample (see file header).
+          expect(
+            [...statuses].sort((a, b) => a - b),
+            `attempt ${attempt}`,
+          ).toEqual([201, 409]);
+
+          // CCP-07: the database itself, not the HTTP responses, is the source of truth for
+          // what actually persisted.
+          expect(userCount, `attempt ${attempt}`).toBe(1);
+        }
+      } finally {
+        await app.close();
+      }
+    }
   });
 });
