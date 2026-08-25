@@ -561,5 +561,24 @@
     "title": "Something broke on this screen",
     "message": "This screen stopped responding because of an unexpected error. The rest of the app still works.",
     "reload": "Reload the screen"
+  },
+  "firstRun": {
+    "title": "First run",
+    "intro": "This instance has no account yet. Create the initial administrator to get started.",
+    "emailLabel": "Email",
+    "displayNameLabel": "Your name",
+    "passwordLabel": "Password",
+    "passwordHint": "At least 12 characters.",
+    "workspaceLabel": "Workspace name",
+    "submit": "Create administrator",
+    "submitting": "Creating…",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidPassword": "The password must be at least 12 characters.",
+    "invalidDisplayName": "Enter your name.",
+    "invalidWorkspaceName": "Enter the workspace name.",
+    "invalidUnknown": "The account could not be created with these details.",
+    "alreadyInitialized": "This instance is already initialized. Sign in with your credentials.",
+    "rateLimited": "Too many attempts. Wait a minute and try again.",
+    "error": "The account could not be created. Try again."
   }
 }
