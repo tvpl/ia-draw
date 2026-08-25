@@ -121,17 +121,17 @@ depois de criar e ver o formulário de login.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BOOT-01 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-02 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-03 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-04 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-05 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-06 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-07 | P1: Primeiro acesso a uma instância nova | Tasks | Pending |
-| BOOT-08 | P1: A porta se fecha sozinha | Tasks | Pending |
-| BOOT-09 | P1: A porta se fecha sozinha | Tasks | Pending |
-| BOOT-10 | P1: A porta se fecha sozinha | Tasks | Pending |
-| BOOT-11 | P1: A porta se fecha sozinha | Tasks | Pending |
+| BOOT-01 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
+| BOOT-02 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
+| BOOT-03 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T1) |
+| BOOT-04 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
+| BOOT-05 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
+| BOOT-06 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
+| BOOT-07 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T1) |
+| BOOT-08 | P1: A porta se fecha sozinha | Implementing | Implementing (T1) |
+| BOOT-09 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
+| BOOT-10 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
+| BOOT-11 | P1: A porta se fecha sozinha | Implementing | Implementing (T4) |
 | BOOT-12 | P2: A tela de primeiro acesso | Tasks | Pending |
 | BOOT-13 | P2: A tela de primeiro acesso | Tasks | Pending |
 | BOOT-14 | P2: A tela de primeiro acesso | Tasks | Pending |

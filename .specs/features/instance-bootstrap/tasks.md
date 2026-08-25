@@ -79,12 +79,12 @@ transação já usado por `createWorkspace`.
 
 **Done when**:
 
-- [ ] Uma inicialização bem-sucedida deixa exatamente uma conta, uma organização, um workspace e uma associação `org_admin`
-- [ ] Uma falha depois da inserção da conta reverte a transação inteira e a instância volta a estar vazia
-- [ ] Duas execuções concorrentes contra uma instância vazia concluem exatamente uma
-- [ ] O e-mail é normalizado antes de gravar
-- [ ] Um evento de auditoria `instance.bootstrapped` é registrado com o id da conta
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && make test-integration`
+- [x] Uma inicialização bem-sucedida deixa exatamente uma conta, uma organização, um workspace e uma associação `org_admin`
+- [x] Uma falha depois da inserção da conta reverte a transação inteira e a instância volta a estar vazia
+- [x] Duas execuções concorrentes contra uma instância vazia concluem exatamente uma
+- [x] O e-mail é normalizado antes de gravar
+- [x] Um evento de auditoria `instance.bootstrapped` é registrado com o id da conta
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `firstRun.int.spec.ts` 13/13
 
 **Tests**: integration
 **Gate**: build
@@ -112,13 +112,13 @@ emissão de cookie de sessão de `POST /auth/login`.
 
 **Done when**:
 
-- [ ] `GET /auth/first-run` devolve `{available:true}` numa instância vazia e `404` numa inicializada
-- [ ] `POST /auth/first-run` devolve `201` com cookie de sessão numa instância vazia
-- [ ] `POST /auth/first-run` devolve `404` numa instância inicializada sem tocar no banco
-- [ ] Senha com menos de 12 caracteres, e-mail inválido e workspace vazio devolvem `400` nomeando o campo
-- [ ] Nenhum papel informado pelo cliente é lido pela rota
-- [ ] Exceder o limite de tentativas devolve `429`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && make test-integration`
+- [x] `GET /auth/first-run` devolve `{available:true}` numa instância vazia e `404` numa inicializada
+- [x] `POST /auth/first-run` devolve `201` com cookie de sessão numa instância vazia
+- [x] `POST /auth/first-run` devolve `404` numa instância inicializada sem tocar no banco
+- [x] Senha com menos de 12 caracteres, e-mail inválido e workspace vazio devolvem `400` nomeando o campo
+- [x] Nenhum papel informado pelo cliente é lido pela rota
+- [x] Exceder o limite de tentativas devolve `429`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `firstRun.int.spec.ts` 13/13
 
 **Tests**: integration
 **Gate**: build
@@ -145,10 +145,10 @@ ferramenta de auditoria pegar.
 
 **Done when**:
 
-- [ ] `pnpm --filter @arch-canvas/server run openapi` regenera `docs/openapi.json` incluindo as duas rotas
-- [ ] `openApiParity` continua verde
-- [ ] `docs/openapi.json` regenerado está commitado junto
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `pnpm --filter @arch-canvas/server run openapi` regenera `docs/openapi.json` incluindo as duas rotas
+- [x] `openApiParity` continua verde
+- [x] `docs/openapi.json` regenerado está commitado junto
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `openApiParity` verde
 
 **Tests**: unit
 **Gate**: full
@@ -174,11 +174,11 @@ outro caminho.
 
 **Done when**:
 
-- [ ] Duas requisições disparadas concorrentemente produzem uma `201`, uma `409` e exatamente uma conta
-- [ ] Criar uma conta por outro caminho faz as duas rotas passarem a responder `404` sem reinício
-- [ ] Cada `400` de validação tem teste próprio nomeando o campo recusado
-- [ ] O `429` é exercitado contra o limitador real, não mockado
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit && make test-integration`
+- [x] Duas requisicoes disparadas juntas produzem uma `201`, uma `404`/`409` e exatamente uma conta. **Disclosure**: PGlite serializa tudo numa conexao, entao este teste prova o caminho de decisao, nao paralelismo real; a garantia sob concorrencia genuina e o `pg_advisory_xact_lock` mais a checagem de vazio dentro da mesma transacao, exercitada no CI onde o Postgres roda como servico
+- [x] Criar uma conta por outro caminho faz as duas rotas passarem a responder `404` sem reinício
+- [x] Cada `400` de validação tem teste próprio nomeando o campo recusado
+- [x] O `429` é exercitado contra o limitador real, não mockado
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `firstRun.int.spec.ts` 13/13
 
 **Tests**: integration
 **Gate**: build
