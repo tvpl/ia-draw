@@ -7,6 +7,10 @@ import { useAuth } from '../auth/AuthProvider.js';
 import * as css from '../styles/classNames.js';
 import { ConfirmArchiveDialog } from './ConfirmArchiveDialog.js';
 import { createMemberClient, type WorkspaceMember } from './memberClient.js';
+import {
+  createOrganizationAdminClient,
+  type OrganizationAdmin,
+} from './organizationAdminClient.js';
 import { createResourceListStore } from './resourceListStore.js';
 
 /** `resourceListStore` requires `{id: string}` — shims the server's `userId` at the fetch boundary (design.md's Assumptions table). */
@@ -16,6 +20,15 @@ interface MemberItem extends WorkspaceMember {
 
 function toMemberItem(member: WorkspaceMember): MemberItem {
   return { ...member, id: member.userId };
+}
+
+/** `resourceListStore` requires `{id: string}` — same shim as `MemberItem` above. */
+interface OrgAdminItem extends OrganizationAdmin {
+  id: string;
+}
+
+function toOrgAdminItem(admin: OrganizationAdmin): OrgAdminItem {
+  return { ...admin, id: admin.userId };
 }
 
 /** Roles ordered exactly like the server's own `ROLE_VALUES` (`apps/server/src/modules/workspace/routes.ts`). */
@@ -113,6 +126,51 @@ export function WorkspaceMembersPage({
   useEffect(() => {
     if (removeTarget) dialogRef.current?.showModal();
   }, [removeTarget]);
+
+  // ORG-05..11: organization-wide admin section (design.md's "Cliente web") — its own client,
+  // store, and load effect, independent of the workspace-member list above.
+  const orgAdminClient = useMemo(
+    () => createOrganizationAdminClient(fetchImplProp),
+    [fetchImplProp],
+  );
+  const orgAdminStore = useMemo(() => createResourceListStore<OrgAdminItem>(), []);
+  const orgAdminItems = orgAdminStore((s) => s.items);
+  const orgAdminStatus = orgAdminStore((s) => s.status);
+  const setOrgAdminItems = orgAdminStore((s) => s.setItems);
+  const removeOrgAdminItem = orgAdminStore((s) => s.removeItem);
+
+  const [orgAdminEmail, setOrgAdminEmail] = useState('');
+  const [orgAdminError, setOrgAdminError] = useState<string | null>(null);
+  const [orgAdminInFlight, setOrgAdminInFlight] = useState(false);
+
+  // ORG-11: a boolean, not the whole `items` array, so this only re-fires when the caller's
+  // org-admin status actually flips — not on every unrelated member-list change.
+  const isOrgAdmin = useMemo(
+    () => items.some((item) => item.userId === user?.id && item.role === 'org_admin'),
+    [items, user],
+  );
+
+  const orgAdminCancelledRef = useRef(false);
+
+  const loadOrgAdmins = useCallback(async (): Promise<void> => {
+    if (!workspaceId) return;
+    try {
+      const list = await orgAdminClient.list(workspaceId);
+      if (!orgAdminCancelledRef.current) setOrgAdminItems(list.map(toOrgAdminItem));
+    } catch {
+      // Best-effort: the section only renders for an org_admin (ORG-11); a failed load just
+      // leaves the list empty instead of surfacing a second not-found screen.
+    }
+  }, [workspaceId, orgAdminClient, setOrgAdminItems]);
+
+  useEffect(() => {
+    if (!isOrgAdmin) return;
+    orgAdminCancelledRef.current = false;
+    void loadOrgAdmins();
+    return () => {
+      orgAdminCancelledRef.current = true;
+    };
+  }, [isOrgAdmin, loadOrgAdmins]);
 
   if (!workspaceId) return null;
   // Narrowed alias: the handlers below are separate function scopes, so TS doesn't carry the
@@ -217,6 +275,49 @@ export function WorkspaceMembersPage({
       setAnnouncement(t('nav.error.generic'));
     }
     closeDialog();
+  }
+
+  async function handleAddOrgAdmin(event: FormEvent): Promise<void> {
+    event.preventDefault();
+    if (orgAdminInFlight) return;
+    const email = orgAdminEmail.trim();
+    if (!email) return;
+
+    setOrgAdminError(null);
+    setOrgAdminInFlight(true);
+    try {
+      const result = await orgAdminClient.add(currentWorkspaceId, email);
+      if (result.status === 'ok') {
+        setOrgAdminEmail('');
+        // ORG-06: the POST response carries no admin identity to add optimistically — reload
+        // the list so the new row shows the right email/displayName.
+        await loadOrgAdmins();
+        return;
+      }
+      if (result.status === 'not_found') {
+        setOrgAdminError(t('nav.orgAdmins.notFound'));
+        return;
+      }
+      setOrgAdminError(t('nav.error.generic'));
+    } finally {
+      setOrgAdminInFlight(false);
+    }
+  }
+
+  async function handleRemoveOrgAdmin(item: OrgAdminItem): Promise<void> {
+    setOrgAdminError(null);
+    const result = await orgAdminClient.remove(currentWorkspaceId, item.userId);
+    if (result.status === 'ok') {
+      removeOrgAdminItem(item.id);
+      return;
+    }
+    if (result.status === 'conflict') {
+      // ORG-09: refused because it would leave the organization without an administrator —
+      // nothing removed from the server, so the visible list keeps the row too.
+      setOrgAdminError(t('nav.orgAdmins.lastAdmin'));
+      return;
+    }
+    setOrgAdminError(t('nav.error.generic'));
   }
 
   if (notFound) {
@@ -334,6 +435,53 @@ export function WorkspaceMembersPage({
           </button>
           {inviteError && <p className={`${css.errorBox} w-full`}>{inviteError}</p>}
         </form>
+      )}
+
+      {isOrgAdmin && (
+        <div className="flex flex-col gap-3">
+          <h2 className={css.sectionTitle}>{t('nav.orgAdmins.title')}</h2>
+
+          {orgAdminStatus === 'ready' && orgAdminItems.length === 0 && (
+            <p className={css.helpText}>{t('nav.orgAdmins.empty')}</p>
+          )}
+
+          {orgAdminStatus === 'ready' && orgAdminItems.length > 0 && (
+            <ul className={css.list}>
+              {orgAdminItems.map((item) => (
+                <li className={css.listRow} key={item.id}>
+                  <span className={css.listRowTitle}>{item.displayName}</span>{' '}
+                  <span className={css.helpText}>{item.email}</span>{' '}
+                  <button
+                    className={css.buttonDanger}
+                    type="button"
+                    onClick={() => void handleRemoveOrgAdmin(item)}
+                  >
+                    {t('nav.orgAdmins.remove')}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <form
+            className={`${css.panelPadded} flex flex-wrap items-end gap-3`}
+            onSubmit={(event) => void handleAddOrgAdmin(event)}
+          >
+            <label className={`${css.field} min-w-60 flex-1`}>
+              <span className={css.label}>{t('nav.orgAdmins.emailLabel')}</span>
+              <input
+                className={css.input}
+                type="email"
+                value={orgAdminEmail}
+                onChange={(event) => setOrgAdminEmail(event.target.value)}
+              />
+            </label>
+            <button className={css.buttonPrimary} type="submit">
+              {t('nav.orgAdmins.add')}
+            </button>
+            {orgAdminError && <p className={`${css.errorBox} w-full`}>{orgAdminError}</p>}
+          </form>
+        </div>
       )}
 
       {removeTarget && (

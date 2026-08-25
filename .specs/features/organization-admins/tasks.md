@@ -363,10 +363,10 @@ linha. Rótulos i18n `nav.orgAdmins.*` em `en` e `pt-BR`.
 
 **Done when**:
 
-- [ ] A seção só aparece para quem tem `workspace.role === 'org_admin'`
-- [ ] Conceder atualiza a lista sem recarregar a página
-- [ ] Revogar mostra a mensagem de `409` quando aplicável, sem remover ninguém da lista visível
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] A seção só aparece para quem tem `workspace.role === 'org_admin'`
+- [x] Conceder atualiza a lista sem recarregar a página
+- [x] Revogar mostra a mensagem de `409` quando aplicável, sem remover ninguém da lista visível
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full

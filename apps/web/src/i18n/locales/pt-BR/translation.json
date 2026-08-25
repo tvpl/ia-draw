@@ -205,6 +205,15 @@
       "yourRole": "Seu papel",
       "noPermission": "Você não tem permissão para isto neste workspace."
     },
+    "orgAdmins": {
+      "title": "Administradores da organização",
+      "add": "Adicionar",
+      "remove": "Remover",
+      "emailLabel": "E-mail",
+      "notFound": "Nenhuma conta encontrada com esse e-mail.",
+      "lastAdmin": "Isso deixaria a organização sem nenhum administrador.",
+      "empty": "Esta organização ainda não tem administradores listados."
+    },
     "webhooks": {
       "link": "Webhooks",
       "title": "Webhooks",

@@ -641,3 +641,203 @@ describe('WorkspaceMembersPage — effective role on screen (RBAC-13, RBAC-14)',
     expect(await screen.findByText(/Seu papel: Revisor/)).toBeDefined();
   });
 });
+
+describe('WorkspaceMembersPage — P1: Administradores da organização (ORG-05..11)', () => {
+  function orgAdminMembers() {
+    return [
+      {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        role: 'org_admin',
+        email: 'me@example.com',
+        displayName: 'Me',
+      },
+    ];
+  }
+
+  function workspaceAdminMembers() {
+    return [
+      {
+        userId: 'user-1',
+        workspaceId: 'ws-1',
+        role: 'workspace_admin',
+        email: 'me@example.com',
+        displayName: 'Me',
+      },
+    ];
+  }
+
+  function orgAdminsResponse(items: unknown[]): Response {
+    return jsonResponse(200, { items });
+  }
+
+  it("shows the section (list + form) only when the caller's effective role in this workspace is org_admin (ORG-11)", async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins') return orgAdminsResponse([]);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('Administradores da organização')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Adicionar' })).toBeTruthy();
+  });
+
+  it('never shows the section, and never fetches its list, for a workspace_admin who is not org_admin (ORG-11)', async () => {
+    const rawFetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(workspaceAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins')
+        throw new Error('unexpected fetch of the organization-admins list');
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const fetchImpl = rawFetchImpl as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    await screen.findByRole('button', { name: 'Convidar' });
+    expect(screen.queryByText('Administradores da organização')).toBeNull();
+    expect(
+      rawFetchImpl.mock.calls.some(([url]) => url === '/workspaces/ws-1/organization-admins'),
+    ).toBe(false);
+  });
+
+  it('lists the organization administrators for an org_admin caller (ORG-05)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins')
+        return orgAdminsResponse([
+          { userId: 'user-1', email: 'me@example.com', displayName: 'Me' },
+          { userId: 'user-2', email: 'ann@example.com', displayName: 'Ann' },
+        ]);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(await screen.findByText('ann@example.com')).toBeTruthy();
+    expect(screen.getByText('Ann')).toBeTruthy();
+  });
+
+  it('the empty state message shows when the organization has no administrators listed (edge case)', async () => {
+    const fetchImpl = vi.fn(async (url: string) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins') return orgAdminsResponse([]);
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+
+    expect(
+      await screen.findByText('Esta organização ainda não tem administradores listados.'),
+    ).toBeTruthy();
+  });
+
+  it('granting an existing email POSTs {email} and reloads the list so the new admin appears, with no page navigation (ORG-06)', async () => {
+    let listCalls = 0;
+    const rawFetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins' && (!init || init.method === undefined)) {
+        listCalls += 1;
+        if (listCalls === 1) return orgAdminsResponse([]);
+        return orgAdminsResponse([
+          { userId: 'user-2', email: 'carol@example.com', displayName: 'Carol' },
+        ]);
+      }
+      if (url === '/workspaces/ws-1/organization-admins' && init?.method === 'POST') {
+        expect(JSON.parse(init.body as string)).toEqual({ email: 'carol@example.com' });
+        return jsonResponse(201, { ok: true });
+      }
+      throw new Error(`unexpected fetch: ${url}`);
+    });
+    const fetchImpl = rawFetchImpl as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const sectionTitle = await screen.findByText('Administradores da organização');
+    const orgAdminsSection = sectionTitle.closest('div') as HTMLElement;
+
+    fireEvent.change(within(orgAdminsSection).getByLabelText('E-mail'), {
+      target: { value: 'carol@example.com' },
+    });
+    fireEvent.click(within(orgAdminsSection).getByRole('button', { name: 'Adicionar' }));
+
+    expect(await screen.findByText('Carol')).toBeTruthy();
+    expect(listCalls).toBe(2);
+  });
+
+  it('granting an email matching no existing user shows a clear message and adds nobody (ORG-07)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins' && !init) return orgAdminsResponse([]);
+      if (url === '/workspaces/ws-1/organization-admins' && init?.method === 'POST')
+        return jsonResponse(404, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const sectionTitle = await screen.findByText('Administradores da organização');
+    const orgAdminsSection = sectionTitle.closest('div') as HTMLElement;
+
+    fireEvent.change(within(orgAdminsSection).getByLabelText('E-mail'), {
+      target: { value: 'nobody@example.com' },
+    });
+    fireEvent.click(within(orgAdminsSection).getByRole('button', { name: 'Adicionar' }));
+
+    expect(await screen.findByText('Nenhuma conta encontrada com esse e-mail.')).toBeTruthy();
+  });
+
+  it('revoking removes the admin from the visible list on success (ORG-08)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins' && !init)
+        return orgAdminsResponse([
+          { userId: 'user-1', email: 'me@example.com', displayName: 'Me' },
+          { userId: 'user-2', email: 'ann@example.com', displayName: 'Ann' },
+        ]);
+      if (url === '/workspaces/ws-1/organization-admins/user-2' && init?.method === 'DELETE')
+        return new Response(null, { status: 204 });
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const annRow = (await screen.findByText('Ann')).closest('li') as HTMLElement;
+
+    fireEvent.click(within(annRow).getByRole('button', { name: 'Remover' }));
+
+    await waitFor(() => expect(screen.queryByText('Ann')).toBeNull());
+  });
+
+  it('a revoke that would leave the organization without an administrator shows the reason and keeps the admin listed (ORG-09)', async () => {
+    const fetchImpl = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/me') return meResponse();
+      if (url === '/workspaces/ws-1/members') return membersResponse(orgAdminMembers());
+      if (url === '/workspaces/ws-1/organization-admins' && !init)
+        return orgAdminsResponse([
+          { userId: 'user-1', email: 'me@example.com', displayName: 'Me' },
+        ]);
+      if (url === '/workspaces/ws-1/organization-admins/user-1' && init?.method === 'DELETE')
+        return jsonResponse(409, {});
+      throw new Error(`unexpected fetch: ${url}`);
+    }) as unknown as typeof fetch;
+
+    renderPage(fetchImpl);
+    const sectionTitle = await screen.findByText('Administradores da organização');
+    const orgAdminsSection = sectionTitle.closest('div') as HTMLElement;
+    const meRow = within(orgAdminsSection).getByText('me@example.com').closest('li') as HTMLElement;
+
+    fireEvent.click(within(meRow).getByRole('button', { name: 'Remover' }));
+
+    expect(
+      await screen.findByText('Isso deixaria a organização sem nenhum administrador.'),
+    ).toBeTruthy();
+    // Refused server-side — the row must still be visible.
+    expect(within(orgAdminsSection).getByText('me@example.com')).toBeTruthy();
+  });
+});
