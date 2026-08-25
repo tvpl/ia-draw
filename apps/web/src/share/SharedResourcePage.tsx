@@ -83,7 +83,19 @@ export function SharedResourcePage({ fetchImpl }: SharedResourcePageProps): JSX.
             onNavigate={setCurrentIndex}
             renderCanvas={(frame) => (
               <div className="h-[80vh]">
-                <EditorSurface initialElements={cropSceneForFrame(scene, frame)} viewModeEnabled />
+                {/* SRF-01/02/03: `key={frame.id}` forces React to unmount/remount
+                    `EditorSurface` on every frame change. The real `<Excalidraw/>`
+                    only reads `initialData` at mount time — changing the
+                    `initialElements` prop on an already-mounted instance is
+                    silently ignored by the real component (see
+                    `EditorSurface.tsx`'s `initialData` comment). `viewModeEnabled`
+                    is always `true` here, so there is no local edit state a
+                    remount could lose. */}
+                <EditorSurface
+                  key={frame.id}
+                  initialElements={cropSceneForFrame(scene, frame)}
+                  viewModeEnabled
+                />
               </div>
             )}
           />

@@ -79,9 +79,9 @@ próximo frame, e ver o canvas mudar de conteúdo (não apenas o indicador de po
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SRF-01 | P1: A apresentação pública navega de verdade | Tasks | Pending |
+| SRF-01 | P1: A apresentação pública navega de verdade | T1 | Done |
 | SRF-02 | P1: A apresentação pública navega de verdade | Tasks | Pending |
-| SRF-03 | P1: A apresentação pública navega de verdade | Tasks | Pending |
+| SRF-03 | P1: A apresentação pública navega de verdade | T1 | Done |
 | SRF-04 | P1: A apresentação pública navega de verdade | Tasks | Pending |
 
 **Coverage:** 4 total, 4 mapeados para tasks, 0 sem mapeamento.

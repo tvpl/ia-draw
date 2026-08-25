@@ -68,9 +68,9 @@ T3 -> T4
 
 **Done when**:
 
-- [ ] `<EditorSurface>` na ramificação `presentation` recebe `key={frame.id}`
-- [ ] A ramificação de diagrama compartilhado (sem apresentação) permanece sem `key` — monta uma vez, nunca navega
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `<EditorSurface>` na ramificação `presentation` recebe `key={frame.id}`
+- [x] A ramificação de diagrama compartilhado (sem apresentação) permanece sem `key` — monta uma vez, nunca navega
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
