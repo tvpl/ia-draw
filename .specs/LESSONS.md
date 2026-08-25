@@ -344,6 +344,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: UIF-17, UIF-10 (acao de tentar novamente) (planning)
 - last seen: 2026-08-25T07:16:26Z
 
+### L-056 - Antes de mudar como um papel e resolvido, procure TODA consulta que faz join na tabela de associacao: uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `authorization` · harmful: 0
+- features: rbac-clarity
+- evidence: apps/server/src/modules/workspace/workspaces.ts getWorkspaceById (authorization)
+- last seen: 2026-08-25T07:32:45Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

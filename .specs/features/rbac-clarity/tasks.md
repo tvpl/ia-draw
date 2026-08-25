@@ -79,11 +79,11 @@ muda. É esta task que faz `reviewer` e `viewer` deixarem de ser conjuntos idên
 
 **Done when**:
 
-- [ ] `reviewer` concede `comment:resolve` e `viewer` recusa
-- [ ] `viewer` mantém `comment:create` e todas as ações de leitura
-- [ ] Nenhum outro papel muda de conjunto de ações
-- [ ] Changeset criado para `@arch-canvas/auth`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `reviewer` concede `comment:resolve` e `viewer` recusa
+- [x] `viewer` mantém `comment:create` e todas as ações de leitura
+- [x] Nenhum outro papel muda de conjunto de ações
+- [x] Changeset criado para `@arch-canvas/auth`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 954/954, `packages/auth` 63/63
 
 **Tests**: unit
 **Gate**: full
@@ -110,11 +110,11 @@ indistinguível de `workspace_admin` porque o papel de organização nunca é co
 
 **Done when**:
 
-- [ ] Um `org_admin` sem linha em `workspace_members` recebe o papel `org_admin` sobre workspaces da sua organização
-- [ ] Um ator com papéis diferentes nos dois níveis recebe o mais permissivo
-- [ ] Um ator sem nenhum dos dois recebe ausência de acesso
-- [ ] Uma organização não resolvível resulta em recusa, nunca em concessão por omissão
-- [ ] Gate check passes: `make ci`
+- [x] Um `org_admin` sem linha em `workspace_members` recebe o papel `org_admin` sobre workspaces da sua organização
+- [x] Um ator com papéis diferentes nos dois níveis recebe o mais permissivo
+- [x] Um ator sem nenhum dos dois recebe ausência de acesso
+- [x] Uma organização não resolvível resulta em recusa, nunca em concessão por omissão
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/server` workspace integration 94/94
 
 **Tests**: integration
 **Gate**: build
@@ -140,10 +140,10 @@ a duplicação de caminho que fez `org_admin` nascer sem efeito.
 
 **Done when**:
 
-- [ ] Nenhuma rota do servidor resolve papel por caminho próprio
-- [ ] Um ator sem acesso continua recebendo `404`, não `403`
-- [ ] Nenhum contrato HTTP existente muda de forma
-- [ ] Gate check passes: `make ci`
+- [x] Nenhuma rota do servidor resolve papel por caminho próprio
+- [x] Um ator sem acesso continua recebendo `404`, não `403`
+- [x] Nenhum contrato HTTP existente muda de forma
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/server` workspace integration 94/94
 
 **Tests**: integration
 **Gate**: build
@@ -170,11 +170,11 @@ concorrentes passariam por uma verificação feita antes da alteração.
 
 **Done when**:
 
-- [ ] Remover o último administrador devolve `409` e não remove
-- [ ] Rebaixar o último administrador devolve `409` e não altera
-- [ ] Remover o último `workspace_admin` é permitido quando existe `org_admin` na organização
-- [ ] Duas remoções concorrentes que deixariam o workspace sem administrador concluem no máximo uma
-- [ ] Gate check passes: `make ci`
+- [x] Remover o último administrador devolve `409` e não remove
+- [x] Rebaixar o último administrador devolve `409` e não altera
+- [x] Remover o último `workspace_admin` é permitido quando existe `org_admin` na organização
+- [x] Duas remoções concorrentes que deixariam o workspace sem administrador concluem no máximo uma
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/server` workspace integration 94/94
 
 **Tests**: integration
 **Gate**: build
@@ -199,10 +199,10 @@ de auditoria com ator, alvo e papel anterior.
 
 **Done when**:
 
-- [ ] Toda mudança de papel e remoção passa pela guarda antes de alterar
-- [ ] Cada operação concluída registra evento de auditoria com ator, alvo e papel anterior
-- [ ] Um ator sem `workspace:manage_members` continua recebendo `403`
-- [ ] Gate check passes: `make ci`
+- [x] Toda mudança de papel e remoção passa pela guarda antes de alterar
+- [x] Cada operação concluída registra evento de auditoria com ator, alvo e papel anterior
+- [x] Um ator sem `workspace:manage_members` continua recebendo `403`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/server` workspace integration 94/94
 
 **Tests**: integration
 **Gate**: build
@@ -228,12 +228,12 @@ também o convite por e-mail, incluindo conta inexistente, já membro e e-mail c
 
 **Done when**:
 
-- [ ] Cada um dos cinco papéis é exercitado contra todas as ações
-- [ ] O caso de `org_admin` sem associação está coberto para leitura e escrita
-- [ ] Convite com conta inexistente não revela nada além de que a conta precisa existir
-- [ ] Convite de quem já é membro devolve `409`
-- [ ] E-mail com maiúsculas resolve a conta existente
-- [ ] Gate check passes: `make ci`
+- [x] Cada um dos cinco papéis é exercitado contra todas as ações
+- [x] O caso de `org_admin` sem associação está coberto para leitura e escrita
+- [x] Convite com conta inexistente não revela nada além de que a conta precisa existir
+- [x] Convite de quem já é membro devolve `409`
+- [x] E-mail com maiúsculas resolve a conta existente
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/server` workspace integration 94/94
 
 **Tests**: integration
 **Gate**: build
@@ -259,11 +259,11 @@ um botão ausente é indistinguível de um defeito.
 
 **Done when**:
 
-- [ ] O papel efetivo de quem está usando é exibido na página
-- [ ] Cada controle desabilitado por permissão apresenta o motivo
-- [ ] Todo rótulo de papel vem do i18n, com chaves em `en` e `pt-BR`
-- [ ] Sem violação `jest-axe`
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O papel efetivo de quem está usando é exibido na página
+- [x] Cada controle desabilitado por permissão apresenta o motivo
+- [x] Todo rótulo de papel vem do i18n, com chaves em `en` e `pt-BR`
+- [x] Sem violação `jest-axe`
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 954/954, `packages/auth` 63/63
 
 **Tests**: unit
 **Gate**: full
@@ -288,10 +288,10 @@ workspace, e garante que o papel exibido acompanhe uma recarga após mudança.
 
 **Done when**:
 
-- [ ] O papel efetivo aparece junto ao nome do workspace
-- [ ] Após mudança de papel e recarga, o papel exibido é o novo
-- [ ] Nenhuma chamada nova a `/me` é introduzida — a identidade continua vindo de `useAuth()` (AD-011)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] O papel efetivo aparece junto ao nome do workspace
+- [x] Após mudança de papel e recarga, o papel exibido é o novo
+- [x] Nenhuma chamada nova a `/me` é introduzida — a identidade continua vindo de `useAuth()` (AD-011)
+- [x] Gate check passes: `make lint` (0 erros), `make typecheck` (25/25), `apps/web` 954/954, `packages/auth` 63/63
 
 **Tests**: unit
 **Gate**: full

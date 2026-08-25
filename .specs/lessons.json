@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 56,
+  "next_id": 57,
   "lessons": [
     {
       "id": "L-001",
@@ -996,6 +996,24 @@
       ],
       "created": "2026-08-25T07:16:26Z",
       "last_seen": "2026-08-25T07:16:26Z"
+    },
+    {
+      "id": "L-056",
+      "key": "ac_gap::antes de mudar como um papel e resolvido procure toda consulta que faz join na tabela de associacao uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente",
+      "text": "Antes de mudar como um papel e resolvido, procure TODA consulta que faz join na tabela de associacao: uma query que descobre acesso por conta propria e um segundo caminho de autorizacao e anula a mudanca silenciosamente.",
+      "signal": "ac_gap",
+      "scope": "authorization",
+      "status": "candidate",
+      "features": [
+        "rbac-clarity"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "apps/server/src/modules/workspace/workspaces.ts getWorkspaceById (authorization)"
+      ],
+      "created": "2026-08-25T07:32:45Z",
+      "last_seen": "2026-08-25T07:32:45Z"
     }
   ]
 }

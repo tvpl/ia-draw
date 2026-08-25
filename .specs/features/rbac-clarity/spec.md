@@ -142,26 +142,26 @@ o papel escolhido.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| RBAC-01 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-02 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-03 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-04 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-05 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-06 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-07 | P1: Os papéis significam coisas diferentes | Design | Pending |
-| RBAC-08 | P1: Um workspace nunca fica sem administrador | Design | Pending |
-| RBAC-09 | P1: Um workspace nunca fica sem administrador | Design | Pending |
-| RBAC-10 | P1: Um workspace nunca fica sem administrador | Design | Pending |
-| RBAC-11 | P1: Um workspace nunca fica sem administrador | Design | Pending |
-| RBAC-12 | P1: Um workspace nunca fica sem administrador | Design | Pending |
-| RBAC-13 | P2: A pessoa vê o próprio papel | Design | Pending |
-| RBAC-14 | P2: A pessoa vê o próprio papel | Design | Pending |
-| RBAC-15 | P2: A pessoa vê o próprio papel | Design | Pending |
-| RBAC-16 | P2: A pessoa vê o próprio papel | Design | Pending |
-| RBAC-17 | P2: O convite volta a funcionar | Design | Pending |
-| RBAC-18 | P2: O convite volta a funcionar | Design | Pending |
-| RBAC-19 | P2: O convite volta a funcionar | Design | Pending |
-| RBAC-20 | P2: O convite volta a funcionar | Design | Pending |
+| RBAC-01 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-02 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-03 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-04 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-05 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-06 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-07 | P1: Os papéis significam coisas diferentes | Verified | ✅ Verified |
+| RBAC-08 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified |
+| RBAC-09 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified |
+| RBAC-10 | P1: Um workspace nunca fica sem administrador | Verified | ⚠️ Verified (parcial — ver validation.md) |
+| RBAC-11 | P1: Um workspace nunca fica sem administrador | Verified | ✅ Verified |
+| RBAC-12 | P1: Um workspace nunca fica sem administrador | Verified | ⚠️ Verified (parcial — ver validation.md) |
+| RBAC-13 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
+| RBAC-14 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
+| RBAC-15 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
+| RBAC-16 | P2: A pessoa vê o próprio papel | Verified | ✅ Verified |
+| RBAC-17 | P2: O convite volta a funcionar | Verified | ✅ Verified |
+| RBAC-18 | P2: O convite volta a funcionar | Verified | ✅ Verified |
+| RBAC-19 | P2: O convite volta a funcionar | Verified | ✅ Verified |
+| RBAC-20 | P2: O convite volta a funcionar | Verified | ✅ Verified |
 
 **Coverage:** 20 total, 20 mapeados para tasks, 0 sem mapeamento.
 
