@@ -54,8 +54,8 @@ export interface Decision {
  * action (org_admin ⊇ workspace_admin). `workspace_admin` ⊇ `editor`.
  * `editor` holds every write action including `diagram:mutate`.
  *
- * `reviewer` and `viewer` hold only `*:read` actions plus `comment:*`
- * (T69) among the actions below — the spec's "editor > reviewer > viewer"
+ * `reviewer` holds `*:read` plus both comment actions; `viewer` holds `*:read` plus
+ * `comment:create` only (RBAC-03) — the spec's "editor > reviewer > viewer"
  * ordering is a privilege ranking (reviewer sits above viewer
  * organizationally), not a claim that reviewer holds any *write* action
  * viewer lacks. Critically, `diagram:mutate` is denied to reviewer
@@ -73,8 +73,18 @@ const WRITE_ACTIONS: readonly Action[] = [
   'diagram:mutate',
 ];
 
-/** T69 (CMT-01/02): granted to every role — see the `Action` docstring above for why this is a third axis, never derived from `diagram:write`/`diagram:mutate`. */
+/**
+ * T69 (CMT-01/02): a third axis, never derived from `diagram:write`/`diagram:mutate` — see
+ * the `Action` docstring above.
+ *
+ * RBAC-02/03/04 (AD-016) splits the axis in two. Commenting stays open to every role,
+ * because CMT-01 says "a user comments" with no role restriction. Resolving a thread is
+ * closing a discussion, which is what separates reviewing from viewing — and until this
+ * change `reviewer` and `viewer` held byte-identical grant sets, which made the five roles
+ * three and the ranking decorative.
+ */
 const COMMENT_ACTIONS: readonly Action[] = ['comment:create', 'comment:resolve'];
+const VIEWER_COMMENT_ACTIONS: readonly Action[] = ['comment:create'];
 
 const ALL_ACTIONS: readonly Action[] = [...READ_ACTIONS, ...WRITE_ACTIONS, ...COMMENT_ACTIONS];
 
@@ -89,7 +99,7 @@ const ROLE_GRANTS: Readonly<Record<Role, ReadonlySet<Action>>> = {
     ...COMMENT_ACTIONS,
   ]),
   reviewer: new Set([...READ_ACTIONS, ...COMMENT_ACTIONS]),
-  viewer: new Set([...READ_ACTIONS, ...COMMENT_ACTIONS]),
+  viewer: new Set([...READ_ACTIONS, ...VIEWER_COMMENT_ACTIONS]),
 };
 
 /**

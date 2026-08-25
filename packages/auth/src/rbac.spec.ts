@@ -13,7 +13,8 @@ const resource = { workspaceId: 'ws-1' };
  * below rather than only reviewer's.
  *
  * org_admin ⊇ workspace_admin ⊇ editor: all three hold every action.
- * reviewer and viewer hold only `*:read` + `comment:*` in this action set —
+ * reviewer holds `*:read` + both comment actions; viewer holds `*:read` + `comment:create`
+ * only, since AD-016 —
  * see the comment on ROLE_GRANTS in rbac.ts for why reviewer does not gain
  * any *write* action here (editor > reviewer > viewer is a privilege
  * ranking, not a claim reviewer holds a write action viewer lacks).
@@ -73,7 +74,10 @@ const MATRIX: Array<[Role, Action, boolean]> = [
   ['viewer', 'diagram:write', false],
   ['viewer', 'diagram:mutate', false],
   ['viewer', 'comment:create', true],
-  ['viewer', 'comment:resolve', true],
+  // TEST UPDATED (RBAC-03, AD-016): was `true`. Resolving a thread closes a discussion,
+  // which is what separates reviewing from viewing; while both held it, `reviewer` and
+  // `viewer` had byte-identical grant sets and the five roles were really three.
+  ['viewer', 'comment:resolve', false],
 ];
 
 describe('can() — role x action decision matrix (AUTH-02)', () => {
