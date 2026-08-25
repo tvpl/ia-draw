@@ -241,8 +241,9 @@ export function WorkspaceMembersPage({
               <span className={css.listRowTitle}>{item.displayName}</span>{' '}
               <span className={css.helpText}>{item.email}</span>{' '}
               {canManage ? (
-                <>
+                <span className={css.listRowActions}>
                   <select
+                    className={css.select}
                     aria-label={`${t('nav.members.roleLabel')} — ${item.displayName}`}
                     value={item.role}
                     onChange={(event) => void handleRoleChange(item, event.target.value as Role)}
@@ -253,12 +254,18 @@ export function WorkspaceMembersPage({
                       </option>
                     ))}
                   </select>
-                  <button type="button" onClick={() => requestRemove(item)}>
+                  <button
+                    className={css.buttonDanger}
+                    type="button"
+                    onClick={() => requestRemove(item)}
+                  >
                     {t('nav.members.remove')}
                   </button>
-                </>
+                </span>
               ) : (
-                <span>{t(`nav.members.roleOptions.${ROLE_KEY[item.role]}`)}</span>
+                <span className={css.badge}>
+                  {t(`nav.members.roleOptions.${ROLE_KEY[item.role]}`)}
+                </span>
               )}
             </li>
           ))}
@@ -266,18 +273,23 @@ export function WorkspaceMembersPage({
       )}
 
       {canManage && (
-        <form onSubmit={(event) => void handleInviteSubmit(event)}>
-          <label>
-            {t('nav.members.emailLabel')}
+        <form
+          className={`${css.panelPadded} flex flex-wrap items-end gap-3`}
+          onSubmit={(event) => void handleInviteSubmit(event)}
+        >
+          <label className={`${css.field} min-w-60 flex-1`}>
+            <span className={css.label}>{t('nav.members.emailLabel')}</span>
             <input
+              className={css.input}
               type="email"
               value={inviteEmail}
               onChange={(event) => setInviteEmail(event.target.value)}
             />
           </label>
-          <label>
-            {t('nav.members.roleLabel')}
+          <label className={css.field}>
+            <span className={css.label}>{t('nav.members.roleLabel')}</span>
             <select
+              className={css.select}
               value={inviteRole}
               onChange={(event) => setInviteRole(event.target.value as Role | '')}
             >
@@ -289,8 +301,10 @@ export function WorkspaceMembersPage({
               ))}
             </select>
           </label>
-          <button type="submit">{t('nav.members.invite')}</button>
-          {inviteError && <p>{inviteError}</p>}
+          <button className={css.buttonPrimary} type="submit">
+            {t('nav.members.invite')}
+          </button>
+          {inviteError && <p className={`${css.errorBox} w-full`}>{inviteError}</p>}
         </form>
       )}
 

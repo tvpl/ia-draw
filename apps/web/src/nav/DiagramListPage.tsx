@@ -278,36 +278,53 @@ export function DiagramListPage({
               <li className={css.listRow} key={item.id}>
                 {isRenaming ? (
                   <form
+                    className="flex w-full flex-wrap items-center gap-2"
                     onSubmit={(event) => {
                       event.preventDefault();
                       void submitRename(item);
                     }}
                   >
-                    <label>
+                    <label className="flex flex-1 items-center gap-2 text-sm">
                       {t('nav.diagrams.nameLabel')}
                       <input
+                        className={css.input}
                         value={renameValue}
                         onChange={(event) => setRenameValue(event.target.value)}
                       />
                     </label>
-                    <button type="submit">{t('nav.renameSave')}</button>
-                    <button type="button" onClick={cancelRename}>
+                    <button className={css.buttonPrimary} type="submit">
+                      {t('nav.renameSave')}
+                    </button>
+                    <button className={css.buttonSecondary} type="button" onClick={cancelRename}>
                       {t('nav.renameCancel')}
                     </button>
-                    {renameError && <p>{renameError}</p>}
+                    {renameError && <p className={`${css.errorBox} w-full`}>{renameError}</p>}
                   </form>
                 ) : (
                   <>
-                    <Link to={`/w/${workspaceId}/d/${item.id}`}>{item.title}</Link>
+                    <Link
+                      className={`${css.listRowTitle} ${css.link}`}
+                      to={`/w/${workspaceId}/d/${item.id}`}
+                    >
+                      {item.title}
+                    </Link>
                     {canWrite && (
-                      <>
-                        <button type="button" onClick={() => startRename(item)}>
+                      <span className={css.listRowActions}>
+                        <button
+                          className={css.buttonSecondary}
+                          type="button"
+                          onClick={() => startRename(item)}
+                        >
                           {t('nav.rename')}
                         </button>
-                        <button type="button" onClick={() => requestArchive(item)}>
+                        <button
+                          className={css.buttonDanger}
+                          type="button"
+                          onClick={() => requestArchive(item)}
+                        >
                           {t('nav.archive')}
                         </button>
-                      </>
+                      </span>
                     )}
                   </>
                 )}
@@ -318,13 +335,22 @@ export function DiagramListPage({
       )}
 
       {canWrite && (
-        <form onSubmit={(event) => void handleCreate(event)}>
-          <label>
-            {t('nav.diagrams.nameLabel')}
-            <input value={createTitle} onChange={(event) => setCreateTitle(event.target.value)} />
+        <form
+          className={`${css.panelPadded} flex flex-wrap items-end gap-3`}
+          onSubmit={(event) => void handleCreate(event)}
+        >
+          <label className={`${css.field} min-w-60 flex-1`}>
+            <span className={css.label}>{t('nav.diagrams.nameLabel')}</span>
+            <input
+              className={css.input}
+              value={createTitle}
+              onChange={(event) => setCreateTitle(event.target.value)}
+            />
           </label>
-          <button type="submit">{t('nav.diagrams.create')}</button>
-          {createError && <p>{createError}</p>}
+          <button className={css.buttonPrimary} type="submit">
+            {t('nav.diagrams.create')}
+          </button>
+          {createError && <p className={`${css.errorBox} w-full`}>{createError}</p>}
         </form>
       )}
 
