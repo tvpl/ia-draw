@@ -43,6 +43,13 @@ endif
 
 # ---------------------------------------------------------------------------
 # Workspace (pnpm + turbo) — no Docker involved
+#
+# The root `test:unit`/`test:integration` scripts pass `--concurrency=2` to turbo on
+# purpose (GATE-05). Turbo defaults to 10 packages in parallel, each forking its own vitest
+# workers; on a 4-core host that starves Testing Library's 1s `findByText` timeout and makes
+# exactly one apps/web test file fail per run, a different one each time. Capping the
+# concurrency removes the contention instead of tolerating the flake or inflating timeouts
+# spread across the tests.
 # ---------------------------------------------------------------------------
 
 .PHONY: install
@@ -66,12 +73,16 @@ build: check-pnpm ## Build every package (turbo run build)
 	$(PNPM) -w build
 
 .PHONY: test-unit
-test-unit: check-pnpm ## Run unit tests for every package
+test-unit: check-pnpm ## Run unit tests for every package (turbo concurrency is capped in package.json — see below)
 	$(PNPM) -w test:unit
 
 .PHONY: test-integration
 test-integration: check-pnpm ## Run integration tests (real Postgres via PGlite — no Docker needed, see ADR-0007)
 	$(PNPM) -w test:integration
+
+.PHONY: test-integration-backup
+test-integration-backup: check-pnpm ## Run infra/backup's integration suite — needs a REAL Postgres cluster (pg_dump/pg_createcluster), not PGlite; see ADR-0007
+	$(PNPM) --filter @arch-canvas/backup run test:integration:backup
 
 .PHONY: test-e2e
 test-e2e: check-pnpm ## Run apps/web Playwright e2e tests
