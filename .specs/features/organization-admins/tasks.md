@@ -240,9 +240,9 @@ aditivo — nenhuma asserção de BOOT-03 muda.
 
 **Done when**:
 
-- [ ] O `first-run` insere uma linha em `organization_members` para o fundador
-- [ ] Todos os testes existentes de `instance-bootstrap` continuam verdes sem alteração
-- [ ] Gate check passes: `make ci`
+- [x] O `first-run` insere uma linha em `organization_members` para o fundador
+- [x] Todos os testes existentes de `instance-bootstrap` continuam verdes sem alteração
+- [x] Gate check passes: `make ci`
 
 **Tests**: integration
 **Gate**: build

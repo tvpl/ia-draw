@@ -110,6 +110,18 @@ describe('first-run instance bootstrap (BOOT-01..11)', () => {
       expect(cookie?.httpOnly).toBe(true);
     });
 
+    it('also grants the founder organization_members admin, additively (ORG-04)', async () => {
+      await app.inject({ method: 'POST', url: '/auth/first-run', payload: VALID_BODY });
+
+      const [account] = await db.select().from(schema.users);
+      const [org] = await db.select().from(schema.organizations);
+      const orgMembers = await db.select().from(schema.organizationMembers);
+
+      expect(orgMembers).toHaveLength(1);
+      expect(orgMembers[0]?.userId).toBe(account?.id);
+      expect(orgMembers[0]?.organizationId).toBe(org?.id);
+    });
+
     it('normalizes the email so the account can be logged into afterwards (edge case)', async () => {
       await app.inject({ method: 'POST', url: '/auth/first-run', payload: VALID_BODY });
 

@@ -1,4 +1,5 @@
 import {
+  organizationMembers,
   organizations,
   recordAuditEvent,
   users,
@@ -118,6 +119,14 @@ export async function bootstrapInstance(db: Db, input: BootstrapInput): Promise<
     await tx
       .insert(workspaceMembers)
       .values({ workspaceId: workspace.id, userId: user.id, role: 'org_admin' });
+
+    // ORG-04: additive — the founder also administers the organisation itself via the
+    // dedicated organization_members table (the single source ORG-01/03 established), on
+    // top of the workspace_members row above. Same transaction, so the organisation is
+    // never, even for an instant, without an organization_members administrator.
+    await tx
+      .insert(organizationMembers)
+      .values({ organizationId: organization.id, userId: user.id });
 
     return {
       user: { id: user.id, email: user.email, displayName: user.displayName },
