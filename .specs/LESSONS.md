@@ -314,6 +314,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: EDGE-03/EDGE-04 (verification)
 - last seen: 2026-08-24T23:04:30Z
 
+### L-051 - Todo edge case listado na spec precisa aparecer no Done-when de alguma task: os que ficam so na secao de Edge Cases nao viram codigo nem teste e so aparecem na conferencia final.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `planning` · harmful: 0
+- features: instance-bootstrap
+- evidence: spec.md Edge Cases: 503 quando a contagem falha (planning)
+- last seen: 2026-08-25T06:35:29Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

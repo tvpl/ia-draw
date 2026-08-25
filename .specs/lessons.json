@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 51,
+  "next_id": 52,
   "lessons": [
     {
       "id": "L-001",
@@ -906,6 +906,24 @@
       ],
       "created": "2026-08-24T23:04:30Z",
       "last_seen": "2026-08-24T23:04:30Z"
+    },
+    {
+      "id": "L-051",
+      "key": "ac_gap::todo edge case listado na spec precisa aparecer no done when de alguma task os que ficam so na secao de edge cases nao viram codigo nem teste e so aparecem na conferencia final",
+      "text": "Todo edge case listado na spec precisa aparecer no Done-when de alguma task: os que ficam so na secao de Edge Cases nao viram codigo nem teste e so aparecem na conferencia final.",
+      "signal": "ac_gap",
+      "scope": "planning",
+      "status": "candidate",
+      "features": [
+        "instance-bootstrap"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases: 503 quando a contagem falha (planning)"
+      ],
+      "created": "2026-08-25T06:35:29Z",
+      "last_seen": "2026-08-25T06:35:29Z"
     }
   ]
 }

@@ -121,22 +121,22 @@ depois de criar e ver o formulário de login.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BOOT-01 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
-| BOOT-02 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
-| BOOT-03 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T1) |
-| BOOT-04 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
-| BOOT-05 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
-| BOOT-06 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T2) |
-| BOOT-07 | P1: Primeiro acesso a uma instância nova | Implementing | Implementing (T1) |
-| BOOT-08 | P1: A porta se fecha sozinha | Implementing | Implementing (T1) |
-| BOOT-09 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
-| BOOT-10 | P1: A porta se fecha sozinha | Implementing | Implementing (T2) |
-| BOOT-11 | P1: A porta se fecha sozinha | Implementing | Implementing (T4) |
-| BOOT-12 | P2: A tela de primeiro acesso | Implementing | Implementing (T7) |
-| BOOT-13 | P2: A tela de primeiro acesso | Implementing | Implementing (T5) |
-| BOOT-14 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
-| BOOT-15 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
-| BOOT-16 | P2: A tela de primeiro acesso | Implementing | Implementing (T6) |
+| BOOT-01 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-02 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-03 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-04 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-05 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-06 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-07 | P1: Primeiro acesso a uma instância nova | Verified | ✅ Verified |
+| BOOT-08 | P1: A porta se fecha sozinha | Verified | ⚠️ Verified (parcial — PGlite não tem paralelismo real; mecanismo em firstRun.ts, prova no CI) |
+| BOOT-09 | P1: A porta se fecha sozinha | Verified | ✅ Verified |
+| BOOT-10 | P1: A porta se fecha sozinha | Verified | ✅ Verified |
+| BOOT-11 | P1: A porta se fecha sozinha | Verified | ✅ Verified |
+| BOOT-12 | P2: A tela de primeiro acesso | Verified | ✅ Verified |
+| BOOT-13 | P2: A tela de primeiro acesso | Verified | ✅ Verified |
+| BOOT-14 | P2: A tela de primeiro acesso | Verified | ✅ Verified |
+| BOOT-15 | P2: A tela de primeiro acesso | Verified | ✅ Verified |
+| BOOT-16 | P2: A tela de primeiro acesso | Verified | ✅ Verified |
 
 **Coverage:** 16 total, 16 mapeados para tasks, 0 sem mapeamento.
 
