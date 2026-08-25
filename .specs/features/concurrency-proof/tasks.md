@@ -145,10 +145,10 @@ para um helper compartilhado se o formato repetir idêntico entre os dois arquiv
 
 **Done when**:
 
-- [ ] O teste dispara os dois `first-run` via `Promise.all`, nunca sequencialmente
-- [ ] Exatamente uma resposta é `201` e a outra é `409`
-- [ ] O banco mostra exatamente uma linha em `users`
-- [ ] Gate check passes: `make test-integration-concurrency` (requer Postgres local)
+- [x] O teste dispara os dois `first-run` via `Promise.all`, nunca sequencialmente
+- [x] Exatamente uma resposta é `201` e a outra é `409`
+- [x] O banco mostra exatamente uma linha em `users`
+- [x] Gate check passes: `make test-integration-concurrency` (requer Postgres local)
 
 **Tests**: integration
 **Gate**: quick

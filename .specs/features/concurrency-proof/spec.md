@@ -132,9 +132,9 @@ contradiria a Emenda de 2026-08-24 na mesma ADR.
 | CCP-02 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-03 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-04 | P1: RBAC-12 provado contra concorrência real | Tasks | ✅ Verified |
-| CCP-05 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
-| CCP-06 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
-| CCP-07 | P1: BOOT-08 provado contra concorrência real | Tasks | Pending |
+| CCP-05 | P1: BOOT-08 provado contra concorrência real | Tasks | ✅ Verified |
+| CCP-06 | P1: BOOT-08 provado contra concorrência real | Tasks | ✅ Verified |
+| CCP-07 | P1: BOOT-08 provado contra concorrência real | Tasks | ✅ Verified |
 | CCP-08 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | ✅ Verified |
 | CCP-09 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | Pending |
 | CCP-10 | P2: A exceção fica documentada e isolada do gate padrão | Tasks | Pending |
