@@ -269,10 +269,10 @@ CONFLICT DO NOTHING`), `withLastOrgAdminGuard` (mesmo padrão `select ... for up
 
 **Done when**:
 
-- [ ] `addOrganizationAdmin` não falha e não duplica quando o alvo já é administrador
-- [ ] `withLastOrgAdminGuard` recusa uma revogação que zeraria os administradores, sob lock de linha
-- [ ] O lock cobre a leitura e a escrita na mesma transação (não checa-depois-muta)
-- [ ] Gate check passes: `make lint && make typecheck && make test-unit`
+- [x] `addOrganizationAdmin` não falha e não duplica quando o alvo já é administrador
+- [x] `withLastOrgAdminGuard` recusa uma revogação que zeraria os administradores, sob lock de linha
+- [x] O lock cobre a leitura e a escrita na mesma transação (não checa-depois-muta)
+- [x] Gate check passes: `make lint && make typecheck && make test-unit`
 
 **Tests**: unit
 **Gate**: full
